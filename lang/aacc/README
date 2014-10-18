@@ -1,0 +1,81 @@
+To compile AACC:
+
+  cc -O aacc.c -o aacc
+
+To look at the man page:
+
+  nroff -man aacc.1 | more
+
+Instructions for the examples:
+
+calc0
+-----
+
+This is a simple four-function integer calculator.
+
+To compile:
+
+ aacc calc0.y
+ cc calc0.c yytab.c -o calc
+
+To use:
+
+ >calc '1+2'
+ =3
+
+ >calc '1+2 4'
+ =3
+ =4
+
+As in languages like C, this example resolves the ambiguity between subtract
+and negate by trying to make the expression as long as possible:
+
+ >calc '1+2 -3'
+ =0
+
+calc1
+-----
+
+This is a four function floating point calculator with elaborate
+error reporting and run-time conflict resolution:
+
+To compile:
+
+ aacc -type 'struct value *' calc1.y
+ cc calc1.c yytab.c -o calc
+
+To use:
+
+ >calc '1/2'
+ = .5
+
+Unlike the previous languages like C, this example decides the ambiguity
+between subtract and negate by using a run-time conflict resolution
+function.  Whichever use of '-' "looks" correct will be the one chosen:
+
+ >calc '1+2-3'
+ = 0
+
+ >calc '1+2 -3'
+ = 3
+ = -3
+
+ >calc '1 + 2 - 3'
+ = 0
+
+ >calc '1 + 2  - 3'
+ = 3
+ = -3
+
+Some examples of elaborate error reporting:
+
+ >calc '10*7-5+15 12*13*/16'
+ = 80
+ Syntax error:
+ 10*7-5+15 12*13*/16
+ ----------------^
+
+ >calc '(10+20)/(90-30*3)'
+ Divide by zero:
+ (10+20)/(90-30*3)
+         ---------

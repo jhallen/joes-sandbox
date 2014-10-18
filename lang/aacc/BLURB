@@ -1,0 +1,100 @@
+I've posted an experimental LALR(1) parser generator called AACC (Ack!
+Another Compiler Compiler!) to alt.sources
+
+AACC is the result of an effort to replace the hand-rolled parser in my
+interpreted language Ivy with a table driven parser.  Ivy's syntax contains
+a number of features for which YACC generated parsers are not adequate. 
+Namely, definable operators, lack of semicolons and blocks indicated through
+indentation (although this particular feature could be solved by the lexer
+as in Python).
+
+One minor feature of AACC is that it provides an event-driven parser,
+instead of a blocking parser.  This is important for MUDs (one of IVY's
+intended applications) where multiple input sources must be handled
+asynchronously.  YACC's parsing function, yyparse() is called once to
+compile an entire source file.  Whenever it needs input, it calls yylex(),
+which may block if input is not yet available.  AACC, on the other hand,
+generates a parsing function which is called every time a new token becomes
+available, and is thus friendly to event-driven applications.
+
+The primary advantage of AACC however, is full control over conflict
+resolution.  YACC allows some conflicts to be resolved through the use of
+precedence rules and gives a default handling for unresolved conflicts. 
+AACC, on the other hand, identifies each conflict in detail and allows the
+user to either select the action for the conflict or to provide a function
+for resolving the conflict during compiler run-time.
+
+Here's a simple operator grammar for demonstrating AACC:
+
+# Program
+	pgm	expr			: result	# Final result
+
+# Expressions
+	expr	constant		: pass0
+	expr	expr op expr		: doinfix
+	expr	op expr			: doprefix
+	expr	lparen expr rparen	: pass1
+
+Each production (syntax rule) is on a separate line.  The first word on the
+line is the non-terminal symbol on the left hand side of the production. 
+The remaining words (up to the ':') are terminals (tokens) and non-terminals
+on the right side of the production.  The word following the ':' is a
+function to call when the production is reduced (I.E., when the right side
+is matched).  Pound-signs introduce comments.
+
+This grammar is ambiguous and when fed to AACC, this is printed:
+
+Conflict: shift reduce(expr ==> op expr) : op
+Conflict: shift reduce(expr ==> expr op expr) : op
+
+Each conflict message indicates whether a possible action is a shift and
+lists the possible reductions which could occur, followed by the next input
+token (after the ':').  The first conflict message above indicates that
+there's a shift/reduce conflict when "op expr" has been recognized and
+another "op" is on the input.  The second message indicates that there's a
+shift/reduce conflict when "expr op expr" has been recognized and another
+"op" is on the input.
+
+Once the conflicts are identified, conflict resolution commands can be
+appended to the grammar:
+
+	pgm	expr			: result
+
+	expr	constant		: pass0
+:infix	expr	expr op expr		: doinfix
+:prefix	expr	op expr			: doprefix
+	expr	lparen expr rparen	: pass2
+
+(shift prefix : op) prefix	# Resolve -A +B
+(shift infix : op) : prec	# Resolve A+B*C
+
+The contents of the the parenthesis identify the conflict.  They contain
+'shift' if the conflict involves a shift, a list of one or more labels which
+refer to productions (possible reductions), and the next input token
+(following the ':').
+
+The resolution of the conflict follows the conflict identifier.  In the
+first command above, the word 'prefix' indicates that the reduction should
+occur, not the shift (this would be the case if we assume that all prefix
+operators have higher precedence than infix operators).  For the second
+command, the ': prec' indicates that a function prec() will be called when
+this conflict is recognized by the parser.  Prec() should evaluate the
+conflict using data not available to the parser and return the action to be
+taken in the form of an index into the conflict identifier.  If prec()
+returns 0, the first action listed will be taken, the shift.  If prec()
+returns 1, the second action listed will be taken, the reduce.
+
+If this grammar is fed into AACC, no conflict messages are printed and two
+files are created: parsetab.c (containing the parsing tables) and parse.h
+(containing function declarations).  The parser is in a separate file
+(parse.c) which is included with AACC.
+
+The line "typedef int VAL;" in parse.h defines the value associated with
+each terminal and non-terminal.  When a reduction function is called (when a
+production has been recognized), it should retrieve the VALs from the top of
+the stack which are associated with the right side of the production,
+operate on them, and return a new VAL for the non-terminal on the left side
+of the production.
+
+VAL is typically redefined to a parse-tree node pointer, and the reduction
+functions do tree node CONSes.

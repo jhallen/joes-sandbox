@@ -1,0 +1,113 @@
+.TH AACC 1
+.SH Name
+aacc \- Ack! Another Compiler-Compiler!
+.SH Syntax
+.B aacc [-help] [-prefix prefix] [-type 'type'] grammar-file
+.SH Description
+
+AACC is an LALR(1) parser generator with full control over conflict
+resolution.  AACC identifies each conflict in detail and allows the user to
+either select the action for the conflict or to provide a function for
+resolving the conflict during compiler run-time.
+
+.SH Options
+
+.IP \fB-prefix prefix
+Changes the default prefix sequence from yy to \fBprefix\fR.  This allows
+more than one parser to exist in the same program without their identifiers
+clashing.
+
+.IP \fB-type 'type'
+This changes the default token value type from \fBint\fR to \fBtype\fR. 
+This is typically set to structure or pointer to a structure representing a
+parse-tree node.
+
+.SH Usage
+
+AACC converts a grammar description file into a parser in the form of a C
+source file (yytab.c) and C header file (yytab.h).  This C code can then be
+compiled and linked into an application requiring a parser.
+
+Three functions are provided in the generated C source file.  The function
+yymkstk() is used to create a stack which the parser uses for temporary
+storage.  The function yyrmstk() can be used to dispose of a stack.  The
+function yyparse() accepts a stack to use, a token (an integer) and a value
+for the token (for example, if the token represents a floating point
+constant, then the value would contain the floating point constant). 
+yyparse() either returns zero if the token was accepted, one to indicate
+that the parsing is finished, or -1 if there was a syntax error.
+
+The parser either pushes the token on the stack (a "shift") or when a right
+hand side of a grammar rule (a "production") is recognized on the stack in
+the proper context, it calls a user provided function (specified for that
+grammar rule) to "reduce" the stack.  The user provided function does
+whatever semantic processing is necessary on the values on the stack and
+returns a resulting new value.  The parser then pops the right hand side off
+the stack and pushes the function's return value.  This new value represents
+the value of the token (or "non-terminal") on the left hand side of the
+grammar rule.
+
+The value of each element of the right side of a production is passed as an
+argument to the production function.  The production function should return
+the value of the left hand side of the production.  For example, if the
+production is "expr ==> expr add expr", then the function should look like
+this:
+
+yyVAL function(left,op,right)
+yyVAL left, op, right;
+ {
+ return left+right;
+ }
+
+If the grammar has ambiguities (occurances where the parser could shift a
+token onto the stack or reduce one of a set of possible productions
+appearing on the stack, but doesn't know which action to choose), AACC will
+identify each of them.  Conflict resolution commands can be placed in the
+grammar file to indicate which action should be taken.
+
+The format of the grammar file is as follows:
+
+.IP #\ Comment
+Any characters between a pound sign and the end of the line are considered a
+constant.
+
+.IP [:label]\ symbol\ symbol\ symbol...\ :\ function-name
+An optionally labeled production (grammar rule).  The first symbol is the
+left hand side of the production and the remaining symbols are the right
+hand side.  The function name following the colon is the function which is
+called when the right hand side of the production is recognized and reduced.
+
+Symbols which don't appear on the left hand side of a production are tokens
+(or "terminals") recognized by the lexical analyzer (or scanner).  Symbols
+which do appear on the left hand side of a production represent higher-level
+grammatical constructs and are called "non-terminals".  Both terminals and
+non-terminals can appear on the right hand side of a production.
+
+The symbols are #defined in the header file produced by the parser.  The
+lexical analyzer must use them for token identifiers.  The special symbol
+yyTHEEND is a token representing the end of the input.
+
+.IP (\ conflict-identifier\ )\ action
+A conflict resolution command.  The conflict-identifier is in nearly the
+same format as the conflict warning messages produced by AACC.  It contains
+the word \fBshift\fR if the conflict involves a possible shift, and one or
+more production labels (one for each reduce in the conflict) followed by a
+\fB:\fR preceding a terminal (token).  This token is what is next on the input
+when the parser failed to decide.
+
+The action is the word \fBshift\fR if a shift should occur or one of the
+production labels if a reduction is to occur.  Also, the action can be a
+function name preceded by a \fB:\fR.  This function will be called by the
+parser when the conflict occurs and decides the action during run-time. 
+The function indicates the action by returning an integer which is used as
+an index into the conflict-identifier (0 is the left-most word of the
+identifier).  This is useful if the function can get access to information
+about the input which the parser does not normally have.
+
+.SH Limitations
+
+AACC currently does no error recovery.  Hopefully, this will be available in
+the next version.
+
+There are no empty or null productions (production which have only a left
+side).  The grammar must be rearranged to avoid using null productions.
