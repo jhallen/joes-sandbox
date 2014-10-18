@@ -1,0 +1,25 @@
+This is an experimental malloc() library.  It's a "best-fit" allocator, but
+uses a skip-list based index of free-block chains sorted by size to quickly
+find the smallest block which satifies the request.  If no block is found,
+it calls sbrk() to allocate the block.
+
+Blocks include a size_t (located just before the beginning) which gives the
+block size.  If bit 0 of this size_t is set, it means the block is
+allocated.
+
+The end of the heap always has a tiny allocated block.  This prevents
+the coalescing algorithm from trying to go past the end of the heap.
+
+When the best-fit block is much larger than the requested size, the balance
+is returned to the free chains.  Any time a block is freed (including when
+unused balance is freed) the library looks at the next adjacent block, and
+if it's free, coalesces the two together.
+
+On realloc, the library tries to satisfy the request without copying data by
+appending an adjacent free block (if one exists) or by extending the heap
+with sbrk() if the block happens to be at the very end.
+
+Whenever the last block of the heap is freed, sbrk() is called to reduce the
+overall heap size.
+
+This library is not thread safe.
