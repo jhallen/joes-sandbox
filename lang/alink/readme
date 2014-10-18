@@ -1,0 +1,123 @@
+
+                           Absolute Linker Program
+                                 Version 1.1
+
+INTRODUCTION
+
+	This program accepts MS-DOS .OBJ and .LIB files and an entered set
+of absolute segment addresses and generates a simple binary image file
+suitable for use as a .COM file, ROM, boot program or device driver.  Most
+(all?) standard MS-DOS linkers can only generate a contiguous image which is
+less than 64K and which begins at 0.  This program can generate any size
+image (any memory model may be used) and each segment in the image can be
+placed anywhere in the 1MB memory map.
+
+COMPILING
+
+	Compile under UNIX or in MS-DOS compact model
+
+COMMAND FORMAT and OPERATION
+
+	alink [-q] [-o outputfile] [-l listingfile] files
+
+   '-q'  Quiet mode: Suppresses messages
+
+'files'  List object file and library file names.  Also, text files
+         containing whitespace separated lists of more file names may be
+         specified
+
+After the command is invoked, it displays a list of the segments and class
+groupings on the output.  You then enter segment positioning data in this
+format:
+
+	XXXXX[,YYYYY] list
+
+Where:
+	XXXXX is a absolute 20-bit address in hexadecimal indicating where the
+              segments in the list are to be linked.
+
+	YYYYY is an optional load address if it's to be different from the link
+	      address.
+
+	list  is the names of the segments.  If a class name is given, all
+	      the segments in the class are specified.  Private segments may
+	      also be specified by giving them in this format: SEGMENT(MODULE)
+
+EXAMPLES
+
+To generate a .COM file using Turbo-C 2.0:
+
+    test.c: main() { printf("Hello world\n"); }
+
+    >tcc -c -mt test.c
+    >alink -o test.com c0t.obj test.obj cs.lib
+
+    Segments: _TEXT _BSSEND _EMUSEG _SCNSEG _BSS _CRTSEG _DATA _CVTSEG
+
+    Classes: 'BSS'(_BSS) 'STACK'(_BSSEND) 'DATA'(_EMUSEG,_DATA,_SCNSEG,_CRTSEG,
+    _CVTSEG) 'CODE'(_TEXT)
+
+    >0 CODE DATA BSS STACK
+
+Example of embedded system.  The linker says:
+
+	Segments: _TEXT _SCNSEG _BSS _DATA _CVTSEG _START(c0t.asm)
+	Classes: BSS(_BSS) DATA(_DATA,_SCNSEG,_CVTSEG) CODE(_TEXT)
+
+Then you could respond with:
+
+	> 00000 BSS
+	> 0F000 _TEXT DATA
+	> FFFF0,FFF0 _START(c0t.asm)
+
+This would be appropriate for burning a 4K ROM for an embedded system where
+only 16-bits of address decoding are present and where 32K of RAM exists at
+address 0 and where the ROM exists at address 0F000.  The private segment
+'_START(c0t.asm)' could be this:  
+
+_START	segment byte
+	assume cs:_START
+	xor	ax,ax
+	mov	ds,ax
+	mov	ss,ax
+	mov	sp,08000H
+	jmp	FAR PTR _main
+_START	ends
+
+- A simple startup routine for a Turbo-C program.  Since the upper 4 bits of
+the address are ignored, the ROM exists at 0F000 as well as FF000.  You want
+the startup code to be linked for FFFF0 (the reset CS:IP value) therefore,
+but to be placed at 0FFF0 in the image.  
+
+FEATURES/RESTRICTIONS
+
+*	The first byte of the generated output file is the first byte
+	generated, not address 0 (unless code or data are generated there).
+	In the above example, the first byte of the output file is address
+	0F000 and the output file is 4K in size.
+
+*	A very detailed listing including a symbol cross-referencing listing
+	and a list showing where each module is placed is generated if the
+	'-l' option is used.
+
+*	All symbols are case sensitive
+
+*	There is no limit to the size of the binary image file EXCEPT that
+	all of the generated code for it must fit in RAM when the linker is
+	running (I.E., the entire 1MB image does not have to fit in ram if
+	4K is generated at 0 and 4K is generated at FF000).
+
+*	No error checking is performed on external references.
+	If an external reference is out of range, an invalid address will
+	be generated.
+	
+*	Segment overflow, group overflow and segment overlap checking is
+	performed, however.
+
+*	32-bit 386 code is not supported.  If someone knows the format of
+	the 386 .OBJ file records, please send it to me so I can eliminate
+	this restriction.
+
+*	Works on Xenix for Xenix .o files as well.
+
+Joseph H. Allen (jhallen@world.std.com)
