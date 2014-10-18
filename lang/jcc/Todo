@@ -1,0 +1,4 @@
+- allow exact duplicate defines
+- handle float / double constants
+- short circuiting || &&.. does it make any difference?
+- prevent macro recursion: #define stderr stderr

@@ -1,0 +1,8 @@
+
+This is a C preprocessor and lexical analyzer.
+
+cc -o lex lex.c
+
+./lex file.c
+ ==> prints tokenized version of file.c
+ ==> prints table of macros
