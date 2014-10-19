@@ -1,0 +1,5 @@
+This is an assembler for micro-engines you might make in your Verilog
+designs.
+
+It allows you to define arbitrary word-size instructions with named
+parameters.
