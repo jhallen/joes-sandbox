@@ -27,3 +27,5 @@ Short utilities:
 	subtotal: Compute subtotals
 
 	subtotal1: Compute subtotals
+
+	upc: Generate UPC bar codes
