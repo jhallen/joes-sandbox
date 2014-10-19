@@ -4,6 +4,8 @@ Short utilities:
 
 	tabify: Replace spaces with tabs in indentation
 
+	tab: Replace tabs with spaces given a list of field widths
+
 	hd: Hex dump (prints ... for zeros)
 
 	crlf: Add or remove CR-LF line endings
