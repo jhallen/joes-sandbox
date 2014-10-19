@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-main()
+int main(int argc, char *argv[])
 {
 	int c;
 	while ((c = getchar()) != -1)
@@ -13,4 +13,5 @@ main()
 			putchar('\n');
 		} else
 			putchar(c);
+	return 0;
 }
