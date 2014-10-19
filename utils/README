@@ -11,3 +11,19 @@ Short utilities:
 	crlf: Add or remove CR-LF line endings
 
 	base64: Decode base64
+
+	csv: Clean up CSV files
+
+	bintoc: Convert binary file into C source code (for FPGA image)
+
+	lfsr: Show linear feedback shift register tap points and find code for a particular count.
+
+	lpf: Convert PCL / ASCII to postscript
+
+	reindent: Change indentation
+
+	rev: Reverse lines
+
+	subtotal: Compute subtotals
+
+	subtotal1: Compute subtotals
