@@ -1,0 +1,469 @@
+vcsr - extract "Control Status Registers" from Verilog source
+
+Vcsr is a program which finds programmable registers in a Verilog source
+design and generates a C header file, which describes these registers in a
+machine readable format.
+
+Vcsr also performs a sanity check on the register addresses: it reports any
+address clashes.
+
+INVOCATION
+----------
+
+Typically:
+
+  vcsr -o mychip.h -i ~/mychip/src/vinclude -chdr ~/mychip/src/rtl/*.v
+
+Type: vcsr
+alone for a complete list of options.
+
+
+RTL coding rules for VCSR
+-------------------------
+
+
+REGISTERS
+---------
+
+Programmable registers are instantiated modules, generally with one register
+per instantiation.
+
+
+Modules which are programmable registers are defined as such by the presence
+of a parameter called "REG".  They must also have a parameter called "ADDR"
+which has the register's address.
+
+
+FIELDS
+------
+
+Register modules have can have an input port called ".in", an output port
+called ".out" or both:
+
+  If the register has only an input port (called .in), all of the register
+  fields will be _RdOnly.
+
+  If the register has only an output port (called .out), all of the register
+  fields will be _RdWr.
+
+  If the register has both, then .in() is scanned.  Any field which is found
+  which also exists in .out() is _RdWr, otherwise it's _RdOnly.
+
+
+VCSR finds the fields of each register by parsing the .in( ) and
+.out( ) connection lists in the register's instantiation(s).  Only the names
+that appear at this point will appear in the .h file.  Thus:
+
+    wire [1:0] a;
+    wire b;
+    wire c;
+
+    input_reg #(.ADDR(20'h12345)) status_reg
+      (
+      .inzies (inzies), .outzies(outzies),
+
+      .in ({ a, b, c })
+      );
+
+Will result in the .h file containing the field names: a, b, and c.
+This is preferred over:
+
+    wire [1:0] a;
+    wire b;
+    wire c;
+
+    wire [3:0] pins = { a, b, c };
+
+    input_reg #(.ADDR(20'h12345)) status_reg
+      (
+      .inzies (inzies), .outzies(outzies),
+
+      .in (pins)
+      );
+
+Where only the field name 'pins' will appear in .h file.
+
+
+Note that named connections must be used.  Fields in positional connections
+will be ignored:
+
+     input_reg #(.ADDR(8'h04)) a_reg(inzies, outzies, pins);
+
+'pins' not found.
+
+
+DEFPARAMS
+---------
+
+However, it is OK to use positional defparams and the explicit "defparam"
+statement in addition to v2000 named defparams.  In other words, these are
+all OK:
+
+     input_reg #(.ADDR(8'h04)) a_reg(.bus(bus), .in({a, b, c}));
+
+     input_reg #(8'h04) b_reg(.bus(bus), .in({a, b, c}));
+
+     defparam c_reg.ADDR=8'h04;
+
+     input_reg c_reg(.bus(bus), .in({a, b, c}));
+
+
+INVERTING FIELD SENSE
+---------------------
+
+Also: any field names which are preceded with ! or ~ have their sense
+reversed by either adding or removing a "_l" postfix from the field name.
+
+    input_reg #(.ADDR(16'h0101)) stat_reg
+      (
+      .inzies (inzies), .outzies (outzies),
+
+      .in ({ x, !y_l, !z })
+      );
+
+    The field names in the .h file will be: x, y, and z_l.
+
+Also: a parameter called INV also reverses the sense of fields, and is
+typically used for reversing the sense of outputs.  Each field whose
+corresponding bit(s) in INV will have its sense reversed.  For example:
+
+    output_reg #(.ADDR(16'h55AA), .INV(3'b101)) ctrl_reg
+      (
+      .bus (bus),
+      .out ({ a, b, c })
+      );
+
+    The field names in the .h file will be: a_l, b, and c_l.
+
+If a corresponding 1 bit in INV and a ! on the field name are both present,
+they cancel each other out.
+
+
+
+WRAPPER MODULES
+---------------
+
+It is permissible to make "wrapper" modules for programmable registers,
+where the .in() and .out() port of the wrapper instantiation contain the
+field names, and the actual register instantiation (within the wrapper
+module) has only a single bus name connected to .in() or .out().  To do
+this, put a "parameter REG = 0;" line in the wrapper module.  The wrapped
+module should also have the "ADDR" parameter to indicate the register's
+address (it should pass this parameter to the actual register).
+
+    wrapper #(.ADDR(16'hAA55)) in_reg
+      (
+      .clk (clk),
+      .bus (bus),
+      .in ({ a, b, c })
+      );
+
+    module wrapper
+      (
+      clk,
+      bus,
+      in
+      );
+
+    parameter ADDR=0;
+    parameter REG=0; // Marks this module as a register, though it's a wrapper
+    parameter WIDTH=3;
+
+    input clk;
+    inout [40:0] bus;
+    input [WIDTH-1:0] in;
+
+    reg [WIDTH-1:0] in_r; // Input register
+
+    always @(posedge clk) in_r <= in;
+
+    input_reg #(.ADDR(ADDR)) raw_reg // Real register
+      (
+      .bus(bus),
+      .in(in_r)
+      );
+
+    endmodule
+
+
+COMPLEX MODULES
+---------------
+
+Wrapper modules which have more than one programmable register are also
+allowed.  For this case explicit rules are added to the module to tell VCSR
+how to derive the field names.  It is best to show this by example.  Suppose
+an "interrupt controller" contains both an interrupt status register and an
+interrupt enable register and both of these should get their field names
+from the wrapper module's instantiation:
+
+
+    module interrupt
+      (
+      bus,
+      triggers,		// interrupt trigger pulses in
+      irq		// interrupt request out
+      );
+
+    parameter ADDR=0;
+    parameter WIDTH=3;
+    // Do not declare REG here.
+
+    inout [40:0] bus;
+    input [WIDTH-1:0] in;
+    output irq;
+
+    wire [WIDTH-1:0] s;
+
+    interrupt_status_reg #(.ADDR(ADDR)) status_reg
+      (
+      .bus (bus),
+      .in (in), /* VCSR triggers triggers .*trig &0_pending */
+      .out (s)
+      );
+
+    wire [WIDTH-1:0] enables;
+
+    // Note that it is OK to modify ADDR
+    interrupt_enable_reg #(.ADDR(ADDR+4)) enable_reg
+      (
+      .bus (bus),
+      .out (enables) /* VCSR triggers triggers .*trig &0_enable */
+      );
+
+    assign irq = |(s & enables);
+
+    endmodule
+
+
+    interrupt #(.ADDR(16'h1000)) interrupt_pair
+      (
+      .bus (bus),
+      .triggers ({ parity_error_trig, ram_error_trig, file_error_trig })
+      );
+
+Will result in the .h file containing these fields:
+
+  parity_error_pending, ram_error_pending, file_error_pending
+  parity_error_enable, ram_error_enable, file_error_enable
+
+Basically the: /* VCSR in out find replace */ tells VCSR where to find the
+.in() and .out() signals, and gives a "sed"-like substitution command which
+allows the field name to be edited (editing happens after sense reversal).
+
+
+RAMS (TABLES)
+-------------
+
+RAMs are instantiated modules, one RAM (contiguous address space with uniform
+structure) per instantiation, just like registers.
+
+
+RAM modules are identified with a "parameter TABLE=0;".
+
+The size in bytes is indicated by either a "SIZE" parameter or "ADDRWIDTH"
+parameter, such that SIZE = (1<<ADDRWIDTH).
+
+The word size in bits is indicated by the "ENTRYWIDTH" parameter.  ENTRYWIDTH
+must evenly divide into (SIZE*8), or an error is generated.  ENTRYWIDTH
+should also be a multiple of 32 bits to match the PCI bus width.
+
+VCSR finds the table entry structure by parsing the .out () port
+connection list (which must be there, even if it is only used for
+documentation for VCSR).  Table entries are overlaid onto PCI words in a big
+endian manner.  Thus bit 0 of the table entry matches bit 0 of the 4th PCI
+word for a table with 128 bit words.
+
+It is OK to have a table with only a single word.
+
+For example:
+
+        // 12 bits
+        wire parity;
+        wire [2:0] control;
+        wire [7:0] data;
+
+	ram_if #(.ADDR(16'h1000), .SIZE(4096), .ENTRYWIDTH(32),
+	         .DATAWIDTH(12)) p_ram
+	  (
+	  .bus (bus),
+
+	  .ram_addr (ram_addr), /* to RAM */
+	  .ram_data (ram_data),
+	  .ram_we (ram_we),
+
+          // Define ENTRY structure
+          .out ({ parity, control, data })
+	  );
+
+Results in the following .h:
+
+	struct p_ram_t {
+		_RdWr(parity, 1, 11);
+		_RdWr(control, 3, 8);
+		_RdWr(data, 8, 0);
+	};
+	
+      	...
+	TABLE(p_ram[1024:32], p_ram_t, 0x1000);	// 1024 words of 32 bits
+	...
+
+The RAM is accessed as 1024 32-bit words, even though the RAM is only 12
+bits wide (only the lower 12-bits of each 32-bit word is used).  Thus
+ENTRYWIDTH indicates the number of PCI words per table entry, and DATAWIDTH
+(not parsed by VCSR) indicates the actual RAM width.
+
+Here is an example of a multi-word per entry RAM:
+
+        // 100 bits
+        wire parity;
+        wire [2:0] control;
+        wire [95:0] data;
+
+	ram_if #(.ADDR(16'h1000), .SIZE(4096), .ENTRYWIDTH(128),
+                 .DATAWIDTH(100)) p_ram
+	  (
+	  .bus (bus),
+
+	  .ram_addr (ram_addr), /* to RAM */
+	  .ram_data (ram_data),
+	  .ram_we (ram_we),
+
+          .out ({ parity, control, data })
+	  );
+
+Results in the following .h:
+
+        // RAM is 100 bits wide.
+	struct p_ram_t {
+		_RdWr(parity, 1, 99);
+		_RdWr(control, 3, 96);
+		_RdWr(data, 96, 0);
+	};
+	
+      	...
+	TABLE(p_ram[256:128], p_ram_t, 0x1000);	// 256 words of 128 bits
+	...
+
+NAME MAGIC
+----------
+
+VCSR creates register and register type names by taking the register
+instance path through the design heirarchy and truncating as much prefix as
+possible while keeping all names unique.
+
+For example, here are two registers:
+
+      top/core/insertion/control_reg
+      top/core/deletion/control_reg
+
+The resulting names will be:
+
+      insertion_control_reg
+      deletion_control_reg
+
+Thus the instance names are used for the .h register names.  Module names
+have nothing to do with it.
+
+
+The algorithm:
+
+First pass:
+  For each path:
+    Attempt to use the shortest possible postfix:
+      If it's unique (that postfix doesn't appear anywhere else), use it as
+      the complete name, otherwise try the next longer postfix:
+        If adding the next name improves uniqueness (the resulting postfix
+        appears in fewer places than the the original postfix alone), keep it,
+        otherwise do not prepend this next name.
+      Repeat until path is completely unique.
+
+this algorithm fails in a number of cases, especially:
+
+   oc192/status/status
+   oc192/status/watch
+   oc48/status/status
+   oc48/status/watch
+   flash_memory/status
+
+Changing the postfix status to status/status results in improved uniqueness,
+so it's kept even though not necessary.  We can't simply delete names which
+improve but to not complete uniqueness, because of cases like this:
+
+   oc192/a/i/status
+   oc192/a/j/status
+   oc192/b/i/status
+   oc192/b/j/status
+
+In this case, adding i to status increases uniqueness, but it is necessary
+for complete uniqueness.
+
+Also, we can't greedily reduce the path or you get, for cases like this:
+
+   oc48/a/status
+   oc48/b/status
+   oc192/a/status
+   oc192/b/status
+
+Focus on the first line.  oc48/a/status -> oc48/status (still globally
+unique).  oc48/status-> status (still globally unique).
+
+You end up with:
+
+   status
+   oc48/status
+   oc192/status
+   oc192/b/status
+   
+
+So, this is the algorithm for the second pass (we keep the first pass
+because it does a good job of eliminating global prefixes which mess
+up this algorithm):
+
+  For each path:
+    Start with the right-most name as the current postfix.
+    Try to delete the next left name from the complete path from all
+    paths with the same postfix and same number of names
+    which make up the path.  If there would be no clashes in the name space
+    after this operation, perform the deletion, otherwise add the name to
+    the postfix.
+
+    Repeat with the next leftward name from the complete path until all
+    names have been tried.
+
+These algorithms work fairly well, but you have to use meaningful instance
+names and you can't hide struture in the name space:
+
+    oc192/status
+    pic_status/status
+    pic_control/control
+    pic_iic/iic
+
+Will result in:
+
+    oc192_status
+    pic_status_status  (yuck!)
+    control
+    iic
+
+Better is to start with:
+
+    oc192/status
+    pic/status/status
+    pic/control/control
+    pic/iic
+
+or:
+
+    oc192/status
+    pic/status/status
+    pic_control/control
+    pic_iic/iic
+
+(which doesn't work if you also have oc192/control).
+
+Either of which results in:
+
+    oc192_status
+    pic_status
+    control
+    iic
