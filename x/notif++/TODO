@@ -1,0 +1,120 @@
+Use friends so that we can keep members private.
+
+sizenotifyfn seems hokey: it gets called in response to stwidth and
+stheight, but also from configurenotify
+
+need mouse pointer switchover, for example for menus.
+need mouse icons.
+
+all events area always enabled.  put back event mask?
+
+scroll: it should follow the cursor in edit windows.
+
+- - - -
+
+Todo from notif-0.4:
+
+Misc
+
+	- Create an example for each widget
+
+	- Improve the documentation
+
+	- Bezier should generate output which matches scalable icon macro
+	  language input (now it just emits the bezier control points).
+
+We need these missing widgets:
+
+	- Option box (edit widget with attached menu of choices).  The menu
+	  here needs to be scrollable.
+
+	- Tiled window widget (where user can move horz or vert. separation
+	  line).
+
+	- Spreadsheet thing (where user can resize column widths).
+
+	- File selector
+
+	- Spinbuttons (numeric control with inc/dec buttons)
+
+	- Thermometer/progress bar
+
+	- Tree displayer (I.E., like for directory selection)
+
+	- Printer selector
+
+	- Multi-line editor
+
+Improve existing widgets:
+
+  Dragdrop
+
+	- drag & drop should have icon attached to mouse pointer
+
+  Edit
+
+	- need drag & drop movement in edit widget
+
+  Index
+
+	- index card widget should be able to handle more tabs than which
+          can fit across the top line.
+
+  Text
+
+	- text widget needs formatting escape sequences
+
+  Scrolling
+
+	- scroll bar slider should be a window
+
+	- PgUp/PgDn areas in scroll bars should repeat
+		<done>
+
+	- Middle & right button should be scroll up/down as in athena widgets
+
+	- Wheel scrolling should work
+
+	- List cursors should tell scroller that they have changed: thus
+	  scroller will always keep cursor on screen.
+
+	- Think about how keys should be linked to the scroll bars
+
+  Lists
+
+	- Lists need selection capability.  Ctrl-return/ctrl-left button
+	  adds / removes item from selection.
+
+	- When lists have focus, can use keyboard to move cursor.
+
+  Menus
+
+        - Need deactivated menu entries
+
+	- Need to be able to scroll long menus / long menus should be split
+	  into seperate columns
+
+  	- Need cute menu entry with icon on left
+
+Improvements to core
+
+	- Fix all drawing functions to take into account multiple expose
+	  events
+
+	- Need to handle application death event
+
+	- Make sure we can set and retreive all componant widgets, I.E., so
+	  that colors can be set.  Don't know if there should be polymorphic
+	  functions for this, or just use structure access.
+
+	- Do we have mouse icon slot in widgets?
+
+	- Need easy way to send simulated keypress or mouse clicks to
+	  widgets.
+
+	- Should use callbacks in serv.
+
+	- Need to make callbacks type safe (or at least portable).
+
+	- Eliminate all compiler warnings
+

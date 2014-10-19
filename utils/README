@@ -1,0 +1,11 @@
+Short utilities:
+
+	exotobin: Convert Motorola S19 files to binary
+
+	tabify: Replace spaces with tabs in indentation
+
+	hd: Hex dump (prints ... for zeros)
+
+	crlf: Add or remove CR-LF line endings
+
+	base64: Decode base64
