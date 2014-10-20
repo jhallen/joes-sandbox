@@ -35,3 +35,12 @@ Short utilities:
 	upc: Generate UPC bar codes
 
 	upccheck: Check UPC bar code / compute check digit
+
+	These all compute checksum in the same way that the Xilinx HW-130
+	programmer:
+
+	hex: Convert Xilinx .hex file to binary (computes checksum)
+	chk: Compute Xilinx checksum of binary file
+	exo: Convert Xilinx .exo file to binary (computes checksum)
+	mcs: Convert Xilinx .mcs file to binary (computes checksum)
+
