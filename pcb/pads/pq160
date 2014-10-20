@@ -1,0 +1,14 @@
+; Generate a PQFP-160
+
+name PQ160	; Name of decal
+
+units mil	; Units are mils
+
+rect 16 35 25	; Pads are rectangles 16 mils wide, 35 under pin 25 out of pin
+
+units mm	; Units are millimeters
+
+r d 0 0 40 .65			; Row of pins building towards right
+u r 28.275 2.925 40 .65		; Column of pins going upwards
+l u 25.35 31.20 40 .65		; Row of pins going from right to left
+d l -2.925 28.275 40 .65	; Column of pins going downwards

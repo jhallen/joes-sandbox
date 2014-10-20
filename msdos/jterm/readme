@@ -1,0 +1,134 @@
+JTERM is a simple vtxxx/ansi terminal emulator for MS-DOS.  The function
+keys generate the same codes as the Xenix console.  If jterm receives a
+Ctrl-F, it toggles a parallel printer function.
+
+This is a fairly complete emulation of a vt220; the only missing features
+being: double width/height lines, alternate/ definable character sets and
+132 column mode.
+
+Compiling--
+
+ masm /Mx asm.asm;
+ tcc jterm.c sp.c tty.c lp.c asm.obj
+
+Using -
+
+ Type 'jterm' with no arguments to get help on how to use it.
+
+
+                   LIST of JTERM ANSI/VTxxx Terminal Codes
+
+Characters other than 6,7,8,9,10,11,12,13,27,132,133,136,141,155:
+
+                Insert all characters to end of line if insert mode is set,
+                then type ASCII character and move right unless at right margin.
+                If at right margin and magic-wrap is set, then the next time we
+                get a typeable character a NL is executed first unless there
+                was an intervening control sequence.
+
+6               Toggle pass-through print mode.  This is a non-portable
+                extension.
+
+7               Ring bell
+
+8               Cursor moves left 1 if not at left margin
+
+9               Move to next tab stop or right margin
+
+10,11,12        Move to beginning of line if LF=NL mode is set,
+                move down or scroll if at bottom margin
+
+13              Cursor to left margin
+
+ESC D, 0x84     Cursor down or scroll if at bottom margin
+
+ESC E, 0x85     NL: Cursor to beginning of line then ESC D
+
+ESC H, 0x88     Set tab stop at current column
+
+ESC M, 0x8d     Cursor up or scroll if at top margin
+
+ESC [, 0x9b     ESC sequence introducer
+
+ESC # 5         Single width line
+
+ESC # 6         Double width line - these are ignored
+ESC # 3
+ESC # 4
+
+ESC c           Reset: Clear screen, home cursor, set scrolling region to
+                entire screen
+
+0x9b may be used instead of ESC [ in the follow sequences:
+
+ESC [ J         Erase from cursor to end of screen
+ESC [ 1 J       Erase from beginning of screen to cursor
+ESC [ 2 J       Erase entire screen
+
+ESC [ K         Erase from cursor to end of line
+ESC [ 1 K       Erase from beginning of line to cursor
+ESC [ 2 K       Erase entire line
+
+ESC [ n X       Erase n characters from cursor to right.  If n is zero or
+                missing, erase one character.  Never erases past end of line.
+
+ESC [ r ; c H   Set cursor row/column.  If either r or c are missing, or
+                either is zero, 1 is assumed.  Is relative to top margin and
+                will not go beyond bottom margin if top-margin relative
+                positioning is set.
+
+ESC [ n C       Move right n positions.  n is assumed to be 1 if it is zero or
+                missing.  Never go past right margin.
+
+ESC [ n D       Move left n positions.  n is assumed to be 1 if it is zero or
+                missing.  Never go past left margin.
+
+ESC [ n A       Move up n positions.  n is assumed to be 1 if it is zero or
+                missing.  Never go past top margin or top of screen.  Never
+                scroll.
+
+ESC [ n B       Move down n positions.  n is assumed to be 1 if it is zero or
+                missing.  Never go past bottom margin of bottom of screen.
+                Never scroll.
+
+ESC [ g         Clear tab stop at cursor column
+ESC [ 3 g       Clear all tab stops
+
+ESC [ n M       Delete n lines (n is 1 if it's missing or 0) from cursor to
+                bottom margin.  Do nothing if past bottom margin.  New
+                lines are completely erased.
+
+ESC [ n L       Insert n lines (n is 1 if it's missing or 0) at cursor to
+                bottom margin.  Do nothing if past bottom margin.  New lines
+                are erased.
+
+ESC [ n P       Delete n characters (n is 1 if it's missing or 0) at cursor to
+                end of line.
+
+ESC [ n @       Insert n blanks (n is 1 if it's missing or 0) at cursor to end
+                of line.
+
+ESC [ ! p       Reset... don't know what this is supposed to do...
+
+ESC [ ? 1 h     Application keys
+ESC [ ? 1 l     Cursor keys (default)
+
+ESC [ ? 3 h     Does a ESC c (should set 132 column mode)
+ESC [ ? 3 l     Does a ESC c (should set 80 column mode)
+
+ESC [ 4 h       Insert mode
+ESC [ 4 l       Overtype mode (default)
+
+ESC [ ? 6 h     Set top-margin relative positioning for ESC [ H and home cursor
+ESC [ ? 6 l     Set screen relative positioning (default) for ESC [ H and home
+                cursor
+
+ESC [ ? 7 h     Set magic wrap (default)
+ESC [ ? 7 l     No autowrap
+
+ESC [ 20 h      10,11 and 12 do a new line
+ESC [ 20 l      10,11 and 12 do a linefeed (default)
+
+ESC [ ? 25 h    Visible cursor (default)
+ESC [ ? 25 l    Invisible cursor
+

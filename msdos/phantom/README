@@ -1,0 +1,3 @@
+Compile as compact model -
+
+wcl /ox /mc phantom.c lz78.c

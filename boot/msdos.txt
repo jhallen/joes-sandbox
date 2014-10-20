@@ -1,0 +1,211 @@
+DOS bootloader
+ - sets stack at 7c00
+ - fixes diskette parm table
+ - saves address of diskette parm interrupt vector and original
+   diskette parm table address on stack
+ - loads directory at 0500 - checks that io.sys & msdos.sys are in first
+                             two entries
+ - loads first 3 sectors (which must be contiguous) at 0700
+ - sets CH to media type
+ - sets DL to bios drive no.
+ - sets AX:BX to sector no. of cluster 2
+ - jumps to 0070:0000
+
+
+
+
+
+
+7c0b  word   bps
+7c0d  byte   spc
+7c0e  word   rsv
+7c10  byte   fat
+7c11  word   dir
+7c13  word   nls
+7c15  byte   typ
+7c16  word   nfs
+7c18  word   spt
+7c1a  word   hds
+7c1c  dword  nhs
+7c20  dword  nlsb
+7c24  byte   drive
+
+
+15B7:0000  EB 3C 90 4D 53 44 4F 53-35 2E 30 00 02 01 01 00   .<.MSDOS5.0.....
+15B7:0010  02 E0 00 40 0B F0 09 00-12 00 02 00 00 00 00 00   ...@............
+15B7:0020  00 00 00 00 00 00 29 FB-14 27 3D 4E 4F 20 4E 41   ......)..'=NO NA
+15B7:0030  4D 45 20 20 20 20 46 41-54 31 32 20 20 20         ME    FAT12     
+
+. . . .
+
+15B7:0190                                            0D 0A                 ..
+15B7:01A0  4E 6F 6E 2D 53 79 73 74-65 6D 20 64 69 73 6B 20   Non-System disk 
+15B7:01B0  6F 72 20 64 69 73 6B 20-65 72 72 6F 72 0D 0A 52   or disk error..R
+15B7:01C0  65 70 6C 61 63 65 20 61-6E 64 20 70 72 65 73 73   eplace and press
+15B7:01D0  20 61 6E 79 20 6B 65 79-20 77 68 65 6E 20 72 65    any key when re
+15B7:01E0  61 64 79 0D 0A 00 49 4F-20 20 20 20 20 20 53 59   ady...IO      SY
+15B7:01F0  53 4D 53 44 4F 53 20 20-20 53 59 53 00 00 55 AA   SMSDOS   SYS..U.
+
+15B7:003E FA            CLI	                 setup stack
+15B7:003F 33C0          XOR	AX,AX                              
+15B7:0041 8ED0          MOV	SS,AX                              
+15B7:0043 BC007C        MOV	SP,7C00                            
+15B7:0046 16            PUSH	SS                                 
+15B7:0047 07            POP	ES                                 
+
+
+copy parm table
+15B7:0048 BB7800        MOV	BX,0078          fix parm table    
+15B7:004B 36            SS:	                 new parm table at 7c3e
+15B7:004C C537          LDS	SI,[BX]                            
+15B7:004E 1E            PUSH	DS               org parm table address
+15B7:004F 56            PUSH	SI               on stack          
+15B7:0050 16            PUSH	SS               addr of parm table vector
+15B7:0051 53            PUSH	BX                                 
+15B7:0052 BF3E7C        MOV	DI,7C3E                            
+15B7:0055 B90B00        MOV	CX,000B                            
+15B7:0058 FC            CLD	                                   
+15B7:0059 F3            REPZ	                                   
+15B7:005A A4            MOVSB	                                   
+15B7:005B 06            PUSH	ES               set ds to zero    
+15B7:005C 1F            POP	DS                                 
+
+fix parm table
+15B7:005D C645FE0F      MOV	BYTE PTR [DI-02],0F      settling time
+15B7:0061 8B0E187C      MOV	CX,[7C18]                          
+15B7:0065 884DF9        MOV	[DI-07],CL               sectors per track
+
+hmm... this needs CLI..STI?
+15B7:0068 894702        MOV	[BX+02],AX               set new parm table
+15B7:006B C7073E7C      MOV	WORD PTR [BX],7C3E       in vector 
+15B7:006F FB            STI	                                   
+
+reset disk system
+15B7:0070 CD13          INT	13                                 
+15B7:0072 7279          JB	00ED                    jump if error
+
+check for io.sys in root
+15B7:0074 33C0          XOR	AX,AX                              
+15B7:0076 3906137C      CMP	[7C13],AX               nls        
+15B7:007A 7408          JZ	0084                               
+15B7:007C 8B0E137C      MOV	CX,[7C13]               nls        
+15B7:0080 890E207C      MOV	[7C20],CX               nlsb       
+15B7:0084 A0107C        MOV	AL,[7C10]               fat        
+15B7:0087 F726167C      MUL	WORD PTR [7C16]         nfs        
+15B7:008B 03061C7C      ADD	AX,[7C1C]               nhs lo     
+15B7:008F 13161E7C      ADC	DX,[7C1E]               nhs hi     
+15B7:0093 03060E7C      ADD	AX,[7C0E]               rsv        
+15B7:0097 83D200        ADC	DX,+00                             
+15B7:009A A3507C        MOV	[7C50],AX    save sectno of root      
+15B7:009D 8916527C      MOV	[7C52],DX                          
+15B7:00A1 A3497C        MOV	[7C49],AX    save sectno of root     
+15B7:00A4 89164B7C      MOV	[7C4B],DX                          
+15B7:00A8 B82000        MOV	AX,0020                            
+15B7:00AB F726117C      MUL	WORD PTR [7C11]         dir size of dir in X:AX
+15B7:00AF 8B1E0B7C      MOV	BX,[7C0B]               bps        
+15B7:00B3 03C3          ADD	AX,BX                              
+15B7:00B5 48            DEC	AX                                 
+15B7:00B6 F7F3          DIV	BX                      AX is no secs in dir
+15B7:00B8 0106497C      ADD	[7C49],AX               7c49 has secno
+15B7:00BC 83164B7C00    ADC	WORD PTR [7C4B],+00     of cluster 2
+15B7:00C1 BB0005        MOV	BX,0500                 0:0500     
+15B7:00C4 8B16527C      MOV	DX,[7C52]               secno of root
+15B7:00C8 A1507C        MOV	AX,[7C50]                          
+15B7:00CB E89200        CALL	0160                    cvt to 3d? 
+15B7:00CE 721D          JB	00ED                               
+15B7:00D0 B001          MOV	AL,01                              
+15B7:00D2 E8AC00        CALL	0181                    get 1 sec  
+15B7:00D5 7216          JB	00ED                               
+15B7:00D7 8BFB          MOV	DI,BX                 test for io.sys
+15B7:00D9 B90B00        MOV	CX,000B                            
+15B7:00DC BEE67D        MOV	SI,7DE6               IO...SYS     
+15B7:00DF F3            REPZ	                                   
+15B7:00E0 A6            CMPSB	                                   
+15B7:00E1 750A          JNZ	00ED                               
+15B7:00E3 8D7F20        LEA	DI,[BX+20]                         
+15B7:00E6 B90B00        MOV	CX,000B               MSDOS..SYS   
+15B7:00E9 F3            REPZ	                                   
+15B7:00EA A6            CMPSB	                                   
+15B7:00EB 7418          JZ	0105                               
+
+15B7:00ED BE9E7D        MOV	SI,7D9E     non-system disk message
+15B7:00F0 E85F00        CALL	0152        print string           
+15B7:00F3 33C0          XOR	AX,AX                              
+15B7:00F5 CD16          INT	16          get key                
+15B7:00F7 5E            POP	SI                                 
+15B7:00F8 1F            POP	DS                                 
+15B7:00F9 8F04          POP	[SI]                               
+15B7:00FB 8F4402        POP	[SI+02]                            
+15B7:00FE CD19          INT	19                                 
+15B7:0100 58            POP	AX                                 
+15B7:0101 58            POP	AX                                 
+15B7:0102 58            POP	AX                                 
+15B7:0103 EBE8          JMP	00ED                               
+
+load 3 sectors of io.sys at 700h
+15B7:0105 8B471A        MOV	AX,[BX+1A]          first cluster of io.sys
+15B7:0108 48            DEC	AX                  first clust is 2
+15B7:0109 48            DEC	AX                                 
+15B7:010A 8A1E0D7C      MOV	BL,[7C0D]           spc            
+15B7:010E 32FF          XOR	BH,BH                              
+15B7:0110 F7E3          MUL	BX                                 
+15B7:0112 0306497C      ADD	AX,[7C49]           add secno of clust 2
+15B7:0116 13164B7C      ADC	DX,[7C4B]                          
+15B7:011A BB0007        MOV	BX,0700             address to load
+15B7:011D B90300        MOV	CX,0003             loop 3 times?  
+15B7:0120 50            PUSH	AX                                 
+15B7:0121 52            PUSH	DX                                 
+15B7:0122 51            PUSH	CX                                 
+15B7:0123 E83A00        CALL	0160                cvt to 3d?     
+15B7:0126 72D8          JB	0100                               
+15B7:0128 B001          MOV	AL,01               get 1 sec      
+15B7:012A E85400        CALL	0181                               
+15B7:012D 59            POP	CX                                 
+15B7:012E 5A            POP	DX                                 
+15B7:012F 58            POP	AX                                 
+15B7:0130 72BB          JB	00ED                               
+15B7:0132 050100        ADD	AX,0001            inc secno       
+15B7:0135 83D200        ADC	DX,+00                             
+15B7:0138 031E0B7C      ADD	BX,[7C0B]          inc address     
+15B7:013C E2E2          LOOP	0120                               
+15B7:013E 8A2E157C      MOV	CH,[7C15]           media type flag
+15B7:0142 8A16247C      MOV	DL,[7C24]           drive          
+15B7:0146 8B1E497C      MOV	BX,[7C49]           secno of clust 2    
+15B7:014A A14B7C        MOV	AX,[7C4B]                          
+15B7:014D EA00007000    JMP	0070:0000                          
+
+print string
+15B7:0152 AC            LODSB	                                   
+15B7:0153 0AC0          OR	AL,AL                              
+15B7:0155 7429          JZ	0180                               
+15B7:0157 B40E          MOV	AH,0E                              
+15B7:0159 BB0700        MOV	BX,0007                            
+15B7:015C CD10          INT	10                                 
+15B7:015E EBF2          JMP	0152                               
+
+15B7:0160 3B16187C      CMP	DX,[7C18]            spt           
+15B7:0164 7319          JNB	017F                               
+15B7:0166 F736187C      DIV	WORD PTR [7C18]      spt           
+15B7:016A FEC2          INC	DL                                 
+15B7:016C 88164F7C      MOV	[7C4F],DL                          
+15B7:0170 33D2          XOR	DX,DX                              
+15B7:0172 F7361A7C      DIV	WORD PTR [7C1A]      hds           
+15B7:0176 8816257C      MOV	[7C25],DL            head no.      
+15B7:017A A34D7C        MOV	[7C4D],AX                          
+15B7:017D F8            CLC	                                   
+15B7:017E C3            RET	                                   
+15B7:017F F9            STC	                                   
+15B7:0180 C3            RET	                                   
+
+read sectors
+15B7:0181 B402          MOV	AH,02            read sects command
+15B7:0183 8B164D7C      MOV	DX,[7C4D]                          
+15B7:0187 B106          MOV	CL,06                              
+15B7:0189 D2E6          SHL	DH,CL                              
+15B7:018B 0A364F7C      OR	DH,[7C4F]                          
+15B7:018F 8BCA          MOV	CX,DX                              
+15B7:0191 86E9          XCHG	CH,CL                              
+15B7:0193 8A16247C      MOV	DL,[7C24]        drive no.         
+15B7:0197 8A36257C      MOV	DH,[7C25]        head no?          
+15B7:019B CD13          INT	13                                 
+15B7:019D C3            RET	                                   

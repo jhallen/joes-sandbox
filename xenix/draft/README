@@ -1,0 +1,61 @@
+                           Joe's Drafting Program
+
+
+To run the program, type:
+
+	draft filename
+
+	This will load the image from the file, or create a new file if
+necessary.
+
+To draw lines:
+
+	Use the arrow keys to move the cursor to one end of the line you
+want.  Hit the space bar to set the mark at that point.  Use the arrow keys
+to move the cursor to the other end of the line you want.  Hit 'l' and a
+line will be drawn between the cursor and the mark.
+
+To enter text:
+
+	Use the arrow keys to move to the cursor to the lower left point of
+where you want the text.  Hit 'i'.  All character you type now will be
+entered as text.  You may use backspace for erasing mistakes.  Hit return
+when you're done entering the text.  Notice that the text is always the same
+size as the grid points.
+
+Commands:
+
+	SPACE			Set the mark
+
+	l			Draw a line between the mark and the cursor
+
+	i			Insert text
+
+	g			Generate more grid points
+
+	t			Generate fewer grid points
+
+	c			Scroll the window so that the cursor is at
+				the center of the screen.
+
+	a			Recenter the entire image with the cursor in
+				the middle of the window.  The zoom will be
+				set so that the entire image fits in the
+				window.  Use this command if you get lost.
+
+	+			Zoom in
+
+	-			Zoom out
+
+	^R			Redraw the screen
+
+	p			Print the window on the laser printer
+
+	x			Save the image in the file and exit
+
+	q y			Exit without saving the image
+
+	u			Undo the last addition
+
+	d			Delete the line or text located at the
+				cursor
