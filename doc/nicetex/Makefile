@@ -1,14 +1,13 @@
-OBJS = _tmp/nicetex.o
+OBJS = nicetex.o
 
-_tmp/nicetex: $(OBJS)
-	cc -g -o _tmp/nicetex $(OBJS)
+nicetex: $(OBJS)
+	$(CC) -g -o nicetex $(OBJS)
 
-# Rule to convert *.c file to _tmp/*.o file.
-#   $< is dependancy (what matched right hand side)
-#   $@ is target (what matched left hand side)
-
-_tmp/%.o:%.c
-	cc -g -o $@ -c $<
+install:
+	install nicetex ${HOME}/bin
+	install fig ${HOME}/bin
+	install figps ${HOME}/bin
+	install nice.tex ${HOME}/etc
 
 clean:
 	rm -f *~
