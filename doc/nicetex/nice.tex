@@ -1,0 +1,214 @@
+%%% Joe's Simple Format %%%
+
+% Load .EPS file inclusion macros
+\input epsf
+
+%%% Misc. macros
+
+% This macro causes the the text which follows to be on an odd numbered page.
+\def\forceodd{\ifodd\pageno\else\null\vfill\eject\fi}
+\def\forceeven{\ifodd\pageno\null\vfill\eject\fi}
+
+\def\ifundefined#1{\expandafter\ifx\csname#1\endcsname\relax}
+\def\paramone#1#2{#1}
+\def\firstparam#1{\expandafter\paramone #1}
+\def\paramtwo#1#2{#2}
+\def\secondparam#1{\expandafter\paramtwo #1}
+
+% Kill overfull hbox mark
+\def\finalout{\overfullrule=0pt}
+
+% Right justified paragraph mode
+\def\raggedleft{\leftskip=0pt plus \hsize
+\parfillskip=0pt\spaceskip=.3333em\xspaceskip=.5em}
+
+% Centered paragraph mode
+\def\raggedboth{\leftskip=0pt plus 10in \rightskip=0pt plus 10in\parfillskip=0pt}
+
+%%% Fonts
+% Computer modern
+\font\titlefont=cmssdc10 scaled\magstep5
+\font\subtitlefont=cmssdc10 scaled\magstep3
+\font\textfont=cmr10
+\font\chapterfont=cmbx12 scaled\magstep1
+\font\tocchapterfont=cmbx12
+\font\sectionfont=cmbx10
+\font\ssectionfont=cmr10
+\font\bold=cmb10
+\font\italic=cmmi10
+\font\typewriter=cmtt10
+\font\tw=cmtt10
+
+% Adobe
+%\font\titlefont=phvb scaled\magstep4
+%\font\subtitlefont=phvb scaled\magstep3
+%\font\textfont=ptmr
+%\font\chapterfont=ptmb scaled\magstep3
+%\font\tocchapterfont=ptmb scaled\magstep2
+%\font\sectionfont=ptmb
+%\font\ssectionfont=ptmrre
+%\font\bold=ptmb
+
+% Yandy
+%\font\titlefont=hvb scaled\magstep4
+%\font\subtitlefont=hvb scaled\magstep3
+%\font\textfont=lsr
+%\font\chapterfont=tib scaled\magstep3
+%\font\tocchapterfont=tib scaled\magstep2
+%\font\sectionfont=tib
+%\font\ssectionfont=tir
+%\font\bold=tib
+
+% Apply font to single word macros
+% \def\italic#1{{\italicfont #1}}
+
+% Math mode
+% \def\math#1{$\displaystyle{#1}$}
+
+%%% Load and then create cross reference file.
+\newread\aux
+\immediate\openin\aux=\jobname.aux
+\ifeof\aux \message{! No file \jobname.aux;}
+\else \input \jobname.aux \immediate\closein\aux \fi
+\newwrite\aux
+\immediate\openout\aux=\jobname.aux
+
+%%% Create .bdy file.  This just records starting page no. of body
+\newwrite\bdy
+\immediate\openout\bdy=\jobname.bdy
+
+% Cross-reference generation and access macros
+
+% Write a label to the cross-reference file
+
+\def\label#1#2{\edef\labeL{\string\def\expandafter\string\csname#2\endcsname{{#1}{\noexpand\folio}}}\write\aux\expandafter{\labeL}}
+
+% Extract reference part of cross-reference
+\def\ref#1{\ifundefined{#1}\message{! No ref. to #1;}%
+ \else\expandafter\firstparam\csname #1\endcsname\fi}
+
+% Extract page number part of cross-reference
+\def\pageref#1{\ifundefined{#1}\message{! No ref. to #1;}\else%
+ \expandafter\secondparam\csname #1\endcsname\fi}
+
+%%% Set up headers and footers
+\newtoks\evenpagehead
+\newtoks\oddpagehead
+\footline={}
+\headline={\ifodd\pageno\the\oddpagehead\else\the\evenpagehead\fi}
+\evenpagehead={}
+\oddpagehead={}
+
+%%% Default paragraph format
+\parindent=0pt
+\parskip=12pt
+
+%%% Margins
+\voffset=.8in
+
+% Table of Contents entry macros
+\def\ch#1:#2\page#3\\{\bigbreak\noindent\tocchapterfont#1\ #2\hfill#3\par}
+\def\se#1:#2\page#3\\{\noindent\sectionfont\hskip2em#1\ #2\hfill#3\par}
+\def\ss#1:#2\page#3\\{\ssectionfont\hskip3em#1\ #2\hfill#3\par}
+\def\st#1:#2\page#3\\{\ssectionfont\hskip4em#1\ #2\hfill#3\par}
+
+% List of figures entry macro
+\def\fg#1:#2\page#3\\{\noindent\sectionfont\hskip2em#1\ #2\hfill#3\par}
+
+
+% List of tables entry macro
+\def\tb#1:#2\page#3\\{\noindent\sectionfont\hskip2em#1\ #2\hfill#3\par}
+
+% Macros to write as-is to \toc file
+
+\def\chapterw{\begingroup\sanitize\caux}
+\def\caux#1{\write\toc{\string\ch\the\chnum:#1\string\page\folio\string\\}\endgroup}
+
+\def\sectionw{\begingroup\sanitize\saux}
+\def\saux#1{\write\toc{\string\se\the\chnum.\the\snum:#1\string\page\folio\string\\}\endgroup}
+
+\def\subsectionw{\begingroup\sanitize\ssaux}
+\def\ssaux#1{\write\toc{\string\ss\the\chnum.\the\snum.\the\ssnum:#1\string\page\folio\string\\}\endgroup}
+
+\def\subsubsectionw{\begingroup\sanitize\staux}
+\def\staux#1{\write\toc{\string\st\the\chnum.\the\snum.\the\ssnum.\the\sssnum:#1\string\page\folio\string\\}\endgroup}
+
+\def\figurew{\begingroup\sanitize\fiaux}
+\def\fiaux#1{\write\lof{\string\fg\the\chnum.\the\fignum:#1\string\page\folio\string\\}\endgroup}
+
+\def\tablew{\begingroup\sanitize\taaux}
+\def\taaux#1{\write\lot{\string\tb\the\chnum.\the\tablenum:#1\string\page\folio\string\\}\endgroup}
+
+\def\makeother#1{\catcode`#1=12\relax}
+
+\def\sanitize{\makeother\ \makeother\\\makeother\$\makeother\&%
+\makeother\#\makeother\_\makeother\%\makeother\~\makeother\|}
+
+% Figure tagging macro
+% \def\figure#1#2{\label{\the\chnum.\the\fignum}{#1}{Figure \the\chnum.\the\fignum \ #2}
+% \edef\save{\string\fg\the\chnum.\the\fignum:#2\string\page\noexpand\folio%
+%  \string\\}
+% \write\lof\expandafter{\save}}
+
+% Table tagging macro
+% \def\table#1#2{\advance\tablenum by 1 \label{\the\chnum.\the\tablenum}{#1}{Table \the\chnum.\the\tablenum \ #2}
+% \edef\save{\string\tb\the\chnum.\the\tablenum:#2\string\page\noexpand\folio%
+%  \string\\}
+% \write\lot\expandafter{\save}}
+
+\newcount\fignum\fignum=0
+\newcount\tablenum\tablenum=0
+\newcount\chnum\chnum=0 \newcount\snum \newcount\ssnum \newcount\sssnum
+
+% Advance section counters
+\def\chapter{\advance\chnum by 1 \snum=0 \fignum=0 \tablenum=0 \edef\lblitem{\chnum}}
+
+\def\section{\advance\snum by 1 \ssnum=0 \edef\lblitem{\the\chnum.\the\snum}}
+
+\def\subsection{\advance\ssnum by 1 \sssnum=0 \edef\lblitem{\the\chnum.\the\snum.\the\ssnum}}
+
+\def\subsubsection{\advance\sssnum by 1 \edef\lblitem{\the\chnum.\the\snum.\the\ssnum.\the\sssnum}}
+
+\def\figure#1{\label{\the\chnum.\the\fignum}{#1}}
+
+\def\table#1{\advance\tablenum by 1 \label{\the\chnum.\the\tablenum}{#1}}
+
+% Chapter tagging macro
+%\def\chapter#1{\advance\chnum by 1 \snum=0 \fignum=0 \tablenum=0 \edef\lblitem{\chnum}
+%{\vfill\eject\forceodd\chapterfont \bigbreak\bigskip\noindent\the\chnum. #1 \bigskip\nobreak}
+%\edef\save{\string\ch\the\chnum:#1\string\page\noexpand\folio%
+% \string\\}
+%\write\toc\expandafter{\save}}
+
+% Same as above, but for first chapter
+%\def\firstchapter#1{\advance\chnum by 1 \snum=0 \fignum=0 \tablenum=0 \edef\lblitem{\chnum}
+%{\chapterfont \bigbreak\bigskip\noindent\the\chnum. #1 \bigskip\nobreak}
+%\edef\save{\string\ch\the\chnum:#1\string\page\noexpand\folio%
+% \string\\}
+%\write\toc\expandafter{\save}}
+
+% Section tagging macro
+%\def\section#1{\advance\snum 1 \ssnum=0 \edef\lblitem{\the\chnum.\the\snum}{\sectionfont\medbreak\smallskip
+%\noindent\the\chnum.\the\snum\ #1\smallskip\nobreak}
+%\edef\save{\string\se\the\chnum.\the\snum:%
+%#1\string\page\noexpand\folio\string\\}
+%\write\toc\expandafter{\save}}
+
+% Subsection tagging macro
+%\def\subsection#1{\advance\ssnum by 1 \sssnum=0 \edef\lblitem{\the\chnum.\the\snum.\the\ssnum}{\ssectionfont\medbreak\smallskip
+%\noindent\the\chnum.\the\snum.\the\ssnum\ #1 \nobreak\smallskip%
+% \nobreak}
+%\edef\save{\string\ss\the\chnum.\the\snum.\the\ssnum:%
+%#1\string\page\noexpand\folio\string\\}
+%\write\toc\expandafter{\save}}
+
+% Subsubsection tagging macro
+%\def\subsubsection#1{\advance\sssnum by 1 \edef\lblitem{\the\chnum.\the\snum.\the\ssnum.\the\sssnum}{\ssectionfont\medbreak\smallskip
+%\noindent\the\chnum.\the\snum.\the\ssnum.\the\sssnum\ #1 \nobreak\smallskip%
+% \nobreak}
+%\edef\save{\string\st\the\chnum.\the\snum.\the\ssnum.\the\sssnum:%
+%#1\string\page\noexpand\folio\string\\}
+%\write\toc\expandafter{\save}}
+
+\textfont
+\finalout

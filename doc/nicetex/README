@@ -1,0 +1,251 @@
+                                  Nice Tex
+
+                       ASCII Text Documentation System
+
+Directions:
+
+	Edit the document.  It should be called NAME.txt
+
+	Type make
+
+	View it with: make view
+	  or: acroread ../NAME_out/NAME.pdf
+
+	Print it with: make print
+	  or: lpr ../NAME_out/NAME.ps
+
+Formatting commands:
+
+	Paragraphs are separated with blank lines.
+
+	.space	nnn			nnn inches of vertical space
+
+	.span				Vertical whitespace spring (equals
+					enough space to fill current page).
+					All spans on a page have equal size.
+
+		For example, a title centered 1/3 from top of page:
+			.page
+			.span
+			.centered title
+			.span
+			.span
+			.page
+
+
+	.centered text			A centered line
+
+	.set header text		Header text.
+
+	.page				Insert a page break
+
+	.contents			Table of contents
+
+	.figures			List of figures
+
+	.tables				List of tables
+
+	.body				Begin body text
+
+	. chapter			Chapter
+	.. section			Section
+	... subsection			Subsection
+
+	.table tag title		A table with borders
+		|c2	|l2	|l	|
+		|header	|header	|header	|
+		|data	|data	|data	|
+		|data	|data	|data	|
+	<blank line>
+
+		Note: first row of table data is column widths and
+                      justifications.  Possible justifications are l for
+                      left, c for centered, r for right.  The column width
+                      is in inches.
+
+                      If one column does not have a width, the table will be
+                      made as wide as the margins, and that column will get
+                      the space not used by the others.
+
+                      The second row of a table contains column headers.
+
+                      A table may have only one column, but must have at
+                      least two rows: the widths and justifications row and
+                      the headers row.
+
+                      Tag is a name for the table which allows it to be
+                      referenced from elsewhere in the document.
+
+	.alignment			A table with no borders
+		|c2	|l2	|l	|
+		|header	|header	|header	|
+		|data	|data	|data	|
+		|data	|data	|data	|
+	<blank line>
+
+	.figure tag file title		A .eps file figure.
+
+Escape sequences allowed within text:
+
+	Refer to figures and tables as follows:  see table \ref{tag} on
+	page \pageref{tag}.
+
+	.centered \subtitlefont Text
+
+	.centered \titlefont Text
+
+	This will be \bold text \textfont.
+
+	This will be \italic text \textfont.
+
+Escape sequences:
+
+	All characters are printed as-is, except for \.  To print \ use \\.
+
+TeX mode:
+
+	Everything between any \ and a following space or end of line is
+	passed as-is to TeX.
+
+Math mode:
+
+	Everything between any \$ and a following $ is passed as-is to TeX,
+	but in math mode.
+
+        In math mode:
+
+	Use { } to group things together.  The { }s will not be printed.  For
+        example, used the { } to indicate which terms are to be above a
+        fraction bar or below a fraction bar.
+
+        Use \times for a multiplication symbol: x\times y
+
+        Use \over for a fraction bar: {a+b+c+d}\over {x+y+z}
+
+        Use ^ for exponentiation: e^{j\times x}
+
+        Unfortunately math mode doesn't know about spaces between words.  So
+	you can either limit yourself to single word or character variables
+	or put in explicit spaces with \enspace: data\enspace rate
+
+        There are two fonts for math mode.  For equations which are in the
+        middle of a paragraph, use the default one: \$x=y+z$.
+
+        For equations floating in space use \displaystyle{ }:
+
+	.alignment
+		|c|
+		|\$\displaystyle{x=y+z}$|
+
+        (Note that the .alignment is used to center the equation between the margins).
+
+How to get special characters in TeX mode (these escape sequences are not
+normally necessary):
+
+	\_
+	\$
+	\#
+	\&
+	\%
+	$>$
+	$<$
+	/
+	?
+	.
+	,
+	;
+	:
+	'
+	"
+	[
+	]
+	(
+	)
+	-
+	+
+	=
+	*
+	@
+	\^{}\kern -2pt   {\^{}} is better
+	\~{}\kern -2pt   {\~{}} is better
+	!
+	`
+	$|$
+	$\backslash$
+	$\{$
+	$\}$
+
+Math within nicetex:
+
+	Anything within \{  } is treated as a floating point expression and
+	is evaluated and then printed.  Currently, the following operators
+	are supported:
+
+		+
+		-
+		*
+		/
+		( )
+
+	In addition, variables may be assigned and accessed (the order of assignment to variables
+	is undefined).
+
+		\{a+4}		Prints 24
+		\{a=20}		Prints 20
+
+Spreadsheet stuff:
+
+	Within a table math expression can refer spatially to other math expressions:
+
+		R		First expression in cell to right.
+		RR		First expression in 2nd cell to right.
+		RRR...		etc...
+		L		First expression in cell to left.
+		LL		First expression in 2nd cell to left.
+		r		Expression to right
+		rr		2nd expression to right
+		l		Expression to left
+		ll		2nd expression to left
+		U		First expression in cell above.
+		D		First expression in cell below.
+
+	These can be combined, so that DR means go one cell down, then one
+	cell right, and then take the first expression.
+
+	So for example, this can be used to keep position values updates based
+	on size:
+
+		|Position		|Size		|
+		|\{D+DR}		|\{3}		|
+		|\{D+DR}		|\{22}		|
+		|\{D+DR}		|\{2}		|
+		|\{0}			|\{5}		|
+
+Bugs:
+
+  [fixed:]
+  No control sequences (most importantly underbars and numbers) allowed in
+  table names, like: CRC_SYNC3
+  [this is now fixed: names like CRC_SYNC3 are transformed into NtCRCXfoSYNCXdd].
+
+  [fixed: (at least for underlines, other sequences may appear incorrect in acrobat
+   .pdf file table of contents)]
+  Can't have control sequences (underbars) in:
+        figure and table titles
+        or after ., .., and ...
+
+        (they end up in external files).
+
+  Should use a larger font.
+
+  Needs a typewriter mode.
+  Needs a bullet or list mode.
+
+  No way to print | from within a table.
+
+  Should automatically leave out table of figures if there are no figures.
+  Should automatically leave out table of tables if there are no tables.
+
+  Each math mode equation must be only on one line.
+
+  Should have set footer = with \date

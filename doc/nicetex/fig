@@ -1,0 +1,8 @@
+for a in *.fig
+  do
+    if [ "$a" != "*.fig" ]; then
+      b=`echo $a | sed 's/\..*//'`
+      echo Converting figure $a
+      fig2dev -L eps $a >$1/$b.eps
+    fi
+  done

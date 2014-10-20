@@ -1,0 +1,34 @@
+DOC = mydoc
+
+all : ../${DOC}_out_tmp/${DOC}.ps ../${DOC}_out_tmp/${DOC}.pdf
+
+../${DOC}_out_tmp/${DOC}.ps : ../${DOC}_out_tmp/${DOC}.dvi
+	(cd ../${DOC}_out_tmp && \
+	 dvips -P cmz ${DOC} -o)
+
+../${DOC}_out_tmp/${DOC}.pdf : ../${DOC}_out_tmp/${DOC}.ps ../${DOC}_out_tmp/${DOC}.bdy
+	(cd ../${DOC}_out_tmp && \
+	 tocinsert ${DOC}.toc `cat ${DOC}.bdy` <${DOC}.ps >${DOC}.nps && \
+	 if which distill_noz; then distill_noz <${DOC}.nps >${DOC}.pdf; \
+	 else ps2pdf ${DOC}.nps ${DOC}.pdf; fi)
+
+#         else if which pstill; then pstill -o ${DOC}.pdf ${DOC}.nps; \
+
+../${DOC}_out_tmp/${DOC}.dvi : ${DOC}.txt
+	(mkdir ../${DOC}_out_tmp; true && \
+	 fig ../${DOC}_out_tmp && \
+	 nicetex <${DOC}.txt >../${DOC}_out_tmp/${DOC}.tex && \
+	 cd ../${DOC}_out_tmp && \
+	 tex ${DOC}.tex && \
+	 tex ${DOC}.tex && \
+	 tex ${DOC}.tex)
+
+view : ../${DOC}_out_tmp/${DOC}.pdf
+	acroread ../${DOC}_out_tmp/${DOC}.pdf &
+
+print : ../${DOC}_out_tmp/${DOC}.ps
+	lpr ../${DOC}_out_tmp/${DOC}.ps
+
+clean :
+	rm -f *~
+	rm -f *.bak
