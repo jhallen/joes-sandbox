@@ -1,0 +1,3 @@
+stty 9600 -ctsflow -rtsflow ixon -ixoff -hupcl clocal cs8 -parenb onlcr >/dev/null
+cat $1
+cat eof

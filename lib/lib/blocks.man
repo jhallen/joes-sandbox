@@ -1,0 +1,57 @@
+Name
+	mcpy, mset, msetI, mcnt, mchr, mcmp - Fast memory block operations
+
+Syntax
+	#include <blocks.h>
+
+	char *mcpy(char *dst,char *src,int size);
+	char *mset(char *dst,char c,int size);
+	char *msetI(int *dst,int c,int size);
+	int mcnt(char *src,char c,int size);
+	char *mchr(char *src,char c);
+	int mcmp(char *left,char *right,int size);
+
+Description
+	_mcpy_ coppies size bytes from the block of memory beginning at
+address _src_ to the block of memory beginning at address _dst_.  _mcpy_
+does nothing if _size_ is zero or if _dst_ and _src_ are equal.  _size_
+should never be negative.  _mcpy_ is guarenteed to preserve the copied
+source data if the specified blocks overlap.  _mcpy_ returns the original
+value of _dst_.
+
+	_mset_ sets _size_ chars of memory beginning at address _dst_ to
+_c_.  _mset_ does nothing if _size_ is zero.  _size_ should not be negative. 
+_mset_ returns the orignal value of _dst_.
+
+	_msetI_ sets _size_ ints of memory beginning at address _dst_ to _c_. 
+_msetI_ does nothing if _size_ is zero.  _size_ should never be negative. 
+_msetI_ returns the original value of _dst_.
+
+	_mcnt_ returns the number of occurances of the character _c_ in the
+block of memory _size_ bytes in length beginning at address _src_.  _mcnt_
+returns 0 if _size_ is 0.  _size_ should never be negative.
+
+	_mchr_ returns the address of the first occurance of the character
+_c_ in the memory beginning at address _src_.  _mchr_ will scan the entire
+memory space to find _c_.
+
+	_mcmp_ compares two blocks.  If _size_ is zero or if the two blocks
+are equal, _mcmp_ returns zero.  If the first mismatching character in
+_left_ is greater than the corresponding one in _right_, 1 is returned.  If
+the first mismatching character in _left_ is lower than the corresponding
+one in _right_, -1 is returned.  Signed characters are assumed for the
+comparison.
+
+Limitations
+	The block size argument for these functions is an integer which can
+not accept negative values.  This has the effect of limiting the maximum
+block size to one half of the size of the address-space.
+	This limitation is imposed for an important reason: the C-language
+comparison operators (>, >=, <, and <=) are more likely to be useful for
+comparing array indexes if the indexes are signed integers.  The benefit
+from this so far outweighs the block size limitation that signed ints are
+hereby designated to be the C-language standard type for memory indexes and
+size counts.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

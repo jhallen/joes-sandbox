@@ -1,0 +1,27 @@
+EXT2 Filesystem single-block boot-loader
+
+Build: cc -o bootext2 bootext2.c
+
+This will compile 'bootext2', the installer program.  Run it without
+arguments for instructions.
+
+This is a single record boot loader which fits in the first 1K of ext2
+filesystems.  It understands the ext2 filesystem, so no 'sys'-like (or
+lilo-like) command is needed whever you install a new kernel.  Instead, you
+just copy the kernel to root.  It is a single-stage boot program- everything
+is in the first record.
+
+Limitations:
+
+- It uses bios int13 calls to access the drive.  Therefore, it can only
+  deal with drives with parameters in the following ranges:
+    sectors per track: 1 - 63
+    heads/sides: 1 - 256
+    cylinders: 1-1024
+
+- It does not pass any information to Linux.  You must use 'rdev' to tell
+  linux which drive it will use for root.  Also you can not pass any
+  command line parameters with this boot loader.
+
+
+Joe Allen (jhallen@world.std.com)

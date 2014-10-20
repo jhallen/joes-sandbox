@@ -1,0 +1,88 @@
+               Typesetting System for Zebra-140 Label Printer
+
+
+form.c		The typesetter
+fnt.c		Program to generate a font from 'fnt.src'
+genpsion.c	Program to generate files for Psion Organizer II
+dld, xx		Script to send a file to the Psion
+direct.c	Program for directly connected zebra
+zebra		Program for Psion II to run the zebra
+
+
+                          Label Typesetting System
+
+
+A label source file contains a set of label definitions, each in the
+following format:
+
+:CODE:x:y:z...			# Define a label
+body				# The text to be printed
+
+CODE is the code you type into the Psion to bring up the label.  X, y, etc.
+are displayed on the screen of the Psion after you enter the code to verify
+that you have the correct label.
+
+Also, the fields x, y, z, etc. may be used in the text of the label by
+putting [arg1], [arg2], [arg3], etc. in the text of the label.
+
+Text in the body of the label is printed as-is, with the exception of these 
+formatting control sequences:
+
+
+[save name args] ... []		# Save some text
+				# 'args' is a list of substitution
+				# parameters.  For example, if
+				# [save x q]my name is [q][] is retreived
+				# with [x joe], the text 'my name is joe'
+				# is generated.
+
+[name args]			# Retreive text
+
+[fill]				# Fill remainder of line as a paragraph
+
+[indent n]text			# Indent paragraph/text by n chars
+
+text~text~text			# Center/Justify text
+text~				# Left justified
+~text				# Right justified
+~text~				# Centered
+left~right			# Left and right justified
+~x~y~				# Two columns
+
+[upc code]			# Print bar code
+
+[offset amnt]			# Set offset from left edge of label
+
+[width amnt]			# Set width of label
+
+[font n width height]		# Select font and size of font
+				# Width and height multiply the normal width
+				# and height of the font- except for the
+				# variable width fonts (7 & 8); where they
+				# set the actual size
+
+0 - 6	Are normal fixed width fonts
+7       Is the variable width font
+8	Is a variable width font width (c) and (r) as A and B
+9	Is the user defined font
+
+Special characters:
+
+\2	1/2
+\3	3/4
+\4	1/4
+\7	1 (footnote indicator)
+\8	2 (footnote indicator)
+\9	3 (footnote indicator)
+\$	cents
+\'	small degrees
+\"	large degrees
+\.	small dot
+\*	big dot
+\+	+/-
+\r	registered
+\c	copyright
+\!	upside down !
+\?	upside down ?
+\a \e \i \o \u \A \E \I \O \U	Vowels with accents
+\n \N	Ns with tildes

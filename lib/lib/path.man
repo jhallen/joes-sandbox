@@ -1,0 +1,142 @@
+Name
+	abspath, namprt, namepart, dirprt, begprt, endprt, mkpath, mktmp,
+rmatch, isreg, rexpnd, pwd, chpwd, joesep, ossep - Path functions
+
+Syntax
+	char *abspath(char *path);
+
+	char *namprt(char *path);
+	char *namepart(char *tmp,char *path);
+	char *dirprt(char *path);
+	char *begprt(char *path);
+	char *endprt(char *path);
+
+	int mkpath(char *path);
+
+	char *mktmp(char *prefix);
+
+	int rmatch(char *pattern,char *string);
+	int isreg(char *string);
+
+	char **rexpnd(char *path,char *pattern);
+
+	char *pwd();
+	int chpwd(char *path);
+
+	char *ossep(char *string);
+	char *joesep(char *string);
+
+Description
+	_abspath_ converts the specified path into an absolute path.  An
+absolute path is an equivalent path adhering to the following rules:
+
+		The path begins with '/'.
+
+		The directories '.' and '..' do not appear in the path.
+
+		The path does not end with '/' unless it is the only
+		character in the path.
+
+		'/'s do not appear next to each other without some
+		intervening characters.
+
+		For MS-DOS, the appropriate drive letter begins the path.
+
+	  If an empty string or '.' is passed to _abspath_, the current
+directory (and drive for MS-DOS) is returned as the absolute path.  The
+absolute path is returned in an automatic string (see vs.h).
+
+	_namprt_ returns the name part of a path in an automatic string (see
+vs.man).  The name part of a path is the right-most string, not including
+any seperators.  For example:
+
+	The name part of "/hello/there" is "there"
+	The name part of "/hello/" is ""
+	The name part of "/" is ""
+	The name part of "hello" is "hello"
+
+	_namepart_ is the same as _namprt_ except that the resulting string
+is copied to the block of memory at _tmp_, which must be large enough to
+contain it.
+
+	_dirprt_ returns the directory part of a path in an automatic
+string (see vs.man).  The directory part of a path is everything from the
+beginning of the string up to and including the last separator.  For
+example:
+
+	The directory part of "/hello/there" is "/hello/"
+	The directory part of "/hello/" is "/hello/"
+	The directory part of "/" is "/"
+	The directory part of "hello" is ""
+
+	_begprt_ returns the beginning part of a path in an automatic
+string (see vs.man).  The beginning part of a path is everything from the
+beginning of the path up to, but not including the last name in the path. 
+For example:
+
+	The beginning part of "/hello/there" is "/hello/"
+	The beginning part of "/hello/" is "/"
+	The beginning part of "/" is "/"
+	The beginning part of "hello" is ""
+
+	_endprt_ returns the ending part of a path in an automatic string
+(see vs.man).  The ending part of a path is the last name in the path,
+including any seperators which follow it.  For example:
+
+	The ending part of "/hello/there" is "there"
+	The ending part of "/hello/" is "hello/"
+	The ending part of "/" is ""
+	The ending part of "hello" is "hello"
+
+	_mkpath_ creates a path to a directory if it does not already exist. 
+Each intermediate subdirectory specified in the path is also created if
+needed.  _mkpath_ returns 0 for success or something else for error.  The
+current directory and drive will be at the given path if successful,
+otherwise the drive and path will be elsewhere (not necessarily where they
+were before mkpath was called).
+
+	_mktmp_ creates a new empty file and returns the name of the created
+file in a string allocated with malloc (not an automatic string).  The path
+to the file is 'prefix' with "/JXXXXXX.tmp" appended to it, where XXXXXX is
+some number.  If 'prefix' is NULL, "/tmp" is used ("" is used for MS-DOS). 
+NULL is returned if no file could be created.  The directory which is to
+contain the file must already exist before this function is called.
+
+	_rmatch_ returns true if 'string' matches the regular expression in
+'pattern'.  The following constitutes the regular expression:
+
+	*		matches 0 or more characters
+	?		matches 1 character
+	[...]		matches 1 character out of the ones listed in a set
+	[^...]		matches 1 character not of the ones listed in a set
+	any other	matches the character itself
+
+	A set of characters ('...', above) may include any characters except
+'[' and ']' unless they are the first character specified.  Ranges of
+characters may be specified with 'A-Z'.  '-' can be included in a set if it
+is the first or last character listed.
+
+	_isreg_ returns true if the string appears to be a pattern- that
+is, if the string has a '*', '?' or '[' in it.
+
+	_rexpnd_ creates an automatic array of automatic strings (see va.h)
+of all the filenames in the current directory which match the specified
+pattern.  '.' is never included in the array, even if it does match the
+pattern.
+
+	_pwd_ returns the current directory (and drive for MS-DOS) in a
+statically allocated string.
+
+	_chpwd_ sets the current directory (and drive for MS-DOS).  It
+returns 0 for success or something else for error.
+
+	_ossep_ converts all of the forward slashes in the specified string
+to backslashes if the operating system is MS-DOS.  _ossep_ returns the
+original address of the string.
+
+	_joesep_ converts all of the backslashes in the specified string to
+forwardslashes if the operating system is MS-DOS.  _joesep_ returns the
+original address of the string.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

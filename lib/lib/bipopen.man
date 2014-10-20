@@ -1,0 +1,29 @@
+Name
+	bipopen, bipclose, bipputs, bipgets - bidirectional version of popen
+
+Syntax
+	#include <bipopen.h>
+
+	BIP *bipopen(char *cmd);
+	void bipclose(BIP *bip);
+	void bipputs(BIP *bip,char *buf);
+	char *bipgets(BIP *bip,char *buf);
+
+Description
+	These functions allow you to run a shell command in a subprocess. 
+Once opened, you can write to the standard input of the shell command and
+read from the standard output of the shell command.  Reading and writing
+occur in a line-by-line basis: bipputs writes the buffer and then writes a
+line-feed character.  bipgets reads a line from the command into a buffer. 
+The line is terminated with a newline character.  The newline character is
+zeroed before bipgets returns.
+	These functions must be used with caution to avoid deadlock
+situations.  It is recommended that writes to the child stop at the point
+where the child begins to write back to the parent.  Any writing beyond this
+point can result in deadlock.  The parent must read the exact amount of data
+written by the child before it commences any additional writing.
+	These function can not be used with commands which employ partial
+indeterminate buffering without danger of deadlock.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

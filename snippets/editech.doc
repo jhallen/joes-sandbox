@@ -1,0 +1,1068 @@
+From: jhallen@wpi.wpi.edu (Joseph H Allen)
+Subject: Editor 101
+
+>I like many others have been writing my own editor based what I like.
+>The code is not as well laid out as I would like but then that is 
+>careless designing on my part. It would be nice if there was some
+>sort of reference that suggests how to implement all the basic
+>structures and operations necessary for an editor.
+
+As far as I know there isn't any text-book for editors [Actually there now
+is].  I have seen various articles about text editors and also a few books
+on related issues: There are lots of things about string searches and a few
+theory books about the snobol language (which encounters similer issues).
+
+I've made several text editors and I'm in the process of making another one. 
+This most recent one is my emacs replacement so I've been doing quite a bit
+of thinking and researching (if its going to replace emacs, it had better be
+pretty good :).  I'm in the mood today so I'll try to show some of the
+thought processes and research I've made.  Perhaps if I start, others will
+expand/correct what I say.
+
+>	editor buffer data structures - multiple file buffers
+
+JOE'S FIRST ATTEMPT
+
+Originally, I had a large array to hold the file in and a small array which
+held a small piece of the large array in which the inserting and deleting
+occured.  Moving the point involved saveing (and possibly making space in
+the large array for) the small array and loading a new one.  When I found
+out about the gap method I rewrote the buffer manager.  Both my method and
+the gap method work on a similer method but the gap method is much more
+refined.  If anyone knows, I'd be interested in hearing who invented the gap
+buffer.  Gnu-emacs uses a gap buffer.
+
+GAP METHOD
+
+One of the simplest and most effecient ways of storing a file in memory is
+with a gap buffer.  The file is broken into three parts in one big array:
+The beginning, the gap and the end.  The beginning and end parts are just
+normal text stored in an array: if the size of the gap is zero, then the
+buffer looks like a file loaded simply into an array.  The gap lets you
+insert and delete characters without moving any large amount of data.  All
+you have to do is change the size of the gap.  You do have to move the gap
+if it's not at the spot you want to insert or delete, however.  If you can
+get away with it, it's a good idea to always keep the gap at the cursor. 
+(I.E., so moving the cursor right means to move one character from the end
+part to the beginning part.)
+
+Here's the buffer manager from an editor I wrote (and which I'm using right
+now) and an explanation of the functions/macros provided.  Like emacs, it does
+not force the gap to be at the point.
+
+[See Appendix A for listing]
+
+The gap buffer has the best performance if you can insure that the gap is
+always at the cursor.  If this is guarenteed, then the only time that there is
+ever a delay is when the gap gets completely filled- on unix systems, you have
+to realloc the block the buffer is in and make a new gap.  On systems where
+you can access the far ends of the memory, you can prolong this as much as
+possible by starting out with the largest possible gap.  This is what I've
+seen done on machines without memory management (micros) and on machines with
+really good memory management (the DEC 20, where to allocate memory you just
+access it).
+
+If the editor has multiple windows at different positions in the same file
+it may not be possible to insure that the gap is always at the cursor. 
+There is a tradeoff to think about here.  You can do two things: move the
+gap with the cursor when you change windows.  Then there is a delay, but the
+gap is always with the cursor.  The second way is to move the gap only when
+you are about to insert or delete something.  This is not a bad idea since
+you usually only edit in one window and only look at the others.  You can
+have more than one pointer to the buffer but you can't have more than one
+gap (well, you could have more than one gap but it would be very, very messy
+to manage).
+
+I don't like the gap buffer for editors with multiple windows because of the
+gap motion delays.  In particular, if you're on a virtual memory system, much
+of the buffer might be swapped out to the disk.  Then if you have to move the
+gap there has to be a lot of disk accesses.  Still, the gap editor does use
+the least amount of cycles (remember the things you do most often in an editor
+is type single characters and move the cursor short distances), so if you're
+most interested in not loading down the system...
+
+From: trier@shasta.scl.cwru.edu (Stephen Trier)
+
+Gap Buffer Explained Again
+
+     The buffer gap method for storing data in an editor is not very
+complicated.  The idea is to divide the file into two sections at the cursor
+point, the location at which the next change will take place.  These sections
+are placed at opposite ends of the buffer, with the "gap" in between them
+representing the cursor point.  For example, here's a sixteen-character
+buffer containing the words "The net", with the cursor on the letter 'n'.:
+
+			The ---------net
+
+(I'm using the '-' character to represent the spaces making up the gap.)
+
+     Now, if you wanted to insert a character, all you must do is to add it
+into one end or the other of the gap.  Conventional editors that move the
+cursor left as you type would insert at the top edge of the gap.  For example,
+if I wanted to change the word "net" to "Usenet", I would start by typing the
+letter 'U', and the editor would change the buffer to look like this:
+
+			The U--------net
+
+     This represents the string "The Unet", with the cursor still on the 'n'.
+Typing an 's' character would bring us to the following:
+
+			The Us-------net
+
+     And finally, the 'e' character brings us to this:
+
+			The Use------net
+
+     But now we decide that we want to completely change tack and change the
+phrase from "The Usenet" to "The Usenix".  To do this, we will first have to
+move our cursor to the right one spot, so we don't waste time retyping an
+'n'.  To move the cursor point up and down through the file, we must move
+letters "across" the gap.  In this case, we're moving the cursor toward the
+end of the phrase, so we move the 'n' across the gap, to the top end.
+
+			The Usen------et
+
+     Now we're ready to delete the 'e' and the 't'.  To do this, we just
+widen the gap at the bottom edge, wiping out the appropriate character.
+After deleting the 'e', the buffer looks like this:
+
+			The Usen-------t
+
+     And after deleting the 't', the buffer looks like this:
+
+			The Usen--------
+
+     (Note that the gap now extends all the way to the edge of the buffer.
+This means that the file now reads "The Usen", with the cursor at the very
+end.)
+
+     Backspacing works out to be something very similar to delete, with the
+gap is widening at the top instead of the bottom.
+
+     Now we add the letters 'i' and 'x', giving us the following buffer
+snapshots after each key is pressed:
+
+			The Useni-------
+
+			The Usenix------
+
+     Now we've made our changes.  Moving the cursor back to the top of the
+file means moving the characters across the buffer in the other direction,
+starting with the 'x', like this:
+
+			The Useni------x
+
+     Finally, after doing this once for each of the letters in the buffer,
+we're at the top of the file, and the buffer looks like this:
+
+			------The Usenix
+
+     Of course, there are many details yet to consider.  Real buffers will be
+much larger than this, probably starting at 64K and stopping at whatever size
+is appropriate for the machine at hand.  In a real implementation, line breaks
+have to be marked in some way.  My editor does this by simply inserting line
+feed ('\n') characters into the buffer, but other approaches might be useful.
+Moving the cursor up and down between lines can get complicated.  What about
+virtual memory, so that we can fit the 21-letter phrase "The Usenix
+Conference" in our 16-letter buffer? Then, of course, there's the question of
+making the screen reflect the contents of the buffer, which is what my
+original "Editor 102" post discussed.
+
+     Hope this clears up the question of what a buffer gap is, and why it's
+a convenient data structure to use in an editor.  There are, of course,
+other ways to structure an editor's memory, with no clear victor.  All have
+their strong points and weak points, so I picked the buffer gap for my
+editor because of its simplicity and efficient use of memory.
+
+LINKED LIST OF LINES BUFFER
+
+The next most common buffer data structure I've seen is the doubly linked list
+of lines buffer.  In this case you store each line in a structure:
+
+struct line
+ {
+ struct line *next; 	/* Link to other lines */
+ struct line *prev;
+ unsigned char size;	/* Size of 'text' */
+ unsigned char bksize;	/* Size of malloc block this is in */
+ char text[];
+ };
+
+Each line contains only a small amount of text so you can insert and delete
+using brute force without any noticable delays (although this will use 20
+times as many cycles as the gap buffer).
+
+This buffer scheme eliminates the large delays of the gap method and also
+eliminates some of the delays at higher levels in the editor (you don't have
+to search for ends of lines any more), but it also has a rather large
+overhead (~50% for program source).
+
+ARRAY OF POINTERS TO LINES
+
+From: aarons@syma.sussex.ac.uk (Aaron Sloman)
+Subject: How it's done in VED 
+
+In the recent discussion of editor buffer management I don't think
+anyone mentioned the sort of technique used in VED, the Poplog editor.
+It's a bit like a linked list of records, but more compact, and less
+flexible. On the other hand, for some patterns of use it seems to work
+very well, although it was originally implemented a long time ago as
+a temporary measure, to be replaced by something cleaner and more
+general eventually!
+
+VED is implemented in Pop-11, the core Poplog language, with Lisp-like
+facilities but a Pascal-like syntax. In fact VED uses the "Syspop"
+dialect of Pop-11 which also includes C-like pointer manipulation for
+efficiency, and which is used for building and porting Poplog.
+
+From the point of view of a programmer, VED is just an extendable,
+collection of Pop-11 procedures that operate on a collection of Pop-11
+data-structures (something like Emacs and its Lisp?). Because Poplog
+provides a very fast garbage collector VED simply uses it to reclaim
+space when necessary. Garbage collecting a process around 2MB, on a
+Sun360 with 8Meg takes just over a second, and doesn't happen often
+while editing. VED's strategy would not be tolerable in those AI systems
+where a garbage collection takes up time for a coffee break. In VED most
+users are never aware of garbage collection.
+
+VED reads in complete files on the assumption that it would always
+be used on machines with virtual memory, and we could not hope to
+improve on the performance of the pager.
+
+The text buffer is a vector of strings in memory, where the strings are
+represented by pointers. Each string corresponds to one line of text. So
+shifting N lines of K characters to insert or delete a line requires
+shifting only N pointers, not NxK bytes. In general that's very fast,
+though not as fast as manipulating a linked list. The vector is allowed
+to have spare space at the end, but occasionally it overflows. Then a
+new larger one is created and the string pointers copied to it. How much
+new space that has to be allocated and how much has to be copied depends
+on the number of lines of text, not the number of characters in the
+buffer, so in general it is MUCH faster than copying a complete
+character buffer would be, and turns over much less store.
+
+Two integer variables, vedline and vedcolumn record cursor position,
+and there is no data movement during browsing through a file, once
+it has been read in.
+
+Editing uses the concept of the "current" line, which is the string
+of characters returned by vedbuffer(vedline). On every (non-static)
+insertion or deletion the characters to the right of the cursor are
+shifted left or right. This is generally very quick, because lines
+are not very long, and most of the work is done near the end of a
+line anyway (except for things like global substitions and text
+justificiation).
+
+Whenever there's not enough space in the string, it is replaced with
+a copy that has 20 extra spaces on the right, then when you are
+about to move off that line the line has to be trimmed. (A point
+that people who extend VED by programming it at a very low level
+sometimes forget). The number 20 was a guess made around 1982 and
+has never been reconsidered. Perhaps it should be context sensitive.
+(However increments to fixed sizes would simplify the use of a set
+of free lists for strings, which we probably should implement to
+reduce garbage collection even further, but haven't bothered.)
+
+VED is one of those dirty hacks, that works. In order to avoid the
+problem of working out what has changed whenever it is time to refresh
+the screen, which a clean implementation with separate buffer manager
+and screen manager would do, VED provides a collection of procedures for
+altering the buffer (e.g. linedelete, charinsert, chardelete, etc.) that
+also automatically update the screen directly via procedure calls or
+sending out screen control characters. (Side-effecting the screen can be
+turned off for programs that just need to use the VED buffer as a
+data-structure).
+
+This was done because initially VED was implemented for teaching on an
+overloaded VAX running VMS and efficiency was at a premium, especially
+as the system management kept asking why we didn't use EDT. We intended
+to revise the implementation, but somehow it has survived since 1982,
+though with the usual accretions.
+
+There are some features of VED that make it slower than it need be, but
+more flexible than some other editors, especially the handling of tabs.
+Users can switch on and off the conversion of tabs to spaces. They can
+decide whether tabs should be hard or soft. If soft, a tab is
+automatically converted to spaces if you try to delete or insert in the
+middle of it. Users can also specify how far apart the tab stops are
+(default 4, which is nicer than 8 for indenting programs.) A single
+tab is represented in the buffer by a number of special characters,
+depending on how much space on the screen the tab should take up, which
+simplifies screen management.
+
+All this means, however, that when reading and writing files containing
+tabs there is an extra overhead. Also searching is more complicated
+than if we just used a vector of characters with a gap, since newlines
+are not explicitly represented in the buffer, but are implicit between
+the strings.
+
+Unlike Emacs, VED is typically part of the same process as user programs,
+when used with the Poplog languages (Pop-11, Prolog, Common Lisp, ML),
+and can therefore provide a convenient set of facilities for text
+manipulation, including portable user interfaces for some programs.
+
+There are many subtle differences between Emacs and VED, partly because
+the design of VED was driven by the needs and responses of totally naive
+student users, secretaries, etc. as well as the experts. For example, in
+Emacs you can inadvertently leave trailing spaces in a line and then
+wonder why your favourite formatter will not centre your lines properly,
+whereas in VED you will find it hard to leave a space at the end of a
+line when you want to! Vertical movement of the cursor to the right of
+text, and joining lines when the second line has leading tabs or spaces
+are examples of different behaviour.
+
+As a result some people love Emacs and hate VED (even though it has a
+partial Emacs emulation mode) while some love VED and hate Emacs.
+
+Nothing will ever change that polarisation, I am sure.
+
+From: jhallen@world.std.com
+
+LINKED LIST OF BUFFERS
+
+Another buffer scheme similer to the linked list of lines buffer is a linked
+list of blocks- I.E., ignore where the lines begin:
+
+struct block
+ {
+ struct block *next;
+ struct block *prev;
+ unsigned char size;
+ unsigned char bksize;
+ char *text;
+ };
+
+This method will also need at least 14 bytes in each header, but you can start
+out editing with each block containing a large amount of text (a full 256
+characters, say).  This solves the memory problem because it will only use
+about 5% more memory (14/256) than the gap buffer.  But you will have to
+search for line-ends as with the gap buffer.
+
+BUFFER HINTS
+
+With the linked list of lines buffer and the linked list buffer, you can store
+hints (extra information) in the headers.  For the linked-list of lines
+buffer these might include the column width of the line and which attributes
+(if the editor is a word processor) became active in this line (as an other
+way of not going through all the text, only the headers).  For the linked list
+buffer, these might include the number of lines contained in the text block
+and the column width of this block.  Again, so that you don't have to look at
+as much text.
+
+VIRTUAL MEMORY TECHNIQUES
+
+A good editor will have a software virtual memory manager.  Even if the
+machine has hardware virtual memory, the process size limit is usually too
+small (anything smaller than the largest file allowed on the file system is
+too small- and then you want to be able to edit more than one file at once...).
+
+There are two general techniques for handling virtual memory.  You could
+either have a very seperate virtual memory handler in which you have to
+translate virtual addresses to physical ones (or machine virtual ones) or
+have the virtual memory as an integral part of the buffer scheme.
+
+From: Stephen Trier
+
+I originally thought the linked-list structure supported virtual memory
+well, but that support came at the cost of a comparison on every line
+access, to see if it need to be pulled off of the disk.  It also
+necessitated some on-disk garbage collection, which *definitely* was
+something to avoid.  With the buffer-gap structure, virtual memory is easy. 
+If the gap comes too close to the top of the file, a page from the bottom of
+the buffer is written to a temporary file and a page is read into the top of
+the buffer from a second file.  If the gap gets too close to the bottom, the
+opposite transfers take place.  If the buffer becomes too full, a page is
+pushed out to the disk, and if it becomes too empty (more than two pages of
+free space), a new page is read in.
+
+From: Joe Allen
+
+The second general method uses a virtual memory system which sits below the
+buffer scheme.  It's usually used with the linked list methods since these
+don't require large contiguous blocks.  Probably the best way of doing this is
+to use a linked list method with the headers seperate from the text.  Then you
+store all the headers in one virtual memory file and the text in another. 
+This is nice bacause to load a file all you have to do is copy it into ram or
+if it doesn't fit, copy it into a virtual memory file.  Then there would be a
+set of functions to translate virtual addresses to physical ones:
+
+	void *lock(struct vfile *file,long addr);
+	void unlock(struct vfile *file,long addr);
+	void change(struct vfile *file,long addr);
+
+'lock' would translate the virtual address into a physical one and lock that
+bit of virtual memory into physical memory so that it could can be accessed. 
+Then when accessing it is done, 'unlock' is called.  If the memory was changed
+while it was locked, 'change' is called to indicate that the block is dirty
+and should be written out the virtual memory file.
+
+The virtual memory file should be broken into pages.  Each page of the virtual
+memory file will have header like this when it's loaded into physical memory:
+
+struct vpage
+ {
+ struct vpage *next;	/* linked list of pages */
+ VFILE *owner;		/* points to owner VFILE structure */
+ unsigned long addr;	/* Offset from beginning of file where this block is*/
+ int locks;		/* number of locks on this page */
+ int changed;		/* set if this block must be written out */
+ char data[16384];	/* data loaded from virtual file */
+ };
+
+the vfile structure would be something like this:
+
+struct vfile
+ {
+ unsigned long size;	/* Size of virtual memory file */
+ char *name;		/* File name (or 0 if doesn't exist) */
+ int fd;		/* Descriptor (-1 if file not open) */
+ };
+
+The pages which are loaded into physical memory are stored in singly linked
+list.  When 'lock' is called, it first searches this list to see if the page
+is already loaded.  If it is, 'lock' will return a pointer into the data
+part of the vpage (plus whatever offset within that page is requested) and
+move the vpage to the head of the list.  This is done since 'lock' should be
+called for the same page often.  Lock will also increment the 'locks' count
+in vpage (and unlock will decrement it) to prevent it from being swapped
+out.  When there is no more memory to load new pages, 'lock' will have to
+reuse old unused pages (ones which don't have 'change' or 'locks' set).  If
+there are no reuseable pages, then 'lock' must swap out 'changed' pages
+which arn't locked.  It's probably a good idea to swap out all the 'changed'
+pages (which arn't locked) when this condition occures because usually more
+pages are about to be loaded in when one page is loaded in.  If all the
+pages arn't swapped out, the disk head will move between the file being
+loaded and the swap file for each block which is slow (and the disk drive
+makes a funny sound).
+
+The swap file will not be needed if there is enough room for the file be
+loaded completely into memory.  The temporary swap file will be created only
+when some set limit of memory useage is reached.
+
+If you use linked list of lines, you will have to implement a malloc for the
+virtual memory files because it's too wastefull to have fixed sized blocks in
+the virtual memory when lines are typically only 10% of their maximum length.
+
+POINTERS
+
+Usually there will be several pointers into a buffer.  One for each window,
+one or two for block beginning and ends and the cursor.  These pointers should
+be placed in a linked list so that the low level insert/delete functions can
+update them.  If this isn't done then all pointers after inserts and deletes
+will move relative to the text they point to.  I personally think you should
+keep a lot of data in the pointers: 
+
+struct point
+ {
+ struct point *next;
+ unsigned row;
+ unsigned column;	/* column number from beginning of line */
+ unsigned byte;
+ unsigned byte_line;	/* byte offset from beginning of line */
+ 
+ /* If linked list method is used */
+ unsigned long header;	/* virtual address of header */
+ unsigned offset;	/* offset into text of header */
+
+ /* If this is a wordprocessor */
+ unsigned attributes;
+ unsigned right_margin;
+ etc...
+ };
+
+All of this data should be updated for each pointer whenever pointers move and
+whenever inserts/deletes occure.  Updating this data when doing
+inserts/deletes also saves you from having to check for bounds problems (I.E.,
+if a pointer moved past the end of a file, or if one of the text blocks got
+deleted and so 'header' is no longer valid).
+
+Pointers should be the standard positioning objects within the editor.  The
+basic editing functions should use pointers as their arguments:
+
+	cursor_down(struct point *pointer);
+	cursor_right(struct point *pointer);
+	struct point *dup_point(struct point *pointer);
+
+	save(file,struct point *from,struct point *to);
+	insert_file(file,struct point *position);
+
+	etc...
+
+>	cut & paste
+
+UNDO SYSTEM
+
+The key to undo is to use a small set of standard editing primitives, such
+as: delete(position,amount) and insert(position,data).  When these are
+called, the converse operation is stored on an undo list by an undo
+recorder.  So for example, if delete(10,5) is called and the text "hello" is
+at position 10 of the buffer, the operation insert(10,"hello") is added to
+the end of the list.
+
+When the user runs the undo function, the operation at the end of the list
+is executed.  If the user continues to undo, operations further into the
+list are executed.  The undo recorder is still active as this is happening,
+and new items are added to the end of the list by the edit operations which
+are executed.  For example if the list starts out like this (after "hello"
+and "there" are inserted into an empty buffer, followed by the "hello" being
+deleted):
+
+1:	delete(0,5)
+2:	delete(5,5)
+3:	insert(0,"hello")	<-- Undo pointer
+
+Then after one undo it will look like:
+
+1:	delete(0,5)
+2:	delete(5,5)		<-- Undo pointer
+3:	insert(0,"hello")
+4:	delete(0,5)
+
+And after another undo it will look like this:
+
+1:	delete(0,5)		<-- Undo pointer
+2:	delete(5,5)
+3:	insert(0,"hello")
+4:	delete(0,5)
+5:	insert(5,"there")
+
+When the user stops undoing (I.E., when another edit function is run), the
+undo pointer is reset to the end of the list.
+
+A redo function (to undo an undo operation) can be implemented by poping the
+end off the list, executing it with the undo "recorder" disabled, and moving
+the undo pointer backwards.  For example if the undo list looks like this:
+
+1:	delete(0,5)		<-- Undo pointer
+2:	delete(5,5)
+3:	insert(0,"hello")
+4:	delete(0,5)
+5:	insert(5,"there")
+
+Then after one redo, it will look like this:
+
+1:	delete(0,5)
+2:	delete(5,5)		<-- Undo pointer
+3:	insert(0,"hello")
+4:	delete(0,5)
+
+UNDO MARKS
+
+Undoing only a single insert() or delete() primitive is usually too little. 
+Complicated edit functions such as paragraph reformat may involve many
+inserts and deletes.  Also counting each character typed in as a seperate
+operation for undo would be extremely annoying.  Therefore some mechanism
+must exist for grouping the insert and delete primitives into groups which
+are undone (redone) together.
+
+One way of doing this is to store the number of operations which are to be
+considered as one at the beginning and end of the group.  So for example,
+the undo list would look like this:
+
+1:	delete()	1	Single item group
+2:	delete()	1	Single item group
+3:	insert()	3	Triple item group
+4:	insert()
+5:	delete()	3
+6:	insert()	2	Double item group
+7:	delete()	2
+
+Items 3-5 are to be considered as a single item, so 3 is stored at the
+beginning and end of the that group.  The 3 on item 5 is used during undo to
+determine the number of items to execute during the undo operation.  The 3
+on item 3 is used during redo to indicate the number of items to skip over
+when backing up the undo pointer.
+
+Another way of doing this is to just store special marks in between the
+items in a group.  Undo operations then search for these marks.
+
+In any case, a function must be provided to indicate the end of each
+grouping.  After each high-level edit operation this function would be
+called.  All of the undo items bewteen successive calls to this function are
+included in the group.
+
+This doesn't solve the problem with simple typing, since each character
+typed is itself a high-level edit operation.  This must be handled as a
+special case by the edit command loop.  The typing insert edit function
+should not normally call the undo mark function.  Instead, whenever the user
+executes another command after a series of typing, the undo mark function
+should be called.
+
+UNDO OPTIMIZATIONS
+
+Successive inserts or deletes which occur at the same place in the edit
+buffer and within the same group could be concatenated to conserve space in
+the undo system.
+
+SCREEN UPDATE
+
+There are two approaches to screen updates.  The first is to have all the
+edit functions update the screen when they are executed.  Editors that do
+this usually use few CPU cycles but are very complicated and arn't too
+customizable.  The second approach is to have the screen update completely
+seperate from the edit functions.  This is the nice modular way of making an
+editor which can be customized by people who don't know the complete screen
+update processes.  The general algorithm for updating the screen is this:
+after each edit function is executed (each key is pressed) compare the data
+on the screen (or data in an array which is a copy of the screen) with the
+buffer and write any characters which don't match to the screen (if there
+are multiples windows, compare them all in case there is more than one on
+the same buffer).  For micros, this is usually all that is needed since the
+screen is accessable as normal ram and this process is reasonably fast.  The
+screen update function might be made suspendable if the screen update takes
+longer then you can type.  If any keys are hit will the screen is being
+updated, then you execute that edit function and start the screen update
+over again afterwards.
+
+To handle tabs, control characters and other multi-character symbols, two
+approaches can be taken.  The first is to just not handler them.  Convert the
+tabs into spaces and display the control characters in inverse video instead
+of as ^A.  If you want to handle them then you need a translation table:
+
+struct
+ {
+ int width;		/* Column width of sequence to display */
+ char *sequence;	/* Sequence to display */
+ }
+ table[256];
+
+Then when you compare the buffer you go through this table first.  'width'
+could be set to '-1' to indicate special processing and 'sequence' could
+contain a function to do it.  For exmaple, if width is -1 then sequence points
+to a tab handler which takes the current position being updated (a pointer)
+and returns a sequence of characters which should be displayed back to the
+screen update algorithm (I.E., 1 to 8 spaces, the number depending on the
+column position).
+
+SCREEN UPDATE FROM GAP BUFFER
+
+From: Stephen Trier
+
+   In my buffer-gap editor, I decided that I must scan through the buffer to
+find the line breaks.  For efficiency, I did this while outputing the
+characters I passed to the screen.
+
+   The first implementation I tried used two nested loops to scan across the
+x and y directions of the window.  Several boolean variables were used to
+signal when the next character in the file should be output, when a tab was
+being expanded to spaces, or when the end of the line had been encountered,
+making it necessary to fill to the end with spaces.  This code was complicated
+and was slowed by the many comparisons I was making in order to allow for
+special cases such as the end of the buffer and skipping over the buffer gap.
+
+   I then re-implemented the editor from a different viewpoint, this time
+using nulls to flag the top of the gap and the end of the buffer.  (I still
+had pointers to the top and bottom of the gap and the top and bottom of the
+buffer.)  The screen-refresh code was much easier to write this time, and
+turned out to be substantially faster.  C-like pseudocode for the second
+implementation follows:
+
+	hit_gap = FALSE;
+	x = 0; y = 0;
+	p = screen;			/* screen points to the top of the
+					 *  screen in the buffer.
+					 */
+	while (y < bottom_line)
+	    switch (p++)  {
+	        case '\t':
+	            /* output spaces and increment x until (x % 8) == 0 */
+	            break;
+	        case '\n':
+	            /* clear to the end of the line */
+	            /* increment y */
+                    break;
+	        case '\0':
+	            if (!hit_gap)  {
+	                p = bottom_of_gap_pointer;
+	                hit_gap = TRUE;
+	                /* Mark this location as the current cursor point */
+	                }
+	            else  {
+	                /* Clear to the bottom of the screen */
+	                /* Drop out of the while loop */
+	                }
+	            break;
+	       default:
+	            /* Output the character to the screen and increment x */
+	            break;
+	       }
+
+    This implementation turned out to be much faster than the original.  By
+scanning the data and making the screen match, rather than the other way
+around, the refresh logic became much simpler.  In addition, tab handling
+became neat and clean, and the cursor can be positioned to reflect the actual
+position of the gap.
+
+From: Joe Allen
+
+TERMINALS
+
+A whole book could probably be written about how to update terminal screens
+going through slow serial ports.  In general there are two parts to this. 
+First, there should be a way to optomize setting the cursor position since
+there are usually many ways to do this (CR, BS output a character, etc...). 
+The second is to try to find instances of terminal control sequences which
+make the terminal screen look more like the buffer.  These include scrolling
+regions and line inserts/deletes and the methods of detecting when they can be
+used (Gosling's famous algorithm).  Also included are easier sequences to
+handle:  clear to the end of lines, clear to end of screen etc.  Once these
+sequences are used the brute force compare method previously described is
+called to get anything missed. 
+
+NETWORKS
+
+I've found that to get the screen update suspendable over terminals on
+networks requires that the editor know the baud rate of the terminal.  Then
+whenever anything is sent to the terminal you must delay by the number of
+characters sent times the baud time before sending anything else.  If this
+isn't done, data builds up in network server buffers and the screen becomes
+uninterruptable (hitting page down 5 times make the screen output 5 pages
+insteade of only one).
+
+INSIDE MULTI-CHARATCER SEQUENCES AND PAST THE ENDS OF LINES
+
+I think most people prefer not to have the cursor change column position when
+the row is changed.  A way to do this is to have a flag in the pointer
+structure which indicates that the cursor is not at a legal column position. 
+Then when the user types, space can be added to the ends of lines or the
+column position could be changed to a legal one.  This is greatly superior to
+the other things I've seen:  wordstar:  immediatly go to legal column
+positions when rows change, edt: keep the cursor at the same byte offset from
+beginnings of lines (the cursor will jump to random column positions when the
+row changes if there are tabs or control characters), emacs & vi:  remember
+the column position but move to a legal position anyway (and move back to the
+old column position whenever possible), turbo pascal: ignore tabs.
+
+ATTRIBUTES
+
+Handling attributes in wordprocessors requires that attribute change
+information be stored somewhere.  A nice place to put this information is in
+the line/block headers.  Unless the attributes are inverting, you need to
+store the new attribute along with what it was previously so that you can move
+'up'. 
+
+>	regular expression search/replace
+>	folds
+
+I'll leave these for others.  I have to research regular expression compiling
+to say anything intelligent and I havn't encountered folds.  [plus this
+article is getting just a bit long... :]  Also, I'd add:
+
+	macro languages and customizability issues.
+	
+
+                                 APPENDIX A
+
+BUFFER GAP CODE
+
+The file is stored in memory like this:
+
+lowest:		buffer - > +---------+
+			   |beginning|
+			   |  part   |
+                hole   - > +---------+
+                           |  Gap    |
+                ehole  - > +---------+
+                           |   end   |
+                           |  part   |
+highest:        filend - > +---------+
+
+Other variables:
+
+	bufsiz		size of malloc block which begins at 'buffer'
+	point		where everything takes place
+	change		becomes set after the buffer has changed
+
+The functions and macros the rest of the editor would use are:
+
+(types:  position and size are of type 'unsigned' character is of type 'char'
+         string is 'char *' and FILE is C library file pointer)
+
+(All of these functions expect you not to goof:  don't point past the end of
+the buffer or try to read character from past the end)
+
+    fmrc()		Get character under point
+    fmwc(c)		Write a character at the point
+    fmgetc()		Get character under point and advance point
+    fmputc(c)		Write character under point and advance point
+    fminsc(c)		Insert character at point
+    fmdel(x)		Delete x characters beginning at point
+    fmnote()		Return number of bytes between point and beg. of file
+    fmsize()		Return number of characters in file
+    fmeof()		Return true if at end of file
+    fmpoint(x)		Set point to some offset from beginning of file
+    fmrgetc()		Move point back one and return character under point
+    fmnnl()		Advance point by one and then point to first \n found
+    fmnrnl()		Move point back one and then point to first \n found in
+			reverse direction
+    fmfnl()		Move point to first \n found (this won't move the
+			point if there is a \n under it)
+    fmrnl()		Move point to first \n found in reverse direction
+			(this won't move move the point if there is a \n
+			under it)
+      (In the search routines above, the search stops at the beg. or end of
+       file.  Also, they return true if the \n was found, false otherwise)
+    fminss(string,size)	Insert a string of indicated size at the point
+    fmcmp(string,size)  Return 0 if string matches the one under the point
+    fmicmp(string,size) Same as above but ignore case
+    fminsfil(FILE)	Insert a file at the point (FILE is an open file)
+    fmsavfil(FILE,size) Save size bytes beginning at point into FILE
+     (the above two return true if there were no errors)
+    fmopen()		Initialize the buffer
+
+The utility functions which the above use are:
+
+    fmholesize()	Return size of gap.
+    memmove(dst,drc,s)	Move possibly overlapping memory.
+    fmexpand(s)		Make the malloc block 'buffer' at least s bytes larger
+                        than 'filend-buffer'
+    fmhole()		Position gap at the point
+    fmbig(s)		Make gap at least s bytes in size
+
+- - - - - -
+
+/* Hole manager for E (J/JOE).  Written by: Joseph H. Allen, 9/10/89 */
+/* Do whatever you want with this but leave my name on it    */
+
+unsigned bufsiz;	/* Size of buffer */
+char *point;		/* The point */
+char *buffer;		/* The buffer */
+char *filend;		/* First character not in buffer */
+char *hole;		/* Beginning of hole */
+char *ehole;		/* First character not in hole */
+int changed=0;		/* Set when file has been changed */
+
+#define HOLESIZE 16384  /* Amount hole grows by */
+
+/* Macros */
+
+#define fmholesize() (ehole-hole)
+#define fmrc() (point==hole?*(point=ehole):*point)
+#define fmwc(c) (((point==hole)?point=ehole:0),((point==filend)?(fmexpand(1),filend++):0),*point=(c),changed=1)
+#define fmgetc() ((point==hole)?(point=ehole+1,*ehole):*(point++))
+#define fmputc(c) (((point==hole)?point=ehole:0),((point==filend)?(fmexpand(1),filend++):0),*(point++)=(c),changed=1)
+#define fminsc(c) ((point!=hole?fmhole():0), (hole==ehole?fmbig(1):0), *(hole++)=(c), changed=1)
+#define fmdel(x) ((point!=hole?fmhole():0), ehole+=(x), changed=1)
+#define fmnote() ((point>=ehole)?(point-buffer)-(ehole-hole):point-buffer)
+#define fmsize() ((filend-buffer)-(ehole-hole))
+#define fmeof() ((point==hole)?(ehole==filend):(point==filend))
+#define fmpoint(x) (point=buffer+(x), (point>hole)?(point+=ehole-hole):0)
+#define fmrgetc() (point==ehole?*(point=hole-1):*(--point))
+#define fmnnl() (fmeof()?0:(fmgetc(),fmfnl()))
+#define fmnrnl() (fmnote()?(fmrgetc(),fmrnl()):0)
+
+/* Functions */
+
+memmove(dst,src,s)
+char *dst;
+char *src;
+unsigned s;
+{
+if(src==dst || s==0) return;
+if(src>dst)
+ do *(dst++)= *(src++); while(--s);
+else
+ {
+ dst+=s;
+ src+=s;
+ do *(--dst)= *(--src); while(--s);
+ }
+}
+
+fmopen()
+{
+buffer=(char *)malloc(bufsiz=HOLESIZE);
+point=buffer;
+hole=buffer;
+ehole=buffer+HOLESIZE;
+filend=ehole;
+}
+
+fmexpand(amount)
+unsigned amount;
+{
+if(filend+amount-buffer>bufsiz)
+ {
+ char *old=buffer;
+ buffer=(char *)realloc(buffer,bufsiz=(filend+amount+HOLESIZE-buffer));
+ point+=buffer-old;
+ filend+=buffer-old;
+ hole+=buffer-old;
+ ehole+=buffer-old;
+ }
+}
+
+fmhole()
+{
+if(point==hole) return;
+if(point==ehole)
+ {
+ point=hole;
+ return;
+ }
+if(point<hole)
+ {
+ memmove(ehole-(hole-point),point,hole-point);
+ ehole=ehole-(hole-point);
+ hole=point;
+ }
+else
+ {
+ memmove(hole,ehole,point-ehole);
+ hole+=point-ehole;
+ ehole=point;
+ point=hole;
+ }
+}
+
+fmbig(size)
+unsigned size;
+{
+if(size>fmholesize())
+ {
+ size+=HOLESIZE;
+ fmexpand(size);
+ memmove(ehole+size,ehole,filend-ehole);
+ ehole+=size;
+ filend+=size;
+ }
+}
+
+int fmfnl()
+{
+while(((point==hole)?(point=ehole):point)!=filend)
+ if(*point=='\n') return 1;
+ else point++;
+return 0;
+}
+
+int fmrnl()
+{
+if(fmrc()=='\n') return 1;
+while((point==ehole?point=hole:point)!=buffer)
+ if(*(--point)=='\n') return 1;
+return 0;
+}
+
+int fminss(string,size)
+char *string;
+unsigned size;
+{
+fmhole();
+if(size>fmholesize())
+ fmbig(size);
+memmove(hole,string,size);
+hole+=size;
+changed=1;
+}
+
+int fmcmp(string,size)
+char *string;
+unsigned size;
+{
+char *x;
+if(point==hole) point=ehole;
+if(hole>point && hole<point+size && hole!=ehole)
+ {
+ if(fmcmp(string,hole-point)) return 1;
+ else
+  {
+  x=point;
+  point=ehole;
+  if(fmcmp(string+(hole-x),size-(hole-x)))
+   {
+   point=x;
+   return 1;
+   }
+  else
+   {
+   point=x;
+   return 0;
+   }
+  }
+ }
+else
+ {
+ x=point;
+ do
+  if(*(x++)!=*(string++)) return 1;
+  while(--size);
+ return 0;
+ }
+}
+
+int tupp(c)
+{
+if(c>='a' && c<='z') return c+'A'-'a';
+else return c;
+}
+
+int fmicmp(string,size)
+char *string;
+unsigned size;
+{
+char *x;
+if(point==hole) point=ehole;
+if(hole>point && hole<point+size && hole!=ehole)
+ {
+ if(fmcmp(string,hole-point)) return 1;
+ else
+  {
+  x=point;
+  point=ehole;
+  if(fmcmp(string+(hole-x),size-(hole-x)))
+   {
+   point=x;
+   return 1;
+   }
+  else
+   {
+   point=x;
+   return 0;
+   }
+  }
+ }
+else
+ {
+ x=point;
+ do
+  if(tupp(*(x++))!=tupp(*(string++))) return 1;
+  while(--size);
+ return 0;
+ }
+}
+
+int fmsave(file,size)
+FILE *file;
+unsigned size;
+{
+if(!size) return 1;
+if(point==hole) point=ehole;
+if(hole>point && hole<point+size && hole!=ehole)
+ {
+ if(hole-point!=fwrite(point,1,hole-point,file)) return 0;
+ if(size-(hole-point)!=fwrite(ehole,1,size-(hole-point),file)) return 0;
+ return 1;
+ }
+else
+ return size==fwrite(point,1,size,file);
+}
+
+int fminsfil(file)
+FILE *file;
+{
+struct stat buf;
+unsigned amount;
+fstat(fileno(file),&buf);
+if(buf.st_size==0) return 1;
+changed=1;
+fmhole();
+fmbig(buf.st_size);
+amount=fread(hole,1,buf.st_size,file);
+hole+=amount;
+return amount==buf.st_size;
+}
+
+---
+            "Come on Duke, lets do those crimes" - Debbie
+"Yeah... Yeah, lets go get sushi... and not pay" - Duke

@@ -1,0 +1,80 @@
+MBR - Master Boot Record
+
+by: Joe Allen (jhallen@world.std.com)
+archived: ftp://ftp.worcester.com/pub/joe/mbr.tar.Z
+
+This is a simple boot manager which provides a prompt on bootup to allow you
+select which operating system to load.
+
+As with any software which modifies your boot sector, use caution.  Backup
+your files.  Back up your boot sector (dd </dev/hda >backup count=1 bs=512).
+Make boot floppies.  You get the idea.
+
+Features & Notes:
+
+- The feature that makes MBR unique is its optional ability to set the
+  active flag of the partition you select for booting.  If the active flag is
+  set to a different partition, MBR sets it and writes the partition table
+  back to the hard drive.
+
+  Some operating systems need this to work properly, for example: SCO-Xenix.
+
+  However, this feature is also useful for having two primary DOS partitions
+  on your hard drive (say one for Windows-95 and one for MS-DOS) without
+  having to run fdisk each time you want to select between them.
+
+  How can you have two primary DOS partitions you say?  Easy, create the
+  first one and install DOS or Windows-95.  Next, change its ID code to
+  something DOS doesn't recognize with fdisk in Linux.  Now install the
+  second one, and then go back and restore the proper ID code to the first
+  one.
+
+  When DOS boots and sees two primary partitions it picks the one with
+  the active flag set to be the C: drive, or if neither has the active
+  flag set, it picks the first one.  It makes the other partition the D:
+  drive.
+
+- This program does not replace LILO for linux.  You must install LILO
+  in your Linux partition (boot = /dev/hda1 or whatever in lilo.conf), not
+  as the master boot record (boot = /dev/hda), otherwise you will not be
+  able to boot linux after running mbr.
+
+  Eventually I'm going to write a real boot loader for that empty first
+  block of the ext2 fs, but I haven't yet so you still need LILO.
+
+- MBR is a compact assembly language program which fits entirely in the
+  first sector of the hard drive.
+
+- MBR allows you to name each partition and select which of these is the
+  default if the user hits enter without typing in a name at the boot
+  prompt.
+
+- If the entered name does not match any of the partitions, a list of
+  the named partitions is displayed.
+
+- MBR allows you to set a timeout value for the boot prompt.  It can be
+  set to wait indefinitely, boot instantly (no prompt), or boot the default
+  partition after a specified delay.
+
+- MBR only boot primary partitions.  It does not handle extended partitions
+  or booting from anything but the first hard drive.
+
+Files:
+
+mbr.c		Source code of installer
+		in Linux compile this with: cc -o mbr mbr.c
+		Run with 'mbr' if /dev/hda is your boot drive
+		or 'mbr /dev/sda' if you use SCSI or some other boot drive.
+
+mbr.exe		mbr.c compiled for MS-DOS with Turbo-C 2.0
+		(tcc -O -Z -d mbr.c)
+
+boot.asm	Masm source code of the boot record
+		I used MASM 6.11 to assemble: ml /c boot.asm
+		And ALINK to link: alink -o boot.bin boot.obj <boot.lnk
+		And cvt.c to convert to C source code: cvt boot.bin
+		(ftp://ftp.worcester.com/pub/joe/ alink.tar.Z).
+
+boot.lnk	Segment positioning data for ALINK.
+
+cvt.c		Program to convert binary file to C source code.

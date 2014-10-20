@@ -1,0 +1,35 @@
+FAT Filesystem single-sector boot-loader
+
+Build: cc -o bootfat bootfat.c
+
+This will compile 'bootfat', the installer program.  Run it without
+arguments for instructions.
+
+This is a single record boot loader which fits in the first 512 bytes of
+MS-DOS/FAT filesystems.  It understands the fat filesystem, so no 'sys'-like
+(or lilo-like) command is needed whever you install a new kernel.  All you
+have to do it copy the kernel to root.  It is a single-stage boot program-
+everything is in the first record.
+
+Limitations:
+
+- It uses bios int13 calls to access the drive.  Therefore, it can only
+  deal with drives with parameters in the following ranges:
+    no. sectors per track: 1 - 63
+    no. heads/sides: 1 - 256
+    no. cylinders: 1-1024
+
+- It does not pass any information to Linux.  You must use 'rdev' to tell
+  linux which drive it will use for root.  Also you can not pass any
+  command line parameters with this boot loader.
+
+Notes:
+
+- If you use this on your hard drive, be sure to first make a bootable
+  MS-DOS disk with a copy of fdisk.exe on it.  If you should decide to
+  make the drive DOS bootable again, you can boot from the floppy and
+  and run: fdisk /mbr
+
+
+
+Joe Allen (jhallen@world.std.com)

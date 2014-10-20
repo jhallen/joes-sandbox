@@ -1,0 +1,75 @@
+Name
+	getcap, setcap, rmcap, jgetstr, getflag, getnum, texec, tcost,
+tcompile - Terminal capability database interface functions
+
+Syntax
+	#include <termcap.h>
+
+	CAP *getcap(char *name,int baud,
+                    void (*out)(void *outptr,char c),void *outptr);
+	CAP *setcap(CAP *cap,int baud,
+                    void (*out)(void *outptr,char c),void *outptr);
+	void rmcap(CAP *cap);
+
+	char *jgetstr(CAP *cap,char *name);
+	int getflag(CAP *cap,char *name);
+	int getnum(CAP *cap,char *name);
+
+	void texec(CAP *cap,char *string,int lines,int arg0,...);
+	int tcost(CAP *cap,char *string,int lines,int arg0,...);
+	char *tcompile(CAP *cap,char *string,int lines,int arg0,...);
+
+Description
+	_getcap_ loads the specified terminal database entry and returns a
+terminal interface structure containing that entry.  'name' specifies the
+terminal type name.  If 'name' is NULL, the value of the environment
+variable 'TERM' is used.  'out' is the address of a character output
+function to be used when writing to the terminal.  'outptr' is passed as
+the first argument to 'out'.  'baud' specifies the current baud rate of the
+terminal and is used for generating padding characters.
+
+	_getcap_ finds the terminal capability database in the following
+manner.  First, a list of file names is built.  If the environment variable
+'TERMCAP' begins with a '/', it is used as the list of file names. 
+Otherwise, if the environment variable 'TERMPATH' is set, it is used as the
+list of file names.  If that isn't set, then the string
+"/.termcap /usr/local/lib/termcap /etc/termcap" is appended to the value of
+the 'HOME' environment variable, and that is used as the list of names.
+
+	Next, the contents of the environment variable 'TERMCAP' (if it's
+defined and if it doesn't begin with a '/') and the files from the above
+list are scanned for the terminal capability entry.  The contents of the
+environment variable are scanned first, then the files are scanned in the
+order they appear in the list.
+
+	If the last part of a matching termcap entry is a 'tc=name',
+then the current file is rewound and rescanned for the specified entry.  If
+it is not found, the next file in the list is searched and so on.  If a
+matching entry in the TERMCAP environment variable ends with a 'tc=name',
+then all of the files in the name list are searched.
+
+	There is no limit to the size of the termcap entries.  No checking
+is done for self-referencing 'tc=name' links, so all of memory will be
+allocated if there are any.  If no entry if found for the requested terminal
+type, an ANSI standard terminal is assumed and a default entry is loaded.
+
+	_setcap_ resets the value of 'out', 'outptr' and 'baud'.
+
+	_rmcap_ eliminates the specified terminal interface structure.
+
+	_jgetstr_ returns the address of the specified string capability in
+the specified terminal interface structure.  NULL is returned if the
+specified string capability was not found.
+
+	_getflag_ returns true if the named capability is found in the
+terminal interface structure.
+
+	_getnum_ returns the value of the specified numeric capability in
+the specified terminal interface structure.  -1 is returned if the specified
+capability is not found.
+
+	_texec_ executes and outputs a string capability.  'lines' should
+indicate the number of terminal lines effected by this command.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

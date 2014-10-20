@@ -1,0 +1,10 @@
+:test
+rtarw	.kr
+ltarw	.kl
+uparw	.ku
+dnarw	.kd
+shell	^Z
+refresh	^R
+quit	^C
+type	SP TO ~
+"Hello"	H

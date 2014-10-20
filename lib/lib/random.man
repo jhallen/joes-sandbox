@@ -1,0 +1,30 @@
+Name
+	random, srandom - Berkeley random number generator
+
+Syntax
+	#include <random.h>
+
+	long random(void);
+	void srandom(int seed);
+	extern struct state state;
+
+Description
+	_random_ returns a random number between 0 and 2^31-1 (inclusive). 
+
+	_srandom_ initializes the internal state of the random number
+generator to some function of 'seed'.  Note that the entire state of the
+random number generator is not covered by 'seed'.  This means that you can
+not retore previous states of the random number generator by calling
+_srandom_ with a previous values returned by _random_.  However, each time
+srandom is called with the same value of 'seed', the random number is
+returned to the same state.
+
+	The global variable _state_ contains the current full state of the
+random number generator.  The current state of the random number generator
+can be saved and restored by saving and restoring this variable.
+
+Credits
+	These functions were originally from the BSD C library, but were
+modified by Joseph H. Allen so that they would work in the MS-DOS 16-bit
+memory models.  Also the mechanism for saving and restoring the state of the
+random number generator was simplified.

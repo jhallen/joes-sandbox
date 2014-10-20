@@ -1,0 +1,18 @@
+It's a recursive space filler algorithm.  Every odd-numbered screen location
+(where both coordinates are odd and (0,0) is the origen) is a space.  Even
+numbered screen locations (locations where either or both coordinates are
+even) are potential hallways or are the maze borders.  You start at some
+space and move to some as yet unvisited space, cut a hallway in-between the
+two and repeat. When you can go no further, you recurse to a previous space
+where you haven't exhausted all of the surrounding spaces.  The recursion
+trail is stored in the spaces themselves, instead of on the C stack.
+
+It screws up once in a while because the test for an unused direction just
+tries a randomly selected surrounding space 9 times and then assumes all of
+the spaces have been visited.  But if you're unlucky, you'll miss a space
+and part of the maze won't be filled.
+
+/*  jhallen@world.std.com (192.74.137.5) */               /* Joseph H. Allen */
+int a[1817];main(z,p,q,r){for(p=80;q+p-80;p-=2*a[p])for(z=9;z--;)q=3&(r=time(0)
++r*57)/7,q=q?q-1?q-2?1-p%79?-1:0:p%79-77?1:0:p<1659?79:0:p>158?-79:0,q?!a[p+q*2
+]?a[p+=a[p+=q]=q]=q:0:0;for(;q++-1817;)printf(q%79?"%c":"%c\n"," #"[!a[q-1]]);}

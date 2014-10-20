@@ -1,0 +1,34 @@
+Document -
+ macro cmd rc
+
+- Figure out better way of creating global command tables
+- How to make rc file more generic
+  - perhaps a linked list of 'rc' handlers?
+- use continuations in macros
+- use older new queue library?
+
+- Figure out way to make joe's screen drawing functions fast while keeping
+  scrn so that it can call any output function
+
+- scrn global variables?  eliminate all global variables if possible
+- should environment variables be able to override ttgtsz?
+
+- read and write to streams with the file buffering stuff
+
+- document other vs/va functions?
+
+- note that macsta was removed from kbd and must therefore be called when
+the macro is run
+
+- use select() in tty?
+
+Btree:
+ - Figure out how to do in-place update.
+     - Saves us from having to do search/delete/insert sequence
+
+ - Figure out ways to reduce number of btree searches needed
+     - Have a cache of recently accessed records with pointers to record's
+       location in the btree.  Cache becomes invalid when btree structure
+       changes.
+
+ - Allow multiple tables per btree file.

@@ -1,0 +1,101 @@
+Name
+	hnext, hash, hashn, htmk, htrm, htfind, htfindn, htlfind, htadd,
+htpsh, htpop - symbol table functions
+
+Syntax
+	#include <hash.h>
+
+	HASH *htmk(int len);
+	void htrm(HASH *ht);
+	HASH *htpsh(HASH **ptr);
+	void htpop(HASH **ptr,HASH *to);
+
+	void *htadd(HASH *ht,char *name,void *val);
+	void *htfind(HASH *ht,char *name);
+	void *htfindn(HASH *ht,int hval,char *name,int len);
+	void *htlfind(HASH *ht,char **ptr);
+
+	void htall(HASH *ht,
+		   void (*func)(void *obj,char *name,void *val),
+		   void *obj);
+
+	unsigned long hnext(unsigned long accu,int c);
+	unsigned long hash(char *s);
+	unsigned long hashn(char *s,int len);
+
+Description
+	_htmk_ creates a hash table of the specified number of entries.  The
+number of entries must be a power of 2.
+
+	_htrm_ eliminates a hash table and all shallower scoping levels
+previously pushed with _htpsh_.
+
+	_htpsh_ creates a new hash table to be used as a deeper scoping
+level of a previous hash table.  It takes as an argument the address of a
+pointer to a previously created hash table.  After _htpsh_ has been
+executed, the pointer will contain the address of the new hash table.  Also,
+_htpsh_ returns the address of the new hash table.  When htfind is used to
+search for a symbol, the most recently pushed hash table will be searched
+first.  If it is not found there, the next most recently pushed hash table
+is searched, and so on.
+
+	_htpop_ eliminates one or more scoping levels.  It takes as an
+argument the address of a pointer to the deepest scoping level and the
+address of one of the shallower scoping levels.  After _htpop_, the pointer
+will contain the address of the shallower scoping level.
+
+	An example of _htpsh_ and _htpop_ follows:
+
+	HASH *table=htmk(1024);			/* Create hash table */
+ 	HASH *old;
+
+	htadd(table,"alpha","hello");		/* Add some symbols */
+	htadd(table,"beta","there");
+
+	old=table;				/* Save old level */
+	htpsh(&table);				/* Push scoping level */
+
+	htadd(table,"alpha","foo");		/* Overwrite a symbol */
+
+	printf("%s\n",htfind(table,"alpha"));	/* Prints "foo" */
+	printf("%s\n",htfind(table,"beta"));	/* Prints "there" */
+
+	htpop(&table,old);			/* Pop to previous level */
+
+	printf("%s\n",htfind(table,"alpha"));	/* Prints "hello" */
+
+	_htadd_ adds a symbol to value binding to a hash table.  The value
+is given as some non-NULL address.
+
+	_htfind_ searches a hash table for the value bound to the specified
+symbol.  If the symbol is not found in the specified hash table, any
+previously pushed hash tables will also be searched.
+
+	_htfindn_ works the same way as htfind, except that the string is
+not required to be zero terminated.  Instead, the length of the string must
+be specified.  Also, the hash value is not internally calculated by
+_htfindn_, instead, it must be precalculated with _hnext_, _hash_ or
+_hashn_.
+
+	_htlfind_ searches a hash table for the longest possible matching
+string found at the specified pointer.  The value bound to the found symbol
+is returned, or NULL is returned if no matching symbols could be found.  If
+a symbol is found, the pointer is advanced to right after the symbol.  For
+example:
+
+	HASH *table=htmk(1024);
+	htadd(table,"foobar","foobar");
+	htadd(table,"foo","foo");
+
+	char *ptr;
+
+	ptr="foobarxyz"; printf("%s\n",htlfind(table,&ptr));
+		/* Prints "foobar" */
+
+	ptr="fooxyz"; printf("%s\n",htlfind(table,&ptr));
+		/* Prints "foo" */
+
+	_htall_ applies a function to each entry in a hash table.  _htall_
+does not traverse scoping levels, it works only with the specified hash
+table.  The pointer 'obj' is simply passed as the first argument to the
+function.

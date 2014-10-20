@@ -1,0 +1,17 @@
+#
+form <$1 >outt
+genpsion <outt >index
+echo
+echo "Put Psion in receive mode:"
+echo "Comms/Receive/File/a:index"
+echo
+echo "hit return when ready"
+line
+xx </dev/ttyi1d >/dev/ttyi1d index
+echo
+echo "Put Psion in receive mode:"
+echo "Comms/Receive/File/b:data"
+echo
+echo "hit return when ready"
+line
+xx </dev/ttyi1d >/dev/ttyi1d data

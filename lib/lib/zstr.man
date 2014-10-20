@@ -1,0 +1,64 @@
+Name
+	zlen, zchr, zrchr, zcpy, zcat, zdup, zcmp, zicmp, fields, nfields -
+Zero terminated string functions
+
+Syntax
+	#include <zstr.h>
+
+	int zlen(char *s);
+	char *zchr(char *s,char c);
+	char *zrchr(char *s,char c);
+	char *zcpy(char *d,char *s);
+	char *zcat(char *d,char *s);
+	char *zdup(char *s);
+	int zcmp(char *l,char *r);
+	int zicmp(char *l,char *r);
+	int fields(char *s,char **fields,char sep);
+	int nfields(char *s,char sep);
+
+Description
+	_zlen_ returns the number of character in a zero terminated string,
+not including the terminating NUL.
+
+	_zchr_ returns the address of the first or left-most occurance of
+the character 'c' found in the string, or NULL if there was none.
+
+	_zrchr_ returns the address of the last or right-most occurance of
+the character 'c' found in the string, or NULL if there was none.
+
+	_zcpy_ coppies the zero terminated string beginning at 's' to a
+block of memory beginning at 'd'.  The terminator is coppied as well. 
+_zcpy_ returns 'd'.
+
+	_zdup_ allocates a block of memory using malloc, coppies the string
+to that block (using _zcpy_) and returns the address of the block.
+
+	_zcmp_ compares the two zero-terminated strings using signed
+character arithmetic.  If the strings are equal (have the same length and
+each character is the same), _zcmp_ returns 0.  The return value is 1 if the
+first mismatching character of the left string is greater in value than the
+corresponding character of the right string.  The return value is -1 if the
+first mismatching character if the left string is lower in value than the
+corresponding character of the right string.  Note that if the strings are
+mismatched in length, the terminating NUL of shorter string is compared
+using the above rules against the corresponding character of the longer
+string.
+
+	_zicmp_ is the same as _zcmp_ but any lower case letters are
+converted to uppercase before each character comparison is done (the strings
+themselves are not modified).
+
+	_fields_ breaks a string broken up into fields seperated with the
+character 'sep' into seperate zero-terminated strings.  It places a pointer
+to the first character of each field in the given array (which must be
+preallocated with enough space to fit each of the pointers).  The first
+pointer stored in the array is always the original address of the string. 
+It also replaces all of the field seperators with NUL to make each field
+into a zero-terminated string.  It returns the number of fields found.
+
+	_nfields_ returns one plus the number of occurances of the character
+'sep' in the given string.  It is typically used for counting the number of
+fields in a string.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

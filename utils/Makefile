@@ -48,6 +48,9 @@ subtotal1: subtotal1.o
 upc: upc.o
 	$(CC) -o upc upc.o
 
+upccheck: upccheck.o
+	$(CC) -o upccheck upccheck.o
+
 install:
 	install tabify $(HOME)/bin
 	install tab $(HOME)/bin
@@ -64,6 +67,7 @@ install:
 	install subtotal $(HOME)/bin
 	install subtotal1 $(HOME)/bin
 	install upc $(HOME)/bin
+	install upccheck $(HOME)/bin
 
 clean:
 	rm -f *.o *~

@@ -1,0 +1,50 @@
+Name
+	cupper, clower, calpha, cfirst, crest, cbin, coct, cdec, chex,
+cfloat, cwhite, cwhitel, cwhitef, toup, todn - ASCII character functions
+
+Syntax
+	#include <ascii.h>
+
+	int cupper(int c);
+	int clower(int c);
+	int calpha(int c);
+	int cfirst(int c);
+	int crest(int c);
+	int cbin(int c);
+	int coct(int c);
+	int cdec(int c);
+	int chex(int c);
+	int cfloat(int c);
+	int cwhite(int c);
+	int cwhitel(int c);
+	int cwhitef(int c);
+	int toup(int c);
+	int todn(int c);
+
+Description
+	ASCII character type test and case conversion functions.  The
+following type test functions return true if:
+
+	cupper	if character is an uppercase letter
+	clower	if character is a lowercase letter
+	calpha	if character is an upper- or lowercase letter
+	cfirst	if character is an upper- or lowercase letter or '_'
+	crest	if character is an upper- or lowercase letter, digit or '_'
+	cbin	if character is '0' or '1'
+	coct	if character is '0' - '7'
+	cdec	if character is '0' - '9'
+	chex	if character is '0' - '9', 'a' - 'f', or 'A' - 'F'
+	cfloat	if character is '0' - '9', '.', '+', '-', 'e', or 'E'
+	cwhite	if character is TAB or SPACE
+	cwhitel	if character is TAB, SPACE or LINEFEED
+	cwhitef	if character is TAB, SPACE, LINEFEED or NUL
+
+	_toup_ returns its argument unchanged or converts it to an uppercase
+letter if it was a lowercase letter.
+
+	_todn_ returns its argument unchanged or converts it to a lowercase
+letter if it was an uppercase letter.
+
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

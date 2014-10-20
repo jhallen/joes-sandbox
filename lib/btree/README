@@ -1,0 +1,20 @@
+Btree library is in btree.c/btree.h
+
+Other files contain other library functions.  btree requires these:
+
+	vfile 		buffered I/O
+	queue		doubly linked list needed for vfile
+	zstr		string routines for vfile
+	vs		string routines for btree and vfile
+	blocks		fast block move routines for vfile
+	random		random number generator for vfile
+	path		file name functions for vfile
+
+See 'btree.h', 'vfile.h' and 'vs.h' for full documentation.
+
+Type 'make' to create an example user interface program.  See 'main.c'
+
+
+Files 'index.c' and 'index.h' are dynamic hash file manager functions.  They
+maintain an automatically expanding/shrinking hash table of record indexes
+in a file.

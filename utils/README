@@ -33,3 +33,5 @@ Short utilities:
 	subtotal1: Compute subtotals
 
 	upc: Generate UPC bar codes
+
+	upccheck: Check UPC bar code / compute check digit

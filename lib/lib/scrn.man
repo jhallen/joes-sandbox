@@ -1,0 +1,208 @@
+Name
+	nopen, nresize, nredraw, nclose, cpos, outatr, eraeol, nscrlup,
+nscrldn, nscroll, magic - Optimal cursor positioning and device independant 
+terminal control
+
+Syntax
+	#include <scrn.h>
+
+	SCRN *nopen(CAP *cap);
+	void nresize(SCRN *t,int w,int h);
+	void nredraw(SCRN *t);
+	void nclose(SCRN *t);
+
+	int cpos(SCRN *t,int x,int y);
+
+	void outatr(SCRN *t,int x,int y,int c);
+
+	void eraeol(SCRN *t,int x,int y);
+
+	void nscrlup(SCRN *t,int top,int bot,int amnt);
+	void nscrldn(SCRN *t,int top,int bot,int amnt);
+	void nscroll(SCRN *t);
+
+	void magic(SCRN *t,int y,int *cur,int *new);
+
+Description
+	These functions provide a device independant interface to terminals
+describable with termcap.  First, a 'CAP' structure must be created with
+_getcap_ (see termcap.man).  The output function specified with _getcap_
+will be used for writing to the terminal.  Next, _nopen_ should be called
+with the address of the 'CAP' structure.  _nopen_ will return the address of
+a SCRN structure.
+
+	_nclose_ will eliminate a SCRN structure.
+
+SCRN Structure
+	The SCRN structure contains information about what's known about the
+current state of the terminal.  This state information includes cursor
+position, currently selected attributes and modes, and the contents of the
+terminal's screen.  The following SCRN structure members are useful to
+access ('t' contains address to SCRN structure):
+
+	t->li		No. lines on the screen
+	t->co		No. columns on the screen
+
+	t->scrn		An array of ints containing the screen's contents. 
+			-1 in this array means that the character at that
+			position is unknown.  Note that the attributes in
+			effect for each character are ORed in with the
+			character.
+
+	t->updtab	An array of ints giving each screen line's status. 
+			A zero means that the line is valid.  A non-zero
+			means that the line's contents are unknown,
+			indeterminate, or that the line must be updated.
+
+Functions
+	_nresize_ reallocates the arrays in SCRN to reflect a change in
+screen size.  Call this when you find out that the 'xterm' has been resized
+by the user, for example.
+
+	_nredraw_ invalidates all of the state variables in SCRN so that
+no assumptions about the terminals state are made.  All of the entries in
+t->updtab are set, indicating that all of the lines should be redrawn.
+
+	_cpos_ moves the cursor to the specified x and y positions.
+
+	_outatr_ write a character with attributes to the specified x and y
+position.  The cursor position after _outatr_ is indeterminate.  The
+attributes should be ORed with the character and are one of the following
+defines:
+
+	Pick zero or more attributes:
+
+	INVERSE		Inverse video
+	UNDERLINE	Underlined character
+	BOLD		Emboldened character
+	BLINK		A blinking character
+	DIM		A dim character
+
+	AT_MASK		Mask for seperating the above bits
+
+	Pick one background color (0 is black):
+
+	BG_SHIFT	Background color shift
+	BG_MASK		Background color mask
+
+	BG_BLACK, BG_RED, BG_GREEN, BG_YELLOW, BG_BLUE, BG_MAGENTA, BG_CYAN,
+BG_WHITE		Background colors
+
+	Pick one foreground color (0 is white):
+
+	FG_SHIFT	Foreground color shift
+	FG_MASK		Foreground color mask
+
+	FG_BLACK, FG_RED, FG_GREEN, FG_YELLOW, FG_BLUE, FG_MAGENTA, FG_CYAN,
+FG_WHITE		Foreground colors
+
+	_eraeol_ erases from the specified screen position to the end of the
+line.  The screen is with all attributes off, white foreground color
+(although there will be no characters) and black background color.
+
+	_nscrolup_ and _nscroldn_ request an upwards or downwards scroll
+within a specified region.  The scroll does not actually happen until
+_nscroll_ is called.  Several scrolls may be requested before _nscroll_ is
+called and _nscroll_ will optimally combine them.  Note that _nscroll_
+should be called before a bulk screen update is made, as it will move around
+the contents of t->scrn and t->updtab.  Also extra entries in t->updtab may
+become set as the contents of certain lines of the screen may become
+indeterminate due to the scrolls.
+
+	_magic_ will use a terminal's line-shifting capabilities (such as
+insert character(s), insert-mode and delete character(s)) to make an
+existing line 'cur' look like a new line 'new'.  'y' should contain terminal
+line being updated (so that _magic_ can call _cpos_).
+
+Screen Update Process
+	Note that these functions do not provide a complete screen update
+system such as _curses_.  Instead they provide the pieces necessary for
+easily creating one.  The overall structure for a program which interfaces
+to a terminal is something like this:
+
+	loop:	update screen - make screen look like screen buffer.  This
+		does not complete if there is any pending input.
+
+		flush output to terminal
+
+		wait for keypress or other events
+
+		process keypress or event - write any results to screen buffer
+
+		if program is not going to exit, goto loop.
+
+	The program does not output directly to the terminal.  Instead a
+buffer is written to, and a screen update function is called to make the
+screen look like the buffer.  Note that the buffer need not be an array
+representation of the screen.  Instead it might be a queue of strings to
+write to the screen or some other form that optimizes the screen update with
+the programs behavior.
+
+	A typical screen update system using a simple array representation
+screen buffer follows.  This system uses the tty device interface described
+in tty.man.  You should call 'ttflsh' before waiting for any input (see
+tty.man).
+
+	#include <scrn.h>
+	#include <tty.h>
+
+	int *buffer;		/* Screen buffer */
+	SCRN *scrn;		/* Terminal interface */
+
+	/* termcap output function */
+	out(x,c)
+	void *x;
+	 {
+	 ttputc(c);
+	 }
+
+	/* Initialize screen interface */
+	init()
+	  {
+	  int y, x;
+	  ttopen();				/* Open tty device */
+
+	  scrn=nopen(getcap(NULL,baud,out,NULL)));
+	  					/* Open screen interface */
+
+	  buffer=malloc(scrn->co*scrn->li*sizeof(int));	/* Create buffer */
+
+	  for(y=0;y!=scrn->li;++y)			/* Clear buffer */
+           for(x=0;x!=scrn->co;++x)
+            buffer[x+y*scrn->co]=' ';
+	  }
+
+	/* Make the screen look like the buffer */
+	update()
+	  {
+	  int y, x;
+	  for(y=0;y!=scrn->li;++y)	/* Check each line */
+	   if(scrn->updtab[y])		/* Does line need updating? */
+	    {
+	    if(have) return;	/* Abort if there is pending input */
+	    for(x=0;x!=scrn->co;++x)	/* Check each character on line */
+	     if(buffer[x+y*scrn->co]!=scrn->scrn[x+y*scrn->co])
+	      outatr(scrn,x,y,buffer[x+y*scrn->co]);
+	      				/* Output mismatching character */
+	    scrn->updtab[y]=0;		/* Mark line as having been updated */
+	    }
+	  }
+
+	/* Write a string to the screen buffer x,y position.  All screen
+	   output should go through this function */
+	writes(x,y,s)
+	 {
+	 int z;
+	 for(z=0;s[z];++z) buffer[x+y*scrn->co+z]=s[z];	/* Copy string */
+	 scrn->updtab[y]=1;	/* Mark line so that it gets updated */
+	 }
+
+	This system could be elaborated further to include scrolling,
+attributes and windowing, but it is likely that the programmer will want to
+tailor it to the application.  Also the 'eraeol' function can speed up the
+update process if a quick method of finding the end of lines exists.  The
+'magic' function could also be used to further enhance the screen update
+process.
+
+Credits
+	These function were written by Joe Allen (jhallen@world.std.com).
