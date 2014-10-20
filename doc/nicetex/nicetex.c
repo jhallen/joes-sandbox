@@ -547,7 +547,7 @@ void dump_regs()
   struct a_reg *a;
   struct a_def *b;
 
-  printf("#include \"../../../verifshared/bin/register_attr.h\"\n\n");
+  printf("#include \"csrdef.h\"\n\n");
 
   for(b=a_defs;b;b=b->next)
     {
@@ -791,7 +791,7 @@ int main()
     printf("\\newtoks\\%s\n\\%s={%s}\n",cmd,cmd,fix(s));
     }
    else if(!strcmp(cmd,"name"))
-    { /* Document name for attr */
+    { /* Document name for header fle */
     strcpy(main_name,s);
     }
    else if(!strcmp(cmd,"list"))
@@ -970,7 +970,7 @@ int main()
    }
  emitpara();
  printf("\\bye\n");
- sprintf(inbuf,"%s.attr",main_name);
+ sprintf(inbuf,"%s.h",main_name);
  freopen(inbuf,"w",stdout);
  dump_regs();
  return 0;

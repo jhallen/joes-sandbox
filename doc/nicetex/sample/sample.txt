@@ -1,0 +1,84 @@
+.name sample
+.set verno 0027
+
+.space 1
+
+.centered \subtitlefont Sample Document Subtitle \the\verno
+
+.space 2
+
+.centered \titlefont Main Title
+
+.space 2
+
+.set header Sample Document Veriosn \the\verno
+.set footer \copyright 2014 FooBar
+
+.alignment
+        |r2|l|
+        |Version:|\the\verno|
+        |Date:|Sep 24, 2014|
+        |Obsoletes:|None|
+        |Author:|Joe Allen|
+        |Reviewers:||
+
+.span
+
+.table
+	|c|
+        |This document contains proprietary and trade secret information which is the property of FooBar Inc.  Receipt and/or acceptance of this document is an acknowledgment that the information contained herein will be held in confidence by the recipient.|
+
+.page
+
+.table version Version History:
+        |c1|c1.75|c1.75|l|
+        |Version|Date|Author|Description|
+	|0.1|Sep 18, 2014|Joe Allen |Original |
+	|0.2|Sep 24, 2014|Joe Allen |Changes from review |
+
+.contents
+.figures
+.tables
+.body
+
+. Introduction
+
+This is the introduction.  The quick brown fox jumped over the two lazy dogs
+twice.
+
+.. SubheaderA
+
+This is a sub-section.
+
+.. SubheaderB
+
+This is another sub-section.
+
+Here is a test of some equations: \{a+4} and \{a=20}.
+
+Here is a table with relative equations:
+
+.table math Math Table
+	|l1.5	|l1.5	|l1.5	|
+	|Number |Times 2|Again  |
+	|\{5}	|\{L*2}	|\{L*2}	|
+	|\{U+1}	|\{L*2}	|\{L*2}	|
+	|\{U+1}	|\{L*2}	|\{L*2}	|
+	|\{U+1}	|\{L*2}	|\{L*2}	|
+	|\{U+1}	|\{L*2}	|\{L*2}	|
+
+Here is a register:
+
+.table regFOO 0x100 FOO Register
+	|l1.5	|l1.5	|l1.5	|
+	|Field	|Type	|Name	|
+	|1:0	|R	|Status	|
+	|3:2	|R/W	|Ctrl	|
+	|5:4	|R/W1TC	|Pending|
+
+. Another
+
+This is another chapter.
+
+.figure fred fred.eps Example Figure
+

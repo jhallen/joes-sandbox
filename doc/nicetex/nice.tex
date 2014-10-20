@@ -5,6 +5,11 @@
 
 %%% Misc. macros
 
+\newtoks\header
+\header={ }
+\newtoks\footer
+\footer={ }
+
 % This macro causes the the text which follows to be on an odd numbered page.
 \def\forceodd{\ifodd\pageno\else\null\vfill\eject\fi}
 \def\forceeven{\ifodd\pageno\null\vfill\eject\fi}
