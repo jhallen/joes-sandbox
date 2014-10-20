@@ -1,0 +1,116 @@
+Name
+	psiman - Psychic Man-Page Formatter
+
+Syntax
+	psiman [ options ] [ file ]
+	psicvt < prn > ascii
+
+Description
+	_Psiman_ is a text formatter (similar to nroff) which takes as input
+a simple ASCII text file with almost no formatting sequences.  _Psiman_
+guesses where formatting sequences would go and formats the document as if
+these sequences where actually there and the file was processed by
+nroff -man.  The advantage of this method is that the input text file is much
+easier to write and comprehend if the text formatter is not available for
+some reason.
+
+Usage
+	_psiman_ with a file name formats the named file and sends the
+result to the standard output.  _psiman_ without a file name expects the
+file to be sent to its standard input.
+
+	_psicvt_ can be used to convert an existing man page to the _psiman_
+format.  For example:
+
+		man tar | cvt 
+
+	Note however that _psicvt_ does not work properly if its input
+document was filled (_groff_ does this by default).  Also tables are
+probably not formatted correctly.
+
+Options
+	-ansi	Assume the output device is an ANSI terminal.  Also assume
+that the user wants paging off.  This is the default output device.
+
+	-ascii	Assume that the output device can not process any control
+sequences.  Also assume that the user wants paging off.
+
+	-color	Assume that the output is an ANSI color terminal.  Also
+assume that the user wants paging off.
+
+	-hp	Assume that the output is an HP Laser Printer which has 60
+lines on a page.
+
+	-lp	Assume that the output is some type of impact printer which
+has 66 lines on a page.
+
+	-paging	Enable paging.  The header and page number will be printed
+on the top and bottom of each page.  Also the top and bottom margin values
+will be enforced and the last page will be finished off.
+
+	--paging
+		Disable paging.
+
+	-cols nn
+		Assume that the output page is _nn_ columns wide.
+
+	-rows nn
+		Assume that the output page has _nn_ lines.
+
+	-l nn
+		Set the left margin to _nn_.  The default is 5.
+
+	-r nn
+		Set the right margin to _nn_.  The default is 5.
+
+	-t nn
+		Set the top margin to _nn_.  The default is 4.
+
+	-b nn
+		Set the bottom margin to _nn_.  The default is 4.
+
+	-header 'text'
+		Set the header to _text_.  If this option is not given, the
+header is the file name.
+
+	-fill	Enable filling.  Paragraphs will be filled with spaces so
+that the right margin is even.
+
+Heuristics
+	_psiman_ uses the following heuristics to determine the formatting
+sequences:
+
+	- Text surrounded with underlines '_' is emphasized (italicized,
+underlined or emboldened- depending on the output device).
+
+	- If a line begins with whitespace followed by an unpunctuated
+sequence of only a few words or characters followed by the end of the line,
+it is emboldened.
+
+	- If a line begins with whitespace followed by a sequence of only a
+few characters which does not appear to be a sentence, followed by more
+whitespace, the sequence is emboldened.
+
+	- Parts of a line which are separated by tabs or large sequences of
+spaces (3 or more) are assumed to be a table of some sort, and the starting
+column of each section will be preserved.  Also entries will be combined
+with lines of the same format which immediately follow.
+
+Bugs & Improvements
+	- Tables need more support.
+
+	- Post-script output and proportionally-spaced fonts are not
+supported.
+
+	- An explicit formatting sequence is needed to delineate text which
+should not be formatted (like C listings).
+
+	- An explicit formatting sequence is needed to delineate text which
+should not be split across pages.
+
+	- The widow and orphan elimination should work for section names as
+well as paragraphs.
+
+Acknowledgments
+	_Psiman_ was written by Joseph H. Allen.  Send any bug reports or
+improvements to: jhallen@world.std.com.
