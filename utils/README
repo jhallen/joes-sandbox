@@ -14,6 +14,8 @@ Short utilities:
 
 	csv: Clean up CSV files
 
+	bomcmp: Compare two hierarchical BOMs in CSV format
+
 	bintoc: Convert binary file into C source code (for FPGA image)
 
 	lfsr: Show linear feedback shift register tap points and find code for a particular count.

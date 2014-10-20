@@ -15,7 +15,11 @@ int had_to_quote; /* Set if we had to quote something because delimiter was in t
 
 int deglitch = 0; /* Fix """", glitch */
 
+int nohead;
+
 int cleanup_en = 0; /* Clean up fields: suppress leading / trailing spaces, convert to uppercase */
+
+char *subst; /* Name of replacements file */
 
 int line = 0;
 
@@ -213,6 +217,74 @@ int is_blank(char *s)
 		return 0;
 }
 
+struct list
+  {
+  struct list *next;
+  char *org;
+  char *repl;
+  } *list;
+
+char *subst_find(char *org)
+  {
+  struct list *l=list;
+  for (l=list;l;l=l->next)
+    if(!strcmp(l->org,org))
+      return l->repl;
+  return 0;
+  };
+
+void subst_add(char *org, char *repl)
+  {
+  struct list *l=(struct list *)malloc(sizeof(struct list));
+  l->org=strdup(org);
+  l->repl=strdup(repl);
+  l->next = list;
+  list = l;
+  }
+
+void subst_dump()
+  {
+  FILE *f=fopen("newlist","w");
+  struct list *l;
+  for (l = list; l; l=l->next)
+    {
+    fprintf(f,"%s	%s\n",l->org,l->repl);
+    }
+  fclose(f);
+  };
+
+void subst_load(char *subst_file)
+  {
+  char buf[1024];
+  FILE *f=fopen(subst_file,"r");
+  if (!f)
+    {
+    fprintf(stderr,"Couldn't open %s\n", subst_file);
+    exit(-1);
+    }
+  while(fgets(buf,1023,f))
+    {
+    char org[100];
+    char repl[100];
+
+    int x;
+    int y=0;
+
+    for(x=0;buf[x] && buf[x]!='\t';++x)
+      org[x] = buf[x];
+    org[x]=0;
+    ++x;
+    y=0;
+    while(buf[x] != '\n')
+      {
+      repl[y++]=buf[x++];
+      }
+
+    subst_add(org,repl);
+    }
+  fclose(f);
+  };
+
 int main(int argc, char *argv[])
 {
 	char header[MAXLINE];
@@ -253,21 +325,28 @@ int main(int argc, char *argv[])
                         printf("  Only include named columns.  All columns included if no names given, except\n");
                         printf("  -name deletes a column in this case.\n");
                         printf("\n");
+                        printf("  --nohead           Don't print header row\n");
                         printf("  --delim ','        Set output field delimiter\n");
                         printf("  --noquote          Don't quote fields unless they contain field delimiter\n");
                         printf("  --deglitch         Fix """", glitch\n");
                         printf("  --cleanup          Delete leading and trailing spaces and convert to uppercase\n");
                         printf("  --line_delim '; '  Quoted newlines are replaced with this string\n");
+                        printf("  --subst file       Replace items based on substitution file\n");
                         return 0;
                 } else if (!strcmp(argv[x], "--delim")) {
                         ++x;
                         delim = argv[x];
+                } else if (!strcmp(argv[x], "--nohead")) {
+                        nohead = 1;
                 } else if (!strcmp(argv[x], "--noquote")) {
                         noquote = 1;
                 } else if (!strcmp(argv[x], "--deglitch")) {
                         deglitch = 1;
                 } else if (!strcmp(argv[x], "--cleanup")) {
                         cleanup_en = 1;
+                } else if (!strcmp(argv[x], "--subst")) {
+                        ++x;
+                        subst = argv[x];
                 } else if (!strcmp(argv[x], "--line_delim")) {
                         ++x;
                         line_delim = argv[x];
@@ -310,8 +389,14 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
+	/* Open subst file*/
+	if (subst) {
+	        subst_load(subst);
+	}
+
 	/* Emit header row */
-	emit(colname, map, mapx);
+	if (!nohead)
+        	emit(colname, map, mapx);
 
 	/* OK, process database */
 	while (gets(buf)) {
