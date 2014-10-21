@@ -1,0 +1,51 @@
+e2boot - boot block for ext2 filesystem
+[e2boot formerly was called bootext2]
+
+by: Joe Allen (jhallen@world.std.com)  original  March 1998
+    John F. Reiser (jreiser@teleport.com)  extensively rewritten  Sept. 27, 1998
+archived: ftp://ftp.teleport.com/pub/users/jreiser/e2boot4c.tgz
+
+e2boot is a boot block which understands the ext2 filesystem enough to boot
+from a pathname, and with keyboard input, timeout, and default.
+e2boot also collects a parameter string to pass to the kernel.
+e2boot detects and uses BIOS support for Enhanced Disk Drive
+to allow booting beyond cylinder 1024 and beyond 8GB.
+Most BIOS dated after mid-1995 have support for Enhanced Disk Drive; see
+	http://www.phoenix.com/techs/specs.html # edd2c.pdf
+e2boot handles zImage (loads at 64K) or bzImage (loads at >= 1M) kernels,
+and initial RAM disks, including hard links and symbolic links within
+the partition being booted.
+
+In order to fit all of this functionality into 1024 bytes, e2boot4c
+requires that the Master Boot Record supply a subroutine to read the disk.
+mbr03.tgz contains such a MBR.  If you want to use a different MBR,
+then edit e2boot.a86 and select a different major configuration
+(USE_PTAB or USE_LABEL instead of USE_MBR).  Not using mbr03 typically
+requires getting along without symbolic links (use hard links instead),
+and living with shorter pathnames (such as "/L" and "/I" for the
+Linux kernel and the initial RAM disk, both as hard links [or actual files]).
+
+e2boot does not set kernel parameters for root, swap, or VGA devices,
+so use /usr/sbin/rdev to set the right ones.  Or, use parameters in
+the boot command string.  e2boot's installer diagnoses the current
+values as a reminder.
+
+e2boot uses 32-bit registers, and therefore requires a 386 or higher,
+just like Linux.
+
+----
+Files:
+
+COPYING		license information (FSF GNU GPL v.2)
+
+Makefile	Requires adjustment for EXT2ROOT device and KERNEL name.
+		Uses as86 from the Linux bin86-0.4-5 package.
+
+README		This file.
+
+e2boot.a86	Assembly source code.
+
+e2boot.bin	Pre-comiled, ready for customization.
+
+tune_e2boot.c	Installer
+
