@@ -1,0 +1,86 @@
+MBR - Master Boot Record
+
+by: Joe Allen (jhallen@world.std.com)  original  March 1998
+    John F. Reiser (jreiser@teleport.com)  extensively modified  July 21, 1998
+archived: ftp://ftp.teleport.com/pub/users/jreiser/mbr02.tgz
+
+This is a boot manager which boots from primary and logical partitions,
+including those beyond the 528MB (1024 cylinder) limit, and multiple drives.
+If the BIOS date is mid-1995 or newer, then the BIOS probably handles
+large disks using LBA (linear block addressing) via INT 0x13 with AH=0x42.
+If the BIOS date is early 1996 or newer, then the BIOS may supervise
+booting from multiple drives.  MBR interfaces with these BIOS facilities,
+but does so dynamically so that MBR still functions with older BIOSes.
+However, if the BIOS does not support the newer interfaces, then MBR
+might be restricted to primary and logical partitions on the first 1024
+cylinders of the first hard drive.
+
+As with any software which modifies your boot sector, use caution.  Backup
+your files.  Back up your boot sector (dd </dev/hda >backup count=1 bs=512).
+Make boot floppies.  You get the idea.
+
+MBR packs a lot into only 440 bytes, so its interface is spartan.
+A typical console and keyboard dialog might look like
+
+  a:dos		selection letter : user-specified label
+  b:OS/2
+  c:swap
+  d*linux	asterisk indicates default partition to boot
+  e:usr
+  f:home
+  g:src
+  :d		prompt for selection letter; 'd' entered to boot linux
+
+Then the partition list repeats until the selected partition 'd'
+is reached; that partition's boot block is then read and executed.
+The default drive is the one chosen by the BIOS.  The default partition
+is chosen when MBR is installed.  Entering \r also selects the default.
+Keyboard input offers timeout and a no-wait mode.  The selection letters
+must be consecutive, but can begin with any characater.
+
+MBR can be tested from a floppy without modifying the existing
+master boot record on the hard drive.
+
+MBR can also make a machine-independent "universal" boot floppy
+that lists sizes instead of label strings.  The five-digit number
+is the decimal partition size in megabytes:
+
+  mbr02		splash screen
+  :1              prompt for drive number; '1' entered for 1st hard drive
+
+  06:00012:a:	type byte in hex : decimal megabytes : selection letter :
+  07:00350:b:
+  82:00070:c:
+  83:00050:d:
+  83:00060:e:
+  83:00400:f:
+  83:00300:g:
+  :		  prompt for partition selection
+
+Use of MBR as the master boot record does not remove the need
+for each bootable partition to have its own boot block.
+Linux users still need LILO (or bootext2) in the boot block.
+
+MBR uses 32-bit registers, and therefore requires a 386 or higher,
+just like Linux.
+
+----
+Files:
+
+COPYING		license information (FSF GNU GPL v.2)
+
+Makefile	Requires adjustment for other than /dev/hda.
+		Uses as86 from the Linux bin86 package.
+
+README		This file.
+
+flop_off.a86	Files which set conditional compilation flags.
+flop_on.a86
+
+flp2hard.mbr	Pre-compiled "universal" booter for use from a floppy.
+
+mbr.a86		Assembly source code for master boot record.
+
+testhard.bin	Pre-compiled, ready for tuning.
+
+tune_mbr.c	Installer

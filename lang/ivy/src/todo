@@ -1,0 +1,81 @@
+Refernece leak:
+  get var
+  get var
+  add     reduces stack by one but doesn't reference var
+
+
+Lack of keyword problems:
+
+  # Doesn't work because while is not a keyword..
+  x=0 while x!=10
+    x=x+1
+
+  loop break          does not work (break should be treated as a keyword here..)
+
+
+loop [break]        does work
+fred: loop [break]  does not work
+
+with a [print x]    does not work
+[with a; print x]   this does work
+
+
+form 1:	with a b c			ok
+form 2: with (a, b, c) print(x)		ok
+
+form 3: with a b c [print x]
+form 4: with a b c
+           print x
+
+form 5: with a b c print(x)		not possible
+
+
+
+
+We could do this:
+     with (a, b, c) print(x)
+  but then it means we have to do this:
+     [with (a,b,c); print x]
+
+Analogy:
+     var (a, b, c) x=7
+     [var (a, b, c); x=7 ]
+
+how to have a chain of lambda callbacks without brackets?
+
+read_file "fred" fn((er, data),[
+	write_file "bar" fn((er),[
+		if er
+	])
+])
+
+
+with problem:
+  we indicate that object is part of with scope if ->next is set.
+
+  but we can't clear ->next.. it's needed for closures (for closure case
+  object goes away when de-referenced)
+
+
+Simplifications:
+  Dump 'dynamic'.. it's intersting, but do we ever need it?
+  Dump 'with'.. it's interesting, but do we ever need it?
+
+
+Fixed:
+  valid command typed after one with error would not work
+  'break fred' was crashing inside a loop with no name
+
+  fn((),fn((),print("inner")))()() was not working because scope was being deleted
+  even though there was still a reference to it.
+
+  we now allow:
+     var (x,y) print(x+y)
+     var x y [print x+y]
+
+  'this' is now working (we had made 'this' a variable in an object: now
+  it's a magic value- magic value is better: can not write to it, does not
+  create circular reference).
+
+  Added `name loop labels
+- - - -

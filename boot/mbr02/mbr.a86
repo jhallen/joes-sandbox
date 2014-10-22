@@ -1,0 +1,530 @@
+!Master Boot Record
+!Copyright (C) 1998 Joseph H. Allen
+!Copyright (C) 1998 John F. Reiser.  All rights reserved.
+
+!This file is part of MBR (Master Boot Record)
+
+!MBR is free software; you can redistribute it and/or modify it under the 
+!terms of the GNU General Public License as published by the Free Software 
+!Foundation; either version 2, or (at your option) any later version.  
+
+!MBR is distributed in the hope that it will be useful, but WITHOUT ANY 
+!WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+!FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+!details.  
+
+!You should have received a copy of the GNU General Public License along with 
+!MBR; see the file COPYING.  If not, write to the Free Software Foundation, 
+!59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+
+
+DEBUG = 0	! set to 1 for debugging using DOS DEBUG
+! A> DEBUG
+! - n flp2hard.mbr
+! - l
+! - r
+! - p
+! [etc.]
+
+
+! References related to booting:
+! -----
+! http://www.phoenix.com/techs/specs.html
+!	edd2c.pdf  BIOS Enhanced Disk Drive Specification, Version 1.1,
+!		May 9, 1995.  How the BIOS deals with more than 1024 cylinders.
+!	bbs101.pdf  BIOS Boot Specification, Version 1.01, January 11, 1996.
+!		"Plug and Play" BIOS uses 8 bytes before the partition table.
+!		Register dl passes the drive number for booting.
+! Above documents require Adobe Acrobat Reader, or ghostscript/ghostview.
+!
+! http://www.cs.cmu.edu/afs/cs/user/ralf/pub/WWW/files.html
+!	inter56a.zip covers through INT 0x19 (as of December 1997).
+!	Ralf Brown's x86 and BIOS interrupt documentation.
+! Requires real PKUNZIP; gzip won't handle a .zip file
+! with more than one entry.
+
+
+	use16
+
+partab = 0x1be	! offset of partition table within disk block
+
+base = 0x0600	! some OS expect a partition table at 0x7BE
+boot = 0x7c00	! BIOS loads MBR here
+
+! MBR re-uses space at 'base' for data.
+! In particular, the first 4 bytes at 0[bp] are used
+! as a partition table with C/H/S for the MBR itself,
+! so that a floppy that contains MBR in its boot block
+! will scan the partitions of (the first) hard drive.
+pfxrel = 4	! DWORD sector offset of 1st extended partition
+prvsec = 8	! DWORD sector number that was read last
+drive = 12	! BYTE  drive[bp] is BIOS disk number
+
+
+	.text
+zero:
+IF FLOPPY
+! Some BIOS require that a boot block on a floppy have more than just
+! 0xaa55 in the last word.  So spend 62 bytes to keep them happy.
+	jmp start
+	nop
+	.ascii "MBR386V4"	! system_id[8]
+	.word 512		! bytes per logical sector
+	.byte 1			! sectors/cluster
+	.word 1			! reserved sectors
+!+0x10
+	.byte 2			! number of FATs
+	.word 224		! root directory entries
+	.word 2880		! number of sectors
+	.byte 0xf0		! media code
+	.word 9			! sectors/FAT
+!+0x18
+	.word 18		! sectors per track
+	.word 2			! number of heads
+	.long 0			! hidden sectors
+!+0x20
+	.long 0			! total sectors (if sectors == 0)
+	.byte 0			! BIOS drive number
+	.byte 0			! unused
+	.byte 0x29		! DOS 3.3+ fields below exist
+	.long 0x351b3db4	! volume ID
+!+0x2b
+	.ascii "FLP2HARDMBR"	! volume label
+	.ascii "FAT12   "	! fs_type
+start:
+ENDIF
+
+IF 1 - DEBUG
+	xor cx,cx
+	mov ss,cx
+ENDIF
+	mov sp,#boot
+IF DEBUG
+	mov cx,#0x100
+	mov si,cx	! initial ip is 0x100
+ELSE
+	mov ch,#1	! <mov cx,#0x100>
+	mov si,sp	! #boot
+ENDIF
+	mov bp,#base
+	mov di,bp	! #base
+	push ss		! 0  [or DEBUG ss]
+	pop ds
+	push ss		! 0  [or DEBUG ss]
+	pop es
+	cld
+	rep
+	movsw
+
+IF DEBUG
+	push cs
+	push #main + base - zero
+	retf
+ELSE
+	jmpf main + base - zero, 0
+ENDIF
+
+
+main:
+IF FLOPPY  !{
+	mov si,#str_splash + base - zero
+	call putstr
+	mov al,#'1		! default 1st harddrive
+	call getcTime		! get drive letter
+	add al,#0x80-'1		! convert to BIOS drive number
+	mov drive[bp],al	! save for BIOS calls
+	call crlf
+ELSE  !}{
+	call crlf		! splash screen :-)
+! Newer BIOS pass the boot drive number in dl.
+! Floppies are 0,1,2,...; harddrives are 0x80, 0x81, 0x82, ...
+! Protect against old BIOS.
+	xchg ax,dx		! <mov al,dl> BIOS drive number
+	cmp al,#0x87		! sanity check
+	jle ok_drive
+	mov al,#0x80		! force to 1st harddrive
+ok_drive:
+	mov drive[bp],al	! save for BIOS calls
+ENDIF  !}
+
+partlist:
+! List partitions.  Early exit to 'found' if match on desired letter.
+! Else just repeat.
+
+	xor eax,eax	! 1st sector of disk
+	mov di,bp	! ->MBR "partition"
+	push di
+	stosw
+	inc ax
+	stosw		! C/H/S = 0/0/1
+	dec ax
+	stosw		! pfxrel[bp]  clear relocation
+	stosw
+	pop di
+IF 1 - FLOPPY
+	mov si,#names + base - zero
+ENDIF
+	mov bx,#'a		! desired,,first [MODIFIED BY INSTALLER]
+desltr:			! [MODIFIED BY EXECUTION]
+		! bh = desired partition letter
+		! bl = current actual partition letter
+		! cx = partition loop counter
+		! dl = 1 if xp in this batch of 4 partitions; else 0
+		! dh = 1 if xp in some previous batch; else 0
+		! si -> names
+		! di -> partition table
+	xor dx,dx	! no xp
+xp_next:
+	call rd_blk	! MBR or extended partition
+	mov di,#partab + boot	! ->batch of partitions
+	mov cx,#4	! partition entries in sector
+menu0:
+	mov al,4[di]	! partition ID byte
+	cmp al,#0
+	je nulpart
+	cmp al,#0x85	! Linux extended partition
+	je extpart
+	cmp al,#0xf	! Microsoft Win98 xp that ignores C/H/S info
+	je extpart
+	cmp al,#5	! DOS extended partition
+	jne regpart
+extpart:
+	push di		! remember xp
+	inc dx		! flag xp
+	jmp nulpart
+regpart:
+IF FLOPPY
+	call hexbyte	! al
+	call colon
+	call decimal	! 12[di]
+ENDIF
+	call letter	! bl
+IF FLOPPY
+	call crlf	! [no space on floppy for names]
+ELSE
+	call putstr	! si  partition name
+ENDIF
+
+	cmp bl,bh	! the letter we desire
+	je found	! escape from loop
+	inc bx		! <inc bl>  next letter
+nulpart:
+	lea di,16[di]	! next partition
+	loop menu0
+
+	test dl,dl
+	jz xp_done	! no xp in this group of 4
+	pop di		! ->next xp
+	mov eax,8[di]	! sector offset
+	add eax,pfxrel[bp]	! relocate from 1st xp
+	test dh,dh
+	mov dx,#0x100
+	jnz xp_next	! not 1st xp
+	mov pfxrel[bp],eax	! save sector offset
+	jmp xp_next
+xp_done:
+	mov al,BYTE PTR defltr -1 + base - zero
+	call getcTime
+	mov BYTE PTR desltr -1 + base - zero, al	! use in next pass
+
+IF FLOPPY
+	jmp partlist
+ELSE
+	mov dl,drive[bp]	! restore initial condition
+	jmp main		! start all over again
+ENDIF
+
+found:
+
+IF 1	! <Some bootsectors need this; but not MSDOS5.0, W95, WNT, OS2W4>
+! Make a partition table entry at 0x7be
+! for the partition being booted.
+! Make the position information absolute.
+
+	mov si,di	! ->partition to use
+	mov di,#partab + base
+	push di
+	mov cl,#8	! 0==ch because cx was counting 4 downto 0
+	rep
+	movsw		! copy to 0x7be
+	pop di		! ->copied partition entry
+ENDIF
+
+	mov eax,8[di]	! block number
+	add eax,prvsec[bp]	! relative to MBR or xp
+	mov 8[di],eax	! relocate sector offset
+!
+! MISSING:  Code to relocate C/H/S for non-primary partitions under old BIOS.
+! (Or are C/H/S already absolute everywhere, even in extended partition?)
+!
+	call rd_blk		! boot block
+	mov si,di		! &partition in use
+	mov dl,drive[bp]	! pass along BIOS boot drive number
+	mov BYTE PTR [si],#0x80	! bootable
+
+	mov di,#boot
+	push ax
+	mov al,[di]		! 1st byte of bootsector
+	or al,#2		! 0xe9==JMP_d16;  0xeb==JMP_d8
+	cmp al,#0xeb
+	pop ax
+	jne not_msft
+	mov 0x1c[di],eax	! msft bootsect needs #hidden sectors
+not_msft:
+	call di			! #boot; ra = &rd_dsk
+				! eax= #hidden sectors;
+				! also in 0x608, and 8[si], and MSFT label
+
+! Input:
+!	eax = sector number
+!	es:bx = segment:offset of destination
+!	cx = number of sectors
+!	dl = BIOS drive number
+!	di -> partition entry
+!	0[sp] = return address
+!	2[sp] = routine to call for C/H/S translation
+! Output:
+!	dh trashed
+!	all other registers as on Input
+
+rd_dsk:
+	push ds		! might be clobbered for EDD ptr
+	pushad
+
+	push bp
+	mov bp,sp	! usual C-style frame pointer
+
+		! construct Enhanced Disk Drive parameter block on stack
+	.byte 0x66	! 32-bit data in next instruction
+	push #0		! hi32 bits of sector number
+	push eax	! lo32 bits of sector number
+	push es		! xfrseg
+	push bx		! xfroff
+	push cx		! sector count
+	push #16	! sizeof parameter block
+	mov si,sp	! offset(EDD packet)
+
+		! determine C/H/S for non-EDD;
+		! sets up al,ah,cl,ch,dh
+	call 2+32+2+2[bp]	! {bp,regs,ds,ra}
+
+		! see which protocol to use
+	pusha		! save C/H/S settings
+	mov ah,#0x41
+	mov bx,#0x55aa
+	int 0x13
+	jc no_edd
+	cmp bx,#0xaa55
+	jne no_edd
+	sar cx,#1
+	jnc no_edd
+	push ss
+	pop ds		! ds:si -> Enhanced Disk Drive command packet
+	mov ah,#0x42	! BIOS Enhanced READ command
+	.byte 0xa8	! TEST AL,imm8 to skip POPA
+no_edd:
+	popa		! retrieve C/H/S settings
+	int 0x13
+	jc errdsk
+	leave		! remove frame
+	popad
+	pop ds
+	ret
+errdsk:
+	mov al,ah	! error status
+	call hexbyte
+
+	int 0x18	! ask BIOS to [re]boot
+
+
+rd_blkPart:
+	mov bx,#boot	! same offset for all sectors read by MBR
+	mov cx,#2	! 2 sectors
+	mov dl,drive[bp]
+	mov prvsec[bp],eax	! remember LRU sector number
+	call rd_dsk
+	cmp WORD PTR 0x01fe + boot, #0xaa55
+	jne errdsk
+	pop ax		! remove &chs_mbr
+	popa
+	ret
+rd_blk:		! eax= block for lba; di->partition for non-lba
+	pusha
+	call rd_blkPart		! push &chs_mbr
+
+chs_mbr:
+! Input:
+!	eax = sector number
+!	es:bx = segment:offset of destination
+!	cx = number of sectors
+!	dl = BIOS drive number
+!	di -> partition entry
+!	old sp [before args to rd_dsk] is at effective address 2+32+2+4[bp]
+! Output:
+!	al = number of sectors
+!	ah = 0x02 (BIOS read command)
+!	es:bx = segment:offset of destination
+!	cl = (hi2(cyl)<<6) | sector
+!	ch = lo8(cyl)
+!	dl = BIOS drive number
+!	dh = head (track)
+
+	mov dh,1[di]	! partition entry has params
+	mov cx,2[di]
+	mov ax,#0x0202	! READ,,2 sectors
+	ret
+
+
+
+! putstr: Write NUL terminated string to TTY, followed by CRLF.
+! Enter: Address of string in SI
+! Exit:	SI points to after the terminating NUL of the string;
+! Trashes AL.
+doputs:
+	call putc
+putstr:
+	lodsb				! Get next character
+	cmp al,#0			! End of string?
+	jnz doputs
+		! fall into crlf
+
+! crlf: Output crlf sequence
+! Trashes: AL
+crlf:
+	mov al,#13
+chlf:
+	call putc
+	mov al,#10
+		! fall into putc
+
+! putc: Write character to TTY
+! Enter: AL has character to write
+putc:
+	pusha
+	mov ah,#0xe
+	mov bx,#7
+	int 0x10
+	popa
+	ret
+
+hexbyte:
+	push ax
+	rol al,#4
+	call nibble
+	pop ax
+nibble:
+	and al,#0x0f	!   results (including Carry)
+	add al,#0x90	! 090-099, 09a-09f
+	daa		! 090-099, 100-105
+	adc al,#0x40	! 0d0-0d9, 041-046
+	daa		! 130-139, 041-046
+	jmp putc
+
+letter:
+	mov al,bl	! current letter
+	call putc
+	cmp al,#0	! [MODIFIED BY INSTALLER]
+defltr:
+	mov al,#'*
+	je putc		! default gets an asterisk
+		! fall into colon
+colon:
+	mov al,#':
+	jmp putc
+
+! getcTime: Get character from keyboard, with timeout if not FLOPPY.
+! Entry: al = default character in case of timeout or \r
+! Exit: al = result character
+! Trashes: AX, ECX
+getcTime:
+	push ax			! save the default
+	call colon		! prompt
+IF 1 - FLOPPY  !{
+	mov ecx, #19980721	! Timeout counter [MODIFIED BY INSTALLER]
+count:
+
+getcT0:
+	mov ah,#1		! Check for waiting character
+	int 0x16		! set Z iff no waiting character
+	.byte 0x67		! use ECX for counter in following instr
+	loopz getcT0		! loop if no character, and count not expired
+	jz getcDflt		! Timeout expired
+ENDIF  !}
+		! read the waiting character
+getcWait:
+	mov ah,#0		! Wait for char
+	int 0x16
+	cmp al,#13		! \r
+	jne getcGot
+getcDflt:
+	pop ax			! default result
+	push ax			! keep stack adjusted
+getcGot:
+	pop cx			! discard the default
+	jmp putc		! echo to console
+
+! There isn't enough space for both 'decimal' and reasonable-length 'names',
+! and names tend to be particular to a given hard disk, which makes them
+! less useful on a floppy that travels from machine to machine.
+! So use conditional assembly.
+
+IF 1 - FLOPPY  !{
+names:		! Partition names [MODIFIED BY INSTALLER]
+ELSE  !}{
+decimal:
+	pusha		! ax, cx, dx, bp
+	mov eax,12[di]	! size in 512-byte sectors
+	shr eax,#11	! size in megabytes
+	adc ax,#0	! round, truncate to 64 gigabytes
+
+	mov cx,#5	! width
+	mov bp,#10	! radix
+	call deci_div
+	popa
+	jmp colon
+
+deci_mid:
+	call deci_div
+deci_cvt:
+	pop ax
+	add al,#'0
+	jmp putc
+
+deci_div:
+	xor dx,dx
+	div ax,bp
+	push dx
+	loop deci_mid
+	jmp deci_cvt
+
+str_splash:
+	.ascii "mbr02"
+	.byte 0
+ENDIF  !}
+
+! There are 4 16-byte partition entries
+! beginning at 7BE
+! Each entry looks like this:
+!
+!  0	boot flag		0 for non-bootable, 80 for bootable
+!  1	starting head		starting head number of partition
+!  2	starting sector		low 6 bits is starting sector.  upper 2
+!				bits is upper two bits of track number
+!  3	starting track		low 8 bits of track number
+!  4	id			system ID byte
+!  5    ending head		last head of partition
+!  6    ending sector
+!  7	ending track
+!  8-11 prefix			no. sectors to skip before partition
+! 12-15 size			no. sectors in partition 
+!
+! The prefix of the first extended partition (type 5) is relative to 0.
+! The prefix of any other extended partition is relative to
+! the FIRST extended partition.
+! The prefix of anything else is relative to the current extended partition
+! (if any), or is relative to 0 (absolute).
+
+	.org 0x200 - 2
+	.byte	0x55
+	.byte	0xAA
+

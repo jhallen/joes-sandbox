@@ -1,0 +1,904 @@
+                                  Ivy 2005
+
+INTRODUCTION
+
+	Ivy is an embeddable language which is useful as both an extension
+and a command language.  Its syntax is designed to be similar to
+command-type languages like BASIC and UNIX shell for compatibility with
+simple command entry applications.  However, the awkwardness typically
+associated with command languages is eliminated through Ivy's support of
+full expressions, including function calls and assignments, and orthogonal
+block structuring.
+
+	Ivy compiles its source code into a compact 'byte-code' which is
+then interpreted.  Six types are currently supported: integers, strings,
+functions, void, floats, and objects.  Objects are late-binding storage
+devices which take the role of arrays, structures and simple look-up tables. 
+Type declarations are not necessary, but type checking is not done until
+run-time.
+
+	Ivy comes packaged as an interactive language like BASIC and LISP. 
+You can either execute language statements immediately from the keyboard or
+run a program stored in a file.  Ivy is also easy to embed into another
+program.  Calls are provided to execute Ivy code and to add C function
+extensions to Ivy's interpreter.
+
+
+COMMAND FORMAT
+
+	ivy [-u] [-t] [-c] [filenames...]
+
+		If no filenames are given, ivy takes input from the keyboard
+
+		-t  is a debugging aid which displays the parse tree as
+		    commands are entered
+
+		-u  is a debugging aid which unassembles the byte-code as
+		    it's made
+
+		-c  calculator mode.  prints the result of each command/
+		    expression which is immediately executed
+
+
+. syntax
+
+Comments
+
+Ivy uses '#' to introduce comments.  Everything from an unquoted # to the
+end of the line is a comment.  '#' was chosen so that the very first line in
+an Ivy program can be '#!/usr/bin/ivy', which makes the file into a script
+in UNIX.
+
+Expression syntax
+
+Everything in Ivy is an expression, meaning that statements and function
+calls have the same syntax (new "statements" can be added to the language by
+defining new functions):
+
+	print(square(10))	Call square function with 10 as arg, and
+				print result.
+
+	print(if(a==1,2,3))	If a==1, print 2.  Otherwise print 3.
+
+Lists of expressions
+
+A list of expressions is expected within parenthesis and brackets:
+
+	(list)			Argument list, parenthetical expression,
+				or formal args for function definition.
+
+	{list}			An object.
+
+If a list is expected in the given context, the list is used as is.  If a
+single expression is expected in the given context, all of the expressions
+in the list are evaluated (left to right), and the value of the right-most
+expression is returned:
+
+	mul(2 3)		Pass two args to mul: 2 and 3
+
+	3*(2 3)			Results in the value 9
+
+The expressions within a list can be separated with whitespace, commas or
+semicolons.  These are all identical in this context:
+
+	mul(10 20 40)		3 args passed to mul
+	mul(10,20;40)		3 args passed to mul
+	mul(10;,20,,,40)	3 args passed to mul
+
+Note that successive separators with nothing between them are ignored:
+
+	mul(1,2) is exactly the same as mul(1,,,,2)
+
+Note however, that an empty set of parenthesis has meaning:
+
+	mul(() 20)	Passing two args to mul: void and 20.
+
+Note that \ is a sequential evaluation infix operator which computes the
+left side, discards the result and then computes the right side and returns
+its result:
+
+	mul(10\15\20 30)	Pass two args to mul: 20 and 30.
+
+Ambiguities
+
+Since whitespace is a valid separator for expressions, ambiguities between
+symbols which can be both infix and prefix operators result.  These
+ambiguities are resolved by noting the physical distance between the
+symbol and its potential arguments.  If the distance is balanced, the
+operator is infix, otherwise it's prefix.
+
+	a - b			One expression: subtract b from a
+	a  -b			Two expressions: a and negated b
+	f (7)			Two expressions: f and 7.
+	f(7)			One expression: a call to f with arg 7
+	f ( 7 )			One expression: a call to f with arg 7
+	f  ( 7 )		Two expressions: f and 7.
+
+Note that tabs occur every 8 spaces for this purpose.
+
+Command format function calls
+
+There is a "command" format for function calls:
+
+	function-name arg arg arg ; function-name arg arg arg ; ...
+
+This is available at the top-level (non-enclosed) and within square
+brackets:
+
+	[commands]
+
+In this context, semicolons and new-lines have the same low precedence: either
+can be used to separate successive commands.  Commas and whitespace can be
+used as argument separators, just as in lists.
+
+"function-name" must be a single simple name.  If it is a more complicated
+expression, the command is reduced to a list of expressions until the next
+new-line or semicolon.
+
+	print 10 20		# Print 10 and 20 (one command)
+
+	print(20) print(1)	# Print 20 and 1 (two expressions)
+
+Sometimes you may want to suppress the command interpretation of a single
+simple name.  This can be done by surrounding the name with parenthesis:
+
+	(print)			# Address of print function
+	print			# Call print function
+
+Blocks
+
+Arguments to commands can be given as indented blocks:
+
+	if a==1 [print 10; print 20]
+
+	if a==1
+	  print 10
+	  print 20
+
+Block arguments can be separated with the 'next' and 'last' keywords:
+
+	if(a==1,print("It's one"),
+           a==2,print("It's two"),
+           print("It's something else"))
+
+	if a==1
+	  print "It's one"
+	next a==2
+	  print "It's two"
+	last
+	  print "It's something else"
+
+Interactive mode
+
+When Ivy is in interactive mode, the indented block feature is disabled.  In
+this mode, you either have to use square brackets to enter blocks of
+commands or you use the expression format.
+
+. values
+
+	Integers may be entered in a variety of bases:
+
+		x=0127		# Octal
+		x=0x80		# Hexadecimal
+		x=0b11		# Binary
+		x=123		# Decimal
+
+	Octal, binary and hexadecimal digits may be interspersed with
+	underscores (_) for enhanced readability:
+
+		x=0xADDED_FEE
+
+	Floating point:
+
+		x=.125
+		x=.125e3
+		x=0.3
+
+	Also the ASCII value of a character may be taken as an integer:
+
+		x='A'		# The value 65
+
+	The following "escape sequences" may also be used in place of a
+character:
+
+		x='\n'		# New-line
+		x='\r'		# Return
+		x='\b'		# Backspace
+		x='\t'		# Tab
+		x='\a'		# Alert (bell)
+		x='\e'		# ESC
+		x='\f'		# Form-feed
+		x='\^A'		# Ctrl-A (works for ^@ to ^_ and ^?)
+		x='\010'	# Octal for 8
+		x='\xFF'	# Hexadecimal for 255
+		x='\\'		# \
+		x='\q'		# q (undefined characters return themselves)
+
+	String constants are enclosed in double-quotes:
+
+
+		x="Hello there"
+
+	Escape sequences may also be used inside of strings.
+
+
+VARIABLES
+
+	Variables set outside of functions are global variables.  They will
+be visible in any block unless 'var' is used within the block to force the
+creation of a new local variable with the same name.
+
+	If a variable is set inside of a function and there is no global
+variable of the same name, that variable will be local to the block it was
+assigned in.
+
+
+OBJECTS
+
+	Objects have members which are either numbered or named or both. 
+Objects with numbered members are similar to arrays.  Objects with named
+members are similar to structures.
+
+	Objects can be created either member by member:
+
+		o.a=5
+		o.b=6
+
+	or all at once:
+
+		o={`a=5, `b=6}
+
+	Objects are assigned by reference.  This means that if you have an
+object in one variable:
+
+		x={1 2 3}
+
+	And you assign it to another:
+
+		y=x
+
+	And then change one of the members of x:
+
+		x(0)=5
+
+	Then the change will appear both in x and in y
+
+
+EXPRESSIONS
+
+	An expression is a single or dual operand operator, a constant, a
+variable, a lambda function, a block enclosed within parenthesis, a
+function call, or an object.  Examples of each of these cases follow:
+
+		~expr			Single operand
+
+		expr+expr		Dual operand
+
+		25			Constant
+
+		(expressions)		Precidence
+		[commands]
+
+		expr(expr ...)		Function call
+
+		{1 2 3 4}		An array object
+
+		{`next=item `value=1}	A structure object
+
+		(fn (x,y) x*y)(3,5)	Calling a lambda function
+
+
+. operators
+
+	Ivy uses a superset of operators from C but with more intuitive
+precedence.  Here are the operators grouped from highest precedence to
+lowest:
+
+	`				# Named argument
+
+	.				# Member selection
+
+	( )				# Function call
+
+	& - ~ ! ++ -- *			# Single operand
+
+	<< >>				# Shift group
+
+	* / & %				# Multiply group
+
+	+ - | ^				# Add group
+
+	== > < >= <= !=			# Comparison group
+
+	&&				# Logical and
+
+	||				# Logical or
+
+	= <<= >>= *= /= %= += -= |= ^= .=	# Pre-assignments
+	: <<: >>: *: /: %: +: -: |: ^: .:	# Post-assignments
+
+	\				# Sequential evaluation: returns
+					# result of right side.
+
+	,				# Expression separation
+
+	;				# Command separation
+
+	A detailed description of each operator follows:
+
+	` Named argument
+
+		This operator can be used to explicitly state the argument
+or member name in a command, function call or object.  For example:
+
+		open `name="joe.c",  `mode="r"
+		square(`x=5, `y=6)
+		{`1=5 `0=7}			# Array object
+		{`x=10 `y=10}			# Structure object
+
+	. Member selection
+
+		This operator is used to select a named member from an
+object.  For example:
+
+		o={`x=5, `y=10}		# Create an object
+		pr o.x			# Print member x
+		pr o.y			# Print member y
+		pr o("y")		# Same as above
+
+        ( ) Function call
+
+		This operator calls the function resulting from the
+expression on the left with the (optionally comma separated) arguments
+inside of the brackets.  This operator can also be used for object member
+selection and for string character selection and substring operations. 
+Examples of each of these follow:
+
+		x.y(5)			# Call function y in object x
+
+		z(0)=1, z(1)=2		# Set numbered members of an object
+
+		z("foo")=3, z("bar")=4	# Set named member of an object
+
+		pr "Hello"(0)		# Prints 72
+
+		pr "Hello"(1,3)		# Prints "el" (selects substring
+					# beginning with first index and
+					# end before second).
+
+		a="Hello"
+		a(0)='G
+		a(5)=" there"
+		pr a			# Prints "Gello there"
+					# Overwrites characters in the
+					# destination string and space-fills
+					# if necessary.
+
+
+
+	- Negate
+
+	& Address of.
+
+		This operator converts its operand into a zero argument
+	function nameless function.  The function can be called with () or *.
+
+	~ Bit-wise one's complement
+
+	! Logical not
+
+	++ Pre or post increment depending on whether it precedes or follows
+	   a variable
+
+	-- Pre or post decrement
+
+	* Indirection
+
+		This prefix operator is used to call a zero argument
+	function.
+
+		fn set(&a b)
+		  *a=b
+
+		x=3
+		set x 10	# Set x to 10
+		pr x		# Prints 10
+
+	<< Bit-wise shift left
+
+	>> Bit-wise shift right
+
+	* Multiply
+
+	/ Divide
+
+	& Bit-wise AND
+
+	% Modulus (Remainder)
+
+	+ Add or concatenate
+
+		In addition to adding integers, this operator concatenates
+	strings if strings are passed to it.  For example:
+
+		pr "Hello"+" There" 	# Prints "Hello There"
+
+		'+' will also append an element on the right into an
+	array object on the left:
+
+		a={1 2 3}
+		a+=4			# a now is { 1 2 3 4 }
+
+		pr {}+1+2+3+4		# same as pr {1 2 3 4}
+		pr {}+1+2+3+{4 5}	# same as pr {1 2 3 {4 5}}
+
+	- Subtract
+
+	| Bit-wise OR or 
+
+		If objects are given as arguments to OR, OR unions the
+        objects together into a single object.  If the objects have
+        numerically referenced members, OR will append the array on the
+        right to the array on the left.  For example:
+
+		a={1 2 3}
+		b={4 5 6}
+		a|=b			# a now is {1 2 3 4 5 6}
+
+	^ Bit-wise Exclusive OR
+
+	== Returns 1 (true) if arguments are equal or 0 (false) if arguments
+	   are not equal.  Can be used for strings, numbers and objects. 
+	   For objects, == tests if the two arguments are the same object,
+	   not if the two arguments have equivalent objects.
+
+	>  Greater than
+	>= Greater than or equal to
+	<  Less than
+        <= Less than or equal to
+        != Not equal to
+
+	&& Logical and
+
+		The right argument is only evaluated if the left argument is
+	true (non-zero).
+
+	|| Logical or
+
+		The right argument is evaluated only if the left argument is
+	false (zero).
+
+	= Pre-assignment
+
+		The right side is evaluated and the result is stored in the
+	variable specified on the left side.  The right side's result is
+	also returned.
+
+	: Post-assignment
+
+		The right side is evaluated and the result is stored in the
+	variable specified on the left side.  The left side's original value
+	is returned.
+
+	X= Pre-assignment group
+
+		These translate directly into: "left = left X right"
+
+	X: Post-assignment group
+
+		These translate directly into: "left : left X right"
+
+	Notes on assignment groups:
+
+		.=	translates into "left = left . right" and is
+			useful for traversing linked lists.  For example:
+
+			for list=0\ x=0, x!=10, ++x	# Build list
+			  list={`next=list, `value=x}
+
+			(note, this builds the list in reverse
+			order.  9,8,7...)
+				
+			for a=list, a, a.=next		# Print list  (second
+							# expr evals for 0)
+			  pr a.value
+
+		x+:1	Is the same as x++
+		x+=1	Is the same as ++x
+
+		a:b:c:5
+			':' is useful for shifting the value of variables
+			around.  In this example, a gets b, b gets c, and
+			c gets 5.
+
+		a:b:a
+			':' is also useful for swapping the values of
+			variables.  In this example, a gets swapped with
+			b.
+
+	\ Sequential evaluation
+
+		The left and then the right argument are evaluated and the
+	result of the right argument is returned.
+
+	, Argument separator
+
+		When this is used in statements which require only a single
+	expression, it has the same effect as \
+
+
+. functions
+
+Function declaration:
+
+	Named function declarations:
+
+		fn name(args) expr
+
+		fn name(args)
+	          body
+
+	Named function declarations which look like function calls:
+
+		fn(name,(args),body-expr)
+
+	Unnamed function declaration which looks like a command:
+
+		[fn (args) body-expr]
+
+	Unnamed function declaration which looks like a function call:
+
+		fn((args),body-expr)
+
+	These are all equivalent:
+
+		fn square(x) x*x
+
+		fn square (x)
+		  x*x
+
+		square=(fn (x) x*x)
+
+		square=fn((x), x*x)
+
+	The last forms define "Lambda" (nameless) functions.  You can
+	also use lambda functions without assigning them:
+
+		x=fn((x),x*x)(6)	# x gets assigned 36
+
+. statements
+
+If statement
+
+	if expr
+	  block
+	next expr
+	  block
+	last
+	  block
+
+	if(test1,expr1,test2,expr2,...,else-expr)
+
+Foreach statement
+
+	foreach variable expr block
+
+	LABEL: foreach variable expr block
+
+		Sets the variable to each element in the array resulting
+		from expr and executes the block.
+
+		'foreach' may optionally be preceded by a label for matching
+		with the argument to 'break' and 'continue'
+
+	e.g.
+	foreach a {1 2 3}
+	  print a		# prints 123
+
+
+Loop statement
+
+	loop block
+	LABEL: loop block
+
+		The block gets repeatedly executed until a 'break' or
+                'until' statement within the block terminates the loop.
+
+
+		'loop' may optionally be preceded by a label for matching
+		with the argument to 'break' and 'continue'
+
+While statement
+
+	while expr block
+
+	LABEL: while expr block
+
+		The block is repeatedly executed if the expression is true.
+
+
+		'while' may optionally be preceded by a label for matching
+		with the argument to 'break' and 'continue'
+
+For statement
+
+	for expr1, expr2, expr3 block
+
+	LABEL: for expr1, expr2, expr3 block
+
+		This is a shorthand for the follow while statement:
+
+			expr1 while expr2
+			 block
+			 expr3
+
+		Thus,
+        	   expr1 is usually used as an index variable initializer
+		   expr2 is the loop test
+	           expr3 is the index variable incrementer
+
+		'for' may optionally be preceded by a label for matching
+		with the argument to 'break' and 'continue'
+
+Return statement
+
+	return
+
+	return expr
+
+		This exits the function it is executed in with the given
+                return value or with the value of the last expression
+                preceding the return.
+
+Break statement
+
+	break
+
+	break LABEL
+
+		This jumps out of the innermost or labeled loop
+
+Continue statement
+
+	continue
+
+	continue LABEL
+
+		This jumps the beginning of the innermost or labeled loop.
+
+Until statement
+
+	until expr
+
+		This exits the loop it's in if the expression is true.
+
+Var statement
+
+	var a, b, c
+
+		This declares variables which are local to the block.  The
+		variables may also have initializers:
+
+			var a=10, b=20
+
+			fn raise(a)
+			  var x
+			  for x=1, a, x<<=1\ --a
+			  return x
+
+With statement
+
+	with a, b, c, ...
+
+		The members of the specified objects look like local
+		variables inside of the block.
+
+	e.g.    the following will print "3"
+		list={`value = 2}
+		with list
+		  value = 3;
+		print list.value;
+		
+
+              
+
+Include statement
+
+	include "string"
+
+		Executes the file specified by the string.
+
+
+FUNCTIONS
+
+	When the block inside of a function gets control, several special
+variables becomes visible:
+
+		this	The function's local variables as an object
+
+				print this	Prints all local variables
+
+		this.mom
+			The function's lexical scope
+
+		this.dynamic
+			This function's dynamic scope
+
+		argv	Contains an object containing numbered members
+			which are each set the arguments passed to the
+			function.
+
+	So for example, if the function:
+	
+		fn x()
+		  for a=0, a!=len(argv), ++a
+		    print argv(a)
+
+	gets called as follows:
+	
+		x(1 2 3)
+	
+	The following gets printed:
+	
+	1
+	2
+	3
+
+	Default values may be specified for missing arguments in function
+calls.  For example if this function:
+
+		fn func(x=5, y=6)
+		  x*y
+
+	Is called as follows:
+	
+		print func(1)		# '6' is printed
+		print func()		# '30' is printed
+		print func(`y=7)	# '35' is printed
+
+
+	Functions may be assigned to variables and passed to functions.  For
+example you can define a function 'apply' which applies a function to an
+argument:
+
+		fn apply(x y)
+		  return x(y)
+
+		fn square(x)
+		  return x*x
+
+		print apply(square,5)	# Prints 25
+
+
+	Functions can return other named or unnamed functions.  To return a
+named function, 'return' must be used since it forces its argument to be an
+expression (otherwise the returned function name would look like a function
+call).  For example:
+
+		fn square(x)
+		  return x*x
+
+		fn foo()
+		  return square
+
+		print foo()(4)		# Prints 16	() needed
+					# because bar is an expr
+
+		fn bar()
+                  (fn((x),x*x))		# Return lambda function
+
+		pr bar()(4)		# Prints 16    
+
+
+	Functions can be declared inside of other functions.  This is
+especially useful for manipulating the argument lists of pre-existing
+functions.  Suppose you had an averaging function:
+
+		fn avg(func from to)
+		  var x, accu
+		  for x=from\ accu=0, x!=to, ++x
+		    accu+=func(x)
+		  return accu/(to-from)
+
+	And suppose that you have another function which takes two arguments
+which you'd like to average, but with one argument set to a constant:
+	
+
+		fn add(a b)
+		  return a+b
+
+	You could do this by using a function which creates a function
+which calls add, but with one argument set to a constant:
+
+		fn curry(y)
+		  return fn((x),add(x,y))
+
+	Now 'avg' can be used on 'add':
+
+		print avg(curry(20),0,10)
+
+. builtin
+
+
+	len(a)
+
+		Returns the length of string 'a' or number of elements in
+                array 'a'
+
+	print(...)
+
+		Prints the arguments
+
+	printf(...)
+		C printf
+
+		printf "%d\n", 17
+
+	a=get()
+
+		Get a line of input as a string.  Returns void if there is
+		no more input.
+
+                # Add line numbers to input
+                n=1
+		while a=get()
+		  print n++, " ", a
+
+	x=atoi("2")
+
+		Converts a string to a number
+
+	s=itoa(20)
+
+		Convert a number to a string
+
+	clear(...)
+
+		Frees the values of the listed variables and sets the
+		variables to VOID.
+
+	b=dup(a)
+
+		Make a duplicate of an array/object
+
+	match(string,pattern,result-variables...)
+
+		Regular expression pattern matching
+
+		Return true if string matches pattern (which must be a
+		regular expression string).
+
+		If there is a match, each spanned area is stored in the
+		corresponding result variable:
+
+			match "fooAbar" ".*A.*" a b
+
+		a now has "foo" and b has "bar".
+
+		It is ok to supply fewer result variables than there are
+		spanning areas.
+
+		The regular expression string may be made of:
+
+                    .      matches any character.
+                    *      matches zero or more of the previous character
+                           (generates a result string).
+                    +      matches one or more of the previous character
+                           (generates a result string).
+                    [...]  matches one character in the list ...
+                           ranges may be specified with the list, such
+                           as 0-9, a-z, etc.
+                    x      other characters match themselves only.
+
+		Note that the entire string must be spanned for a match to
+		occur:  It is as if the pattern always begins with ^ and
+		ends with $.
+
+. math
+
+	Math functions:
+		sin() cos() tan() asin() acos() atan() atan2()
+		sinh() cosh() tanh() asinh() acosh() atanh()
+		exp() log() log10() pow() hypot() sqrt()
+		floor() ceil() int() abs() min() max() erf() erfc()
+		j0() j1() jn() y0() y1() yn()

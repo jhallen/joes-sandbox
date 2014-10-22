@@ -1,0 +1,48 @@
+bootext2 - boot block for ext2 filesystem
+
+by: Joe Allen (jhallen@world.std.com)  original  March 1998
+    John F. Reiser (jreiser@teleport.com)  extensively rewritten  July 20, 1998
+archived: ftp://ftp.teleport.com/pub/users/jreiser/x2boot4a.tgz
+
+bootext2 is a boot block which understands the ext2 filesystem
+enough to boot from a pathname, and with keyboard input, timeout, and
+default.  bootext2 also collects a parameter string to pass to the
+kernel.  bootext2 detects and uses BIOS support for Enhanced Disk Drive
+to allow booting beyond cylinder 1024.  (Most BIOS dated after mid-1995
+have this.)  bootext2 boots "low" at 0x10000 (64KB), and is suitable
+for compressed kernels such as /boot/vmlinuz.  bootext2 can be used to make
+a bootable ext2-formatted floppy.
+
+bootext2 v4a has three major configuration options to deal with how
+the Master Boot Record tells bootext2 which partition is being booted.
+The default option (USE_PTAB) works with most MBR from Microsoft and IBM.
+There also are options to use the MBR from mbr02.tgz (USE_MBR),
+or for use with FAT volume label and/or floppy disk (USE_LABEL, USE_FLOPPY).
+The visible effects are how many characters are allowed for boot parameters
+(from 59 to 175), and whether bootext2 handles symbolic links (it does
+with USE_PART or USE_MBR).
+
+bootext2 does not set kernel parameters for root or swap devices,
+so use /usr/sbin/rdev to get the right ones, or use parameters in
+the boot command string.  bootext2's installer diagnoses the current
+values as a reminder.
+
+bootext2 uses 32-bit registers, and therefore requires a 386 or higher,
+just like Linux.
+
+----
+Files:
+
+COPYING		license information (FSF GNU GPL v.2)
+
+Makefile	Requires adjustment for EXT2ROOT device and KERNEL name.
+		Uses as86 from the Linux bin86 package.
+
+README		This file.
+
+bootext2.a86	Assembly source code.
+
+bootext2.bin	Pre-comiled, ready for customization.
+
+tune_ext2.c	Installer
+

@@ -1,0 +1,1278 @@
+!e2boot: boot sector for ext2 filesystem
+!Copyright (C) 1998 Joseph H. Allen
+!Copyright (C) 1998 John F. Reiser.  All rights reserved.
+
+!This file is part of e2boot (boot block for ext2 filesystem)
+
+!e2boot is free software; you can redistribute it and/or modify it under the 
+!terms of the GNU General Public License as published by the Free Software 
+!Foundation; either version 2, or (at your option) any later version.  
+
+!e2boot is distributed in the hope that it will be useful, but WITHOUT ANY 
+!WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+!FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+!details.  
+
+!You should have received a copy of the GNU General Public License along with 
+!e2boot; see the file COPYING.  If not, write to the Free Software Foundation,
+!59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+
+
+!-----  Major configuration options
+
+! Set one of {USE_MBR, USE_PTAB, USE_LABEL} to 1; set the other two to 0.
+USE_MBR = 1
+USE_PTAB = 0
+USE_LABEL = 0
+! USE_MBR:  mbr03.tgz contains a Master Boot Record that reads 4 sectors
+!	for the "bootsector", passes a disk-reading subroutine at 0[sp],
+!	and passes the number of hidden sectors in register eax.  [mbr03 also
+!	sets ds:si, and detects FAT volume label, but using eax is smallest.]
+!	When not using mbr03, then e2boot itself must read its 2nd 512 bytes,
+!	and e2boot must also have code to read the disk and report errors.
+! USE_PTAB:  most Master Boot Record point ds:si to a parition table entry
+!	with the number of hidden sectors at 8[si] .  (The USE_PTAB option
+!	should be usable with MBR from Microsoft and/or IBM.)
+! USE_LABEL:  some Master Boot Record detect a IBM/Microsoft FAT volume label,
+!	and pass the number of hidden sectors in +0x1c .
+!	USE_LABEL also should be 1 when using e2boot directly, without
+!	any Master Boot Record, in which case the assembled-in value (zero)
+!	will be used for the number of hidden sectors.  (For instance,
+!	when using e2boot on a floppy disk [or equivalent, such as LS-120].)
+
+INITRD = 1
+! Initial ramdisk.  Requires 79 bytes of code, but probably necessary.
+
+SYMLINK = USE_MBR
+! The code to detect and process symbolic links ("ln -s") takes 65 bytes,
+! and leaves too little room for bootline arguments unless 1==USE_MBR.
+! With SYMLINK = 1: USE_MBR allows 80 bytes.
+! With SYMLINK = 0: USE_MBR allows 145 bytes, USE_PTAB allows 62 bytes,
+! and USE_LABEL allows 14 bytes.
+! Not having symbolic links is not such a great loss, although major Linux
+! distributions typically use a symbolic link for the kernel.
+! (In RedHat 4.2, /boot/vmlinuz -> vmlinuz-2.0.30 .)
+! So just use the non-link name instead (/boot/vmlinuz-2.0.30),
+! or use a hard link (ln with no "-s" parameter).
+
+XLAT_CHS = 1
+! Provide Cylinder/Head/Sector translation in case BIOS does not support
+! Linear Block Address (LBA) of Enhanced Disk Drive specification.
+! Requires 35 bytes.
+
+EXTENTS = 0
+! Detecting contiguous blocks [sectors] and reading as contiguously as possible
+! (to the end of the current track [disk controller limitation], or to the
+! nearest 64KB boundary [DMA controller limiation]) takes 80 bytes.
+! Since this is what the cache in the disk controller does anyway,
+! instead we use the space for code to read LBA disk.  This duplicates code
+! of mbr03, but makes e2boot interoperate with vanilla Master Boot Record.
+
+!----- End of major configuration options
+
+
+! Check list of possible limits (most caused by divide overflows, etc.):
+
+!  Each directory must be less than 64K (ok)
+
+! Sector size is fixed at 512 bytes
+! Block size is fixed at 1K bytes (this won't be a problem until we have
+! frags).
+
+!  ipg must be less than 64K (ok: 8K is probably the max)
+!   max group no. is 64K-1 (ok: 64K*8MB -> 512GB).
+!  gdpb must be less than 64K (ok, it's 32)
+!   max group descriptor block no. is 64K-1 (ok)
+!  must be less than 64K inodes per block (ok, it's 8)
+!   max inode block no. w/in group is 64K-1 (ok)
+
+! spcy must be less than 64K (ok, it's: 16K max)
+!  must be less than 64K cylinders (ok, it's 1K)
+! spt must be less than 64K (ok, it's: 63 max)
+!  must be less than 64K heads (ok, max is 256)
+! spt must be less than 256 (ok, max is 63)
+!  max head number is 255 (ok)
+
+
+! References related to booting:
+! -----
+! http://www.phoenix.com/techs/specs.html
+!	edd2c.pdf  BIOS Enhanced Disk Drive Specification, Version 1.1,
+!		May 9, 1995.  How the BIOS deals with more than 1024 cylinders.
+!	bbs101.pdf  BIOS Boot Specification, Version 1.01, January 11, 1996.
+!		"Plug and Play" BIOS uses 8 bytes before the partition table.
+!		Register dl passes the drive number for booting.
+! Above documents require Adobe Acrobat Reader, or ghostscript/ghostview.
+!
+! http://www.cs.cmu.edu/afs/cs/user/ralf/pub/WWW/files.html
+!	inter56a.zip covers through INT 0x19 (as of December 1997).
+!	Ralf Brown's x86 and BIOS interrupt documentation.
+! Requires real PKUNZIP; gzip won't handle a .zip file
+! with more than one entry.
+
+
+	use16
+
+	! absolute address layout
+BOOT = 0x7c00		! BIOS/mbr loads here
+SUPERBLK = 0x8000	! also used for bootline
+BUF0 = 0x8400		! 1KB buffer for direct block
+BUF1 = 0x8800		! 1KB buffer for 1st indirect block
+BUF2 = 0x8c00		! 1KB buffer for 2nd indirect block
+
+FILE	=0xF600		! Offset to load files
+STKSEG	=0x9000		! Segment for stack
+
+! Corresponding 'push' and 'pop' which aren't immediately adjacent (or obvious)
+! are identified with 'MATCH_nn' comments.
+
+	! [bp] offsets
+IF USE_MBR  !{
+  bp_hexbyte =16	! subroutine to display AL in hex
+  rd_lba =14		! subroutine to read disk
+ENDIF  !}
+drive	=12		! MATCH_21 BIOS drive number (8 bits)
+nhs	= 8		! MATCH_22 #hidden sectors before partition (32 bits)
+spt	= 4		! MATCH_23 sectors per track (32 bits) {1..63}
+heads	= 0		! MATCH_24 heads per cylinder (32 bits) {1..256}
+
+curdir	= -4		! inum of current directory (32 bits)
+lwa_dir = -6		! beyond end of directory
+extcnt	= -8		! count of blocks in extent
+nextblk	= -12		! next block in extent (32 bits)
+bumpdst = -14		! subroutine to advance destination address during read
+gdt	= -62		! global descriptor table for BIOS copy to himem
+
+addrdir	= -66		! MATCH_50  seg:off to load directory (32 bits)
+addrreg	= -70		! MATCH_51  seg:off to load regular file (32 bits)
+pathstr	= -74		! MATCH_52  ->pathname of kernel (32 bits)
+pathlen	= -76		! MATCH_55  length of pathstr
+parmstr	= -78		! MATCH_53  ->kernel parameters
+parmlen = -80		!           length of parmstr
+ramdstr	= -82		! MATCH_54  ->name of ramdisk
+ramdlen	= -84		!           length of ramdstr
+
+	! offsets in C structs
+s_inodes_per_group = 0x28	! ext2_super_block
+s_reserved = 0x68	! ext2_super_block beginning of 920 unused bytes
+bg_inode_table = 8	! ext2_group_desc
+
+	! /usr/src/linux/arch/i386/boot/setup.S
+type_of_loader = 0x10
+loadflags = 0x11
+code32_start = 0x14
+ramdisk_image = 0x18
+ramdisk_size = 0x1c
+
+
+DUMP = 0
+	.text
+zero:
+IF USE_LABEL  !{
+	jmp main
+	nop
+	.ascii "E2BOOT4C"	! system_id[8]
+	.word 512		! bytes per logical sector
+	.byte 1			! sectors/cluster
+	.word 1			! reserved sectors
+!+0x10
+	.byte 2			! number of FATs
+	.word 224		! root directory entries
+	.word 2880		! number of sectors
+	.byte 0xf0		! media code
+	.word 9			! sectors/FAT
+!+0x18
+	.word 18		! sectors per track
+	.word 2			! number of heads
+	.long 0			! hidden sectors
+!+0x20
+	.long 0			! total sectors (if sectors == 0)
+	.byte 0			! BIOS drive number
+	.byte 0			! unused
+	.byte 0x29		! DOS 3.3+ fields below exist
+	.long 0x351b3db4	! volume ID
+!+0x2b
+	.ascii "BOOTEXT2V4C"	! volume label
+	.ascii "FAT16   "	! fake fs_type
+ENDIF  !}
+
+main:
+
+IF DUMP !{
+	pushad
+!!	push DWORD PTR 0x7be+0x30+8
+!!	push DWORD PTR 0x7be+0x20+8
+	push DWORD PTR 0x7be+0x10+8
+	push DWORD PTR 0x7be+0x00+8
+!!	push DWORD PTR 0x1c + BOOT
+	pushfd
+	push ss
+	push es
+	push ds
+	push cs
+	mov bp,sp
+	push cs
+	pop ds
+
+	call dump2
+	.ascii "csdsesss"
+	.byte 0
+
+	call dump4
+	.ascii "flp0p1"
+	.byte 0
+	call dump4
+	.ascii "disibpsp"
+	.byte 0
+	call dump4
+	.ascii "bxdxcxax"
+	.byte 0
+
+foo:
+	jmp foo
+
+dumpid:
+	lodsb
+	testb al,al
+	jz dumpidret
+	call putc
+	lodsb
+	call putc
+	mov al,#'=
+	br putc
+dumpidret:
+	add sp,#2	! discard innermost return address
+	jmp si
+
+dump2:
+	pop si
+	call crlf
+dump2more:
+	call dumpid
+	mov ax,0[bp]
+	call dump2bytes
+	jmp dump2more
+
+dump2bytes:
+	add bp,#2
+	push ax
+	mov al,ah
+	call hexbyte
+	pop ax
+	call hexbyte
+	mov al,#' 	! SPACE
+	br putc
+
+dump4:
+	pop si
+	call crlf
+dump4more:
+	call dumpid
+	mov eax,0[bp]
+	push ax
+	push eax
+	pop ax
+	pop ax
+	call dump2bytes
+	pop ax
+	call dump2bytes
+	jmp dump4more
+	
+ENDIF !}
+
+	push dx		! MATCH_21 BIOS drive number (8 bits)
+IF USE_MBR  !{
+	push eax	! MATCH_22 #hidden sectors before partition
+ENDIF  !}
+IF USE_PTAB  !{
+	push DWORD PTR 8[si]	! MATCH_22 #hidden sectors before partition
+ENDIF  !}
+IF USE_LABEL  !{
+	push DWORD PTR 0x1c+BOOT	! MATCH_22 #hidden sectors before partition
+ENDIF  !}
+
+	mov ah,#8
+	int 0x13	! get drive characteristics for dl= drive
+	jnc gdc_ok
+	call error_i
+	.ascii "gdc?"
+	.byte 0
+gdc_ok:
+	xor eax,eax
+	xchg cx,ax		! <mov al,cl;  mov cx,#0>
+	and ax,#0x3f		! max logical sector # within track (1 origin)
+	push eax		! MATCH_23 spt[bp]
+
+	mov al,dh		! max head #
+	inc ax			! # logical heads
+	push eax		! MATCH_24  heads[bp]
+
+	mov bp,sp
+	lea sp,gdt[bp]
+		! build gdt needed for BIOS copy to extended memory
+	mov di,sp
+	xchg ax,cx		! ax= 0
+	mov cx,#(0 - gdt) >> 1
+	rep
+	stosw
+	not WORD PTR 2*8+0+gdt[bp]	! srclim = 0xffff
+	mov WORD PTR 2*8+4+gdt[bp],#0x9301	! R/W data at 64K
+	not WORD PTR 3*8+0+gdt[bp]	! dstlim = 0xffff
+	mov WORD PTR 3*8+4+gdt[bp],#0x9310	! R/W data at 1M
+
+	push #0x9000		! MATCH_50  addrdir
+	push cx			! 0
+
+	push cs			! MATCH_51  addrreg
+	push #0xF600
+
+	push cs
+	pop es
+
+IF 1 - USE_MBR  !{
+		! read the 2nd 512 bytes of e2boot
+	mov eax,nhs[bp]
+	inc eax			! relative sector number 1
+	mov bx,#0x200+BOOT	! destination address
+	mov cl,#1+2		! 2nd 512 bytes of e2boot, plus 1KB superblock
+	call rd_dsk
+ENDIF  !}
+
+IF 1 - USE_LABEL !{  nice, but not essential
+	mov si,#banner+BOOT
+	push cs
+	pop ds
+	call puts
+	call crlf
+ELSE !}{
+	mov si,#bootline+BOOT
+	push cs
+	pop ds
+ENDIF !}
+
+		! Copy bootline to hi end of s_reserved, so that gets()
+		! has room on the hi end without overwriting superblock,
+		! and so that symbolic links have room on the lo end.
+		! si= bootline+BOOT follows banner
+	mov di,#SUPERBLK + 0x300
+	push cs			! MATCH_53
+	push di			! mov pathstr[bp], di
+	push ax			! MATCH_55 placeholder
+
+	push di			! MATCH_34
+	mov cl,#0x80		! 0==ch  already
+	rep
+	movsw
+	pop di			! MATCH_34
+
+	push di			! MATCH_34
+	call gets		! edit string
+	mov cx,di		! &EOS
+	pop di			! MATCH_34 di= SUPERBLK + 0x300
+	sub cx,di		! length of bootline
+
+	mov al,#' 		! SPACE
+	call strcut		! MATCH_53  parmlen, parmstr
+IF INITRD !{
+	mov al,#'|		! VERTBAR
+	call strcut		! MATCH_54  ramdlen, ramdstr
+ENDIF !}
+	mov pathlen[bp],cx	! MATCH_55 
+
+		! read 0xA00 bytes into 0:F600, and the rest at 64K or 1M
+	call at_root
+
+IF INITRD !{
+		! read ramdisk
+	pop cx			! MATCH_54 ramdlen[bp]
+	pop di			!          ramdstr[bp]
+	jcxz no_initrd
+	mov pathlen[bp],cx
+	mov pathstr[bp],di
+	mov BYTE PTR 2*8+4+gdt[bp],#0x9000>>12	! gdt src now 0x90000
+	call pathparse		! curdir same as kernel
+no_initrd:
+ENDIF !}
+
+! We're done!
+! Everything's loaded.  Now we boot Linux.
+golinux:
+	mov BYTE PTR 0xF600+0x200+type_of_loader,#0x51
+	les di,addrdir[bp]	! 0x9000:0
+	mov si,#FILE
+	mov cx,#0x0500		! Copy A00 bytes from F600 to 0x90000
+	rep
+	movsw
+		! commandline parameters for kernel
+CL_MAGIC	=0xA33F
+CL_BASE_ADDR	=0x90000
+CL_MAGIC_ADDR	=0x90020
+CL_OFFSET	=0x90022
+	mov di,#CL_MAGIC_ADDR - CL_BASE_ADDR
+	mov ax,#CL_MAGIC
+	stosw
+	mov ax,#2+CL_OFFSET - CL_BASE_ADDR
+	stosw
+
+	pop cx			! MATCH_53 parmlen[bp]
+	pop si			!          parmstr[bp]
+	rep
+	movsb
+
+	call crlf
+	mov dl,drive[bp]
+	mov eax,nhs[bp]
+	lss sp,addrdir[bp]	! 0x9000:0
+	mov sp,#0x3ff4		! historical
+	jmpf 0,0x9020		! jump to setup.S at 0x90200
+
+IF 1 - USE_MBR  !{  subroutine to read disk
+! Input:
+!	eax = sector number
+!	es:bx = segment:offset of destination
+!	cx = number of sectors
+!	dl = BIOS drive number
+!	di -> partition entry
+!	0[sp] = return address
+!	2[sp] = routine to call for C/H/S translation
+! Output:
+!!	dh has status; Carry set if not success
+!	all other registers as on Input
+
+rd_lba:
+	push ds		! might be clobbered for EDD ptr
+	pushad
+
+	push bp
+	mov bp,sp	! usual C-style frame pointer
+
+		! construct Enhanced Disk Drive parameter block on stack
+	.byte 0x66	! 32-bit data in next instruction
+	push #0		! hi32 bits of sector number
+	push eax	! lo32 bits of sector number
+	push es		! xfrseg
+	push bx		! xfroff
+	push cx		! sector count
+	push #16	! sizeof parameter block
+	mov si,sp	! offset(EDD packet)
+
+		! determine C/H/S for non-EDD;
+		! sets up al,ah,cl,ch,dh
+	call 2+32+2+2[bp]	! {bp,regs,ds,ra}
+
+		! see which protocol to use
+	pusha		! save C/H/S settings
+	mov ah,#0x41
+	mov bx,#0x55aa
+	int 0x13
+	jc no_edd
+	cmp bx,#0xaa55
+	jne no_edd
+	sar cx,#1
+	jnc no_edd
+	push ss
+	pop ds		! ds:si -> Enhanced Disk Drive command packet
+	mov ah,#0x42	! BIOS Enhanced READ command
+	.byte 0xa8	! TEST AL,imm8 to skip POPA
+no_edd:
+	popa		! retrieve C/H/S settings
+	int 0x13	! read disk; Carry is set iff error
+
+	jnc no_errdsk
+	mov al,ah	! status
+	call hexbyte
+	mov ah,#0
+	int 0x13	! reset drive dl
+no_errdsk:
+
+!!	mov 2+ 5*4 +1[bp],ah	! status;  skip {bp, edi,esi,ebp,esp,ebx, dl}
+
+	leave		! remove frame
+	popad
+	pop ds
+
+	jc rd_lba	! retry on error
+
+	ret
+
+ENDIF  !}
+
+crlf:
+	mov al,#13		! \r
+chlf:
+	call putc
+	mov al,#10		! \n
+!	jmp putc	! fall through
+
+! Output a character
+! Enter: AL has character.
+putc:
+	pusha
+	mov ah,#0xe
+	mov bx,#7
+	int 0x10
+	popa
+	ret
+
+IF (1 - USE_MBR) | DUMP  !{
+hexbyte:
+	push ax
+	rol al,#4
+	call nibble
+	pop ax
+nibble:
+	and al,#0x0f	!   results (including Carry)
+	add al,#0x90	! 090-099, 09a-09f
+	daa		! 090-099, 100-105
+	adc al,#0x40	! 0d0-0d9, 041-046
+	daa		! 130-139, 041-046
+	jmp putc
+ENDIF  !}
+
+! Output zero terminated string
+! Enter: SI points to string.
+! Exit: AL equals 0,SI points after string.
+
+IF USE_LABEL & DUMP !{
+	nop
+	test ax,#0xaa55
+ENDIF !}
+putsl:
+	call putc
+puts:
+	lodsb
+	test al,al
+	jnz putsl
+	ret
+
+rd_dsk2:
+	mov dl,drive[bp]
+IF USE_MBR  !{
+	call rd_lba[bp]
+ELSE
+	call rd_lba
+ENDIF  !}
+	add sp,#2		! remove &rd_chs; 'pop' needs register
+	ret
+rd_dsk:
+	call rd_dsk2		! push &rd_chs
+rd_chs:
+IF XLAT_CHS !{
+	push bp
+	mov bp,0[bp]		! outer-level frame
+	cdq			! edx= sign(eax)
+	div eax,spt[bp]		! edx= sector remainder; eax= track
+	push dx			! sector within track (0-origin)
+	cdq
+	div eax,heads[bp]	! edx= head remainder; eax= cylinder
+	xchg ax,cx		! al= count; cx= cylinder
+	xchg ch,cl		! ch= lo8(cyl); cl= hi2(cyl)
+	shl cl,#6
+	mov dh,dl		! head
+	mov dl,drive[bp]
+	pop di			! sector (0-origin)
+	inc di			! sector (1-origin)
+	or cx,di		! cx= (hi2(cyl)<<6) | sector
+	mov ah,#2		! BIOS int 0x13 READ
+	pop bp
+ENDIF !}
+	ret
+
+error_i:
+	pop si
+	push cs
+	pop ds
+error:	call puts			! Write string in SI to console
+	xor ah,ah
+	int 0x16			! Wait for keypress
+	int 0x18			! Reboot
+
+! Step through array of 256 direct pointers,and load block specified at
+! each.
+! SI points to array.
+! (DX,,AX), CX trashed
+! Decrements DI by no. blocks
+stepbk:
+	mov cx,#256		! 256 pointers in a block
+stepn:		! Step through cx pointers
+	test di,di		! Done?
+	jz stepd
+	lodsd
+	push cx
+	call lazyld		! Get next block
+	pop cx
+	loop stepn		! Until done
+stepd:
+	ret
+
+! Step through indirection block
+! SI points to pointers.
+! (DX,,AX), CX trashed
+! Decrements DI by no. blocks.
+istepbk:
+	mov cx,#256		! 256 indirection pointers
+istepn:
+	test di,di		! done?
+	jz istepd		! Branch if
+	lodsd
+	push si
+	push cx
+	push bx
+	push es
+	call ld1		! Load block into buffer 1
+	mov si,bx
+	pop es
+	pop bx
+	call stepbk
+	pop cx
+	pop si
+	loop istepn
+istepd:
+	ret
+
+IF USE_MBR !{
+errdsk:
+	push eax
+	mov al,dh
+	call bp_hexbyte[bp]
+	mov ah,#0
+	int 0x13		! reset drive dl
+	pop eax
+	jmp gs4			! try again
+ENDIF !}
+
+getclr:
+	mov cx,#0x200		! Just clear the block
+	push di			! MATCH_57
+	mov di,bx
+	rep			! ax is already 0
+	stosw
+	pop di			! MATCH_57
+	mov cl,#2		! 2 sectors "read"
+	jmp gs3
+
+! Load blocks.  This handles crossing of track boundaries and 64K
+! boundaries.
+!
+! Enter:
+! ES:BX = Address to load sectors at.  ES*16+BX must be divisible by the
+!	 sector size.  Lower 12 bits of ES must be zero, to make it simple
+!	 to detect DMA crossing of 64KB boundary.
+! EAX = Starting block no. to load (0 is first block of partition).  If
+!	 0 if given for EAX, then 1 block is cleared and ES:BX are advanced
+!	 by 1 block.
+IF EXTENTS !{
+! ECX = number of blocks to load (1 - 63)  @ 1024 bytes
+ELSE !}{
+! loads 1 block (2 sectors)
+ENDIF !}
+!
+! Exit:
+! DX,,AX = trashed
+! ES:BX = Incremented by number of bytes loaded
+! CX = trashed
+
+IF 1 - EXTENTS !{
+lazyld:
+	dec di			! one 1KB ext2 block
+getblks:
+	mov cx,#2		!   equals two 512B disk sectors
+ELSE !}{
+getblks:
+	push di			! MATCH_12
+	add cx,cx		! Convert no. block to no. sects
+	mov di,cx		! DI has no. sectors to load
+ENDIF !}
+	add eax,eax		! Convert block no. to sect. no.
+IF USE_MBR & DUMP !{
+	test ax,#0xaa55
+ENDIF !}
+	jz getclr		! 0==block ==> block of '\0'
+	add eax,nhs[bp]		! Offset sector number to start of partition
+
+! Get more sectors...
+gsu:
+IF EXTENTS !{
+	push eax		! MATCH_7  Current sector no. on stack
+
+! Read only to end of current track (disk controller limitation)
+	cdq			! edx= sign(eax)
+	div eax,spt[bp]		! edx= sector w/in track
+	mov ax,spt[bp]		! Sectors per track -
+	sub ax,dx		! sector wthin track gives no. left
+	cmp ax,di		! Do we need less than this?
+	jb gs1			! ...branch if not,and read em all
+	mov ax,di		! just read the requested no.
+gs1:	
+
+! Read only to 64K boundary (DMA controller limitation)
+	mov cl,bh		! cx= bx>>8
+	neg cl			! 2* sectors left before 64K
+	cmc			! C= 0==cl
+	rcr cl,#1		! sectors left before 64K
+	cmp cx,ax
+	jl gs2
+	xchg cx,ax		! <mov cx,ax>
+gs2:
+
+IF 0 !{
+! Defend against flaky disk+controller by reading at most 16 sectors at a time
+	cmp cl,#16
+	jl gs5
+	mov cl,#16
+gs5:
+ENDIF !}
+
+	pop eax			! MATCH_7  Get back starting sector no.
+ENDIF !}
+gs4:
+
+	call rd_dsk
+IF USE_MBR !{
+	jc errdsk
+ENDIF !}
+	add eax,ecx		! next sector
+IF EXTENTS & USE_MBR  !{
+	jmp blk2
+	.word 0xaa55
+blk2:
+!-----  second 512 bytes of ext2 boot block
+ENDIF  !}
+gs3:
+	push cx			! MATCH_8
+	shl cx,#9		! bytes read
+
+IF USE_LABEL  !{
+	test ax,#0xaa55
+!-----  second 512 bytes of ext2 boot block
+ENDIF  !}
+
+	add bx,cx		! next address
+	pop cx			! MATCH_8
+
+	jnc nobump
+	call bumpdst[bp]
+
+IF 0 !{  nice, but not essential
+	push ax
+	mov al,#'.		! Print a progress indicator '.'
+	call putc
+	pop ax
+ENDIF !}
+
+nobump:
+IF EXTENTS !{
+	sub di,cx		! sectors remaining -= sectors read
+	jnz gsu
+	pop di			! MATCH_12
+ENDIF !}
+	ret
+
+IF EXTENTS !{
+! Try to extend current extent with block in EAX.
+! If we can't,then load the last extent at ES:BX and start a new extent.
+! To finish loading last extent,call lazyflsh.
+! Decrements DI.
+
+lazyld:
+	mov cx,extcnt[bp]	! number of blocks in extent
+	jcxz lazy_ext
+	cmp cl,#63		! blocks are 1K byte
+	je lazyflsh		! 1 more ==> byte length overflows 16 bits
+	cmp eax,nextblk[bp]	! can we grow the extent?
+	jne lazyflsh		! no
+lazy_ext:
+	dec di			! 1 fewer block remaining
+	inc cx			! 1 more block in extent
+	inc eax			! 1 beyond last
+	xchg cx,extcnt[bp]
+	xchg eax,nextblk[bp]
+	sub eax,ecx		! first block number
+	ret
+lazyflsh:
+	xor cx,cx		! start new extent
+	call lazy_ext
+	br getblks
+ENDIF !}
+
+bumpdir:
+	ret
+
+bumpreg:
+	push ax
+	mov ax,es
+	add ah,#0x10		! <add ax, #0x1000>
+	mov es,ax
+	pop ax
+	seg cs
+	cmp BYTE PTR 0xF600+0x200+code32_start +2,#1<<(20 - 16)
+	jb loadsma
+loadbig:	! 1st time: [0xF600, +0xA00) so don't copy
+	mov WORD PTR bumpdst[bp],#bumpbig+BOOT	! force himem
+loadsma:
+	ret
+
+bumpbig:
+	push ax
+	push si
+	push es
+	push ecx		! 0==hi(ecx) because lazyld needs it that way
+
+	mov cx,bx		! # bytes in segment (can wrap from 64K to 0)
+	rcr cx,#1		! number of words to move
+	push cx			! MATCH_60 (int 0x15 paranoia)
+
+	push ss
+	pop es
+	lea si,gdt[bp]
+	mov ah,#0x87
+	int 0x15
+
+IF USE_PTAB  !{
+	mov cx,#0xaa55
+!-----  second 512 bytes of ext2 boot block
+ENDIF  !}
+
+	jc err_himem
+
+	pop cx			! MATCH_60
+	add ecx,ecx		! number of bytes moved
+	add 3*8+2+gdt[bp],ecx	! advance dst ptr
+
+	pop ecx
+	pop es
+	pop si
+	pop ax
+	ret
+
+err_himem:
+	call error_i
+	.ascii "Hmem"
+	.byte 0
+
+! Load block into buffer 0,1 or 2 (use ld0, ld1, or ld2).
+!
+! Enter: EAX=block no.
+! Exit:  ES:BX=buffer address; also DS=ES
+
+!! Use BUF0 for both ld0 and ld2, to save 5 bytes of instructions.
+!! ld2 is active only for double indirect block,
+!! and ld1 for single indirect block; neither overlaps ld0.
+ld2:
+!!	mov bx,#BUF2
+!!	jmp ld
+ld0:
+	mov bx,#BUF0
+	jmp ld
+ld1:
+	mov bx,#BUF1
+ld:
+	push bx
+	push cx
+	push cs
+	pop es			! es:bx is destination
+IF EXTENTS !{
+	mov cx,#1	! # blocks @ 1024 bytes
+ENDIF !}
+	call getblks
+	push es
+	pop ds			! ds=es  so lods works
+	pop cx
+	pop bx
+	ret
+
+! Load file given inode no. in EAX
+! File is loaded at FILE (last address returned in bx:es).
+getfile:
+	mov WORD PTR extcnt[bp],#0	! no extent is active
+
+! First part... get inode address in SI, given inode no. in EAX
+!i  From ext2_read_inode() /usr/src/linux/fs/ext2/inode.c
+!s  and  ext2_read_super() /usr/src/linux/fs/ext2/super.c
+
+!i  block_group = (inode->i_ino - 1) / EXT2_INODES_PER_GROUP(inode->i_sb);
+	dec eax		! Oops, first inode no. is 1
+	xor edx,edx	! prepare for unsigned divide
+	div eax,DWORD PTR SUPERBLK + s_inodes_per_group	! eax= block_group; edx= inode_in_group
+	push dx		! MATCH_4
+
+EXT2_GROUP_DESC_BITS = 5
+S_DESC_PER_BLOCK = 32
+!s  sb->u.ext2_sb.s_desc_per_block = sb->s_blocksize / sizeof (struct ext2_group_desc);
+!!    0x20 == sizeof(struct ext2_group_desc);  ASSUME: 1024 == s_blocksize
+!i  desc = block_group & (EXT2_DESC_PER_BLOCK(inode->i_sb) - 1);
+	mov dx,#S_DESC_PER_BLOCK -1	! gdpb=32 group descriptors per block
+	and dx,ax	! dx= desc
+	push dx		! MATCH_5
+
+!s  sb->u.ext2_sb.s_desc_per_block_bits = log2 (EXT2_DESC_PER_BLOCK(sb));  /* 5 */
+S_DESC_PER_BLOCK_BITS = 5
+!i  group_desc = block_group >> EXT2_DESC_PER_BLOCK_BITS(inode->i_sb);
+	shr eax,#S_DESC_PER_BLOCK_BITS	! eax= group_desc block
+
+!s  sb->u.ext2_sb.s_group_desc[i] = bread (dev, logic_sb_block + i + 1, sb->s_blocksize);
+!!    1 == logic_sb_block unless 1024 != s_blocksize
+!i  bh = inode->i_sb->u.ext2_sb.s_group_desc[group_desc];
+!i  gdp = (struct ext2_group_desc *) bh->b_data;
+	add eax,#2	! First group descriptor block is block 2
+	call ld0	! bx= gdp
+
+	pop ax		! MATCH_5  Get group no. w/in group descriptors block
+	shl ax,#EXT2_GROUP_DESC_BITS	! Mult by group descriptor size
+	add bx,ax	! Point to ext2_group_desc
+
+IF USE_MBR & (1 - EXTENTS) !{
+	nop
+	test ax,#0xaa55
+!-----  second 512 bytes of ext2 boot block
+ENDIF  !}
+
+EXT2_INODE_BITS = 7
+S_INODES_PER_BLOCK = 8
+S_INODES_PER_BLOCK_BITS = 3
+!s  sb->u.ext2_sb.s_inodes_per_block = sb->s_blocksize / EXT2_INODE_SIZE(sb);
+!!    0x80 == EXT2_INODE_SIZE() == EXT2_GOOD_OLD_INODE_SIZE == sizeof(struct ext2_inode)
+!i  offset = ((inode->i_ino - 1) % EXT2_INODES_PER_GROUP(inode->i_sb)) * EXT2_INODE_SIZE(inode->i_sb);
+!i  block = gdp[desc].bg_inode_table + (offset >> EXT2_BLOCK_SIZE_BITS(inode->i_sb));
+!i  offset &= (EXT2_BLOCK_SIZE(inode->i_sb) - 1);
+!!
+!!	Instead, we do
+!!
+!!  inode_in_block = inode_in_group & (S_INODES_PER_BLOCK -1);
+!!  block_in_group = inode_in_group >> S_INODES_PER_BLOCK_BITS;
+!!  block = gdp[desc].bg_inode_table + block_in_group;
+!!  offset = inode_in_block << EXT2_INODE_BITS;
+	xor eax,eax	! hi(eax)=0
+	pop ax		! MATCH_4  inode_in_group
+
+	mov dx,#S_INODES_PER_BLOCK -1	! ipb=8 inodes per block
+	and dx,ax	! dx= inode_in_block
+	push dx		! MATCH_6
+
+	shr ax,#S_INODES_PER_BLOCK_BITS	! ax= block_in_group
+	add eax,bg_inode_table[bx]	! Add base
+
+!i  bh = bread (inode->i_dev, block, inode->i_sb->s_blocksize);
+	call ld0		! Get block containing inode.  BX points to it.
+
+	pop si			! MATCH_6  inode_in_block
+	shl si,#EXT2_INODE_BITS		! Mult inode no. by sizeof(struct ext2_inode)
+	add si,bx		! si= &inode within block
+
+! offsets for fields in on-disk inode
+i_mode	=0
+  S_IFMT  =0xF000	! mask for inode type
+  S_IFDIR =0x4000	! code for directory
+  S_IFREG =0x8000	! code for regular file
+  S_IFLNK =0xA000	! code for symbolic link
+  S_IXUSR =00100	! 'x' permission for user(owner)
+i_size	=4	! in bytes
+i_blocks=28	! in 512-byte disk sectors
+i_block	=40	! block numbers
+  EXT2_NDIR_BLOCKS=12	! number of direct blocks
+  EXT2_N_BLOCKS=15	! total number of block numbers
+
+	mov al,1+i_mode[si]		! i_mode>>8
+	and al,#S_IFMT>>8
+
+	cmp al,#S_IFLNK>>8
+	jne not_symlnk
+IF 1 - SYMLINK !{
+	br question
+ENDIF !}
+IF SYMLINK  !{
+	mov ax,i_size[si]	! limited to 1KB anyway
+	push ax			! MATCH_40
+	lea si,i_block[si]
+	cmp ax,#4*EXT2_N_BLOCKS
+	jle linktext
+	mov eax,[si]		! i_block[0]
+	call ld1
+	mov si,bx		! link text
+linktext:
+	pop cx			! MATCH_40 sizeof linktext
+	mov di,#s_reserved+SUPERBLK
+
+		! This implementation works only for symlinks of files
+		! (symlink is tail of path), and fails for a symlinked directory.
+		! This is good enough for the usual case,
+		! /boot/vmlinuz -> vmlinuz-2.0.30
+	mov pathlen[bp],cx
+	mov pathstr[bp],di
+	push di			! MATCH_39
+	rep
+	movsb
+	xor ax,ax
+	stosb
+	mov si,#str_syml+BOOT
+	call puts
+	pop si			! MATCH_39
+
+	push si			! MATCH_41
+	call puts
+
+	pop di			! MATCH_41 linktext
+	pop ax			! discard return address from dirsrch
+	cmpb [di],#'/		! check 1st byte of linktext
+	jne not_root
+	call crlf
+	br at_root
+not_root:
+	br slashpath
+
+ENDIF  !}
+not_symlnk:
+
+	cmp al,#S_IFDIR>>8
+	jne not_dir
+	mov WORD PTR bumpdst[bp],#bumpdir+BOOT
+	les bx,addrdir[bp]	! 0x9000:0
+not_dir:
+	cmp al,#S_IFREG>>8
+	jne not_reg
+	mov WORD PTR bumpdst[bp],#bumpreg+BOOT
+	les bx,addrreg[bp]	! 0:0xF600  note that es == cs == 0
+
+IF INITRD !{
+	cmp BYTE PTR 2*8+4+gdt[bp],#0x9000>>12	! gdt src at 0x90000?
+	jne not_ramdisk
+	mov ah,#0x88	! get sizeof extended memory (memory at 1M and above)
+	int 0x15	! ax= # 1K blocks above 1M ("64MB limit" on total RAM)
+	cmp ax,#0x3c00	! limit to 15M (24-bit addressing is easier for gdt)
+	jb no16mb
+	mov ax,#0x3c00
+no16mb:
+	cwde		! hi(eax)= 0; lo(eax) is <= 0x3c00
+	add ax,#1024	! memory below 1024K takes up address space
+	shl eax,#10	! convert to bytes
+	sub eax,i_size[si]	! base = limit - size
+	xor ax,ax	! round down (4K pages; 64K to save a byte of instr)
+	mov di,#0xF600+0x200+ramdisk_image
+		! es==cs from above "les bx,addrreg[bp]"
+	stosd		! ramdisk_image = eax
+	shr eax,#16
+	mov 3*8+4+gdt[bp],al	! gdt dst base
+	mov eax,i_size[si]
+	stosd		! ramdisk_size = eax
+	call loadbig	! bumpbig force himem
+	les bx,addrdir[bp]	! use 0x9000:0 as lo buffer
+not_ramdisk:
+ENDIF !}
+
+not_reg:
+
+	mov di,i_blocks[si]	! Get file size in 512B sectors
+	inc di			! Convert to 1KB blocks.
+	shr di,#1
+! Do direct pointers
+	lea si,i_block[si]	! Point to first direct pointer in inode
+	mov cx,#EXT2_NDIR_BLOCKS	! 12 direct pointers
+	call stepn		! Do it
+! Do 1st level indirection
+	mov cx,#1		! Just one indirection pointer to do
+	call istepn
+! Do 2nd level indirection
+	test di,di
+	jz donget
+	lodsd
+	push bx
+	push es
+	call ld2
+	mov si,bx
+	pop es
+	pop bx
+	call istepbk
+! Finish up
+donget:
+IF EXTENTS !{
+	br lazyflsh
+ELSE !}{
+	ret
+ENDIF !}
+
+
+endsrch:
+	clc
+	jmp bumpdst[bp]		! flush if big; don't care if not big
+
+! Start at root directory
+at_root:
+	xor eax,eax
+	mov al,#2		! eax= Inode no. of root
+dirsrch:
+	xor ecx,ecx		! keep 0==hi(ecx) for lazyld
+	push cs
+	pop ds
+	call getfile		! Get inode eax at 0x9000:0
+	mov lwa_dir[bp],bx	! save ending offset
+slashpath:
+	mov al,#'/		! SLASH path separator character
+	call putc
+pathparse:
+	mov cx,pathlen[bp]
+	les di,pathstr[bp]
+	jcxz endsrch
+
+	mov al,#'/		! SLASH path separator character
+	call strcut		! di= <same>; cx= headlen;  sp: pathlen, pathstr
+	pop pathlen[bp]
+	pop pathstr[bp]
+	jz pathparse		! skip over consecutive separators
+
+		! indicate progress: print component being searched for
+	mov si,di
+	call puts
+
+	lds bx,addrdir[bp]	! 0x9000:0
+
+	! offsets within ext2_dir_entry
+D_inode	=0
+D_sizent=4
+D_namlen=6
+D_name	=8
+
+inosrch:
+	cmp cx,D_namlen[bx]	! compare lengths
+	jne nxtent
+	lea si,D_name[bx]
+	push cx
+	push di
+	repe
+	cmpsb
+	pop di
+	pop cx
+	jne nxtent
+	mov eax,[bx]		! D_inode
+	jmp dirsrch
+nxtent:
+	add bx,D_sizent[bx]
+!	call bumpes		! cannot handle this anyway
+	cmp bx,lwa_dir[bp]
+	jne inosrch		! not off end of directory
+question:
+	call error_i
+	.ascii " ?"
+	.byte 0
+
+! Input:
+!	al= character to search for
+!	cx= length
+!	es:di= string
+! Output:
+!	cx= head_length;  condition code valid
+!	di= head (==string)
+!	push &tail
+!	push tail_length
+!	1st instance of character has been zeroed
+!	clobbers ax,bx,dx
+strcut:
+	pop dx		! return addr
+	push di		! head
+	push cx		! orig length
+	repne
+	scasb		! search for char
+	pop ax		! orig length
+	pop bx		! head
+	push di		! RESULT tail str
+	push cx		! RESULT tail length
+	jne no_chr
+	inc cx		! scasb advanced over separator; backup
+	seg es
+	movb -1[di],#0
+no_chr:
+	xchg ax,cx	! cx= tail length; ax= orig length
+	mov di,bx	! head
+	sub cx,ax	! head length
+	jmp dx		! return
+
+! getcTime: Get character from keyboard, with timeout.
+! Entry: al = default character in case of timeout or \r
+! Exit: al = result character
+! Trashes: AX, ECX
+getcTime:
+	push ax			! MATCH_33 save the default
+	mov ecx, #19980910	! Timeout counter [MODIFIED BY INSTALLER]
+count:
+getcT0:
+	mov ah,#1		! Check for waiting character
+	int 0x16		! set Z iff no waiting character
+	.byte 0x67		! use ECX for counter in following instr
+	loopz getcT0		! loop if no character, and count not expired
+	jz getcDflt		! Timeout expired
+		! read the waiting character
+getcWait:
+	mov ah,#0		! Wait for char
+	int 0x16
+	cmp al,#13		! \r
+	jne getcGot
+getcDflt:
+	pop ax			! MATCH_33 default result
+	push ax			! MATCH_33 keep stack adjusted
+getcGot:
+	pop cx			! MATCH_33 discard the default
+	ret
+
+! gets: Read in a string from the user using line editing
+! Entry: ds:si -> copy of bootline at SUPERBLK + 0x300, also used as prompt
+! Exit: edited string, di-> beyond '\0' at end
+! Trashes: SI DI ECX AX 
+gets:
+	mov si,di
+	call puts
+	lea di,-1[si]		! end of default input
+getslp:
+	mov al,#13
+	call getcTime
+	cmp al,#13
+	je gets_ret
+	cmp al,#8
+	jne gets1
+	cmp di,#SUPERBLK + 0x300	! Got backspace
+	je getslp
+	dec di
+	call backup
+	jmp getslp
+gets1:
+	cmp al,#32		! Character in range?
+	jb getslp
+	stosb			! ...yes, so save it.
+	call putc
+	jmp getslp
+gets_ret:
+	mov al,#0
+	stosb
+	br crlf
+
+! Print backspace-space-backspace sequence
+! Enter: al must contain 8
+! Exit: trashes ax, bx, si
+backup:
+	mov si,#spbs+BOOT
+	br putsl
+
+spbs:
+	.byte 32,8,0
+IF SYMLINK  !{
+str_syml:
+	.ascii " -> "
+	.byte 0
+ENDIF  !}
+
+IF 1 - USE_LABEL !{  nice, but not essential
+banner:
+	.ascii "e2boot4c"
+	.byte 0
+ENDIF !}
+
+bootline:
+IF 1 - USE_LABEL !{
+	.ascii "/boot/vmlinuz|initrd root=/dev/hda11 reboot=warm"	! typical default
+ELSE !}{
+	.ascii "L|R"	! use "ln /boot/vmlinuz /L" and "ln /boot/initrd /R"
+ENDIF !}
+	.byte 0
+
+IF (1 - DUMP) !{
+	.org 1024 -1
+	.byte 0
+ENDIF !}
