@@ -1,7 +1,6 @@
-joes-sandbox
-============
+## Joe Allen's Open Source Projects
 
-### Joe's project outside of joes-sandbox
+### Joe's open-source projects outside of joes-sandbox
 
 [Joe's Own Editor](http://joe-editor.sourceforge.net)
 
