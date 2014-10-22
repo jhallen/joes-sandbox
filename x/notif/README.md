@@ -26,7 +26,7 @@ Note that the first argument for every member function is always the
 object's address (it's equivalent to the C++ 'this' pointer).  It would
 quickly become very tiring to have to use so many pointer operators every
 time we wanted to call a member function, so a shorthand is called for.  C++
-provides a convient shorthand for calling member functions:
+provides a convenient shorthand for calling member functions:
 
 	x->rm();
 
