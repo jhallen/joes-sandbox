@@ -142,7 +142,7 @@ These constructs are used to define your database schema:
 
 Syntax                    | Meaning
 ------                    | -------
-STRUCT(name,<contents>)   | Define a structure
+STRUCT(name,&lt;contents&gt;)   | Define a structure
 STRING(name)              | Declare a string within a structure
 INTEGER(name)             | Declare an integer within a structure
 LIST(name,structure-name) | Declare a list of structures within a structure
