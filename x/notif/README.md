@@ -121,65 +121,6 @@ Here is a simple program which displays a button.  When you press the button, th
 	}
 ```
 
-## Placement manager
-
-Each widget inherits the placement manager.  It controls where child widgets
-added to the parent widget are placed.  Before adding a child widget, set
-the placement mode for the next added width.  Placement modes are sticky, so
-once you set "left to right" mode, each added widget will be placed next to
-the previous one.
-
-Unless a size has been set, the outer widget will be sized to hold its child
-widgets.
-
-Child widgets can be made to be sized to fit the parent by attaching two
-anchor points in a particular dimension.  For example,
-
-``` C
-		stwidth(parent, 100);	/* Parent is 100 pixels wide */
-		ledge(parent, 0);	/* Next child attached to left edge */
-		auxredge(parent, 0);	/* Next child also attached to right edge */
-
-		add(parent, child);	/* Child sized to fit in 100 pixel width */
-
-```
-
-	    Horizontal placement:
-
-``` C
-		void ltor(Widget *w,Widget *rel,int ofst);	/* Left to right */
-		void ledge(Widget *w,int ofst);			/* Left edge */
-		void lsame(Widget *w,Widget *rel,int ofst);	/* Left same */
-		void rtol(Widget *w,Widget *rel,int ofst);	/* Right to left */
-		void redge(Widget *w,int ofst);			/* Right edge */
-		void rsame(Widget *w,Widget *rel,int ofst);	/* Right same */
-		void hcenter(Widget *w);			/* Horz. center */
-		void auxltor(Widget *w,Widget *rel,int ofst);	/* Left to right */
-		void auxledge(Widget *w,int ofst);		/* Left edge */
-		void auxlsame(Widget *w,Widget *rel,int ofst);	/* Left same */
-		void auxrtol(Widget *w,Widget *rel,int ofst);	/* Right to left */
-		void auxredge(Widget *w,int ofst);		/* Right edge */
-		void auxrsame(Widget *w,Widget *rel,int ofst);	/* Right same */
-```
-
-	    Vertical placement:
-
-``` C
-		void ttob(Widget *w,Widget *rel,int ofst);	/* Top to bottom */
-		void tedge(Widget *w,int ofst);			/* Top edge */
-		void tsame(Widget *w,Widget *rel,int ofst);	/* Top same */
-		void btot(Widget *w,Widget *rel,int ofst);	/* Bottom to top */
-		void bedge(Widget *w,int ofst);			/* Bottom edge */
-		void bsame(Widget *w,Widget *rel,int ofst);	/* Bottom same */
-		void vcenter(Widget *w);			/* Vertical center */
-		void auxttob(Widget *w,Widget *rel,int ofst);	/* Top to bottom */
-		void auxtedge(Widget *w,int ofst);		/* Top edge */
-		void auxtsame(Widget *w,Widget *rel,int ofst);	/* Top same */
-		void auxbtot(Widget *w,Widget *rel,int ofst);	/* Bottom to top */
-		void auxbedge(Widget *w,int ofst);		/* Bottom edge */
-		void auxbsame(Widget *w,Widget *rel,int ofst);	/* Bottom same */
-```
-
 ## Widgets
 
 Widgets correspond to 1 - 3 actual X Windows.  A widget is always composed
