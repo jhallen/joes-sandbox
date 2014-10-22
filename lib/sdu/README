@@ -1,0 +1,12 @@
+Structured data utilities
+-------------------------
+
+Look at sdu.html for documentation.
+
+Type: make
+
+Try: ./sdu test.xml
+
+schema.h defines the structure of your data
+
+test.c example use

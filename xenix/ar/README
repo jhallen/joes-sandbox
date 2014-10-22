@@ -1,0 +1,7 @@
+Simple archiving programs (tar/cpio replacement)
+
+	mkar file[s] >my_archive	Create archive
+
+	lsar <my_archive		List archive
+
+	xar <my_archive			Extract archive
