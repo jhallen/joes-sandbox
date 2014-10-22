@@ -13,7 +13,7 @@ joes-sandbox
 
 [OrCad Tools](https://github.com/jhallen/orcad-tools)
 
-### Some project within joes-sandbox
+### Some projects within joes-sandbox
 
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
 
@@ -23,12 +23,18 @@ joes-sandbox
 
 [AACC Compiler generator](https://github.com/jhallen/joes-sandbox/tree/master/lang/aacc)
 
-[Nicetex](https://github.com/jhallen/joes-sandbox/tree/master/lang/doc/nicetex)
+[Nicetex](https://github.com/jhallen/joes-sandbox/tree/master/doc/nicetex)
 
-[Psiman - an early version of markdown](https://github.com/jhallen/joes-sandbox/tree/master/lang/doc/psiman)
+[Psiman - an early version of markdown](https://github.com/jhallen/joes-sandbox/tree/master/doc/psiman)
 
-[Zebra-140 Typesetter](https://github.com/jhallen/joes-sandbox/tree/master/lang/doc/zebra)
+[Zebra-140 Typesetter](https://github.com/jhallen/joes-sandbox/tree/master/doc/zebra)
 
 [Small UNIX utilities](https://github.com/jhallen/joes-sandbox/tree/master/util)
 
 [Verilog Tools](https://github.com/jhallen/joes-sandbox/tree/master/verilog-tools)
+
+[Notif - X Widget Library](https://github.com/jhallen/joes-sandbox/tree/master/x)
+
+[Farb - arbitrary precision ASCII floating point library](https://github.com/jhallen/joes-sandbox/tree/master/lib/farb)
+
+[SDU - structured data loader](https://github.com/jhallen/joes-sandbox/tree/master/lib/sdu)
