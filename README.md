@@ -1,12 +1,12 @@
 ## Joe Allen's Open Source Projects
 
-### Joe's open-source projects outside of joes-sandbox
+### Projects outside of joes-sandbox
 
 [Joe's Own Editor](http://joe-editor.sourceforge.net)
 
 [ExorSim - A Motorola Exorciser Simulator](http://exorsim.sourceforge.net)
 
-[Relaysbc - A single board Relay computer](http://relaysbc.sourceforge.net)
+[Relaysbc - A single board relay computer](http://relaysbc.sourceforge.net)
 
 [Atari Tools](https://github.com/jhallen/atari-tools)
 
