@@ -17,18 +17,18 @@ joes-sandbox
 
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
 
-[IVY Language](https://github.com/jhallen/joes-sandbox/tree/lang/ivy)
+[IVY Language](https://github.com/jhallen/joes-sandbox/tree/master/lang/ivy)
 
-[x86 Coff Linker](https://github.com/jhallen/joes-sandbox/tree/lang/alink)
+[x86 Coff Linker](https://github.com/jhallen/joes-sandbox/tree/master/lang/alink)
 
-[AACC Compiler generator](https://github.com/jhallen/joes-sandbox/tree/lang/aacc)
+[AACC Compiler generator](https://github.com/jhallen/joes-sandbox/tree/master/lang/aacc)
 
-[Nicetex](https://github.com/jhallen/joes-sandbox/tree/lang/doc/nicetex)
+[Nicetex](https://github.com/jhallen/joes-sandbox/tree/master/lang/doc/nicetex)
 
-[Psiman - an early version of markdown](https://github.com/jhallen/joes-sandbox/tree/lang/doc/psiman)
+[Psiman - an early version of markdown](https://github.com/jhallen/joes-sandbox/tree/master/lang/doc/psiman)
 
-[Zebra-140 Typesetter](https://github.com/jhallen/joes-sandbox/tree/lang/doc/zebra)
+[Zebra-140 Typesetter](https://github.com/jhallen/joes-sandbox/tree/master/lang/doc/zebra)
 
-[Small UNIX utilities](https://github.com/jhallen/joes-sandbox/tree/util)
+[Small UNIX utilities](https://github.com/jhallen/joes-sandbox/tree/master/util)
 
-[Verilog Tools](https://github.com/jhallen/joes-sandbox/tree/verilog-tools)
+[Verilog Tools](https://github.com/jhallen/joes-sandbox/tree/master/verilog-tools)
