@@ -1,4 +1,4 @@
-<? xml_version="1.0" ?>
+<?xml version="1.0" ?>
 <foo>
 <val>7</val>
 <val_name>hi&amp;  &lt;  there  &gt; !</val_name>
