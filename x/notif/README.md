@@ -129,32 +129,27 @@ like this:
 ``` C
 	struct barfuncs barfuncs;	/* The Per-class structure */
 	
-	static bargt(x)			/* Member functions */
-        Bar *x;
-	 {
-	 }
+	static bargt(Bar *x)		/* Member functions */
+	{
+	}
 
-        static barclr(x)
-        Bar *x;
-         {
-         }
+        static barclr(Bar *x)
+	{
+	}
 
 	/* Minimal constructor function */
-	Bar *mkBar(x)
-	Bar *x;
-	 {
-	 mkFoo(x);		/* Initialize inherited per-object variables */
-	 if(!barfuncs.rm)	/* Init. per-class variables if not done */
-	  {
-	  memcpy(&barfuncs,&foofuncs,sizeof(struct foofuncs));
-	  			/* Inherit Foo's per-class members by copying */
-          barfuncs.clr=barclr;	/* Initialize our new member */
-          barfuncs.gt=bargt;	/* Change inherited member to one of our own */
-	  }
-	 x->funcs= &barfuncs;	/* Change funcs ptr to our per-class struct */
-	 x->z;			/* Initialize our per-object variables */
-	 return x;	/* Return the object */
-	 }
+	Bar *mkBar(Bar *x)
+	{
+		mkFoo(x);		/* Initialize inherited per-object variables */
+		if(!barfuncs.rm) {	/* Init. per-class variables if not done */
+			memcpy(&barfuncs,&foofuncs,sizeof(struct foofuncs)); /* Inherit Foo's per-class members by copying */
+			barfuncs.clr=barclr;	/* Initialize our new member */
+			barfuncs.gt=bargt;	/* Change inherited member to one of our own */
+		}
+		x->funcs= &barfuncs;	/* Change funcs ptr to our per-class struct */
+		x->z;			/* Initialize our per-object variables */
+		return x;	/* Return the object */
+	}
 ```
 
 One final note about object oriented C:  sometimes it becomes
@@ -181,12 +176,11 @@ with only a minor change at the beginning or end.  It could do this by
 calling foogt:
 
 ``` C
-	static bargt(x)
-	Bar *x;
-	 {
-	 (foofuncs.gt)(x);	/* Same as foogt */
-	 ++x->z;		/* Plus this */
-	 }
+	static bargt(Bar *x)
+	{
+		(foofuncs.gt)(x);	/* Same as foogt */
+		++x->z;			/* Plus this */
+	}
 ```
 
 ## Hello world!
@@ -437,8 +431,7 @@ to decide if any particular event is to be delivered to a child.
 ``` C
 	'user' is called as follows:
 
-	int user(Widget *x,int key,int xbuttonstate,int x,int y,Time time,
-		 Widget *org);
+	int user(Widget *x,int key,int xbuttonstate,int x,int y,Time time,Widget *org);
 ```
 
 Where:
@@ -456,8 +449,7 @@ the KMAP, the key function bound to that key binding will be called as
 follows:
 
 ``` C
-	int ufunction(int stat,Widget *z,void *arg,int key,int state,
-                      int x,int y,Widget *org)
+	int ufunction(int stat,Widget *z,void *arg,int key,int state,int x,int y,Widget *org);
 ```
 
 Where:
@@ -477,8 +469,8 @@ the parent.
 ## Callbacks
 
 The family of functions fnN() are used to create a callback structure TASK,
-which contains a function to be called along with its arguments.  N can be 0
-- 5, and specifies how many arguments are passed to the function.  fnN() is
+which contains a function to be called along with its arguments.  N can be 0 - 5,
+and specifies how many arguments are passed to the function.  fnN() is
 typically used to package up a callback function which is to be installed
 into a widget.
 
@@ -501,14 +493,11 @@ The callback function itself always looks like this:
 
 ``` C
 		void func(stat,arg1,arg2,arg3,argA,argB,argC)
-		 {
-		 if(!stat)
-		  { /* Normal execution */
-		  }
-		 else
-		  { /* cancel() was called- free resources */
-		  }
-		 }
+		{
+			if(!stat) { /* Normal execution */
+			} else { /* cancel() was called- free resources */
+			}
+		}
 ```
 
 Where arg1..arg3 are those passed with fnN(), argA...argC are those
@@ -542,7 +531,7 @@ continuation.  It is used in conjunction with go() in a two-step process:
 		int args[3];		/* Return arguments */
 		TASK x[1];		/* Continuation TASK */
 		Button *b=mk(Button);	/* Button widget */
-		 stfn(b,x=cfn(args));	/* Create TASK and install it */
+			stfn(b,x=cfn(args));	/* Create TASK and install it */
 		add(root,b);
 
 		go(io,x);		/* Package up thread in x and return
