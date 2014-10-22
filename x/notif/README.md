@@ -2,83 +2,189 @@
 
 This is Notif- an object oriented widget library for the X Window System.
 
-## Object oriented C
+## Object Oriented C
 
-Preprocessor tricks are used to implement single inheritance in plain C.  A
-class called 'Name' which inherits from 'Inherit' is declared like this in a
-header file name.h:
+Each object is composed of two structures.  One is the variable,
+per-instance structure.  Each instance of the same class has one of these
+structures, and it is allocated with malloc().  When we refer to an object,
+we usually mean this structure's address.  One of the members of this
+structure (called 'func'), points to the other structure- the per-class
+structure.  Each class has one of these structures, usually allocated as
+static data (I.E., as a global variable: malloc is not used).  Each object
+of a class points to that class's per-class structure.  The per-object
+structure contains data which may be different for each object, such as
+screen x/y position.  The per-class structure contains data which depends
+only on class, such as event handler function pointers and other so-called
+member functions.
+
+Member functions could be called with C pointer operators as follows
+(supposing x is a pointer to an object):
+
+	x->funcs->rm(x);	/* Delete object */
+
+Note that the first argument for every member function is always the
+object's address (it's equivalent to the C++ 'this' pointer).  It would
+quickly become very tiring to have to use so many pointer operators every
+time we wanted to call a member function, so a shorthand is called for.  C++
+provides a convient shorthand for calling member functions:
+
+	x->rm();
+
+This will not work in C, so instead we define a "polymorphic
+function dispatch macro" for every member function (except event handlers,
+which are not typically called directly by the programmer).  These macros
+are all defined in notif.h.  The one for 'rm' is as follows:
+
+	#define rm(x) ((x)->funcs->rm(x))
+
+These macros make calling a member function look like calling a
+any normal function:
+
+	rm(x);			/* Delete object */
+
+
+Incidentally, there is always a member function called 'rm' defined
+for each class for the purpose of disposing of objects of that class.
+
+The per-object and per-class structures are not defined directly. 
+Instead, macros are used to defined the contents of these structures, and
+the structures are defined by refering to these macros.  For example, these
+macros define the class Foo:
 
 ``` C
+	typedef struct foovars Foo;
 
-	/* Note case of every instance of 'name', 'Name' and 'NAME'.
-	   Also, 'inherit', 'Inherit' and 'INHERIT'. */
+        /* Per class structure members */
+	#define FOOFUNCS \
+	  void (*rm)(); \
+	  void (*st)(); \
+	  void (*gt)();
 
-	typedef struct name Name;
+	/* Per object structure member */
+	#define FOOVARS \
+	  int x; \
+	  int y; \
 
-	/* Member functions and class variables */
-	#define NAMEFUNCS \
-		INHERITFUNCS /* Functions we inherit */ \
-		void (*st)(); /* A function of our own */ \
-		Lith *(*gt)(); /* A function of our own */ \
+	extern struct foofuncs { FOOFUNCS } foofuncs;
+						/* per-class structure */
 
-	/* Inherit and declare instance variables */
-	#define NAMEVARS \
-		INHERITVARS /* Ones we inherit */ \
-		Widget *target; /* Ones of our own */ \
-		GC bknd; \
+	struct foovars { struct foofuncs *funcs; FOOVARS };
+						/* per-object structure */
 
-	/* All member functions and class variables */
-	extern struct namefuncs { NAMEFUNCS } namefuncs;
-
-	/* The type of an instance: notice that it has a pointer to the member functions */
-	struct namevars { struct namefuncs *funcs; NAMEVARS };
-
-	/* A constructor */
-	Name *mkName(Name *t);
 ```
 
-The constructor has a specific sequence of work to do:
+The purpose of defining these structures in this unusual way is to
+provide a simple single-inheritance scheme.  Lets say we want to define a
+class Bar which is to inherit Foo.  Bar must have all the same structure
+members as Foo in the same places, so that a Bar object can pass for a Foo
+object to code which doesn't know otherwise.  This is simply done by naming
+the Foo macro as the first element of each of the Bar macros:
 
 ``` C
-	Name *mkName(Name *t)
-	{
-		mkInherit(t);	/* Call constructor from inherited class */
-		if (!namefuncs.rm) { /* Set up member functions */
-			memcopy(&namefuncs, &inheritfuncs, sizeof(struct inheritfuncs));
-			namefuncs.st = namest; /* Install our member functions */
-			namefuncs.gt = namegt;
-			namefuncs.rm = namerm; /* Override inherited member functions */
-		}
-		t->funcs = &namefuncs;	/* Point to member functions */
-		t->target = 0;		/* Initialize our member variables */
-		t->bknd = stdbknd;
-		return t;
-	}
+	typedef struct barbars Bar;
+
+	#define BARFUNCS \
+	  FOOFUNCS \
+	  void (*clr)();
+
+	#define BARVARS \
+	  FOOVARS \
+	  int z;
+
+	extern struct barfuncs { BARFUNCS } barfuncs;
+						/* per-class structure */
+
+	struct barvars { struct barfuncs *funcs; BARVARS };
+						/* per-object structure */
 ```
 
-Notice that the constructor does not allocate space for the object.  You can call it like this:
+Note that the only per-object member which does not go in the VARS
+macro is the 'funcs' pointer.  We always want the 'funcs' pointer's type to
+match the per-class structure so that we can see all of the member functions
+through this pointer without the need for any casting.
+
+Each class has a "constructor" function for creating an object of
+that class.  Because a class might want to call the constructor function of
+a class which it inherits, the constructor itself can not do the actual
+malloc for the object (the constructor from the inherited class would not
+allocate enough space for the inheriting class).  The programmer must
+therefore call malloc:
 
 ``` C
-	Name *t = mkName(malloc(sizeof(Name)));
+	Bar *x=mkBar(malloc(sizeof(Bar)));
 ```
 
-A helper macro simplifies this:
+This can get tedious, so a macro in notif.h is provided to shorten it:
 
 ``` C
-	Name *t = mk(Name);
+	Bar *x=mk(Bar);		/* Construct a Bar object */
 ```
 
-By convention, the destructor is called rm.
+The constructor function is a good place to initialize the per-class
+structure for that class.  For example, the constructor for Bar might look
+like this:
 
 ``` C
-	t->rm(); /* Call destructor */
-	free(t); /* Free instance */
+	struct barfuncs barfuncs;	/* The Per-class structure */
+	
+	static bargt(x)			/* Member functions */
+        Bar *x;
+	 {
+	 }
+
+        static barclr(x)
+        Bar *x;
+         {
+         }
+
+	/* Minimal constructor function */
+	Bar *mkBar(x)
+	Bar *x;
+	 {
+	 mkFoo(x);		/* Initialize inherited per-object variables */
+	 if(!barfuncs.rm)	/* Init. per-class variables if not done */
+	  {
+	  memcpy(&barfuncs,&foofuncs,sizeof(struct foofuncs));
+	  			/* Inherit Foo's per-class members by copying */
+          barfuncs.clr=barclr;	/* Initialize our new member */
+          barfuncs.gt=bargt;	/* Change inherited member to one of our own */
+	  }
+	 x->funcs= &barfuncs;	/* Change funcs ptr to our per-class struct */
+	 x->z;			/* Initialize our per-object variables */
+	 return x;	/* Return the object */
+	 }
 ```
 
-A helper macro simplifies this:
+One final note about object oriented C:  sometimes it becomes
+necessary to call an inherited class's member functions, even though they
+have been replaced.  For example, the 'gt' member function was replaced in
+Bar above.  If you want to call the original 'gt' member function from Foo
+on an object of class Bar, you can not use the polymorphic function dispatch
+macro:
 
 ``` C
-	rm(t); /* Call destructor and free */
+	gt((Foo *)x);		/* Does not work! */
+```
+
+Instead you must refer to Foo's per-class structure directly and use
+parenthasis to prevent invokation of the dispatch macro:
+
+``` C
+	(foofuncs.gt)(x);	/* This works */
+```
+
+This trick is most often used in replacement member functions such
+as 'bargt' in Bar.  Perhaps 'bargt' wants the same behaviour as 'foogt', but
+with only a minor change at the beginning or end.  It could do this by
+calling foogt:
+
+``` C
+	static bargt(x)
+	Bar *x;
+	 {
+	 (foofuncs.gt)(x);	/* Same as foogt */
+	 ++x->z;		/* Plus this */
+	 }
 ```
 
 ## Hello world!
@@ -97,6 +203,7 @@ Here is a simple program which displays a button.  When you press the button, th
 	{
 		Widget *mainw;
 		Button *b;
+		Text *txt;
 		TASK task[1];
 
 		izws(); /* Initialize windowing system */
@@ -206,7 +313,7 @@ anchor points in a particular dimension.  For example,
 
 ```
 
-	    Horizontal placement:
+Horizontal placement:
 
 ``` C
 		void ltor(Widget *w,Widget *rel,int ofst);	/* Left to right */
@@ -224,7 +331,7 @@ anchor points in a particular dimension.  For example,
 		void auxrsame(Widget *w,Widget *rel,int ofst);	/* Right same */
 ```
 
-	    Vertical placement:
+Vertical placement:
 
 ``` C
 		void ttob(Widget *w,Widget *rel,int ofst);	/* Top to bottom */
@@ -253,3 +360,114 @@ widget is added to the root widget.
 The root widget matches the screen size, so gtw() and gth() may be used on
 it to get the screen size.
 
+## Widget class hierarchy
+
+The base class for all Notif objects is Lith.  Both the Widget and
+the Wind class inherit Lith.  Anything which inherits Lith can receive
+events, contain other objects, have a placement manager for controlling the
+positioning of other objects and have a screen position and size.  See
+widget.man and lith.h for a fuller description of these properties.
+
+Notif programs create containment hierarchies of Widgets which
+correspond to X windows displayed on the screen.  For example, the main
+application widget will contain menu bar widgets, and menu bar widgets
+contain menu entry widgets and so on.  Now Widgets in notif (see widget.man)
+are themselves composed of 1-3 Winds (Winds are Liths with an associated X
+window).  A typical stand alone button widget is composed of a Wind for
+drawing the contents of the button, and a border Wind for pretty shadow
+effects.  Each Wind corresponds to an actual X window (each has a Window
+ID), and since Wind inherits Lith, they can contain other Winds.  Thus in
+addition to the apparent hierarchy of Widgets, there is also a hidden
+parallel hierarchy of Winds.  This is important to understand when you are
+trying to search the hierarchy for a matching Window ID.  The Wind hierachy
+must be searched, since that is what directly corresponds to actual X
+windows.  Once you have the Wind, you can usually find the corresponding
+Widget by looking at the 'target' member of the Wind's per-object structure.
+
+## Event Delivery
+
+ws() flushes output and then if there are any pending X events, delivers
+them to notif widgets.  For the simplest case (for an Expose event for
+example), the process works as follows.  The X-event to be delivered is
+placed in the global variable 'ev'.  ws() then looks up the corresponding
+Wind object for the Window number given in 'ev' (notif maintains an XContext
+database of Window to Wind equivalents).  Next, ws() checks the Wind
+object's target variable.  If it is set and there is no event handler
+defined (if the event function pointer is NULL) for the event in Wind, the
+event will be delivered to the target Lith instead of the actual Wind.  This
+is used to redirect events from the componant Winds which make up a widget
+to the widget itself.  Remember that this only happens if the Wind did
+define an event handler for the particular event being delivered: for
+example Shadow border objects do define an Expose event handler, so Expose
+events for the Border will actually be delivered to the Border, not the
+Widget.  Finally, the event handler is called as follows:
+
+``` C
+	int handler(Lith *x,XEvent *ev);
+```
+
+Where:
+* x is the object receiving the event (if the event was redirected from a  Wind to a widget, x will be the widget's address).
+* ev is the address of XEvent (usually the address of the global variable 'ev').
+
+The per-class structure for Widgets and Winds contains a function
+pointer entry for each X Event.  The names for these functions are simply
+the X name for the event in all lower case.  So the Expose event is called
+'expose' in the per-class structure.
+
+If you create your own widget and want to be able to capture a
+particular X event, you must inherit the standard Widget and set the
+corresponding function pointer entry in the new per-class structure from
+within the constructor function to point to your event handler.
+
+## Userevent
+
+The default event handler for Widget for the ButtonPress,
+ButtonRelease, MotionNotify and KeyPress events is userevent().  This
+function translates these events into calls to the member function 'user'
+and basically makes button presses have the same format as keypresses.  In
+addition, userevent provides for parents to intercept these events before
+they are delivered to their kids.  Userevent will search all of the
+destination Widget's parents, from root upward and call each non-NULL 'user'
+function until one returns with a zero result.  Thus it is up to the parent
+to decide if any particular event is to be delivered to a child.
+
+``` C
+	'user' is called as follows:
+
+	int user(Widget *x,int key,int xbuttonstate,int x,int y,Time time,
+		 Widget *org);
+```
+
+Where:
+* x is the widget receiving the event
+* key is the key code.  mouse clicks and motion are translated into XK_Press1 - XK_Press3, XK_Release1 - XK_Release3 and XK_Motion.
+* xbuttonstate contains the shift key status and mouse button status (I.E., MouseLeft, MouseMiddle, MouseRight, MouseShift, MouseCtrl, and MouseAlt).
+* x, y and time give the position of the mouse click or keypress.
+* org is the original destination of the event before it was intercepted by the parent.
+
+The default function for 'user' provided by Widget is widgetuser().
+This function provides basic focus handling (where the tab key switches
+which widget receives key press events).  Also it sends the event to the
+KMAP defined for the widget (see kbd.man).  If a key binding is detected in
+the KMAP, the key function bound to that key binding will be called as
+follows:
+
+``` C
+	int ufunction(int stat,Widget *z,void *arg,int key,int state,
+                      int x,int y,Widget *org)
+```
+
+Where:
+* stat is zero.
+* arg is the arg setting placed by kadd().
+* key, state, x, y, and org are the same as above.
+* z is the object containing the key binding.
+
+See edit.c for example code on how to set up KMAP.  Normally this is the
+final destination of the event, but the key function can optionally call
+doevent() with either a simulated event or even the same event which was
+delivered to the key function.  The 'root' argument for doevent() selects
+how close to root userevent() will look for an intercepting parent.  This
+can be useful for sending an event to a child which is normal intercepted by
+the parent.
