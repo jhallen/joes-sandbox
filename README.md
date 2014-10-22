@@ -29,7 +29,7 @@ joes-sandbox
 
 [Zebra-140 Typesetter](https://github.com/jhallen/joes-sandbox/tree/master/doc/zebra)
 
-[Small UNIX utilities](https://github.com/jhallen/joes-sandbox/tree/master/util)
+[Small UNIX utilities](https://github.com/jhallen/joes-sandbox/tree/master/utils)
 
 [Verilog Tools](https://github.com/jhallen/joes-sandbox/tree/master/verilog-tools)
 
