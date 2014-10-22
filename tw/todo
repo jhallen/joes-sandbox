@@ -1,0 +1,59 @@
+Priority:
+
+  - Pop up prompt, single character query
+      (we need grab for this)
+
+  - Message which disappears on next keypress
+      (special event for this?  non-greedy grab?)
+
+- Create application:
+
+  - tie in with topen/etc.
+
+
+billto on left
+shipto on right
+direction on bottom
+
+commands: get billto, find billto, save, abort
+get shipto, find shipto, new shipto, save, abort
+
+
+
+- Basic stuff:
+
+  - scrn/bug: eraeol/outatr: deal with last row, last column problem.
+
+  - Hot keys: we're getting them because children copy standard kmap
+
+  - We need two-level focus for multi application programs
+
+  - I think we're making too many Kmaps
+
+  - I think we're going to need borders - we can avoid them for now by
+    making explicit border windows.
+
+- Create a few widgets:
+
+  - Field
+
+    - Force uppercase.  Delete leading and trailing spaces.
+    - Use Edit for Field?
+
+  - Editor
+
+    - Make update stuff more automatic
+      but how?  flags in the keymap? hooks before we get to keymap?
+
+      no flags: put prefix/postfix functions in edit commands.
+      non-edit commands: must defocus the editor first.
+
+      put echk in list commands.
+      list gets defocused before exit, etc.
+
+      there should be a defocus all command.  (can it fail?)
+
+    - Where to do mechk in list
+
+    - More functions, especially word wrap, pgup pgdn
+

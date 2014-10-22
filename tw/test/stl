@@ -1,0 +1,19 @@
+std::map
+
+map<key-type,value-type> m
+map<key-type,value-type>::iterator i
+m[key]=value
+i=m.find(value-type)
+i!=m.end()
+i++
+i=m.begin()
+m.erase(i)
+i->first   (key)
+i->value   (value)
+
+list<item-type> m
+list<item-type>::iterator i
+i=m.begin()
+i!=m.end()
+i++
+m.push_back(item-type)
