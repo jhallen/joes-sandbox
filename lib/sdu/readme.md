@@ -4,8 +4,6 @@
 Joe Allen
 Feb 6, 2005
 
-Look at sdu.html for documentation.
-
 Type: make
 
 Try: ./sdu test.xml
@@ -76,8 +74,8 @@ Here is a legal XML data file for the above schema:
     <size>123</size>
 
     <items>
-    <item><name>Joe Allen&lt;/name&gt;&lt;price&gt;34&lt;/price&gt;&lt;/item&gt;
-    <item><name>Bill Allen&lt;/name&gt;&lt;price&gt;29&lt;/price&gt;&lt;/item&gt;
+    <item><name>Joe Allen</name><price>34</price></item>
+    <item><name>Bill Allen</name><price>29</price></item>
     </items>
 
     </order>
@@ -87,7 +85,7 @@ Here is how each element is accessed from C:
 
 Path               | Description
 ----               | -----------
-root->name         | The name
+root->title        | The name
 root->size         | The size
 root->items        | The first item
 root->items->name  | Name of first item
@@ -137,10 +135,12 @@ schema.
 These constructs are used to define your database schema:
 
 
-* STRUCT(name,&lt;contents&gt;) - Define a structure
-* STRING(name) - Declare a string within a structure
-* INTEGER(name) - Declare an integer within a structure
-* LIST(name,structure-name) - Declare a list of structures within a structure
+Syntax                    | Meaning
+------                    | -------
+STRUCT(name,<contents>)   | Define a structure
+STRING(name)              | Declare a string within a structure
+INTEGER(name)             | Declare an integer within a structure
+LIST(name,structure-name) | Declare a list of structures within a structure
 
 There must be a least one structure defined in schema.h
 
@@ -154,8 +154,8 @@ struct base *xml_parse(FILE *f,struct meta *expect);           | Load an XML for
 void xml_print(FILE *f,int indent,struct base *b);             | Write database as XML formatted file to stream 'f'.  <em>indent</em> is starting indentation level (set to zero).
 void lisp_print(FILE *f,int indent,struct base *b);            | Write database as LISP formatted file
 void lisp_print_untagged(FILE *f,int indent,struct base *b);   | Write database as LISP formatted file (primitive types get no tags)
-void indent_print_untagged(FILE *f,int indent,struct base *b); | Write database as indented file (primitive types get no tags)</td></tr>
-void json_print(FILE *f,int indent,struct base *b);            | Write database as JSON formatted file</td></tr>
+void indent_print_untagged(FILE *f,int indent,struct base *b); | Write database as indented file (primitive types get no tags)
+void json_print(FILE *f,int indent,struct base *b);            | Write database as JSON formatted file
 struct base *mk(char *name);                                   | Create a structure which exists in the schema
 struct meta *metafind(char *name);                             | Find meta data for named structure type.
 
