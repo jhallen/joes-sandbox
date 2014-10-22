@@ -49,6 +49,7 @@ Here is an example schema.  This schema is placed in a header file called
 "schema.h".  The library is actually just two files: meta.h and meta.c. 
 Both of these files include "schema.h".
 
+``` C
     /* A Book */
 
     STRUCT(order
@@ -61,10 +62,12 @@ Both of these files include "schema.h".
        STRING(name)
        INTEGER(price)
        )
+```
 
 Here is a legal XML data file for the above schema:
 
 
+``` XML
     <?xml version="1.0">
 
     <order>
@@ -79,7 +82,7 @@ Here is a legal XML data file for the above schema:
     </items>
 
     </order>
-
+```
 
 Here is how each element is accessed from C:
 
@@ -96,6 +99,7 @@ root->items->next  | The second item
 In fact, these C structures get defined:
 
 
+``` C
     struct order
       {
       /* Standard header */
@@ -126,6 +130,7 @@ In fact, these C structures get defined:
       char *name;
       int price;
       };
+```
 
 ## Usage
 
