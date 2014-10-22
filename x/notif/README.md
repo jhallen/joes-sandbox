@@ -103,17 +103,17 @@ Here is a simple program which displays a button.  When you press the button, th
 
 		mainw = mk(Widget); /* Create main window */
 
-		stwidth(mainw, 640); /* Set inside size of window */
-		stheight(mainw, 480);
+			stwidth(mainw, 640); /* Set inside size of window */
+			stheight(mainw, 480);
 
-		b = mk(Button); /* Create a button */
-			stw(b, 80); /* Set outside size of button */
-			sth(b, 34);
-			txt = mk(Text); /* Create a text box */
-				st(txt, "Bye!");
-			add(b, txt); /* Install it in the button */
-			stfn(b, fn0(task, press)); /* Callback */
-		add(mainw, b); /* Install button in main window */
+			b = mk(Button); /* Create a button */
+				stw(b, 80); /* Set outside size of button */
+				sth(b, 34);
+				txt = mk(Text); /* Create a text box */
+					st(txt, "Bye!");
+				add(b, txt); /* Install it in the button */
+				stfn(b, fn0(task, press)); /* Callback */
+			add(mainw, b); /* Install button in main window */
 
 		add(root, mainw); /* Add main window to desktop */
 
