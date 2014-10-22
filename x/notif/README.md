@@ -4,6 +4,11 @@ Preprocessor tricks are used to implement single inheritance in plain C.  A
 class called 'Name' which inherits from 'Inherit' is declared like this in a
 header file name.h:
 
+``` C
+
+	/* Note case of every instance of 'name', 'Name' and 'NAME'.
+	   Also, 'inherit', 'Inherit' and 'INHERIT'. */
+
 	typedef struct name Name;
 
 	/* Member functions and class variables */
@@ -26,9 +31,11 @@ header file name.h:
 
 	/* A constructor */
 	Name *mkName(Name *t);
+```
 
 The constructor has a specific sequence of work to do:
 
+``` C
 	Name *mkName(Name *t)
 	{
 		mkInherit(t);	/* Call constructor from inherited class */
@@ -43,21 +50,29 @@ The constructor has a specific sequence of work to do:
 		t->bknd = stdbknd;
 		return t;
 	}
+```
 
 Notice that the constructor does not allocate space for the object.  You can call it like this:
 
+``` C
 	Name *t = mkName(malloc(sizeof(Name)));
+```
 
 A helper macro simplies this:
 
+``` C
 	Name *t = mk(Name);
+```
 
 By convention, the destructor is called rm.
 
+``` C
 	t->rm(); /* Call destructor */
 	free(t); /* Free instance */
+```
 
 A helper macro simplifies this:
 
+``` C
 	rm(t); /* Call destructor and free */
-
+```
