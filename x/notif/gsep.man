@@ -1,0 +1,24 @@
+Name
+	Gsep - Graphics Separator
+Syntax
+
+	#include <notif.h>
+
+	Gsep *mk(Gsep);
+
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	Width=6 Height=6
+
+Color
+	shadowtop and shadowbot are used to the line colors.
+
+Description
+	A graphics-separator, typically used for menus.  A single 3d-effect
+line is drawn from end to end in the larger dimension, and centered within
+the smaller dimension.

@@ -1,0 +1,55 @@
+Name
+	Button
+
+Syntax
+	#include <notif.h>
+
+	Button *mk(Button);		/* Create stand-along button */
+	Button *mk(Mbutton);		/* Create menu-button */
+
+	void stfn(Button *,FN *fn);	/* Set callback function */
+
+	int fn(int stat,...user supplied args,...);
+					/* Callback function looks like this */
+
+	void strate(Button *,int);	/* Set repeat interval in
+					   microseconds. */
+
+	void stdelay(Button *,int);	/* Set delay until first repeat in
+					   microseconds */
+
+	void sttext(Button *,char *s);	/* Short for: t=mk(Text), st(t,s),
+                                           add(button,t); */
+
+	void sticon(Button *,int *s);	/* Short for: t=mk(Icon), st(t,s),
+					   add(button,t); */
+
+Inherits
+	Widget
+
+Borders
+	mk(Button): Iborder  (for standalone use)
+	mk(Mbutton): Mborder  (for use in menus)
+
+Placement manager initial state
+	mk(Button): vcenter(), hcenter().
+	mk(Mbutton); ledge(), tedge().
+
+Colors
+	Standard defaults
+
+Size
+	Minimum size which fits contained widgets
+
+Description
+	The call-back function is executed when the button is pressed.  If
+stdelay() and strate() are set, the button will start to repeatedly execute
+the call-back function after a delay if the user holds the mouse button
+down.  For this to work, you must reset the call-back function after each
+call (see thread.man).
+
+	sttext() and sticon() are convenience functions which create a text
+or icon widget and add it to a button widget.
+
+Todo
+	Should be able to retieve strate(), stdelay() and stfn().

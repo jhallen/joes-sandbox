@@ -1,0 +1,39 @@
+Name
+	Help - balloon help manager
+Syntax
+
+	#include <notif.h>
+
+  Widget interface
+	Help *mk(Help);			/* Create */
+	void rm(Help *);		/* Delete */
+	void sttarget(Help *,Widget *);	/* Set target widget */
+	void enter(Help *);		/* Enter notify */
+	void leave(Help *,int x,int y);	/* Leave notify */
+	void deactivate(Help *);	/* Deactive balloon */
+
+  User interface
+	void sthelpmgr(Widget *,Help *);	/* Set help manager */
+	void sthelp(Widget *w,Widget *balloon);	/* Set balloon */
+	void sthelptext(Widget *w,char *text);	/* Convenience function */
+
+Description
+	The balloon help manager allows you to set up a widget so that if
+the user lingers over it with the mouse pointer, a help window is popped up.
+The help window remains on the screen until the user moves the pointer to
+another window or until the mouse pointer is pressed.
+
+	Widgets do not have a help manager installed by default.  You can
+install one with the following code:
+
+		sthelpmgr(w,mk(Help));
+
+	You can then use sthelp() to assign a widget to be used as the
+pop-up balloon help.  Often this will be a text widget and sthelptext() can
+be used to do both steps (installing the help manager and setting up a
+balloon text help widget) in one step.  sthelptext() is equivalent to:
+
+		sthelpmgr(w,mk(Help));
+		t=mk(Text);
+		  st(t,text);
+		sthelp(w,t);

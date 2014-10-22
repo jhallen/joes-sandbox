@@ -1,0 +1,172 @@
+Name
+	ttopen, ttopnn, ttclose, ttclsn, ttgetc, ttputc, ttputs, ttsusp,
+ttflsh, ttsig, ttgtsz, sigjoe, signrm, mpxmk, mpxdie, tickon, tickoff,
+edupd, jread, jwrite - UNIX independant tty device interface
+
+Syntax
+	#include <tty.h>
+
+	extern unsigned baud;
+	extern int leave;
+	extern int have;
+
+	extern unsigned Baud;
+	extern int noxon;
+
+	void ttopen(void);
+	void ttopnn(void);
+	void ttclose(void);
+	void ttclsn(void);
+	void sigjoe(void);
+	void signrm(void);
+
+	void tickon(void);
+	void tickoff(void);
+
+	void ttsusp(void);
+	void ttgtsz(int *x, int *y);
+
+	int ttgetc(void);
+	void ttputc(int c);
+	void ttputs(char *s);
+	void ttflsh(void);
+
+	MPX *mpxmk(int *ptyfd,char *cmd,char *args[],
+                   void (*func)(),void *object,
+		   void (*die)(),void *dieobj);
+
+	void ttsig(int n);
+	void edupd(int n);
+
+	int jread(int fd,char *buf,int size);
+	int jwrite(int fd,char *buf,int size);
+
+Description
+	These functions provide a standard tty device interface which hides
+the differences between many versions of UNIX.  The interface provided is
+intended for screen oriented programs which use functions such as those
+found in the 'scrn' termcap driven terminal interface (see scrn.man).
+
+	_ttopen_ opens the tty device:
+
+		1) Call _sigjoe_ (_ttopnn_) does not do this step
+
+		2) fflush(stdout);
+
+		3) Save current state of the tty
+
+		4) Disable CR/LF/NL input translations, all output
+		   processing, echoing, line editing and place tty in
+		   character at a time mode.  Basically, disable all
+		   processing except XON/XOFF if it's set.
+
+		   If the global variable 'noxon' was set before calling
+		   _ttopen_ then XON/XOFF processing is also disabled.
+
+		5) Set this new tty state without losing any typeahead.
+
+		6) Record the current baud rate in the global variable
+		   'baud'.  If the global variable 'Baud' is set, it is
+		   coppied into 'baud' and the baud rate reported by the
+		   tty device is ignored.
+
+		7) Divide 'baud' into 10,000,000 and store the result
+		   in the global variable 'upc' (microseconds per
+		   character).  
+
+		8) Allocate an output buffer of a size which depends on
+		   'upc' and the constant 'TIMES' (currently equal to 3). 
+		   'TIMES' is the number of times per second which the
+		   program will check for typeahead.  Since we only check
+		   for typeahead whenever the output buffer is flushed,
+		   'upc' and the size of the output buffer determines how
+		   often this occurs.  For example, if 'upc'==1000 (~9600
+		   baud), an output buffer of 333 characters will be
+		   allocated.  Each time this buffer is completely flushed,
+		   1/3 of a second will go by.
+
+	_ttclose_ Restore the tty back to its original mode.
+	
+		1) ttflsh();
+
+		2) Restore the original tty mode which ttopen had saved
+		   without losing any typeahead.
+
+		3) Call signrm().  _ttclsn_ does not do this step.
+
+	_sigjoe_ Sets the signal handling for a typical screen oriented
+program.  Signals which the user can generate from the keyboard are disabled
+(SIGINT, SIGPIPE) and software terminate and hangup signals get trapped
+(SIGTERM, SIGHUP) so that 'ttsig' is called.
+
+	_signrm_ Sets the signal handling back to command-line oriented
+program values.
+
+	_ttsig_ is a function you provide to handle signals or a closed
+input.  If is called with 'n' set to the number of the caught signal or 0 if
+the input closed.  _ttsig_ should call exit() as its last act.
+
+	_ttsusp_ suspends the program or runs a subshell on systems which
+don't have job control.  The signal handling and tty mode will be properly
+set for the shell.
+
+	_ttgtsz_ saves the current size of the screen as reported by the
+window size structure (and as set by the 'stty' rows and cols options) in
+the addressed integer variables.
+
+	_ttputc_ writes one character to the output buffer.  If the output
+buffer becomes full, _ttflsh_ is called.
+	
+	_ttputs_ writes a string to the output buffer using _ttputc_.
+
+	_ttflsh_ writes any characters in the output buffer to
+the terminal.  _ttflsh_ then sleeps the program for the amount of time it
+should take for the number of characters written to the terminal to get
+through the serial port (this has the effect of disabling the operating
+system's output buffer's effect on typeahead detection).  Finally, if the
+global variable 'leave' is not set, a check for typeahead is performed and
+if there is any, the global variable 'have' is set.  The typeahead checking
+operation may read a single character ahead from the terminal.  Once the
+program knows it is about to exit and no longer needs input from the
+terminal, the global variable 'leave' should be set before any more calls to
+_ttputc_, _ttputs_, or _ttflsh_.  This prevents _ttflsh_ from eating the
+first typeahead character which should be received by the shell, not the
+program.
+
+	_ttgetc_ reads one character from the terminal (it returns any
+characters read ahead by _ttflsh_ before actually calling read()).
+
+	_tickon_ and _tickoff_ enable and disable calls to _edupd_ on each
+second.
+
+	_edupd_ is a function you provide which gets called with 0 whenever
+a screen size change signal is received and with 1 on each second if
+_tickon_ was called.  _edupd_ will only be called during _ttgetc_.
+
+	_mpxmk_ runs a program with its stdin/stdout/stderr connected to the
+current program through a pseudo terminal.  The program's path should be
+given in 'cmd' and its argument list should be given in 'args'.  Data can be
+written to the program's stdin by writing to the file descriptor returned at
+the integer at address 'ptyfd'.  When the program writes to its stdout or
+stderr, calls will be made to 'func'.  The first argument of 'func' will be
+set to 'object'.  The second argument contains the address of a buffer and
+the third argument contains the number of characters read from the program
+which can be found in the buffer.  'func' will only be called when _ttgetc_
+is waiting for input.  When the program exits, the function 'die' is called
+with its argument set to 'dieobj'.  This only happens when _ttgetc_ is
+waiting for input.
+
+	_mpxmk_ returns 0 if the program could not be run or returns an
+address to an 'MPX' structure.  The MPX structure contains an element called
+'pid' which contains the process id of the created program.  The MPX
+structure is automatically freed when the program exits.
+
+	_jread_ and _jwrite_ are versions of read() and write() which will
+retry if they are interrupted by a signal (such as the window size change
+event and the alarm signal used for tickon/tickoff).  Caution- the standard
+I/O library on many UNIXs will return with an EINTR error if the read and
+write calls are interrupted by a signal.  _jread_ and _jwrite_ should be
+used instead.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

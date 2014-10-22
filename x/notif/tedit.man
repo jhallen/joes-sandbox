@@ -1,0 +1,66 @@
+Name
+	Tedit - pattered field editor
+Syntax
+
+	#include <notif.h>
+
+	Tedit *mk(Tedit);		/* Create */
+	
+	void st(Tedit *,char *);	/* Set pattern buffer */
+	void stfield(Tedit *,char *);	/* Set an individual field */
+	char **gt(Tedit *);		/* Get fields array */
+	void strtn(Edit *,Widget *);	/* Enter-key focus */
+	void stfn(Edit *,FN *fn);	/* Enter-key call-back function */
+
+	int fn(int stat,...user supplied args...);
+					/* Format of call-back function */
+
+Inherits
+	Widget
+
+Border
+	Eborder
+
+Size
+	Width=250.  Height=Matches foreground font.
+
+Description
+	This is a formatted field editor.  The pattern string specifies the
+fields.  Characters in this string are displayed as-is, except field
+specifier substrings which have the following format:
+
+	{type width low-limit high-limit}
+
+	Type: d for a decimal numeric field (only type now implemented)
+
+	Width: field width
+
+	Low-limit: decimal number indicating lowest allowed value of
+		   numeric field.
+
+	High-limit: decimal number indicating highest allowed value of
+		    numeric field.
+
+	For example, the follow pattern string could be used for entering
+the time in hours, minutes and seconds: "{d 2 1 12}:{d 2 0 59}:{d 2 0 59}"
+
+	The field editor will not allow you to type when the result would
+be a field value exceeding its limits.  You must then hit backspace and fix
+the problem.
+
+	The call-back function is called when the user hits Enter or Return.
+Which widget gets focus when the user hits Enter or Return is set with 
+strtn().
+
+Edit keys
+	^H		Backspace
+	^?		Backspace
+	^M		Enter
+	Space - ~	Entered text
+
+Todo
+	Cut & Paste is not implemented.
+
+        Need to at least have string fields.
+
+        Maybe callback functions to verify the value of a field?

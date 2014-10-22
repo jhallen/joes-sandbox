@@ -1,0 +1,174 @@
+##############################################################################
+#
+# Joe's termcap file
+#
+# These expect that you're using some kind of handshaking (no padding info
+# is given).  Also JOE doesn't use the last column of the screen, so the
+# am/xn parameters can be wrong
+#
+# JOE understands these extensions to termcap:
+#
+# AL DL SF SR IC DC UP DO RI LE - parametized versions of normal termcap
+#                                 capabilities.  For example, AL inserts n
+#                                 lines and LE moves n positions left.
+#
+# rr                            - Flag which indicates that the cursor
+#                                 is restricted to scrolling region (cursor
+#                                 addressing is still screen relative, however).
+#
+# cV                            - Like cv, but goes to beginning of given
+#                                 line.
+#
+# AB or Sb			- Set background color
+# AF or Sf			- Set foreground color
+# ut				- Flag which indicates that terminal erases
+#				  with background color.
+#
+# JOE understands these key sequence capabilities:
+#
+# k1 - k9			- F1 - F9
+# k0				- F0
+# k;				- F10
+# kh				- Home
+# kH				- End
+# kP				- PageUp
+# kN				- PageDn
+# kI				- Insert
+# kD				- Delete
+# kl kr ku kd			- Left, Right, Up, Down
+#
+##############################################################################
+#
+# The pre-ansi terminal
+#
+j0|vt52|dec vt52:\
+	:co#80:li#24:\
+	:ho=\EH:cm=\EY%+ %+ :\
+	:up=\EA:nd=\EC:pt:bs:\
+	:cd=\EJ:ce=\EK:cl=\EH\EJ:\
+	:sr=\EI:\
+	:ku=\EA:kd=\EB:kr=\EC:kl=\ED:
+#
+##############################################################################
+#
+# The "ANSI" family of terminals
+#
+##############################################################################
+#
+# The capabilities in this entry are understood to be the least-common
+# denominator of what's called ANSI (except, of course, for the IBM PC, which
+# doesn't know what ESC [ J is).
+#
+j1|ansi|Basic Ansi tty:\
+	:co#80:li#25:am:\
+	:ho=\E[H:cm=\E[%i%d;%dH:cV=\E[%i%dH:\
+	:up=\E[A:UP=\E[%dA:DO=\E[%dB:nd=\E[C:RI=\E[%dC:pt:bs:LE=\E[%dD:\
+	:cd=\E[J:ce=\E[K:cl=\E[H\E[J:\
+	:so=\E[7m:se=\E[m:ms:us=\E[4m:ue=\E[m:\
+	:mb=\E[5m:md=\E[1m:mh=\E[2m:me=\E[m:\
+	:ku=\E[A:kd=\E[B:kl=\E[D:kr=\E[C:
+#
+# Use for good implementations of non-DEC ansi.  Most PC UNIX consoles
+# look like this
+#
+j2|fansi|Full Ansi tty (includes inserts and deletes):\
+	:al=\E[L:AL=\E[%dL:dl=\E[M:DL=\E[%dM:\
+	:ic=\E[@:IC=\E[%d@:dc=\E[P:DC=\E[%dP:\
+	:tc=ansi:
+#
+# Use for vt100-like ansi implementations
+#
+j3|ansi100|Ansi tty with scrolling regions but no inserts or deletes:\
+	:li#24:\
+	:cs=\E[%i%d;%dr:sr=\EM:\
+	:tc=ansi:
+#
+# Advanced DEC-style ansi terminals.  Use for vt102s and above
+#
+j4|decansi|Full DEC-style Ansi tty (scrolling regions/insert mode/deletes):\
+	:li#24:\
+	:cs=\E[%i%d;%dr:sr=\EM:\
+	:al=\E[L:AL=\E[%dL:dl=\E[M:DL=\E[%dM:\
+	:im=\E[4h:ei=\E[4l:mi:dc=\E[P:DC=\E[%dP:\
+	:tc=ansi:
+#
+##############################################################################
+#
+# Derived "ANSI" terminals
+#
+##############################################################################
+#
+j5|ansisys|IBM PC using ANSI.SYS:\
+        :cd@:ms@:pt@:cl=\E[H\E[2J:do=\E[B:\
+	:ku=^@H:kd=^@P:kl=^@K:kr=^@M:\
+	:kI=^@R:kD=^@S:kh=^@G:kH=^@O:kP=^@I:kN=^@Q:\
+	:k1=^@;:k2=^@<:k3=^@=:k4=^@>:k5=^@?:\
+	:k6=^@@:k7=^@A:k8=^@B:k9=^@C:k0=^@D:\
+        :tc=ansi:
+#
+j6|nansisys|IBM PC using NANSI.SYS or ZANSI.SYS:\
+        :cd@:ms@:pt@:cl=\E[H\E[2J:do=\E[B:\
+	:ku=^@H:kd=^@P:kl=^@K:kr=^@M:\
+	:kI=^@R:kD=^@S:kh=^@G:kH=^@O:kP=^@I:kN=^@Q:\
+	:k1=^@;:k2=^@<:k3=^@=:k4=^@>:k5=^@?:\
+	:k6=^@@:k7=^@A:k8=^@B:k9=^@C:k0=^@D:\
+        :tc=fansi:
+#
+j7|xenix|Xenix console:\
+	:bt=\E[Z:\
+	:kI=\E[L:kD=^?:kh=\E[H:kH=\E[F:kP=\E[I:kN=\E[G:\
+	:k1=\E[M:k2=\E[N:k3=\E[O:k4=\E[P:k5=\E[Q:\
+	:k6=\E[R:k7=\E[S:k8=\E[T:k9=\E[U:k0=\E[V:\
+	:tc=fansi:
+#
+j8|linux|Linux console:\
+	:kI=\E[2~:kD=\E[3~:kh=\E[1~:kH=\E[4~:kP=\E[5~:kN=\E[6~:\
+	:k1=\E[[A:k2=\E[[B:k3=\E[[C:k4=\E[[D:k5=\E[[E:\
+	:k6=\E[17~:k7=\E[18~:k8=\E[19~:k9=\E[20~:k10=\E[21~:\
+	:AB=\E[4%dm:AF=\E[3%dm:ut:\
+	:tc=fansi:
+#
+j9|console|Linux console:\
+	:tc=linux:
+#
+ja|pt|Convergent Technologies PT booted from a miniframe:\
+	:li#26:ns:\
+	:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:k5=\EOT:\
+	:k6=\EOU:k7=\EOV:k8=\EOW:k9=\EOX:k0=\EOY:\
+	:tc=fansi:
+#
+jb|ptem|Convergent Technologies PT using its own firmware:\
+	:li#26:rr:\
+	:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:k5=\EOT:\
+	:k6=\EOU:k7=\EOV:k8=\EOW:k9=\EOX:k0=\EOY:\
+	:tc=decansi:
+#
+jc|xterm|X windows terminal emulator:\
+	:xn:\
+	:kb=\b:ks=\E=:ke=\E>:\
+	:k1=\E[11~:k2=\E[12~:k3=\E[13~:k4=\E[14~:k5=\E[15~:\
+	:k6=\E[17~:k7=\E[18~:k8=\E[19~:k9=\E[20~:k0=\E[21~:\
+	:kh=\E[8~:\
+	:tc=decansi:
+#
+jd|vt100|DEC VT100:\
+	:li#24:\
+	:ks=\E\075:ke=\E\076:\
+	:kh=\E[H:\
+	:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:\
+	:tc=ansi100:
+#
+je|vt102|DEC VT102:\
+	:li#24:\
+	:ks=\E\075:ke=\E\076:\
+	:kh=\E[H:\
+	:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:\
+	:tc=decansi:
+#
+jf|vt220|DEC VT220:\
+	:ke=\E>:ks=\E=:\
+	:kb=^?:\
+	:kI=\E[2~:kD=\E[3~:kh=\E[1~:kH=\E[4~:kP=\E[5~:kN=\E[6~:\
+	:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:k5=\E[17~:\
+	:k6=\E[18~:k7=\E[19~:k8=\E[20~:k9=\E[21~:k0=\E[29~:\
+	:tc=decansi:

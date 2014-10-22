@@ -1,0 +1,28 @@
+Name
+	Cascade - Cascading menus button
+
+Syntax
+	#include <notif.h>
+
+	Cascade *mk(Cascade);		/* Create a menu cascade button */
+	Cascade *mk(Mcascade);
+	Cascade *mk(Mbcascade);
+
+	st(Cascade *,Menu *);		/* Set menu which gets triggered */
+
+Inherits
+	Button
+
+Border
+	mk(Cascade): Iborder (for stand-alone buttons)
+	mk(Mcascade): Mborder (for menu entries) 
+	mk(Mbcascade): Mborder (for menu entries)
+
+Size
+	Matches contained objects
+
+Description
+	A button which triggers a pulldown menu.  Use st() to place a menu
+in the button.  mk(Mcascade) includes a little right arrow icon at the right
+edge, and is useful for menu entries.  mk(Mbcascade) has border for menu
+entries, but does not include the icon.

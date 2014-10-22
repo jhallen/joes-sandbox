@@ -1,0 +1,99 @@
+Name
+	Place - placement manager
+
+Syntax
+	#include <notif.h>
+
+  Widget interface:
+
+	Pmgr *mk(Pmgr);			/* Create a placement manager */
+	void rm(Pmgr *);		/* Delete a placement manager */
+	void sttarget(Pmgr *,Widget *);	/* Widget which will be controlled */
+	void add(Pmgr *,Widget *);	/* Tell pmgr that widget was added */
+	void rmv(Pmgr *,Widget *);	/* Tell pmgr that widget was removed */
+	void calcx(Pmgr *);		/* Calculate X positions */
+	void calcy(Pmgr *);		/* Calculate Y positions */
+	void calcw(Pmgr *);		/* Calculate width */
+	void calch(Pmgr *);		/* Calculate height */
+
+  User interface:
+    Horizontal placement:
+
+	void ltor(Widget *w,Widget *rel,int ofst);	/* Left to right */
+	void ledge(Widget *w,int ofst);			/* Left edge */
+	void lsame(Widget *w,Widget *rel,int ofst);	/* Left same */
+	void rtol(Widget *w,Widget *rel,int ofst);	/* Right to left */
+	void redge(Widget *w,int ofst);			/* Right edge */
+	void rsame(Widget *w,Widget *rel,int ofst);	/* Right same */
+	void hcenter(Widget *w);			/* Horz. center */
+	void auxltor(Widget *w,Widget *rel,int ofst);	/* Left to right */
+	void auxledge(Widget *w,int ofst);		/* Left edge */
+	void auxlsame(Widget *w,Widget *rel,int ofst);	/* Left same */
+	void auxrtol(Widget *w,Widget *rel,int ofst);	/* Right to left */
+	void auxredge(Widget *w,int ofst);		/* Right edge */
+	void auxrsame(Widget *w,Widget *rel,int ofst);	/* Right same */
+
+    Vertical placement:
+
+	void ttob(Widget *w,Widget *rel,int ofst);	/* Top to bottom */
+	void tedge(Widget *w,int ofst);			/* Top edge */
+	void tsame(Widget *w,Widget *rel,int ofst);	/* Top same */
+	void btot(Widget *w,Widget *rel,int ofst);	/* Bottom to top */
+	void bedge(Widget *w,int ofst);			/* Bottom edge */
+	void bsame(Widget *w,Widget *rel,int ofst);	/* Bottom same */
+	void vcenter(Widget *w);			/* Vertical center */
+	void auxttob(Widget *w,Widget *rel,int ofst);	/* Top to bottom */
+	void auxtedge(Widget *w,int ofst);		/* Top edge */
+	void auxtsame(Widget *w,Widget *rel,int ofst);	/* Top same */
+	void auxbtot(Widget *w,Widget *rel,int ofst);	/* Bottom to top */
+	void auxbedge(Widget *w,int ofst);		/* Bottom edge */
+	void auxbsame(Widget *w,Widget *rel,int ofst);	/* Bottom same */
+
+Description
+	Use the placement functions to control the placement of the next
+widget to be added to widget w.
+
+	The absolute functions (ledge, redge, tedge, and bedge) place the
+next widget on one of the sides of the w (plus an offset).  Any other
+widgets added next will also be placed against the indicated side, if no
+intervening placement function is called.
+
+	The relative functions (lsame, rsame, tsame, and bsame) place the
+next widget at the same coordinate as the indicated previously added widget
+(plus the given offset).  I.E., so the left edge of the next widget will be
+at the same x position as the indicated widget's left edge after lsame has
+been called.  Likewise, the right edge of the next widget will be at the x
+position as the indicated widget's right edge after rsame has been called.
+Any other widget added next will also be placed relative to the indicated
+widget, if no intervening placement function is called.
+
+	The progressive functions (ltor, rtol, ttob, and btot) place the
+widget to the right of, to the left of, below or above the indicated widget
+which was previously added.  Any other widgets added next will be placed
+next to the previously added widget.  If NULL is passed as the 'rel'
+argument, then the first widget added will be placed against the implied
+edge, and future widgets will be added next to the previously placed one.
+
+	hcenter() and vcenter() indicate that future widgets should be
+centered in the indicated dimension.
+
+	When the widget is resized, its kids will remain relative to the
+edge which started any chain of placement functions.  Thus if redge or rtol
+with a NULL 'rel' arg was called, before a bunch of widgets are added, those
+widgets will maintain their positions relative to right edge even after a
+window resize.  This is true even if the direction of placement is reversed
+(calling ltor, with 'rel' set to a widget which was placed on the right
+edge).
+
+	If you don't set the initial size of the widget, it is calculated by
+the placement manager so that it matches the longest chain of placed widgets
+in either dimension.  The placement manager does not try to add additional
+space to prevent chains of widgets from overlapping each other.
+
+	The aux placement functions (those prefixed with aux), allow you to
+specify two placement commands for the following added widget.  This allows
+you to set up the added widget to track size changes in the parent.  For
+example, if both ledge and auxredge are called, the child widget will always
+have the same width as the parent's drawing area (discounting any given
+offsets).  The aux function must specify an edge or chain which is opposite
+that of the non-aux function.

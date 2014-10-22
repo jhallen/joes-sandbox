@@ -1,0 +1,221 @@
+Name
+	enquef, enqueb, etc. - Doubly-linked list functions and macros
+
+Syntax
+	#include <queue.h>
+
+	/* Macros */
+	item *IZQUE(item *);	/* Initialize a base item to point to itself
+				   and return it. */
+
+	item *DEQUE(item *);	/* Delete item from list and return it. 
+				   Item's pointers are not changed. */
+
+	int QEMPTY(item *);	/* Return true if list is empty */
+
+	item *ENQUEF(queue *,item *);
+				/* Insert so that item is in front- the 'next'
+				   pointer will point to it.  Returns the
+				   item */
+
+	item *ENQUEB(queue *,item *);
+				/* Insert so that item is in back- the 'prev'
+				   pointer will point to it.  Returns the
+				   item */
+
+	item *PROMOTE(queue *,item *);
+				/* DEQUE item from one list and ENQUEF into
+				   another.  Returns the item */
+
+	item *DEMOTE(queue *,item *);
+				/* DEQUE item from one list and ENQUEB into
+				   another.  Returns the item */
+
+	item *SPLICEF(queue *,chain *);
+				/* Splice a chain into front of list. Return
+				   first item of chain. */
+
+	item *SPLICEB(queue *,chain *);
+				/* Splice a chain into back of list. Return
+				   first item of chain. */
+
+	chain *SNIP(item *first,item *last);
+				/* Remove 1 or more items from a list,
+				   tie the ends together as a chain and return
+				   address of first */
+
+	/* Functions */
+	void izque(LINK *item);	/* Initialize base item to point to itself */
+
+	LINK *newque(void *data);
+				/* Allocate a new item containing data */
+
+	LINK *enquef(LINK *queue,void *data);
+				/* Create new item containing data and
+				   insert it in front of queue.  Queue->next
+				   will point to the new item.  The new item
+				   is returned. */
+
+	LINK *enqueb(LINK *queue,void *value);
+				/* Create new item containing data and
+				   insert it in back of queue.  Queue->prev
+				   will point to the new item.  The new item	
+				   is returned. */
+
+	int qempty(LINK *queue);
+				/* Return true if queue points to itself-
+				   signifying an empty list */
+
+	void *deque(LINK *item);
+				/* Remove item from list and free it. 
+				   Return data which was stored in the item. */
+
+	LINK *qfind(LINK *queue,void *data);
+				/* Search for first item containing specified
+				   data and return it.  I.E., search goes in
+				   direction of queue->next.  If item is not
+				   found, NULL is returned. */
+
+	int qfindn(LINK *queue,void *value);
+				/* Search for first item containing specified
+				   data and return the index no. to it.
+				   Queue->next is item no. 0, queue->next->next
+				   is item no. 1, etc.  Returns -1 if item
+				   was not found. */
+
+	LINK *qnth(LINK *queue,int n);
+				/* Return nth item of list.  queue is item
+				   0, queue->next is item 1, etc.  Note that
+				   this is not the same numbering used by
+				   qfindn().  For the equivalent scheme use:
+				   qnth(queue->next,n). */
+
+	int qno(LINK *queue);	/* Return no. of items in list excluding
+				   queue */
+
+	LINK *splicef(LINK *queue,LINK *chain);
+				/* Splice chain into front of list.  Chain
+				   becomes queue->next. Chain is returned. */
+
+	LINK *spliceb(LINK *queue,LINK *chain);
+				/* Splice chain into back of list.  Last
+				   item of chain becomes queue->prev.  Chain
+				   is returned. */
+
+	LINK *snip(LINK *first,LINK *last);
+				/* Remove 1 or more items from a list, tie
+				   the ends together into a chain and return
+				   first. */
+
+	/* Fast item allocation */
+	void *alitem(void **freelist,int size);
+				/* Quickly allocate an item of a given size.
+				   'freelist' is address of an item pointer
+				   to be used as a singly-linked free list. 
+				   If there are no items on the free list, a
+				   block of new items is malloced and placed
+				   on the freelist.
+
+				   All of the items on given free list must
+				   be the same size.  Newly malloced items
+				   are initially cleared, except for the
+				   first sizeof(void *) bytes.  Reused items
+				   (which have been returned to the free
+				   list with fritem) are not so cleared and
+				   retain their contents (but the first
+				   sizeof(void *)) bytes of the item gets
+				   trashed. */
+
+	void fritem(void **freelist,void *item);
+				/* Return an item to a free list */
+
+Description
+	These macros and functions implement two types of doubly-linked
+lists (or queues).  The macros allow you to implement a system where the
+link pointers, 'next' and 'prev', are members of your item structure.  With
+this scheme, items can only be in a single list at a time.  The functions
+implement a system where the link pointers are in separately malloced
+structures.  The item can be anything that can be stored in a 'void *'. 
+Items can belong to more than one list at a time in this scheme, but extra
+space is required because the 'void *' item pointer must be stored along
+with the link pointers and the scheme is slightly slower since additional
+pointer indirections are required.
+
+	To use the macro system, a macro is provided to declare the link
+pointer members in your item structure:
+
+	struct my_item
+	 {
+	 QITEM(struct my_item);		/* Link pointers */
+	 int x,y,z;			/* Other item members */
+	 };
+
+	This is simply expanded to:
+
+	struct my_item
+	 {
+	 struct my_item *next, *prev;
+	 int x,y,z;
+	 };
+
+	To use the function system, you should be aware of the contents of
+the generic item LINK:
+
+	typedef struct link LINK;
+	struct link { QITEM(LINK); void *data; };
+
+	/* Which expands to... */
+	struct link { LINK *next; LINK *prev; void *data; };
+
+	The function system is based on the macro system, but operates only
+on this predeclared item type.
+
+	In either case, these systems do not use NULL pointers to signify
+the beginnings and ends of the list, as is done in many other systems. 
+Instead, lists are always fully circularly connected.  One item in the list
+is designated as the queue base item, and is used in place of a simple
+pointer to designate the beginning of the list.  When a queue is empty, the
+base points to itself.  The base item must be initialized to point to itself
+before any items are inserted into the list.  The advantage of this scheme
+is that the insert and delete functions are faster, since they do not have
+to test for special cases involving NULLs (which eliminates branches from
+the generated code).  The only disadvantage is that code which traverses the
+list must compare against the base item address instead of against NULL to
+determine when the end of the list is reached:
+
+	struct item { QITEM(struct item); int z; };
+	struct item base={&base,&base};
+
+	/* Code to traverse the list */
+	struct item *q;
+	for(q=base.next;q!=&base;q=q->next)
+	 {
+	 /* Operation to be done to each item in the list */
+	 q->z=5;
+	 /* Note that no operations occur if the list is empty, and base
+	    points to itself */
+	 }
+
+	In the macro scheme, you can use an item as the base as shown above,
+or if your items are large and you are trying to save space, the base can be
+declared with a special macro which generates only the list pointers:
+
+	QBASE(struct item) base;
+
+	/* Which expands to... */
+
+	struct { struct item *next, *prev } base;
+
+	Unfortunately, this may require some casting in some cases.  One is
+the list traversal code above:
+
+	struct item *q;
+	for(q=base.next;q!=(struct item *)&base;q=q->next)
+	 { ... }
+
+	Also, if you use QBASE, QITEM must be the first member of your item
+structure, since 'q->next' is going to generate the same code no matter
+whether q is an item or the base.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

@@ -1,0 +1,128 @@
+Name
+	mkkmap, rmkmap, kadd, kcpy, kdel, mkkbd, rmkbd, dokey, seqlen,
+nthkey, clrkbd - Key sequence lookup table management functions
+
+Syntax
+	#include <kbd.h>
+
+	KMAP *mkkmap(void *(*dup)(void *obj,void *bind),
+                     void (*rm)(void *obj,void *bind),
+                     void *obj);
+
+	void rmkmap(KMAP *kmap);
+
+	int kadd(KMAP *kmap,CAP *cap,char *seq,void *bind);
+	void kcpy(KMAP *dest,KMAP *src);
+	int kdel(KMAP *kmap,CAP *cap,char *seq);
+
+
+	KBD *mkkbd(KMAP *kmap);
+	void rmkbd(KBD *kbd);
+
+	void *dokey(KBD *kbd,int k);
+
+	void clrkbd(KBD *kbd);
+	int seqlen(KBD *kbd);
+	int nthkey(KBD *kbd,int n);
+
+Description
+	These functions manage key sequence binding (lookup) tables. 
+_mkkmap_ creates an empty table.  The functions 'dup' and 'rm' are used to
+duplicate and delete binding values.  These values are usually pointers to
+functions or macro structures.  'void *' is used to represent their type. 
+'obj' is passed as the first argument to 'dup' and 'rm'.
+
+	_rmkmap_ eliminates a key map.  All of the binding values are
+eliminated with the 'rm' function passed to 'mkkmap'.
+
+	_kadd_ adds a binding from the string key sequence 'seq' to the
+binding value 'bind' to the specified table.  'cap' is used to look up
+termcap string capabilities.  The following are legal single keys:
+
+		^?		127 (DEL)
+
+		^@ - ^_		Control characters
+
+		SP		32 (Space)
+		Sp		32 (Space)
+		sp		32 (Space)
+
+		! - ~		The key for one of the normal ASCII
+				printable characters.
+
+		.xx		Termcap string capability.  For example,
+				.ku is the sequence of the up-arrow key.
+
+	The following X windowing system key names are also recognized:
+
+		BackSpace	Begin		Break		Cancel
+		Clear		Delete		Down		End
+		Escape		Execute		F1 - F35	Find
+		Help		Home		Insert		KP_0 - KP_9
+		KP_Add		KP_Begin	KP_Decimal	KP_Delete
+		KP_Divide	KP_Down		KP_End		KP_Enter
+		KP_Equal	KP_F1 - KP_F4	KP_Home		KP_Insert
+		KP_Left		KP_Multiply	KP_Next		KP_Page_Down
+		KP_Page_Up	KP_Prior	KP_Right	KP_Separator
+		KP_Space	KP_Subtract	KP_Tab		KP_Up
+		L1 - L10	Left		Linefeed	Menu
+		Mode_switch	Next		Num_Lock	Page_Down
+		Page_Up		Pause		Print		Prior
+		R1 - R15	Redo		Return		Right
+		Scroll_Lock	Select		Sys_Req		Tab
+		Undo		Up		script_switch
+
+	The following non-standard X key names are supported by the Notif
+Widget library.  They are key-name equivalents for mouse events.
+
+		Press1		Press2		Press3
+		Release1	Release2	Release3
+		Motion
+
+	A key sequence is made up of one or more of the above keys, each
+seperated by a single space.  A range of bindings may be specified with
+a single key sequence by using the 'TO' keyword.  For example:
+
+		^K A TO C
+
+	will bind each of the sequences ^K A, ^K B and ^K C to the binding
+value.  The binding value is duplicated twice in this instance using the
+'dup' function passed to mkkmap.
+
+	_kadd_ will return -1 if there was a syntax error in the
+key sequence or 0 for success.  If the specified key-sequence clashes with
+an existing one, the existing one is deleted.
+
+	_kcpy_ copies all of the sequences from the 'src' keymap to the
+'dest' keymap.  Any sequences in 'dest' which conflict with ones in 'src' are
+deleted.
+
+	_kdel_ eliminates the specified key-sequence binding.  This syntax
+for the key-sequence is the same as that for _kadd_.  If a range is
+specified, the entire range of key-sequences is deleted.  _kdel_ returns 0
+for success, -1 if there was a syntax error in the key-sequence or 1 if the
+key-sequence didn't exist (if a range was given as the key-sequence, 1 is
+returned only if none of the sequences specified by the range exist).
+
+	_mkkbd_ creates a keyboard handler which uses the given key sequence
+binding table.  A keyboard handler is an object for handling a keyboard
+event stream.
+
+	_rmkbd_ elimintes a keyboard handler.
+
+	_dokey_ processes a single key of value 'k' in the specified
+keyboard handler.  _dokey_ returns 0 if the key was accepted as a prefix
+key, or if the key was invalid.  Otherwise, _dokey_ returns the binding
+value of a completed key sequence.
+
+	_seqlen_ returns the number of keys recognized so far in a partially
+recognized key-sequence in the specified keyboard handler.
+
+	_nthkey_ returns the value of the nth key in the partially
+recognized key-sequence in the specified keyboard handler.
+
+	_clrkbd_ flushes any partially recognized key-sequence from the
+specified keyboard handler.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

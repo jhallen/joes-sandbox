@@ -1,0 +1,21 @@
+Name
+	Iabs, Labs, Umin, Umax, Imin, Imax, Lmin, Lmax - Integer functions
+
+Syntax
+	#include <int.h>
+
+	int Iabs(int n);
+	long Labs(long n);
+	unsigned Umin(unsigned a,unsigned b);
+	unsigned Umax(unsigned a,unsigned b);
+	int Imin(int a,int b);
+	int Imax(int a,int b);
+	long Lmin(long a,long b);
+	long Lmax(long a,long b);
+
+Description
+	These are integer and long absolute value functions and unsigned
+integer, integer and long min and max functions.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

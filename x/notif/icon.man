@@ -1,0 +1,33 @@
+Name
+	Icon - Icon display widget
+Syntax
+
+	#include <notif.h>
+
+	Icon *mk(Icon);
+	void st(Icon *,int *pic);
+
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	16 x 16
+
+Description
+	An scalable icon display widget.  The default size of the widget is
+16 x 16.  Use st() to place an icon in the widget.  The following icons are
+defined in icons.h:
+
+	picuparw	An upward pointing arrow
+	picdnarw	A downward pointing arrow
+	picltarw	A leftward pointing arrow
+	picrtarw	A rightward pointing arrow
+	picx		A big X
+	piccheck	A check mark
+	picarc		A curved arc
+
+See Also:
+	draw.man for a description of scalable icons.

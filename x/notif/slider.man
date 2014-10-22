@@ -1,0 +1,67 @@
+Name
+	Slider - Scroll-bar sliders.
+Syntax
+
+	#include <notif.h>
+
+	Slider *mk(Hslider);		/* Create horizontal slider */
+	Slider *mk(Vslider);		/* Create vertical slider */
+
+	void stpos(Slider *,int);	/* Set slider position */
+
+	void stdsize(Slider *,int);	/* Set slider bar size */
+	void stwsize(Slider *,int);
+
+	void stfn(Slider *,FN *fn);	/* Set call-back function */
+	FN *gtfn(Slider *);		/* Get current call-back function */
+
+	int fn(int stat,...user supplied args...,int pos);
+					/* The call-back function is called
+					   with the new slider position */
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	Vertical: width=20, height=must be set
+	Horizontal: width=must be set, height=20
+
+Colors
+	Slider bar is a 3dbox which uses bknd for the body, and shadowtop
+and shadowbot for the outline.
+
+Description
+	Simple vertical or horizontal sliders.
+
+	Stpos() is used to set the slider position (the initial value is
+zero).  stwsize() sets the size of the slider bar.  stdsize() sets the units
+for stpos() and stwsize().  You should think of these function this way:
+stdsize() gives the full size (height or width) of the data you're
+displaying.  stwsize() gives the size of the window which is viewing this
+data.  Thus stpos() can range from 0 to stdsize()-stwsize().  The size of
+the slider relative to the size of its window will be in the same proportion
+to the size of stwsize() with respect to stdsize().
+
+	The call-back function is called whenever the user changes the
+slider position, but not when the position is changed with stpos().
+
+	If the user clicks on the area above or below the slider bar, the
+slider is moved by 1/2 stwsize()- I.E., this implements page-up and
+page-down behavior.
+
+Todo
+	We should be able to set quantization number for slider positions. 
+I.E., so that the slider can only occur on multiples of some value.  I guess
+you can simulate this by dividing all sizes and positions by the
+quantization value before giving them to stdsize(), stwsize(), stpos().
+
+	Should be able to set minimum size of the slider bar.
+
+	Page-up and Page-down do not repeat like they should.
+
+	Should be able to retrieve stwsize(), stdsize() and stpos().
+
+	The slider bar should probably be a widget (currently we just draw
+it).

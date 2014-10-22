@@ -1,0 +1,126 @@
+=-=-=-=-=
+Ok, here is how we order events.  All queued fns are executed before the
+next I/O event is handled.  This fixes the problem where if the user is
+faster than the system and hits <OK> and <CANCEL> right after each other. 
+If the <CANCEL> event is handled before all consequent <OK> events are
+handled there would be memory references to freed widgets.
+
+Timer problem:
+
+ we have a hierarchy of widget with scheduled timer events.
+ now we rm() the hierarchy.  timers may activate during the rm.  if timer
+ funcs try to do widget manipulation things (while half are deleted or
+ deleting) it will screw up.
+
+ we either have to lock the entire event system or put the event system in
+ a single thread of its own. for specific case or rm() we could try to
+ cancel all timers first, and then kill.
+
+=-=-=-=-=
+Ok.  We need event queues.  Only one function can be executed at a time from
+a specific event queue.  When a timer times out, it submits a task on an
+event queue.  A function in the event queue may kill a timer- and the event
+queue may have to be searched for the timer ID code- and will be assured
+that the timer function did not run (or get confirmation that it has already
+run).
+
+I/O may enque work onto an event queue, but it may not do any work itself
+other than this *unless* the event queue is empty.  This allows the X-event
+source to work with one of our event queues.
+
+What about the case where a timer starts a sequence of functions?  It is
+probably ok- the first function could set a flag to indicate that the task
+is running.  We need to be able to rm() a task like this, which may mean
+extracting FNs from our event queue.
+=-=-=-=-=
+
+Event ordering problem:
+
+ An I/O event handler may enque callback functions.  All of these should be
+ executed before handling the next I/O event.
+
+ Actually it would be prefered if callbacks were immediately executed, but
+ we may able to live with this.
+
+ Usually we can do this.  The case where this becomes difficult is when we
+ have to switch stacks- I.E., when we continue a continuation.
+
+=-=-=-=-=
+
+Big conversion to threads.  These modules modified to make them thread-safe:
+
+ ascii.c: ok.
+
+ bipopen.c: ok.
+
+ blocks.c: ok.
+
+ cmd.c: haven't looked.
+
+ dir.c: ok.
+
+ int.c: ok.
+
+ io.c: ok.
+
+ macro.c: haven't looked.
+
+ rc.c: haven't looked.
+
+ scrn.c: ok
+
+ symctrl.c: ok
+
+ thread.c: ok
+
+ va.c: ok
+
+ vs.c: ok
+
+ zstr.c: ok
+
+ kbd.c - fixed.  args to kdel changed.
+
+ hash.c - fixed.
+
+ random.c - fixed.
+
+ path.c - fixed: pwd() now returns a vstring.
+
+ queue.c - fixed: macros are now unsafe- but they don't access global
+           variables.  alitem and fritem have been made thread-safe.
+
+ termcap.c - fixed: arguments originally passed in globals added to
+             getcap, setcap.  joeterm is still there, however (probably ok).
+             terminfo version is broken.  termcap compatility routines are
+             inherently broken.
+
+ tim.c - fixed: functions now take string buffer args and don't use global
+         static buffers.
+
+ tty.c - needs lots of work (upgrade to use io.c?)
+
+ vfile.c - fixed.  but needs to be improved.
+
+Document -
+ macro cmd rc
+
+- Figure out better way of creating global command tables
+
+- How to make rc file more generic
+  - perhaps a linked list of 'rc' handlers?
+
+- use continuations in macros
+
+- Figure out way to make joe's screen drawing functions fast while keeping
+  scrn so that it can call any output function
+
+- should environment variables be able to override ttgtsz?
+
+- document other vs/va functions?
+
+- note that macsta was removed from kbd and must therefore be called when
+  the macro is run
+
+- use select() in tty?
+- use io() in tty?

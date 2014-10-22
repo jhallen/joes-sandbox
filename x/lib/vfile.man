@@ -1,0 +1,130 @@
+Name
+	vtmp, vopen, vsize, vclose, vflsh, vlock, vchanged, vunlock,
+vupcount, valloc, vseek, vrgetc, vgetc, vputc, vtell, vgetl, vgetw, vputl,
+vputw, vgets, vputs, vread, vwrite, rc, wc, rl, wl, rw, ww - file buffering
+
+Syntax
+	#include <vfile.h>
+
+	VFILE *vtmp(void);
+	VFILE *vopen(char *name);
+	void vclose(VFILE *vfile);
+	void vflsh(void);
+
+	char *vlock(VFILE *vfile,long ofst);
+	void vupcount(char *);
+	void vchanged(char *);
+	void vunlock(char *);
+
+	long vsize(VFILE *vfile);
+	long valloc(VFILE *vfile,long size);
+
+	void vseek(VFILE *vfile,long addr);
+	long vtell(VFILE *vfile);
+	void vwrite(VFILE *vfile,char *buf,int size);
+	void vread(VFILE *vfile,char *buf,int size);
+
+	char *vgets(VFILE *vfile,char *s);
+	void vputs(VFILE *vfile,char *s);
+	int vputc(VFILE *vfile,char c);
+	long vputl(VFILE *vfile,long l);
+	short vputw(VFILE *vfile,short s);
+	int vgetc(VFILE *vfile);
+	int vrgetc(VFILE *vfile);
+	long vgetl(VFILE *vfile);
+	short vgetw(VFILE *vfile);
+
+	int rc(VFILE *vfile,long addr);
+	int wc(VFILE *vfile,long addr,int c);
+	short rw(VFILE *vfile,long addr);
+	short ww(VFILE *vfile,long addr,short w);
+	long rl(VFILE *vfile,long addr);
+	long wl(VFILE *vfile,long addr,long l);
+
+Description
+	These functions implement file buffering, including software
+simulated memory mapped files (or poor-man's memory mapped files).  Instead
+of a single small buffer for each open file as is the case for the C
+standard I/O library, buffers are shared between all open files and are
+allocated out of a pool of up to 4MB.
+
+	_vtmp_ creates a temporary file open for reading and writing.  If
+the file always fits in memory, no actual file will be created.  That is, a
+real file will be created only when a page of the file must be flushed due
+to lack of buffer space.
+
+	_vopen_ opens the named file for reading and writing.  If the file
+could not be opened for writing, it is opened for just reading.  If the file
+could not be opened for reading, NULL is returned to indicate an error.
+
+	_vclose_ closes a file.
+
+	_vflsh_ flushes all file buffers.
+
+	_vlock_ loads a page from a file into memory (or finds the page if
+it was already loaded) and returns a pointer into physical memory
+corresponding to the requested file offset.  This pointer is used to access
+the page and is also used as the page's handle when passed to _vupcount_,
+_vchanged_, and _vunlock_.  The page is locked in memory by incrementing a
+reference count.  The page will be unlocked when the same number of calls to
+_vunlock_ are made as there were calls to _vlock_ and _vupcount_.
+
+	Once a page is locked into memory with _vlock_, any bytes within the
+page may be accessed through the returned memory address.  The address
+itself may be changed to point anywhere in the page or at the very end of
+the page.  The address must be retained for calling vchanged, vupcount and
+vunlock.
+
+	_vupcount_ increments the reference count to the page.  One
+additional call to _vunlock_ must be made for the page to be unlocked.
+
+	_vchanged_ marks the page as changed and must be called if the page
+is written to.  marked pages will be written back to the real file when the
+buffer space becomes exhausted.  Unmarked pages are simply overwritten.
+
+	_vunlock_ decrements the reference count to a page.  If it reaches 
+zero, the page is free to be paged out.
+
+	_vsize_ returns the current size of the file.
+
+	_valloc_ allocates space at the end of the file and returns the file
+offset to that space.
+
+	_vseek_, _vtell_, _vread_, _vwrite_ work like the corresponding UNIX
+functions.  _vseek_ is likely to be faster than lseek.  The file can be
+read from end to beginning just as fast as it can be read from beginning to
+end.
+
+	_vgets_ reads a string from a file into an automatic string (see
+vs.h).  The string is read up to the next CR/LF, LF or end of file.  The end
+of line mark is not included in the string.  A new automatic string is
+allocated if NULL is passed to _vgets_.
+
+	_vputs_ writes a string to a file and then writes a newline to the
+file.
+
+	_vgetc_ reads one character from a file.  _vgetc_ returns MAXINT if
+an attempt was made to read past the end of the file.
+
+	_vrgetc_ moves the file pointer back one and reads the character at
+that position.  _vrgetc_ returns MAXINT if the file pointer was at the
+beginning of the file.
+
+	_vputc_ writes a character to a file.
+
+	_vgetw_, _vputw_, _vgetl_, _vputl_ work like _vgetc_ and _vputc_,
+but work with shorts and longs instead of characters.
+
+	_rc_ reads a character from a specified file offset.
+
+	_wc_ writes a character to a specified file offset.
+
+	_rw_, _ww_, _rl_ and _wl_ work like _rc_ and _wc_ but read or write
+shorts (words) and longs.
+
+Improvements
+	It would be nice if these functions transparently used the operating
+system's memory mapped file feature if it has it.
+
+Credits
+	These functions were written by Joe Allen (jhallen@world.std.com).

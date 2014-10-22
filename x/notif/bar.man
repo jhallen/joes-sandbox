@@ -1,0 +1,71 @@
+Name
+	Bar - Scroll bar
+
+Syntax
+
+	#include <notif.h>
+
+	Bar *mk(Vbar);			/* Create vertical scroll-bar */
+	Bar *mk(Hbar);			/* Create horizontal scroll-bar */
+
+	void stpos(Bar *,int);		/* Set scroll-bar position */
+
+	void stdsize(Bar *,int);	/* Set data size */
+	void stwsize(Bar *,int);	/* Set window size */
+
+	void ststep(Bar *,int);		/* Set step value */
+	int gtstep(Bar *);		/* Get step value */
+
+	void stfn(Bar *,FN *fn);	/* Set call-back function */
+
+	int fn(int stat,...user supplied args...,int pos);
+					/* The call-back function is called
+					   with the current slider position */
+
+Inherits
+	Widget
+
+Default Border
+	Shadow (raised=0, lowered=2, outline=0)
+
+Size
+	Vertical: width=24.  height=must be set.
+	Horizontal: width=must be set.  height=24.
+
+Color
+	See Slider for slider bar colors.
+	See Button for button colors.
+
+Description
+	Horizontal or vertical scroll bars with sliders and buttons.
+
+	Stpos() is used to set the slider position.  stwsize() sets the size
+of the slider.  stdsize() sets the units for stpos() and stwsize().  You
+should think of these function this way: stdsize() gives the full size
+(height or width) of the data you're displaying.  stwsize() gives the size
+of the window which is viewing this data.  Thus stpos() can range from 0 to
+stdsize()-stwsize().  The size of the slider relative to the size of its
+window will be in the same proportion to the size of stwsize() with respect
+to stdsize().
+
+	ststep() gives the value by which the buttons move the slider.  The
+default value is 1.
+
+	The call-back function is called whenever the user changes the
+slider position, but not when the position is changed with stpos().
+
+Todo
+	We should be able to set quantization number for scroll-bar
+positions.  I.E., so that the scroll-bar can only occur on multiples of some
+value.  I guess you can simulate this by dividing all sizes and positions by
+the quantization value before giving them to stdsize(), stwsize(), stpos()
+and ststep().
+
+	Page-up and Page-down do not repeat like they should.  This needs to
+be fixed in Slider.
+
+	Should provide functions to get at scroll-bar componants (so their
+attributes can be set).
+
+	Should be able to retrieve stpos(), stdsize(), stwsize() and
+ststep() values.

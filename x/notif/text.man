@@ -1,0 +1,24 @@
+Name
+	Text - Simple text field
+Syntax
+
+	#include <notif.h>
+
+	Text *t=mk(Text);		/* Create a text widget */
+	void st(Text *,char *);		/* Set text */
+	char *gt(Text *);		/* Get text */
+
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	Large enough for contained text
+
+Description
+	A simple text widget.  The text is displayed using the foreground
+font.  The text is centered within the window.  If text is placed in the
+widget before it is first turned on (and the size is not set manually), the
+initial size of the window will match the size of the text.

@@ -1,0 +1,51 @@
+Name
+	Edit - text field editor
+Syntax
+
+	#include <notif.h>
+
+	Edit *mk(Edit);			/* Create */
+	void st(Edit *,char *);		/* Set text buffer */
+	char *gt(Edit *);		/* Get text buffer */
+	void strtn(Edit *,Widget *);	/* Enter-key focus */
+	void stfn(Edit *,FN *fn);	/* Enter-key call-back function */
+
+	int fn(int stat,...user supplied args...);
+					/* Format of call-back function */
+
+Inherits
+	Widget
+
+Border
+	Eborder
+
+Size
+	Width=250.  Height=Matches foreground font.
+
+Description
+	This is a simple text field editor.  The call-back function is
+called when the user hits the Enter (or Return) key.  If strtn() is used,
+the focus will be transfered to the given widget when the user hits the
+Enter key.
+
+Edit keys
+	^H		Backspace
+	^?		Backspace
+	^B		Cursor left
+	Left		Cursor left
+	^D		Delete character under cursor
+	^J		Delete to end of line
+	^Y		Delete line
+	^C		Abort edit / restore previous value
+	^A		Go to beginning of line
+	Home		Go to beginning of line
+	^E		Go to end of line
+	End		Go to end of line
+	Right		Cursor right
+	^F		Cursor right
+	^M		Enter
+	Space - ~	Entered text
+
+Todo
+	Should be a call-back for when user hits ^C
+	Needs drag & drop support

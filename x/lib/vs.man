@@ -1,0 +1,116 @@
+Name
+	vsncpy, vsrm, sLEN, vstrunc, vsensure, vsins, vsdel, vsfill, vsset,
+vsadd - Automatic string management functions
+
+Syntax
+	#include <vs.h>
+
+	char *vsncpy(char *d,int off,char *s,int len);
+	void vsrm(char *d);
+	int sLEN(char *d);
+	char *vstrunc(char *d,int len);
+	char *vsensure(char *d,int len);
+	char *vsins(char *d,int off,int len);
+	char *vsdel(char *d,int off,int len);
+	char *vsfill(char *d,int off,int c,int len);
+	char *vsadd(char *d,int c);
+	cgar *vsset(char *d,int off,int c);
+
+Description
+	This is a string library which supports strings which automatically
+resize themselves when needed.  The strings know their own size, so getting
+the length of a string is always a fast operation and storing NULs in the
+string is permissable.  The strings are backward compatible with C's regular
+zero terminated strings.
+
+	Each automatic string is stored in its own malloc block and has the
+following format:
+
+	<bksize><length><string><zero>
+
+	'bksize' and 'length' are integers which give the size of the malloc
+block and the length of the string.  A zero character always follows the
+string for compatibility with normal C zero-terminated strings.  The zero is
+not counted as part of the string length.
+
+	The strings are not addressed with 'bksize' (the beginning of the
+malloc block).  Instead, they are addressed at the first actual character of
+the string itself.  This means that an automatic string looks like a normal
+C string and can be addressed with type 'char *'.  Also the array access
+operator '[]' works for reading and overwriting automatic strings and
+automatic strings can be passed directly to UNIX operating system functions. 
+However, free() can not be used to dispose of automatic strings.  Instead,
+vsrm() must be used.  Also an automatic string plus an offset is not an
+automatic string, but is still a legal C language string.
+
+Primary function
+	_vsncpy_ - Copy a block of characters at address 's' of length 'len'
+onto the automatic string 'd' at offset 'off'.  The automatic string is
+expanded to handle any values of 'len' and 'off' which might be given.  If
+'off' is greater than the length of the string, SPACEs are placed in the
+gap.  If 'd' is NULL, a new string is created.  If 'len' is 0, no copying or
+string expansion occurs.  _vsncpy_ returns the automatic string, which may
+have been realloced or newly created in its operation.
+
+	_vsncpy_ is the most important automatic string function.  It is
+both the primary constructor of automatic strings and is also a useful
+operator.  It works in close conjunction with the following macros:
+
+	sc("Hello")	Gives --> "Hello",sizeof("Hello")-1
+	sz(s)		Gives --> s,zlen(s)
+	sv(d)		Gives --> d,sLEN(d)
+
+	These macros are used to build arguments for _vsncpy_.  Many
+functions can be created with combinations of sc/sz/sv and vsncpy:
+
+	s=vsncpy(NULL,0,NULL,0);	Create an empty automatic string
+
+	s=vsncpy(NULL,0,sc("Hello"));	Create an automatic string
+					initialized with the string "Hello"
+
+	d=vsncpy(NULL,0,sv(s));		Duplicate an automatic string
+
+	d=vsncpy(NULL,0,sz(s));		Convert a C string into an automatic
+					string
+
+	d=vsncpy(sv(d),sv(s));		Append automatic string s onto d
+
+	d=vsncpy(sv(d),sc(".c"));	Append a ".c" extension to d.
+
+	d=vsncpy(d,0,sc("Hello"));	Copy "Hello" to the beginning of d. 
+					The original length of d is
+					unchanged, unless it had to be
+					expanded to fit "Hello".
+
+Other functions
+
+	_vsrm_ is used to free an automatic string.  If NULL is passed to
+it, nothing happens.
+
+	_sLEN_ returns the length of an automatic string.  If the string is
+NULL, sLEN returns 0.
+
+	_vstrunc_ sets the length of an automatic string.  The string is
+created if NULL is passed to it.  The string will be padded with spaces if
+its length is increased.  Vstrunc may reallocate the string if (and only if)
+it is expanded, so the return value must not be ignored.
+
+	_vsensure_ reallocs the malloc block of the given string so that the
+string can be later expanded to the specified length without any calls to
+realloc.
+
+	_vsins_ inserts a gap into a string.  If the string is NULL it is
+created.  If the specified offset is past the end of the string, the string
+is extended.
+
+	_vsdel_ deletes a section of the string.  It does nothing if the
+specified offset is past the end of the string.
+
+	_vsfill_ fills a portion of a string to the specified character.
+
+	_vsadd_ appends a single character to the end of the string.  A new
+string is created if the specified string was NULL.
+
+	_vsset_ sets a character at a specified offset.  A new string is
+created if the specified string was NULL.  The string is filled with SPACEs
+if the specified offset is past the end of the string.

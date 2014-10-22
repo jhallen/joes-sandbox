@@ -1,0 +1,27 @@
+Name
+	Radio - radio button container
+
+Syntax
+	#include <notif.h>
+
+	Radio *mk(Radio);
+	void stfn(Radio *,FN *);
+	void st(Radio *,int);
+	int gt(Radio *);
+	void groupadd(Radio *,Toggle *);
+
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	Matches contained widgets.
+
+Description
+	A container widget which makes a bunch of toggle buttons into a
+"radio" widget- I.E., where only one button can be pressed in out of the
+set.  The callback function is called whenver the user presses a button.
+st() and gt() can be used to set and get the current state.  Use groupadd()
+to add the toggle buttons to the radio container.

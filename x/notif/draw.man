@@ -1,0 +1,130 @@
+Name
+	Draw - notif drawing functions
+Syntax
+
+	#include <notif.h>
+
+    Window control:
+
+	void redraw(Widget *);
+			/* Force redraw of window */
+
+    Simple drawing functions:
+
+	void drawline(Widget *,GC,int x1,int y1,int x2,int y2);
+			/* Draw a line */
+
+	void drawrect(Widget *,GC,int x1,int y1,int width,int height);
+			/* Draw a rectangle with 1 pixel thick lines */
+
+	void drawbox(Widget *,int x1,int y1,int width,int height,int size,GC);
+			/* Draw a rectangle with 'size' pixel thick lines */
+
+	void drawfilled(Widget *,GC,int x1,int y1,int width,int height);
+			/* Draw a filled rectangle */
+
+	void drawdot(Widget *,GC,int x1,int y1);
+			/* Draw a dot */
+
+	void draw3dbox(Widget *,int xpos,int ypos,int width,int height,
+		       int thick,GC tedge,GC bedge);
+			/* Draw 3d effect box of 'thick' thickness.  tedge/
+			   bedge are colors of top and bottom edges. */
+
+	void drawclr(Widget *);
+			/* Erase widget */
+
+	
+    Text drawing functions:
+
+	void drawtxt(Widget *,GC,int x1,int y1,char *);
+			/* Draw text */
+
+	int txtw(GC,char *);
+			/* Return what drawn width of text string would be */
+
+	int txth(GC,char *);
+			/* Return height of text string (ascent+descent+3) */
+
+	int txtb(GC,char *);
+			/* Return baseline size (ascent+1) */
+
+    Read-only GC management:
+      Primary functions:
+
+	GC getgc(char *font,char *color);
+			/* Get GC for named font and color.  Leave font NULL
+			   if you don't care what the font is. */
+
+	GC getgcrgb(char *font,int r,int g,int b);
+			/* Get GC for specific font and r/g/b value */
+
+	GC getfidpixel(Font,unsigned long);
+			/* Get GC for a specific Font id and pixel value.
+			   Leave font==0 if you don't care what the font is */
+
+      Support functions:
+
+	unsigned long getrgb(unsigned short r,g,b);
+			/* Get pixel value for specified r/g/b */
+
+	unsigned long getcolor(char *);
+			/* Get pixel value for named color */
+
+	Font getfont(char *);
+			/* Get Font by name */
+
+	XFontStruct *getfs(Font);
+			/* Get font structure for Font id value */
+
+	Font gcfid(GC);
+			/* Get Font id from GC */
+
+	unsigned long gcpixel(GC);
+			/* Get pixel value from GC */
+
+    Icon drawing:
+
+	void drawpic(Widget *,int xpos,int ypos,int width,int height,
+		     GC,int *pic);
+			/* Draw a scalable icon */
+
+Description
+	These function are notif's drawing library.  All of the drawing
+functions require an X graphics context (GC) as an argument.  GCs are
+allocated for read-only use with getgc(), getgcrgb(), and getfidpixel(). 
+GCs allocated this way are allocated permanently for the duration of the
+program, but are reused within the program.  I.E., two calls to getgc() with
+the same args will return the same GC- a new one will not be allocated.  A
+number of default GCs are part of the standard Widget- see the man page for
+Widget.
+
+	The 'pic' argument for the icon drawing function is an array of
+integers containing drawing commands for the icon.  Look at icons.c for
+typical usage of these drawing commands.  Each drawing command is invoked
+through one of the following macro calls:
+
+	picline(x1,y1,x2,y2)	Draw a line
+
+	picbezier(x1,y1,x2,y2,x3,y3,x4,y4)
+				Draw a Bezier curve.  (x1,y1) ... (x4,y4)
+				are the Bezier control points.
+
+	picmerge(r,g,b)		Overlay the current drawing onto the final
+				icon using the specied color.
+
+	picuser			Overlay the current drawing onto the final
+				icon using the color specified in the call
+				to drawpic().
+
+	picfill			Fill enclosed areas of the current drawing.
+
+	picdone			Indicates end of drawing commands.
+
+	Icon drawing uses a two-buffer approach: a drawing buffer and an
+output buffer.  picline(), picbezier() and picfill operate on the drawing
+buffer.  picuser and picmerge() transfer the drawing buffer to the output
+buffer.  Pixels which are not drawn in the drawing buffer are considered
+to be "see-thru" for the merging process.
+	The icon is drawn on a 10,000 by 10,000 grid which is scaled to the
+size of the rectangle indicated by the width and height args of drawpic().

@@ -1,0 +1,33 @@
+Name
+	Image - cheap greyscale image viewer
+Syntax
+
+	#include <notif.h>
+
+	Image *mk(Image);			/* Create */
+	void st(Image *,unsigned char *);	/* Give image data */
+
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	640 x 480
+
+Description
+	Display a grey scale image.  The size of the image data must match
+the width * height of the window at the time st() is called.  The image data
+array is formatted so that a pixel at a particular (x,y) coordinate is found
+as follows:
+
+	data[x+y*width]
+
+	(0,0) is the top left pixel of the image.
+
+Bugs
+	Only works properly if all 256 grey scales can be allocated.  This
+means it will not work with 256 color mode of standard 6-bit DAC VGA cards. 
+It will work in 16M color mode VGA.  It's easy to modify the code to
+allocate only 64 grey scales, but I should automatically check for this.

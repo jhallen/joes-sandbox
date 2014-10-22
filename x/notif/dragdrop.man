@@ -1,0 +1,25 @@
+Name
+	Drag - Drag & Drop source widget
+Syntax
+
+	#include <notif.h>
+
+	Drag *mk(Drag);			/* Create drag & drop widget */
+
+Inherits
+	Widget
+
+Border
+	Iborder
+
+Size
+	Fits contained objects
+
+Description
+	Drag & drop widget.  The user can pick up this widget by clicking on
+it and holding the button down.  When the button is released, a drop event
+is sent to the widget under the mouse pointer.
+
+Todo
+	This should change the mouse pointer to a picture of the contents of
+the widget (or something) when the user presses the mouse button.

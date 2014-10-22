@@ -1,0 +1,134 @@
+Name
+	Border - border windows
+Syntax
+
+	#include <notif.h>
+
+	Border *mk(Border);		/* Create simple border */
+	Shadow *mk(Shadow);		/* Border w/ 3d shadow effects */
+	Iborder *mk(Iborder);		/* Intelliget border for buttons */
+	Iborder *mk(Ikborder);
+	Mborder *mk(Mborder);
+	Tborder *mk(Tborder);
+	Eborder *mk(Eborder);
+	Eborder *mk(Ekborder);
+	Titled *mk(Titled);
+	Titlebar *mk(Titlebar);
+
+  Border
+	int gtlmargin(Border *);	/* Get margin settings */
+	int gtrmargin(Border *);
+	int gttmargin(Border *);
+	int gtbmargin(Border *);
+	void stmargins(Border *,int left,right,top,bottom);
+					/* Set border margins which surround
+					   the widget */
+	int gtvisual(Border *);		/* Get events Iborder responds to */
+	void stvisual(Border *,int);	/* Set events Iborder responds to */
+
+	  vfocus	Button has focus
+	  vpress	Button is pressed
+	  vselect	Item is selected
+	  venter	Pointer has entered widget
+	  vactive	Item is activated
+	  vfocusrtn	Item has return key focus
+
+  Shadow
+	void ststyle(Shadow *,int raised,int lowered,int outlined);
+	void stfixed(Shadow *,int smargin,int omargin,GC tgc,GC bgc,GC ogc);
+					/* Set display style */
+
+  Iborder
+	void ststate(Iborder *,int n);	/* Set visual state */
+
+  Titled
+	void st(Titled *,Widget *);	/* Set title widget */
+
+  Titlebar
+	void st(Titlebar *,char *text);	/* Set title bar text */
+
+Inherits
+	Border: Wind
+	Shadow: Border
+	Iborder: Shadow
+	Mborder: Iborder
+	Tborder: Iborder
+	Eborder: Iborder
+	Titled: Border
+	Titlebar: Border
+
+Description
+	These are border windows which decorate the various types of widgets. 
+Each type of border is described:
+
+Border
+	This is base class for all of these border windows.  The only
+effects which can be set are the border margins to be given on each side of
+the widget.  stvisual() and gtvisual() are really only used for Iborders,
+but they are placed here so that even a simple Border can be placed where an
+Iborder is expected.
+
+Shadow
+	This border implements 3d shadow effects.  Ststyle() and stfixed()
+control the appearance and exact placement of the shadow effects:
+
+	raised		Width of raised shadow effect
+	lowered		Width of lowered shadow effect
+	outlined	Width of simple black rectangular outline
+	smargin		Unused
+	omargin		Relative position of black outline border
+	tgc		Color of top part of shadow
+	bgc		Color of bottom part of shadow
+	ogc		Color of outline
+
+	A raising shadow always appears adjacent to the widget and thickens
+	outwards.
+
+	A lowering shadow appeards 'omargin' pixels from the outside margins
+	and thickens inwards.
+
+	The simple outline always appears on the outside margins and
+	thickens inwards.
+
+Iborder
+	Iborders change their appearance when state indicating events are
+received by the widget.  Use stvisual() to select which events the Iborder
+will respond to.  ststate() sets the current display state and gtstate()
+retreives the current state.  The state variable contains the following
+flags (the same as those used for stvisual()):
+
+	vpress		Set: raised=0, Clear: raised=2
+	vfocus		Set: outlined=2, Clear: outlined=0
+	vfocusrtn	Set: lowered=1, Clear: lowered=0
+
+	These flags will be obeyed regardless of the value of stvisual().
+
+Ikborder
+	Like Iborder, but with narrower borders and ststate() set to vpress
+only.  This is useful for buttons which are used for calculator keypads.
+
+Eborder
+	Like Iborder, but only responds to focus events, and the border
+is lowered in appearance instead of raised.
+
+Ekborder
+	Like Eborder, but without the focus effects.  This is useful for
+touchscreens, where focus really has no meaning.
+
+Mborder
+	Like Iborder, but with a style suitable for menu buttons.  Also
+responds to vselect events for menu selection.
+
+Tborder
+	Like Iborder, but unraised and does not respond to vpress events. 
+Useful for toggle buttons.
+
+Titled
+	A border which is a 1-pixel 3d effect with a title widget displayed
+in the upper left hand corner of the border.  Use st() to set this title
+(which should be a Text of Icon widget).
+
+Titlebar
+	A border which simulates a window manager titlebar.  This is useful
+for when you are running X without a window manager (I.E., for turn-key
+systems).

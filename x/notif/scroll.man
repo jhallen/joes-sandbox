@@ -1,0 +1,49 @@
+Name
+	Scroll - Automatic scroll bars
+Syntax
+
+	#include <notif.h>
+
+	Scroll *mk(Scroll);			/* Create */
+	void stvcfg(Scroll *,int cfg);		/* Vertical configuration */
+	void sthcfg(Scroll *,int cfg);		/* Horizontal configuration */
+
+	Configuration values:
+		cfgnone		- No scroll bar
+
+		cfgrsvd		- Reserve space for when scroll bar is needed
+
+		cfgout		- When scroll bar is needed, the window is
+				  expanded.
+
+		cfgin		- When scroll bar is needed, the window
+				  remains the same size, and the working
+				  area is reduced to fit the scroll bar.  This
+				  it the default.
+
+	void stsize(Scroll *,int);	/* Set scroll bar size */
+	void stvstep(Scroll *,int);	/* Set vertical scroll bar step value */
+	void sthstep(Scroll *,int);	/* Set horz. scroll bar step value */
+	void st(Scroll *,Widget *);	/* Set scrolled window */
+	Widget *gt(Scroll *);		/* Get scrolled window */
+
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	You must set the size
+
+Description
+	This is a container widget for a widget which will be scrollable. 
+This widget provides scroll bars for the scrollable window.  These scroll
+bars are automatic: they only appear when the scrollable window is larger
+than the provided area.
+
+	stsize() sets the width and height of the vertical and horizontal
+scroll bars.
+
+	stvstep() and sthstep() set the step amount for the scroll bar
+buttons.

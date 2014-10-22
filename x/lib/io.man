@@ -1,0 +1,144 @@
+Name
+	portopen, portclose, etc. - Event driven I/O system
+
+Syntax
+	#include <event.h>
+
+	/* Open/Close */
+	PORT *portopen(int fd);
+	PORT *portdup(PORT *);
+	PORT *portconnect(char *name,int portno);
+	PORT *portlisten(int portno);
+	void portclose(PORT *port);
+	void portfree(PORT *port);
+
+	/* Writing */
+	int portwrite(PORT *port,char *buf,int len,TASK *write);
+	void finalwrite(PORT *port,char *buf,int len,TASK *write);
+
+	/* Reading */
+	void stportread(PORT *port,TASK *read,int len);
+	int portlen(PORT *port);
+	void stlinemode(PORT *port);
+	void strawmode(PORT *port);
+	void stblockmode(PORT *port,int size);
+	void stnomode(PORT *port);
+
+	/* Process I/O */
+	int io();
+
+Description
+	These functions provide an event-driven I/O system layered around
+the UNIX select() system call and the task library (see task.h).
+
+	Portopen() associates a PORT with an already opened file descriptor. 
+Portconnect() opens a connection to the named IP address (numeric address in
+dot notation may also be given) and IP port no. and returns a PORT for the
+connection.  Portlisten() returns a PORT which listens for new connections
+on the given IP port no.  When a new connection is accepted, the read
+callback function is executed with a new PORT as its argument.
+
+	Portclose() closes a PORT.  Any pending input data which has not
+been read or output data which has not been written is discarded.  Any
+queued TASKs are fnzapped.
+
+	Portfree() frees a closed PORT structure.  Portfree() should only be
+called when all tasks which depend on PORT have seen that it is closed and
+will therefore no longer need to access it.  Your program will need to
+maintain some kind of count of the tasks which depend on the PORT to
+determine when it is safe to call portfree().
+
+	Portwrite() writes data to a PORT.  It tries to save the data in the
+PORT's local output buffer, and if it is successful, returns 1 and the
+callback function is not installed.  If the data will not fit in the local
+output buffer, the write is queued, the callback function is installed and 0
+is returned.  When the PORT can next accept more data, the callback function
+is executed.  If the port is closed, Portwrite() returns 0 and the callback
+function is fnzapped.  If the port closes after the callback function has
+been installed, the callback function is fnzapped.
+
+	Finalwrite() writes data to a PORT and queues the callback function. 
+When the data (and all data ahead of this) has actually been written
+(meaning that write() returned), the callback function is executed.  If the
+port is closed, or closes before the write completes, the callback function
+is fnzapped.
+
+	Stportread() installes a callback function which is executed when
+data is available to be read.  If there is no read callback function
+installed in the PORT, reads are disabled.  This happens every time the PORT
+actually executes the read callback function- the program must reinstall the
+callback function after every read to re-enable the receiver.
+
+	If the port is closed, stportread fnzaps the given callback
+function.  If the port becomes closed after the callback function has been
+installed, it is fnzapped.
+
+	Stportread() should be called with the amount of data accepted by
+the previous invocation of the read callback function.  If this amount is
+less than the amount given to the read callback function, the remaining data
+will be become the beginning of the next data segment transfered on the next
+execution of the read callback function.  If 0 is specified in this argument
+to stportread(), it means that the data segment was too small for any of it
+to be taken, and the callback will not be again executed until there is more
+available data (otherwise, the callback function may be executed immediately
+(upon the next return to serv()) if there is any remaining data).
+
+	Portlen() can be used to retrieve the amount of data passed on the
+previous read callback function on a particular port.  This can be used to
+get the 'len' argument of stportread() for the frequent case where the
+amount of data taken by the read callback function exactly equals the amount
+given to it.
+
+	This handshaking scheme is designed to prevent boundless memory
+allocation which would otherwise occur if every read had to be handled
+before the writes which they may cause did not finish.  If no writes are
+caused by a particular read, stportread() could be called immediately
+(during the read callback function).  If writes are caused by a particular
+read, stportread() should not be called until they are complete (I.E., when
+the finalwrite() callback function is executed).
+
+	It is only acceptable to change input modes when reads are disabled.
+There are several modes available for reading.  Stlinemode() (the default)
+transfers only complete '\n' terminated lines to the read callback function. 
+The input buffer is expanded to handle lines of any length.  The '\n' is
+replaced by NUL before the line is passed to the callback function.  The
+length argument passed to the callback function does not include this NUL. 
+The callback function must accept only whole lines, and should therefore
+call stportread() with the value returned by portlen() or with the length
+argument + 1.
+
+	Stblockmode() transfers only blocks of the specified size to the
+read callback function.  Stportread() can be called with any amount greater
+than 0 to equal the block size (which will be the value returned by
+portlen()).
+
+	Strawmode() transfers any received data no matter what its size to
+the callback function.  Stportread() can be called with any amount between 0
+and the segment size (the value returned by portlen() and the value given as
+the length argument to the callback function).  When stportread() is called
+with a 0 argument, the read callback is not executed until more data is
+available (I.E., so that the length argument of the next read callback would
+be larger).  Otherwise, the read callback is likely to be called immediately
+with the balance of the data as its argument.
+
+	Stnomode() eliminates read buffering altogether.  The callback is
+executed whenever select() indicates that read data is available.  The
+callback has to read() the data itself.  For this mode, the PORT is not
+automatically disabled after the callback is executed.  If you want to
+disable it, call portoff().  Re-enable it with portack().
+
+	io() checks for I/O and enques any corresponding TASKs for the I/O. 
+io() returns true if it may have handled some I/O (I.E., if actually made a
+call to select()).  io() returns false if definitely did not handle any I/O
+(no call to select() was made).  io() may return false if other threads are
+already select()ing on all PORTs which may have pending I/O.
+
+See also
+	task.man
+
+Issues
+	Should be able to set size of output buffer.
+
+Credits
+
+	These functions were written by Joe Allen (jhallen@world.std.com).

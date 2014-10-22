@@ -1,0 +1,10 @@
+- Scheduler
+
+- Clear should clear current dialog- you then hit OK for it to take effect.
+- Fix size of schedule widgets
+- Touch-screen calibration thingy
+- Amps based limit setup
+- Shell escape?  Maybe w/ password?
+- Spanish?
+- 1 sec staggered turn ons (only one turn-on per second)
+  (multiple turn-offs are ok)

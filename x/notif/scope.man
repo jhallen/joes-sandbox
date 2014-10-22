@@ -1,0 +1,26 @@
+Name
+	Scope - cheap oscilliscope display
+Syntax
+
+	#include <notif.h>
+
+	Scope *mk(Scope);			/* Create */
+	void st(Scope *,unsigned char *data);	/* Data to display */
+
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	Height=256, Width=32768
+
+Color
+	Foreground color for data is set to red.
+
+Description
+	This is a simple oscilliscope display.  The height must equal the
+maximum value of any data point + 1.  The width must match the size of the
+data array.  You probably want to make this widget the target of a Scroll
+widget, so that it will have scroll bars.

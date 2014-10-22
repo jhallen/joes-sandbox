@@ -1,0 +1,32 @@
+Name
+	Index - Index card widget
+Syntax
+
+	#include <notif.h>
+
+	Index *mk(Index);		/* Create */
+	void st(Index *,int);		/* Select a tab */
+	int gt(Index *);		/* Get current selection */
+	void addpair(Index *,Button *,Widget *);
+					/* Add a tag/window pair */
+
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	You must set the size.
+
+Description
+	Create an "index card" window selector.  Each window has a "tab"
+which when pressed, selects the associated window.
+
+Todo
+	Need functions to get size of available area.
+
+	Needs to be more intelligent about the size of the tab Buttons.
+
+	Should be able to fit more buttons than can fit across the line, as
+in Windows.

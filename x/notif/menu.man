@@ -1,0 +1,20 @@
+Name
+	Menu - pulldown menu container
+
+Syntax
+	#include <notif.h>
+
+	Menu *mk(Menu);
+
+Inherits
+	Widget
+
+Border
+	Shadow (raiser=2, lowered=0, outline=0)
+
+Size
+	Fits contained objects
+
+Description
+	A pulldown menu container.  Use add() to place Mbuttons, Mtoggles or
+Mcascade menu items into the menu.

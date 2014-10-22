@@ -1,0 +1,39 @@
+Name
+	Toggle - Binary toggle button
+
+Syntax
+	#include <notif.h>
+
+	Toggle *mk(Toggle);		/* Create a toggle button */
+
+	Toggle *mk(Mtoggle);		/* Create a toggle with borders set
+					   for use in a menu */
+
+	void stfn(Toggle *,FN *);	/* Set callback function */
+
+	void stdispon(Toggle *,Widget *);
+					/* What to display when on */
+
+	void stdispoff(Toggle *,Widget *);
+					/* What to display when off */
+
+	void st(Toggle *,int);		/* Set current state */
+
+	int gt(Toggle *);		/* Get current state */
+
+Inherits
+	Widget
+
+Border
+	mk(Toggle): Tborder
+	mk(Mtoggle): Mborder
+
+Size
+	Fits contained objects.
+
+Default stdispon() widget: 12 x 12 Icon with check mark
+
+Description
+	A binary toggle button which displays one of two widgets, depending
+on its state.  The callback function is called whenever the user changes the
+state with a mouse click or a keypress.

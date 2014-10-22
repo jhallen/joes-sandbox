@@ -1,0 +1,29 @@
+Name
+	List - vertical list of widgets
+Syntax
+
+	#include <notif.h>
+
+	List *mk(Vlist);		/* Create */
+
+	void stfn(List *,FN *);		/* Set call-back function */
+
+	int fn(int stat,...user supplied args...,int n,Widget *w);
+					/* Format of call-back function */
+
+Inherits
+	Widget
+
+Border
+	None
+
+Size
+	Large enough for contained objects
+
+Description
+	This widget implements a vertical list container of other widgets
+with drag & drop capability.  Use add(), ins(), and rmv() to add and remove
+widgets into the container (see Widget).
+	The call-back function is called when a drag & drop item is dropped
+into the widget.  The arguments for the call-back function are the position
+of the widget in the list and the address of the widget.

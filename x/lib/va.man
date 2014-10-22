@@ -1,0 +1,124 @@
+Name
+	varm, aLEN, vaensure, vatrunc, vandup, vaset, vaadd, vasort,
+vawords, vwords - Automatic arrays of automatic strings
+
+Syntax
+	#include <va.h>
+
+	char **vandup(char **d,int off,char **s,int len);
+	void varm(char **d);
+	int aLEN(char **d);
+	char **vatrunc(char **d,int len);
+	char **vaensure(char **d,int len);
+
+	char **vaadd(char **d,char *c);
+	char **vaset(char **d,int off,char *c);
+
+	char **vasort(char **d,int len);
+
+	char **vawords(char **d,char *s,int len,char *sep,int seplen);
+	char *vwords(char *d,char **a,int len,char sep);
+
+Description
+	This is a library for manipulating automatic arrays of automatic
+strings.  The arrays resize themselves when an attempt to write past their
+end is made.  The arrays know their own size, so getting the length of an
+array is always a fast operation.
+
+	Each automatic array is stored in its own malloc block and has the
+following format:
+
+	<bksize><length><array><null>
+
+	'bksize' and 'length' are integers which give the size of the malloc
+block and the length of the array.  A NULL pointer always follows the array
+for compatibility with normal C argument lists.  The NULL is not counted as
+part of the array length.
+
+	The arrays are not addressed with 'bksize' (the beginning of the
+malloc block).  Instead, they are addressed at the first actual element of
+the array itself.  This means that an automatic arrays looks like a normal C
+array of strings and can be addressed with type 'char **'.  Also the array
+access operator '[]' works for reading automatic arrays (but care must be
+taken when overwriting, since the existing automatic strings must be freed
+with vsrm first) and automatic arrays can be passed directly to UNIX
+operating system functions.  However, free() can not be used to dispose of
+automatic arrays.  Instead, varm() must be used.  Also an automatic array
+plus an offset is not an automatic array, but is still a legal C language
+array of strings.
+
+Functions
+	_vandup_ - Duplicate a block of strings at address 's' of length 'len'
+onto the automatic array 'd' at offset 'off'.  The automatic array is
+expanded to handle any values of 'len' and 'off' which might be given.  If
+'off' is greater than the length of the array, NULLs are placed in the gap. 
+If 'd' is NULL, a new array is created.  If 'len' is 0, no duplication or
+array expansion occurs.  _vandup_ returns the automatic array, which may
+have been realloced or newly created in its operation.
+
+	_vandup_ works in close conjunction with the following macros:
+
+	ac(ary)		Gives --> ary,sizeof(ary)/sizeof(char *)
+	az(s)		Gives --> s,alen(s)
+	av(d)		Gives --> d,aLEN(d)
+
+	These macros are used to build arguments for _vandup_.  Many
+functions can be created with combinations of ac/az/av and vandup:
+
+	char *ary[]={"one","two","three"};	Constant array
+
+	s=vandup(NULL,0,NULL,0);		Create an empty automatic array
+
+	s=vandup(NULL,0,ac(ary));	Create an automatic array
+					initialized with the array 'ary'
+
+	d=vandup(NULL,0,av(s));		Duplicate an automatic array
+
+	d=vandup(NULL,0,az(s));		Convert a C argument list into an
+					automatic array
+
+	d=vandup(av(d),av(s));		Append automatic array s onto d
+
+	d=vandup(av(d),ac(ary));	Append the constant array 'ary' onto
+					d.
+
+	d=vandup(d,0,ac(ary));		Overwrite the first three elements
+					of d with the constant array 'ary'.
+
+	_varm_ is used to free an automatic array.  If NULL is passed to
+it, nothing happens.
+
+	_aLEN_ returns the length of an automatic array.  If the array is
+NULL, _aLEN_ returns 0.
+
+	_vatrunc_ sets the length of an automatic array.  The array is
+created if NULL is passed to _vatrunc_.  The array will be padded with NULLs
+if its length is increased.  _vatrunc_ may reallocate the array if (and only
+if) it is expanded, so the return value must not be ignored.
+
+	_vaensure_ reallocs the malloc block of the given array so that the
+array can be later expanded to the specified length without any calls to
+realloc.
+
+	_vaadd_ appends a single string to the end of the array.  A new
+array is created if the specified array was NULL.  This function is useful
+in loops which build arrays of strings by appending.
+
+	_vaset_ sets a string at a specified offset.  A new array is
+created if the specified array was NULL.  The array is filled with NULLs
+if the specified offset is past the end of the array.
+
+	_vasort_ sorts the first len elements of an array of strings.
+
+	_vawords_ converts a string of delimited words into an array of
+strings.  'd' contains a previous array to reuse, or can have NULL to have
+the array created from scratch.  's' is the string and 'len' is length of
+the string.  'sep' is a string containing all of the characters which
+considered to be delimiters.  'seplen' is its length.  The string 'sep'
+should be sorted.
+
+	_vwords_ converts a NULL terminated array of strings into a single
+string of delimited words.  The character to use as the delimiter is 'sep'. 
+'s' contains an automatic string to reuse or can be NULL to have a new
+string created from scratch.
+

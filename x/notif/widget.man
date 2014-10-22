@@ -1,0 +1,220 @@
+Name
+	Widget - standard widget
+	Wind - standard window
+	Lith - base class for all other objects
+
+Basic syntax
+	#include <notif.h>
+
+	extern Widget *root;		/* Widget which represents
+					   root window of X screen */
+
+	Widget *mk(Widget);		/* Create a widget */
+
+	void rm(Widget *);		/* Delete widget */
+
+	Window gtwin(Widget *);		/* Get drawing X Window */
+
+    Widget control
+	void enable(Widget *);		/* Allow widget to turn on */
+	void disable(Widget *);		/* Disallow widget turning on */
+
+    Window manager
+	void sttitle(Widget *,char *);	/* Set window's title bar */
+
+    Get/set (x,y) position of widget
+	void stx(Widget *,int);
+	int gtx(Widget *);
+	void sty(Widget *,int);
+	int gty(Widget *);
+
+    Get/set outside width,height of widget (I.E., border is included)
+	void stw(Widget *,int);
+	int gtw(Widget *);
+	void sth(Widget *,int);
+	int gth(Widget *);
+
+    Get/set inside width,height of widget (I.E., border is not included)
+	void stiw(Widget *,int);
+	int gtiw(Widget *);
+	void stih(Widget *,int);
+	int gtih(Widget *);
+
+    Get/set drawing area width,height of width (I.E., could be different
+    from inside width if widget is scrollable).
+	void stwidth(Widget *,int);
+	int gtwidth(Widget *);
+	void stheight(Widget *,int);
+	int gtheight(Widget *);
+
+    Border window
+	void stborder(Widget *,Border *);
+					/* Set the border window */
+	Border *gtborder(Widget *);	/* Get current border window (NULL
+					   if none) */
+    GC
+	void stbknd(Widget *,GC);	/* Set background GC */
+	GC gtbknd(Widget *);		/* Get background GC */
+	void stfgnd(Widget *,GC);	/* Set foreground GC */
+	GC gtfgnd(Widget *);		/* Get foreground GC */
+	void stpixmap(Widget *,);	/* Set background pixmap */
+	void stcursor(Widget *,);	/* Set pointer */
+
+    Container
+	Widget *gtmom(Widget *);	/* Get widget's parent */
+	void add(Widget *,Widget *);	/* Add widget to our container */
+	void ins(Widget *,int n,Widget *);
+					/* Insert widget into nth position
+					   of our container */
+	Widget *nth(Widget *,int n);	/* Get nth widget from container */
+	int no(Widget *);		/* Get no. widgets we have */
+	int find(Widget *,Widget *);	/* Find pos. no. of widget */
+	void rmv(Widget *,Widget *);	/* Remove widget from container */
+	void *apply(Widget *,
+	            void *(*func)(Widget *,void *arg),
+		    void *arg);		/* Recursively apply function to all
+					   kids of specified widget until
+					   function return a non-zero
+					   value.  This value is returned
+					   by apply() */
+
+    Scrolling
+	void stlofst(Widget *,int);	/* Set left scrolling offset */
+	void sttofst(Widget *,int);	/* Set top scrolling offset */
+	void stscroll(Widget *);	/* Make widget scrollable */
+
+    Key sequence mapping
+	void stkmap(Widget *,KMAP *);	/* Set keymap */
+	KMAP *gtkmap(Widget *);		/* Get current keymap */
+
+    Focus control
+	clfocus(Widget *);		/* Clear focus (nobody has focus) */
+	stfocus(Widget *);		/* Give focus to specified widget -
+					   keyboard events will go to this
+					   widget */
+	stfocusrtn(Widget *);		/* Give return key focus to specified
+					   widget - Enter/Return key goes to
+					   this widget */
+	
+Advanced syntax
+	Wind *gtmain(Widget *);		/* Get drawing Wind */
+
+	Wind *gt2nd(Widget *);		/* Get scroll mask Wind,
+					   or gtmain() if none */
+
+	Wind *gtouter(Widget *);	/* Get outmost Wind of Widget (could be border, gt2nd() or gtmain() */
+
+    Check if position or size of window have been set.
+        int ckx(Widget *);
+	int cky(Widget *);
+	int ckw(Widget *);
+	int ckh(Widget *);
+
+    On/Off control
+	void on(Widget *);	/* Turn widget on if it is enabled */
+	void off(Widget *);	/* Turn widget off */
+
+    Flag bits
+	void stflg(Widget *,int);	/* Set flag bits */
+	int gtflg(Widget *);		/* Get flag bits */
+
+	  flgon		Set if widget is on
+	  flgenabled	Set if widget is enabled
+	  flgfocus	Set if widget is focusable
+	  flgoverride	Set for override redirect windows
+	  flgtransient	Set for transient windows
+	  flgactivated	Set if widget is activated
+
+    Parenting
+	void stmom(Widget *,Widget *);	/* Set widget's parent */
+	void clmom(Widget *);		/* De-parent widget */
+
+    Window manager
+	void hintwindowname(Widget *,char *);	/* Set window name hint */
+	void hinticonname(Widget *,char *);	/* Set Icon name hint */
+	void hintposition(Widget *,int x,int y);	/* Position hint */
+	void hintminsize(Widget *,int width,int height);
+	void hintmaxsize(Widget *,int width,int height);
+	void hintresizeinc(Widget *,int x,int y);
+	void hintaspect(Widget *,int minx,int miny,int maxx,int maxy);
+	void hintgravity(Widget *,int);
+	void hintargs(Widget *,char **argc,int argc);
+	void hintinput(Widget *,int);
+	void hinticonified(Widget *,int);
+	void hinticonpixmap(Widget *,);
+	void hinticonwindow(Widget *,);
+	void hinticonposition(Widget *,);
+	void hinticonmask(Widget *,Pixmap );
+	void hintgroup(Widget *,XID);
+	void hinturgent(Widget *);
+	void hintclass(Widget *,char *name,char *class);
+
+    Placement manager
+	void stpmgr(Widget *,);		/* Install a placement manager */
+
+    Help manager
+	void sthelpmgr(Widget *,Help *);/* Install a help manager */
+
+    Callbacks
+	void stsizenotifyfn(Widget *,FN *);
+					/* Set resize notify callback */
+
+Inherits
+	Widget: inherits Lith
+	Wind: inherits Lith
+
+Border
+	None
+
+Size
+	Large enough for contained objects.
+
+Description
+	Widgets correspond to 1 - 3 actual X Windows.  A widget is always
+composed of a primary drawing window, but it may also be composed of an
+optional border window (if stborder() is set) and a scroll-mask window (if
+stscroll() has been called).  The coordinates of a widget (controlled with
+stx() and sty()) are relative to the top left corner of the outermost window
+composing the widget.  Coordinates for drawing in a widget are always
+relative to the top left corner of the drawing window, so you never have to
+compensate for the existence of borders.
+
+	Any widget can be made to be scrollable by calling stscroll().  When
+this is done, the drawing window size (that returned by gtwidth() and
+gtheight()) will no longer be the same as the inside widget size (that
+returned by gtiw() and gtih()) and the drawing window can be scrolled with
+stlofst() and sttofst().  Stscroll() creates a scroll mask window which
+has the inside widget size.
+
+	A widget can be in one of two primary states.  Widgets which are on
+have X windows which are mapped onto the display and will receive events. 
+Widgets which are off have no X windows and receive no events.  Dangling
+widgets- those which are not part of the window hierarchy (for example, a
+new widget which has not been added to anything yet) are always off.
+
+	All widgets maintain a list of widgets which they contain (the
+widget's kids).  If a widget is added to this list while the widget is on,
+the added widget will be turned on as well (if it is enabled(), which is the
+default for new widgets).  When a widget is turned on, all of its enabled
+kids will be turned on as well.
+
+	Usually a widget's position within another is either explicity given
+(with stx() and sty()), or the placement of the widget is controled by the
+parent's placement manager.  Manual placement information has precidence
+over the placement manager- I.E., the placement manager will not position
+the widget if it stx() or sty() have been called before the widget is added.
+The placement manager works on the x and y coordinates independantly, so you
+could set a window's x position explicity, but leave the y coordinate unset
+for the placement manager to handle.
+
+	All widgets start out with the default placement manager installed. 
+See (place.man) for information about the placement manager.
+
+	Widgets which are added to the root widget are special- they are the
+main widget of the application and communicate setup information with the
+window manager.  sttitle() and the window manager hint functions are valid
+for these windows.  Sttitle() and the hint function must be called before
+the widget is added to the root widget.
+
+	The root widget matches the screen size, so gtw() and gth() may be
+used on it to get the screen size.

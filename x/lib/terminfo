@@ -1,0 +1,162 @@
+##############################################################################
+#
+# Joe's termcap file
+#
+# These expect that you're using some kind of handshaking (no padding info
+# is given).  Also JOE doesn't use the last column of the screen, so the
+# am/xn parameters can be wrong
+#
+# JOE understands these extensions to termcap:
+#
+# AL DL SF SR IC DC UP DO RI LE - parametized versions of normal termcap
+#                                 capabilities.  For example, AL inserts n
+#                                 lines and LE moves n positions left.
+#
+# rr                            - Flag which indicates that the cursor
+#                                 is restricted to scrolling region (cursor
+#                                 addressing is still screen relative, however).
+#
+# cV                            - Like cv, but goes to beginning of given
+#                                 line.
+#
+# JOE understands these key sequence capabilities:
+#
+# k1 - k9			- F1 - F9
+# k0				- F0
+# k;				- F10
+# kh				- Home
+# kH				- End
+# kP				- PageUp
+# kN				- PageDn
+# kI				- Insert
+# kD				- Delete
+# kl kr ku kd			- Left, Right, Up, Down
+#
+##############################################################################
+
+# The pre-ansi terminal
+
+vt52|dec vt52,
+	xon,
+	cols#80, lines#24,
+	bel=^G, clear=\EH\EJ, cr=\r, cub1=\b, cud1=\n,
+	cuf1=\EC, cup=\EY%p1%'\s'%+%c%p2%'\s'%+%c, cuu1=\EA,
+	ed=\EJ, el=\EK, home=\EH, ht=\t, ind=\n, kcub1=\ED,
+	kcud1=\EB, kcuf1=\EC, kcuu1=\EA, ri=\EI,
+
+##############################################################################
+#
+# The "ANSI" family of terminals
+#
+##############################################################################
+
+# The capabilities in this entry are understood to be the least-common
+# denominator of what's called ANSI (except, of course, for the IBM PC, which
+# doesn't know what ESC [ J is).
+
+ansi|Basic Ansi tty,
+	am, msgr, xon,
+	cols#80, lines#25,
+	bel=^G, blink=\E[5m, bold=\E[1m, clear=\E[H\E[J,
+	cr=\r, cub=\E[%p1%dD, cub1=\b, cud=\E[%p1%dB, cud1=\n,
+	cuf=\E[%p1%dC, cuf1=\E[C, cup=\E[%i%p1%d;%p2%dH,
+	cuu=\E[%p1%dA, cuu1=\E[A, dim=\E[2m, ed=\E[J, el=\E[K,
+	home=\E[H, ht=\t, ind=\n, kcub1=\E[D, kcud1=\E[B,
+	kcuf1=\E[C, kcuu1=\E[A, rmso=\E[m, rmul=\E[m,
+	sgr0=\E[m, smso=\E[7m, smul=\E[4m,
+
+# Use for good implementations of non-DEC ansi.  Most PC UNIX consoles
+# look like this
+
+fansi|Full Ansi tty (includes inserts and deletes),
+	dch=\E[%p1%dP, dch1=\E[P, dl=\E[%p1%dM, dl1=\E[M,
+	ich=\E[%p1%d@, ich1=\E[@, il=\E[%p1%dL, il1=\E[L,
+	use=ansi,
+
+# Use for vt100-like ansi implementations
+
+ansi100,
+	lines#24,
+	csr=\E[%i%p1%d;%p2%dr, ri=\EM,
+	use=ansi,
+
+# Advanced DEC-style ansi terminals.  Use for vt102s and above
+
+decansi,
+	mir,
+	lines#24,
+	csr=\E[%i%p1%d;%p2%dr, dch=\E[%p1%dP, dch1=\E[P,
+	dl=\E[%p1%dM, dl1=\E[M, il=\E[%p1%dL, il1=\E[L,
+	ri=\EM, rmir=\E[4l, smir=\E[4h,
+	use=ansi,
+
+##############################################################################
+#
+# Derived "ANSI" terminals
+#
+##############################################################################
+
+ansisys|IBM PC using ANSI.SYS,
+	msgr@,
+	clear=\E[H\E[2J, cud1=\E[B, ed@, ht@, kcub1@, kcud1@,
+	kcuf1@, kcuu1@,
+	use=ansi,
+
+nansisys|IBM PC using NANSI.SYS or ZANSI.SYS,
+	msgr@,
+	clear=\E[H\E[2J, cud1=\E[B, ed@, ht@, kcub1@, kcud1@,
+	kcuf1@, kcuu1@,
+	use=fansi,
+
+xenix,
+	cbt=\E[Z, kdch1=^_, kf0=\E[V, kf1=\E[M, kf2=\E[N,
+	kf3=\E[O, kf4=\E[P, kf5=\E[Q, kf6=\E[R, kf7=\E[S,
+	kf8=\E[T, kf9=\E[U, khome=\E[H, kich1=\E[L, kll=\E[F,
+	knp=\E[G, kpp=\E[I,
+	use=fansi,
+
+linux,
+	kdch1=\E[3~, kf1=\E[[A, kf2=\E[[B, kf3=\E[[C,
+	kf4=\E[[D, kf5=\E[[E, kf6=\E[17~, kf7=\E[18~,
+	kf8=\E[19~, kf9=\E[20~, khome=\E[1~, kich1=\E[2~,
+	kll=\E[4~, knp=\E[6~, kpp=\E[5~,
+	use=fansi,
+
+pt,
+	lines#26,
+	ind@, kf0=\EOY, kf1=\EOP, kf2=\EOQ, kf3=\EOR,
+	kf4=\EOS, kf5=\EOT, kf6=\EOU, kf7=\EOV, kf8=\EOW,
+	kf9=\EOX,
+	use=fansi,
+
+ptem,
+	lines#26,
+	kf0=\EOY, kf1=\EOP, kf2=\EOQ, kf3=\EOR, kf4=\EOS,
+	kf5=\EOT, kf6=\EOU, kf7=\EOV, kf8=\EOW, kf9=\EOX,
+	use=decansi,
+
+xterm|X windows terminal emulator,
+	xenl,
+	kbs=\b, kf0=\E[21~, kf1=\E[11~, kf2=\E[12~,
+	kf3=\E[13~, kf4=\E[14~, kf5=\E[15~, kf6=\E[17~,
+	kf7=\E[18~, kf8=\E[19~, kf9=\E[20~, khome=\E[8~,
+	rmkx=\E>, smkx=\E=,
+	use=decansi,
+
+vt100|DEC VT100,
+	kf1=\EOP, kf2=\EOQ, kf3=\EOR, kf4=\EOS, khome=\E[H,
+	rmkx=\E>, smkx=\E=,
+	use=ansi100,
+
+vt102|DEC VT102,
+	kf1=\EOP, kf2=\EOQ, kf3=\EOR, kf4=\EOS, khome=\E[H,
+	rmkx=\E>, smkx=\E=,
+	use=decansi,
+
+vt220|DEC VT220,
+	kbs=^_, kdch1=\E[3~, kf0=\E[29~, kf1=\EOP, kf2=\EOQ,
+	kf3=\EOR, kf4=\EOS, kf5=\E[17~, kf6=\E[18~,
+	kf7=\E[19~, kf8=\E[20~, kf9=\E[21~, khome=\E[1~,
+	kich1=\E[2~, kll=\E[4~, knp=\E[6~, kpp=\E[5~,
+	rmkx=\E>, smkx=\E=,
+	use=decansi,
