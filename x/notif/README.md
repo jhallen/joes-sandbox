@@ -4,6 +4,8 @@ This is Notif- an object oriented widget library for the X Window System.
 
 ## Object Oriented C
 
+Preprocessor tricks are used to implement single inheritance in plain C.
+
 Each object is composed of two structures.  One is the variable,
 per-instance structure.  Each instance of the same class has one of these
 structures, and it is allocated with malloc().  When we refer to an object,
@@ -371,7 +373,7 @@ widget.man and lith.h for a fuller description of these properties.
 Notif programs create containment hierarchies of Widgets which
 correspond to X windows displayed on the screen.  For example, the main
 application widget will contain menu bar widgets, and menu bar widgets
-contain menu entry widgets and so on.  Now Widgets in notif (see widget.man)
+contain menu entry widgets and so on.  Now widgets in Notif (see widget.man)
 are themselves composed of 1-3 Winds (Winds are Liths with an associated X
 window).  A typical stand alone button widget is composed of a Wind for
 drawing the contents of the button, and a border Wind for pretty shadow
@@ -387,10 +389,10 @@ Widget by looking at the 'target' member of the Wind's per-object structure.
 ## Event Delivery
 
 ws() flushes output and then if there are any pending X events, delivers
-them to notif widgets.  For the simplest case (for an Expose event for
+them to Notif widgets.  For the simplest case (for an Expose event for
 example), the process works as follows.  The X-event to be delivered is
 placed in the global variable 'ev'.  ws() then looks up the corresponding
-Wind object for the Window number given in 'ev' (notif maintains an XContext
+Wind object for the Window number given in 'ev' (Notif maintains an XContext
 database of Window to Wind equivalents).  Next, ws() checks the Wind
 object's target variable.  If it is set and there is no event handler
 defined (if the event function pointer is NULL) for the event in Wind, the
@@ -471,3 +473,109 @@ delivered to the key function.  The 'root' argument for doevent() selects
 how close to root userevent() will look for an intercepting parent.  This
 can be useful for sending an event to a child which is normal intercepted by
 the parent.
+
+## Callbacks
+
+The family of functions fnN() are used to create a callback structure TASK,
+which contains a function to be called along with its arguments.  N can be 0
+- 5, and specifies how many arguments are passed to the function.  fnN() is
+typically used to package up a callback function which is to be installed
+into a widget.
+
+The family of functions contN() are used to schedule the execution
+of a callback function previously packaged up with fnN().  The function will
+be called on the next return to the event loop.  contN() allows additional
+arguments to be appended to the callback function's argument list.  contN()
+is typically called by a widget event handler when a certain event occurs,
+for example, the Edit widget will use contN() on an installed callback
+function when the return key is pressed.
+
+``` C
+		TASK cb[1];
+		fn0(cb,fred);		/* Install fred into cb */
+
+		cont0(cb);		/* callback will be executed */
+```
+
+The callback function itself always looks like this:
+
+``` C
+		void func(stat,arg1,arg2,arg3,argA,argB,argC)
+		 {
+		 if(!stat)
+		  { /* Normal execution */
+		  }
+		 else
+		  { /* cancel() was called- free resources */
+		  }
+		 }
+```
+
+Where arg1..arg3 are those passed with fnN(), argA...argC are those
+passed with contN(), and stat gives execution status.  stat will be zero if
+the callback function is executed normally with contN().  stat will be
+non-zero if the callback has been aborted with cancel().  cancel()
+is typically used when a widget is deleted before the callback function is
+normally executed.
+
+Callback functions can only be executed one time.  The variable in
+the widget containing the callback is automatically cleared by contN() to
+ensure that the widget does not mistakenly execute a callback function more
+than once.  If you want a callback function to be repeatedly executable
+(I.E., so that every time you hit a button widget a function is called), you
+must have the callback function reinstall itself (I.E., by calling fnN()
+again and passing its result to the widget's installer function).
+
+Callback functions always execute in their own stack.  The stack is
+created when the callback function is executed, and it is deleted when the
+function returns.  This creates a cooperative multi-threaded environment-
+cooperative because thread switching only can occur during the return to the
+event handler.  Locking of critical sections is usually never needed in a
+cooperative multi-threading environment, but you must keep in mind that
+variables can be changed by another thread whenever the event loop is
+executed.
+
+cfn() is used to package up the current thread for later
+continuation.  It is used in conjunction with go() in a two-step process:
+
+``` C
+		int args[3];		/* Return arguments */
+		TASK x[1];		/* Continuation TASK */
+		Button *b=mk(Button);	/* Button widget */
+		 stfn(b,x=cfn(args));	/* Create TASK and install it */
+		add(root,b);
+
+		go(io,x);		/* Package up thread in x and return
+					   to event loop.  Returns when
+					   button is pressed. */
+```
+
+
+cfn() simply creates the TASK structure so that it can be installed
+into a widget or otherwise be easily passed around.  go() fills in the
+structure with the current stack pointer and program counter values and then
+runs the event loop (which exists in its own stack).  When the return value
+of cfn() is passed as an argument to contN() (usually by a widget), go()
+will return and the thread can continue its execution (this switch happens
+at the next return to the event loop).
+
+The above continuation feature is useful for creating non-modal
+dialog windows in a function call style.  The user calls a function which
+places the dialog on the screen.  The function returns when the user clicks
+"OK".  In the meantime other non-modal dialog windows can be created
+(ultimately by other callbacks which are executed by other events).  The
+dialog would be non-modal, and since each thread exists in its own stack,
+one does not have to worry about which dialog is finished first.
+
+The continuation feature is also useful for wholly internal scripts
+or sequences which must wait for intervening event returns.  The advantage
+here is purely that of code structuring: the event wait can be in the middle
+of a for-loop and perhaps be several subroute levels deep.  There is no need
+to save all the local variables in an object struture for an actual return
+to the event loop, which is usual practice in many event-driven
+environments.
+
+go() with a NULL argument should be used in main() for the initial
+execution of the event loop.  I.E., the last line of main() should be
+go(NULL).  go() currently executes serv() (see serv.h) and ws() (see
+event.man in Notif).
