@@ -1,4 +1,4 @@
-## Noitf
+## Notif
 
 This is Notif- an object oriented widget library for the X Window System.
 
