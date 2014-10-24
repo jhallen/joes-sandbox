@@ -24,7 +24,7 @@
 ;                  7C00 SEGBOOT
 
 ; Put all segments in a group since we're going to be
-; regering to them all with the same segment register value
+; referring to them all with the same segment register value
 zero	group	segzero,segcode,segpart,segboot
 
 ; This segment is placed at zero to
