@@ -7,7 +7,7 @@ arguments for instructions.
 
 This is a single record boot loader which fits in the first 1K of ext2
 filesystems.  It understands the ext2 filesystem, so no 'sys'-like (or
-lilo-like) command is needed whever you install a new kernel.  Instead, you
+lilo-like) command is needed when you install a new kernel.  Instead, you
 just copy the kernel to root.  It is a single-stage boot program- everything
 is in the first record.
 
