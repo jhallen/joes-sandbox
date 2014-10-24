@@ -131,7 +131,7 @@ unsigned char mbr[]=
  *  \xFF (terminator byte)
  *
  * <parition address> is the absolute address of the partition table
- * entry for this name.  The boot sector coppies itself to 0x600, so
+ * entry for this name.  The boot sector copies itself to 0x600, so
  * the partition table begins at 0x7BE.  This is just offset part of
  * the address, the segment part is assumed to be zero.
  *
