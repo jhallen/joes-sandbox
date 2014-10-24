@@ -1,4 +1,4 @@
-/* Cool little branch-free functions from Hacker's Delight */
+/* Cool little branch-free bit-manipulatoin functions */
 
 #include "hack.h"
 
@@ -115,6 +115,48 @@ unsigned gather(unsigned val,unsigned sel)
 		mk = mk & ~mp;
 	}
 	return val;
+}
+
+unsigned scatter(unsigned val,unsigned sel)
+{
+	unsigned long mk, mp, mv, t;
+	int i;
+	unsigned array[5];
+	mk = ~sel << 1;
+	for (i = 0; i != 5; ++i) {
+		mp = mk ^ (mk << 1);
+		mp = mp ^ (mp << 2);
+		mp = mp ^ (mp << 4);
+		mp = mp ^ (mp << 8);
+		mp = mp ^ (mp << 16);
+		mv = mp & sel;
+		array[i] = mv;
+		sel = sel ^ mv | (mv >> (1 << i));
+		mk = mk & ~mp;
+	}
+
+	for (i = 4; i >= 0; --i) {
+		unsigned m = (array[i] >> (1 << i));
+		val = (val & ~m) | ((val & m) << (1 << i));
+	}
+
+	return val;
+}
+
+/* Scatter - this is not good */
+
+unsigned scatter_slow(unsigned val,unsigned sel)
+{
+	unsigned long q = 0;
+	unsigned long b = 1;
+	while (sel) {
+		unsigned long pick = find_lsob(sel);
+		sel &= ~pick;
+		if (b & val)
+			q |= pick;
+		b <<= 1;
+	}
+	return q;
 }
 
 /* Count no. 1s in x.
@@ -234,3 +276,8 @@ int main(int argc,char *argv[])
 	printf("max %d\n", qmax(atoi(argv[1]),atoi(argv[2])));
 }
 */
+
+int only_one(unsigned long n)
+{
+	return n == (n & -n);
+}

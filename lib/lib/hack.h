@@ -1,4 +1,4 @@
-/* Quick branch-free instructions */
+/* Quick branch-free bit-manipulation instructions */
 
 /* Reverse bits in a word */
 unsigned rev(unsigned x);
@@ -16,6 +16,7 @@ int parity(unsigned x);
 
 /* Compress bits from val with corresponding set bits in sel to the right */
 unsigned gather(unsigned val, unsigned sel);
+unsigned scatter(unsigned val, unsigned sel);
 
 /* Count no. 1 bits in x */
 int pop(unsigned x);
@@ -74,3 +75,6 @@ unsigned lp2(unsigned x);
 unsigned qmin(unsigned x, unsigned y);
 
 unsigned qmax(unsigned x, unsigned y);
+
+/* True if only one bit is set in n */
+int only_one(unsigned long n);
