@@ -25,7 +25,7 @@
 ; then jumps to segment 9020, offset 0.  It also sets the stack to segment
 ; 9000, offset 3ff4 (this is what Linus' bootsector does).
 
-; Don't touch this code.  I guarentee that you'll break it :-)
+; Don't touch this code.  I guarantee that you'll break it :-)
 ;
 ; BP must not be touched by anyone but the ld fnuction.  BP
 ; contains the current sector loaded at 0:7E00.
