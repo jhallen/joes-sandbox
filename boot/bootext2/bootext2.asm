@@ -16,7 +16,7 @@
 ; Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ; This loads a file called vmlinuz from the root directory to 0F600,
-; coppies the part between 0F600 - 10000 to 90000 - 90A00 and
+; copies the part between 0F600 - 10000 to 90000 - 90A00 and
 ; then jumps to segment 9020, offset 0.  It also sets the stack to segment
 ; 9000, offset 3ff4 (this is what Linus' bootsector does).
 
