@@ -1,5 +1,6 @@
 
-all: tabify tab base64 crlf hd exotobin bintoc csv lfsr lpf reindent rev subtotal subtotal1 upc
+all: tabify tab base64 crlf hd exotobin bintoc csv csvcmp lfsr lpf reindent \
+ rev subtotal subtotal1 upc upccheck chk mcs hex exo bomcmp
 
 CFLAGS = -Wall
 
@@ -27,6 +28,12 @@ exotobin: exotobin.o
 csv: csv.o
 	$(CC) -o csv csv.o
 
+csvcmp: csvcmp.o
+	$(CC) -o csvcmp csvcmp.o
+
+bomcmp: bomcmp.o
+	$(CC) -o bomcmp bomcmp.o
+
 lfsr: lfsr.o
 	$(CC) -o lfsr lfsr.o
 
@@ -51,6 +58,18 @@ upc: upc.o
 upccheck: upccheck.o
 	$(CC) -o upccheck upccheck.o
 
+mcs: mcs.o
+	$(CC) -o mcs mcs.o
+
+chk: chk.o
+	$(CC) -o chk chk.o
+
+hex: hex.o
+	$(CC) -o hex hex.o
+
+exo: exo.o
+	$(CC) -o exo exo.o
+
 install:
 	install tabify $(HOME)/bin
 	install tab $(HOME)/bin
@@ -60,6 +79,8 @@ install:
 	install exotobin $(HOME)/bin
 	install bintoc $(HOME)/bin
 	install csv $(HOME)/bin
+	install csvcmp $(HOME)/bin
+	install bomcmp $(HOME)/bin
 	install lfsr $(HOME)/bin
 	install lpf $(HOME)/bin
 	install reindent $(HOME)/bin
@@ -68,6 +89,10 @@ install:
 	install subtotal1 $(HOME)/bin
 	install upc $(HOME)/bin
 	install upccheck $(HOME)/bin
+	install mcs $(HOME)/bin
+	install chk $(HOME)/bin
+	install hex $(HOME)/bin
+	install exo $(HOME)/bin
 
 clean:
 	rm -f *.o *~
