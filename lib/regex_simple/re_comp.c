@@ -1,5 +1,6 @@
 /* Parse regular expression into NFA */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "re.h"
 
@@ -57,18 +58,18 @@ void do_show(struct state *st,int n)
 	if (!st)
 		return;
 	if (st->flg) {
-		ind(n), printf("%x (link)\n",st);
+		ind(n), printf("%p (link)\n",st);
 		return ;
 	}
 	st->flg = 1;
 	if (st->ch==-1) {
-		ind(n), printf("%x done\n",st);
+		ind(n), printf("%p done\n",st);
 	} else if(st->ch==-2) {
-		ind(n), printf("%x alt\n",st);
+		ind(n), printf("%p alt\n",st);
 		do_show(st->f,n+2);
 		do_show(st->e,n+2);
 	} else {
-		ind(n), printf("%x match '%c'\n",st,st->ch);
+		ind(n), printf("%p match '%c'\n",st,st->ch);
 		do_show(st->f,n+2);
 		do_show(st->e,n+2);
 	}

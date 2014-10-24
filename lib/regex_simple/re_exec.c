@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "re.h"
 
 int dfa_match(struct dfa *dfa, unsigned char *s)
@@ -22,8 +23,8 @@ int main(int argc,char *argv[])
 	}
 //	printf("Parse...\n");
 	st = parse((unsigned char *)argv[1]);
-/*	printf("\nHere is NFA:\n");
-	show(st); */
+	printf("\nHere is NFA:\n");
+	show(st);
 //	printf("\nConvert NFA to DFA...\n");
 	dfa = nfa_to_dfa(st);
 //	printf("\nHere is state machine:\n\n");

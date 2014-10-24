@@ -1,6 +1,7 @@
 /* Convert NFA into DFA */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "re.h"
 
 /* Closure */
@@ -8,7 +9,7 @@
 void show_list(struct list *l)
 {
 	while (l) {
-		printf("	%x\n",l->st);
+		printf("	%p\n",l->st);
 		l = l->next;
 	}
 }

@@ -1,4 +1,0 @@
-#include "../../../verifshared/bin/register_attr.h"
-
-struct sample_t CHIP_COLLECTION {
-} sample_top;
