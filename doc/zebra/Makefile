@@ -1,3 +1,4 @@
+CFLAGS = -g
 
 all: form genpsion direct fnt
 
@@ -12,3 +13,6 @@ direct: direct.o zstr.o
 
 fnt: fnt.o
 	$(CC) -o fnt fnt.o
+
+clean:
+	rm -f *~ *.o

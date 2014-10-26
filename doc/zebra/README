@@ -1,5 +1,40 @@
                Typesetting System for Zebra-140 Label Printer
 
+This program allows you to create a database of labels ready to print.  For
+example, it could be used to create product labels for each type of item in
+your inventory.
+
+The input looks like this.  At the beginning are some macro definitions
+which are used for the items which follow.
+
+        [save sml upccode]
+        [offset 20][width 260]
+        [save f1][font 7 30 30][]
+        [save f5][font 7 28 28][]
+        [f5]~[arg1]~
+        [font 7 24 21] 
+        [upc [upccode]]
+        [font 7 24 21] 
+        [f1]~[arg2]~
+        []
+        :ST208:Stock Basket:ST208:
+        [sml 72418831160]
+        :AA208:Summer Annual Basket:AA208:
+        [sml 72418830008]
+        :PO8:8"Poinsettia:PO8:
+        [sml 72418812010]
+	...
+
+The output looks like this:
+
+        ST208:Stock Basket:ST208:
+        ^FT76,23^CF0,28,28^FDStock Basket^FS^FT20,49^CF0,21,24^FD ^FS^FO55,56^BUN,100^FD72418831160^FS^FT20,173^FD ^FS^FT112,204^CF0,30,30^FDST208^FS^XZ
+        AA208:Summer Annual Basket:AA208:
+        ^FT15,23^CF0,28,28^FDSummer Annual Basket^FS^FT20,49^CF0,21,24^FD ^FS^FO55,56^BUN,100^FD72418830008^FS^FT20,173^FD ^FS^FT111,204^CF0,30,30^FDAA208^FS^XZ
+        PO8:8"Poinsettia:PO8:
+        ^FT79,23^CF0,28,28^FD8"Poinsettia^FS^FT20,49^CF0,21,24^FD ^FS^FO55,56^BUN,100^FD72418812010^FS^FT20,173^FD ^FS^FT125,204^CF0,30,30^FDPO8^FS^XZ
+
+
 
 form.c		The typesetter
 fnt.c		Program to generate a font from 'fnt.src'

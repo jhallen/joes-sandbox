@@ -1,0 +1,217 @@
+
+[save sml upccode]
+[offset 20][width 260]
+[save f1][font 7 30 30][]
+[save f5][font 7 28 28][]
+[f5]~[arg1]~
+[font 7 24 21] 
+[upc [upccode]]
+[font 7 24 21] 
+[f1]~[arg2]~
+[]
+:ST208:Stock Basket:ST208:
+[sml 72418831160]
+:AA208:Summer Annual Basket:AA208:
+[sml 72418830008]
+:PO8:8"Poinsettia:PO8:
+[sml 72418812010]
+:KA601:6.5Kalanchoe:KA601:
+[sml 72418811713]
+:CY601:6"Cyclamen:CY601:
+[sml 72418811373]
+:GE403:Cultured Geraniums:GE403:
+[sml 72418830580]
+:PG2:2Gal.Perenials:PG2:
+[sml 72418830067]
+:SF601:Sunflower 6.5":SF601:
+[sml 72418812170]
+:ZN601:Zinnia 6.5":ZN601:
+[sml 72418831290]
+:GD601:Garden Dahlia 6.5:GD601:
+[sml 72418830389]
+:CP601:Cascading Petunia 6.5":CP601:
+[sml 72418830950]
+:SB208:Strawberry Basket:SB208:
+[sml 72418830001]
+:PA124:Pansy Full Flat:PA124:
+[sml 72418830880]
+:AF1501:4"African Violet:AF1501:
+[sml 72418811100]
+:KA4:4"Kalanchoe:KA4:
+[sml 72418811710]
+:PR4:4"Primula:PR4:
+[sml 72418831054]
+:NG208:New Guinea Imp.:NG208:
+[sml 72418830736]
+:NG308:New Guinea Imp.:NG308:
+[sml 72418830735]
+:NG412:New Guinea Imp.:NG412:
+[sml 72418830739]
+:FM601:6.5Pot Mum:FM601:
+[sml 72418811264]
+:PA308:308 Pansy/Viola:PA308:
+[sml 72418830876]
+:ST308:308 Stock:ST308:
+[sml 72418831163]
+:PW601:6.5Bulb Paperwhite:PW601:
+[sml 72418812320]
+:BU601:6.5Potted Bulbs:BU601:
+[sml 72418810056]
+:AM601:6.5Amaryllis:AM601:
+[sml 72418811141]
+:AA148:Full Flat Annuals:AA148:
+[sml 72418830002]
+:AA224:Annual Half Flat:AA224:
+[sml 72418830048]
+:AA306:Annual Basket:AA306:
+[sml 72418830004]
+:SA306:Select Annuals:SA306:
+[sml 72418830734]
+:PP306:Premium Plant:PP306:
+[sml 72418830071]
+:AA308:308 Pack Annuals:AA308:
+[sml 72418830010]
+:AA412:Petunia:AA412:
+[sml 72418830012]
+:AA412:Marigold:AA412:
+[sml 72418830012]
+:AA601:6.5" Summer Annuals:AA601:
+[sml 72418830016]
+:GE206:Cultured Geranium:GE206:
+[sml 72418830582]
+:CG206:Container Garden:CG206:
+[sml 72418835123]
+:CB16:16" Color Bowl:CB16:
+[sml 72418830027]
+:CIA601:5" Cabbage/Kale:CIA601:
+[sml 72418836002]
+:DP10:10" Color planter:DP10:
+[sml 72418830028]
+:GE208:Geranium Basket 208:GE208:
+[sml 72418830550]
+:GE601:6.5" Patio Geranium:GE601:
+[sml 72418830537]
+:GM201:8" Hardy Mum:GM201:
+[sml 72418811277]
+:GM208:Hardy Mum Basket 208:GM208:
+[sml 72418811276]
+:233020:Mum Basket Jessica:GM208:
+[sml 72418811276]
+:233026:Mum Basket Debonair:GM208:
+[sml 72418811276]
+:233028:Mum Basket Heather:GM208:
+[sml 72418811276]
+:233032:Mum Basket Sophia:GM208:
+[sml 72418811276]
+:233036:Mum Basket Sundoro:GM208:
+[sml 72418811276]
+:233060:Mum Basket Christine:GM208:
+[sml 72418811276]
+:233064:Mum Basket Grenadine:GM208:
+[sml 72418811276]
+:233068:Mum Basket Serenade:GM208:
+[sml 72418811276]
+:233096:Mum Basket Tolima:GM208:
+[sml 72418811276]
+:234024:Mum Basket Dreamy Tracy:GM208:
+[sml 72418811276]
+:234026:Mum Basket Julia:GM208:
+[sml 72418811276]
+:234032:Mum Basket Donna:GM208:
+[sml 72418811276]
+:234040:Mum Basket Adorn:GM208:
+[sml 72418811276]
+:234068:Mum Basket Stephanie:GM208:
+[sml 72418811276]
+:243020:Mum Basket Jessica:GM306:
+[sml 72418811275]
+:243026:Mum Basket Debonair:GM306:
+[sml 72418811275]
+:243028:Mum Basket Heather:GM306:
+[sml 72418811275]
+:243032:Mum Basket Sophia:GM306:
+[sml 72418811275]
+:243036:Mum Basket Sundoro:GM306:
+[sml 72418811275]
+:243060:Mum Basket Christine:GM306:
+[sml 72418811275]
+:243064:Mum Basket Grenadine:GM306:
+[sml 72418811275]
+:243068:Mum Basket Serenade:GM306:
+[sml 72418811275]
+:243096:Mum Basket Tolima:GM306:
+[sml 72418811275]
+:244024:Mum Basket Dreamy Tracy:GM306:
+[sml 72418811275]
+:244026:Mum Basket Julia:GM306:
+[sml 72418811275]
+:244032:Mum Basket Donna:GM306:
+[sml 72418811275]
+:244040:Mum Basket Adorn:GM306:
+[sml 72418811275]
+:244068:Mum Basket Stephanie:GM306:
+[sml 72418811275]
+:GM306:Fall Mum Basket:GM306:
+[sml 72418811275]
+:PO601:Poinsettia 6":PO601:
+[sml 72418812006]
+:GM601:6.5" Hardy Garden Mum:GM601:
+[sml 72418811271]
+:H601:6.5" Patio Herbs:H601:
+[sml 72418830007]
+:HP601:6.5" Fall Perennials:HP601:
+[sml 72418830060]
+:PG601:Gal.Perennial:PG601:
+[sml 72418830068]
+:HP601:6.5" Hardy Perennial Black:HP601:
+[sml 72418830060]
+:IA201:8" Annuals:IA201:
+[sml 72418830021]
+:KC601:6.5" Cabbage/Kale:KC601:
+[sml 72418836001]
+:MD601:Montauk Daisy:MD601:
+[sml 72418830410]
+:P306:Summerhill Perennials:P306:
+[sml 72418830056]
+:P403:Hydrangea 403:Meritt Supreme:
+[sml 72418830070]
+:P403:Summerhill Container Selects:P403:
+[sml 72418830070]
+:PA201:8" Premium Annual:PA201:
+[sml 72418830875]
+:PB208:Pansy/Viola Basket:PB208:
+[sml 72418830874]
+:PB306:Pansy/Viola Basket:PB306:
+[sml 72418830871]
+:FA201:Fall Flowers:FA201:
+[sml 72418830875]
+:SP206:Summer Perennial Pack:SP206:
+[sml 72418830057]
+:SA208:Select Annual Basket:SA208:
+[sml 72418830003]
+:FP208:Fall Pansy Basket:FP208:
+[sml 72418830876]
+:TO601:6.5" Patio Tomatoes:TO601:
+[sml 72418830006]
+:VD20:Valentine Pot:
+[sml 72418830036]
+:GM306:Garden Mum:GM306:
+[sml 72418811275]
+:PA501:5"Assorted Annual Color:PA501:
+[sml 72418830038]
+:HB10:10"Hanging Basket:HB10:
+[sml 72418830025]
+:HP501:Perennial 5":HP501:
+[sml 72418830059]
+:FD501:5"Bedding:FD501:
+[sml 72418830690]
+:GE501:Geranium (5"):GE501:
+[sml 72418830583]
+:AA501:Basic Annuals (5"):AA501:
+[sml 72418830019]
+:AV1501:4"Vegetables:AV1501:
+[sml 72418838004]
+:PP802:Premium 8":PP802:
+[sml 72418830026]
+:GE801:4"GERANIUM:GE801:
+[sml 72418830542]

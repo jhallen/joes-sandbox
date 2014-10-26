@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+FILE *infile;
+
 char inbuf[1024];
 char *in;
 
@@ -57,8 +59,10 @@ struct saved {
 
 /* A Scoping level */
 
+#define HTSIZE 256
+
 struct level {
-	struct saved *htab[256];	/* Hash table of bindings */
+	struct saved *htab[HTSIZE];	/* Hash table of bindings */
 	struct level *next;	/* Next outer scoping level */
 	char **args;		/* Args passed to this level */
 	int nargs;
@@ -78,7 +82,7 @@ struct saved *get(char *name)
 	struct saved *s;
 	int h = hash(name);
 	do
-		for (s = l->htab[h % 256]; s; s = s->next)
+		for (s = l->htab[h % HTSIZE]; s; s = s->next)
 			if (!strcmp(s->name, name))
 				return s;
 	while (l = l->next);
@@ -91,7 +95,7 @@ void set(struct level *lvl, char *name, char *text, void (*func) (void),
 	struct saved *s;
 	int h = hash(name);
 	int x;
-	for (s = lvl->htab[h % 256]; s; s = s->next)
+	for (s = lvl->htab[h % HTSIZE]; s; s = s->next)
 		if (!strcmp(s->name, name))
 			break;
 	if (s) {
@@ -104,8 +108,8 @@ void set(struct level *lvl, char *name, char *text, void (*func) (void),
 	} else {
 		s = (struct saved *) malloc(sizeof(struct saved));
 		s->name = strdup(name);
-		s->next = lvl->htab[h % 256];
-		lvl->htab[h % 256] = s;
+		s->next = lvl->htab[h % HTSIZE];
+		lvl->htab[h % HTSIZE] = s;
 	}
 	s->text = text;
 	s->func = func;
@@ -120,7 +124,7 @@ void push(int nargs, char **args)
 {
 	struct level *l = (struct level *) malloc(sizeof(struct level));
 	int x;
-	for (x = 0; x != 256; ++x)
+	for (x = 0; x != HTSIZE; ++x)
 		l->htab[x] = 0;
 	l->next = top;
 	l->args = args;
@@ -133,7 +137,7 @@ void pop()
 	int x;
 	struct saved *s, *n;
 	struct level *t = top;
-	for (x = 0; x != 256; ++x)
+	for (x = 0; x != HTSIZE; ++x)
 		for (s = top->htab[x]; s; s = n) {
 			int y;
 			n = s->next;
@@ -636,7 +640,7 @@ void interpret()
 			if (*at == '[' && c == ']') {
 				struct saved *cmd = get(at + 1);
 				if (cmd && cmd->text)
-					argv[argc++] = cmd->text;
+					argv[argc++] = strdup(cmd->text);
 				else
 					argv[argc++] = strdup(at);
 			} else if (at != in)
@@ -781,7 +785,7 @@ void save()
 			    top->nargs - 2, top->args + 2);
 		}
 	} else {
-		in = fgets(inbuf, 1023, stdin), ++line;
+		in = fgets(inbuf, 1023, infile), ++line;
 		if (!in)
 			error(line, "File ended before save");
 		goto loop;
@@ -846,22 +850,14 @@ struct init {
 	int nargs;
 	char *args[10];
 } initab[] = {
-	{
-		"save", save, 1, {
-	"name"}}, {
-		"font", font, 3, {
-	"font", "width", "height"}}, {
-		"upc", upc, 1, {
-	"code"}}, {
-		"vupc", vupc, 1, {
-	"code"}}, {
-		"indent", indent, 1, {
-	"amnt"}}, {
-		"offset", soffset, 1, {
-	"amnt"}}, {
-		"width", swidth, 1, {
-	"amnt"}}, {
-	"fill", fill, 0}
+	{ "save", save, 1, { "name"} },
+	{ "font", font, 3, { "font", "width", "height"} },
+	{ "upc", upc, 1, { "code"} },
+	{ "vupc", vupc, 1, { "code"} },
+	{ "indent", indent, 1, { "amnt"} },
+	{ "offset", soffset, 1, { "amnt"} },
+	{ "width", swidth, 1, {"amnt"} },
+	{ "fill", fill, 0}
 };
 
 void init()
@@ -886,8 +882,19 @@ int main(int argc, char *argv[])
 	fonts[9].height = h;
 	fonts[9].base = h;
 
+	if (argc != 2) {
+		fprintf(stderr,"form file\n");
+		return -1;
+	}
+
+	infile = fopen(argv[1], "r");
+	if (!infile) {
+		fprintf(stderr,"couldn't open %s\n", argv[1]);
+		return -1;
+	}
+
 	init();
-	while (in = (++line, fgets(inbuf, 1023, stdin)))
+	while (in = (++line, fgets(inbuf, 1023, infile)))
 		process();
 	done();
 	return 0;
