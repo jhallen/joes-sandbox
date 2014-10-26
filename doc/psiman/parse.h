@@ -3,6 +3,6 @@
 
 #include "obj.h"
 
-OBJ *parse();
+OBJ *parse(void);
 
 #endif

@@ -3,6 +3,6 @@
 
 #include "obj.h"
 
-OBJ *attr();
+OBJ *attr(OBJ *obj);
 
 #endif

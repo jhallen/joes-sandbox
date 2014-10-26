@@ -12,7 +12,7 @@ struct tray
  };
 
 extern int fillflg;
-void rmtray();
-TRAY *fmt();
+void rmtray(TRAY *tray);
+TRAY *fmt(OBJ *obj);
 
 #endif

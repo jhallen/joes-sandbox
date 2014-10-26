@@ -20,13 +20,14 @@ struct object
 #define BOLD 0x100
 #define ITAL 0x200
 
-OBJ *mkobj();
-int nwords();
-void setattr();
-int *resize();
-int isletter();
-int len();
-void append();
-OBJ *merge();
+OBJ *mkobj(void);
+void rmobj(OBJ *obj);
+int nwords(int *text);
+void setattr(int *text, int attr);
+int *resize(int *ary,int len, int *siz);
+int isletter(int x);
+int len(int *ary);
+void append(int **ary, int *len, int *siz, int c);
+OBJ *merge(OBJ *a,OBJ *b);
 
 #endif

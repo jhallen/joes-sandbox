@@ -1,5 +1,5 @@
 CC = cc
-CFLAGS = -O
+CFLAGS = -O -Wall
 OBJS = parse.o main.o attr.o obj.o out.o fmt.o
 
 all: psiman psicvt

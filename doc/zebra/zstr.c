@@ -14,89 +14,114 @@ details.
 
 You should have received a copy of the GNU General Public License along with 
 JOE; see the file COPYING.  If not, write to the Free Software Foundation, 
-675 Mass Ave, Cambridge, MA 02139, USA.  */ 
+675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#include <stdlib.h>
 #include "zstr.h"
 
-int toup(a) { return (a>='a' && a<='z')?a+'A'-'a':a; }
-unsigned Umin(a,b) unsigned a,b; { return a<b?a:b; }
-unsigned Umax(a,b) unsigned a,b; { return a>b?a:b; }
-int Imin(a,b) { return a<b?a:b; }
-int Imax(a,b) { return a>b?a:b; }
-int Iabs(a) { return a>=0?a:-a; }
-
-int cword(c)
+int toup(int a)
 {
-return c>='A' && c<='Z' || c>='a' && c<='z' || c>='0' && c<='9' || c=='_';
+	return (a >= 'a' && a <= 'z') ? a + 'A' - 'a' : a;
 }
 
-int cwhitel(c)
+unsigned Umin(unsigned a, unsigned b)
 {
-return c==' ' || c=='\t' || c=='\n';
+	return a < b ? a : b;
 }
 
-int cwhite(c)
+unsigned Umax(unsigned a, unsigned b)
 {
-return c==' ' || c=='\t';
+	return a > b ? a : b;
 }
 
-int zlen(s)
-char *s;
+int Imin(int a, int b)
 {
-char *os=s;
-while(*s) ++s;
-return s-os;
+	return a < b ? a : b;
 }
 
-char *zcpy(d,s)
-char *d,*s;
+int Imax(int a, int b)
 {
-char *od=d;
-while(*d++= *s++);
-return od;
+	return a > b ? a : b;
 }
 
-char *zcat(d,s)
-char *d,*s;
+int Iabs(int a)
 {
-char *od=d;
-while(*d) ++d;
-while(*d++= *s++);
-return od;
+	return a >= 0 ? a : -a;
 }
 
-char *zdup(s)
-char *s;
+int cword(int c)
 {
-return zcpy((char *)malloc(zlen(s)+1),s);
+	return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0'
+	    && c <= '9' || c == '_';
 }
 
-int zcmp(l,r)
-char *l, *r;
+int cwhitel(int c)
 {
-while(*l && *l==*r) ++l, ++r;
-if(*l>*r) return 1;
-if(*l<*r) return -1;
-return 0;
+	return c == ' ' || c == '\t' || c == '\n';
 }
 
-int fields(s,fields,sep)
-char *s, **fields, sep;
+int cwhite(int c)
 {
-int y=1;
-fields[0]=s;
-while(*s)
- {
- if(*s==sep) fields[y++]=s+1, *s=0;
- ++s;
- }
-return y;
+	return c == ' ' || c == '\t';
 }
 
-int nfields(s,sep)
-char *s, sep;
+int zlen(char *s)
 {
-int y=1;
-while(*s) if(*s++==sep) ++y;
-return y;
+	char *os = s;
+	while (*s)
+		++s;
+	return s - os;
+}
+
+char *zcpy(char *d, char *s)
+{
+	char *od = d;
+	while (*d++ = *s++);
+	return od;
+}
+
+char *zcat(char *d, char *s)
+{
+	char *od = d;
+	while (*d)
+		++d;
+	while (*d++ = *s++);
+	return od;
+}
+
+char *zdup(char *s)
+{
+	return zcpy((char *) malloc(zlen(s) + 1), s);
+}
+
+int zcmp(char *l, char *r)
+{
+	while (*l && *l == *r)
+		++l, ++r;
+	if (*l > *r)
+		return 1;
+	if (*l < *r)
+		return -1;
+	return 0;
+}
+
+int fields(char *s, char **fields, int sep)
+{
+	int y = 1;
+	fields[0] = s;
+	while (*s) {
+		if (*s == sep)
+			fields[y++] = s + 1, *s = 0;
+		++s;
+	}
+	return y;
+}
+
+int nfields(char *s, int sep)
+{
+	int y = 1;
+	while (*s)
+		if (*s++ == sep)
+			++y;
+	return y;
 }

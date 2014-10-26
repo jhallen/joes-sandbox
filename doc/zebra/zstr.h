@@ -19,21 +19,21 @@ JOE; see the file COPYING.  If not, write to the Free Software Foundation,
 #ifndef _Izstr
 #define _Izstr 1
 
-int cword();
-int cwhite();
-int cwhitel();
-int Iabs();
-int toup();
-unsigned Umin();
-unsigned Umax();
-int Imin();
-int Imax();
-char *zcpy();
-char *zdup();
+int cword(int c);
+int cwhite(int c);
+int cwhitel(int c);
+int Iabs(int c);
+int toup(int c);
+unsigned Umin(unsigned a, unsigned b);
+unsigned Umax(unsigned a, unsigned b);
+int Imin(int a, int b);
+int Imax(int a, int b);
+char *zcpy(char *d, char *s);
+char *zdup(char *s);
 char *zcat();
-int zcmp();
-int zlen();
-int fields();
-int nfields();
+int zcmp(char *l, char *r);
+int zlen(char *s);
+int fields(char *s, char **fields, int sep);
+int nfields(char *s, int sep);
 
 #endif

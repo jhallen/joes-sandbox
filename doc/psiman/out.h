@@ -1,6 +1,8 @@
 #ifndef _Iout
 #define _Iout 1
 
+#include "fmt.h"
+
 /* Variables */
 
 extern int cols;	/* Width of text body */
@@ -18,7 +20,7 @@ extern int device;
 
 extern char *header;	/* Header at top of page */
 
-void emit();
-void finish();
+void emit(TRAY *tray);
+void finish(void);
 
 #endif

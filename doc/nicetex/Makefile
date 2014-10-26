@@ -1,3 +1,5 @@
+CFLAGS = -Wall
+
 all: nicetex tocinsert npass nlink
 
 nicetex: nicetex.o
@@ -25,4 +27,4 @@ install: nicetex tocinsert npass nlink fig figps nice.tex README
 clean:
 	rm -f *~
 	rm -f *.bak
-	rm -f _tmp/*.o
+	rm -f *.o
