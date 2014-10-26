@@ -29,7 +29,7 @@ JOE; see the file COPYING.  If not, write to the Free Software Foundation,
  * Unsigned addition: |a|+|b|
  * If 'n' is true, the result will be negative (even if it is zero).
  */
-char *Uadd();
+char *Uadd(char *a, char *b, int n);
 
 /* char *Usub(a,b,n);
  * Unsigned subtraction: |a|-|b|
@@ -37,7 +37,7 @@ char *Uadd();
  * |a| must be larger or equal to |b| or this routine will go into an
  * infinite loop.
  */
-char *Usub();
+char *Usub(char *a, char *b, int n);
 
 /** Integer arithmetic **
  * These all take numbers of the form [-]xxxxx
@@ -48,62 +48,62 @@ char *Usub();
 /* int Cmp(char *a,char *b);
  * Comparison: 1 if a>b, 0 if a=b, or -1 if a<b
  */
-int Cmp();
+int Cmp(char *a, char *b);
 
 /* int Ucmp(char *a,char *b);
  * Magnitude comparison: 1 if |a|>|b|, 0 if |a|=|b|, or -1 if |a|<|b|
  */
-int Ucmp();
+int Ucmp(char *a, char *b);
 
 /* char *Neg(char *a);
  * Negate: -a
  */
-char *Neg();
+char *Neg(char *a);
 
 /* char *Abs(char *a);
  * Absolute value: |a|
  */
-char *Abs();
+char *Abs(char *a);
 
 /* char *Add(char *a,char *b);
  * Addition: a+b
  */
-char *Add();
+char *Add(char *a, char *b);
 
 /* char *Sub(char *a,char *b);
  * Subtraction: a-b
  */
-char *Sub();
+char *Sub(char *a, char *b);
 
 /* char *Mul(char *a,char *b);
  * Multiplication: a*b
  */
-char *Mul();
+char *Mul(char *a, char *b);
 
 /* char *Div(char *a,char *b);
  * Division: a/b
  */
-char *Div();
+char *Div(char *a, char *b);
 
 /* char *Mod(char *a,char *b);
  * Remainder of a/b.
  */
-char *Mod();
+char *Mod(char *a, char *b);
 
 /* int Int(char *a);
  * Convert string to integer
  */
-int Int();
+int Int(char *a);
 
 /* char *Arb(int a);
  * Convert integer to string
  */
-char *Arb();
+char *Arb(int a);
 
 /* char *Shift(char *a,int n)
  * Add n zeros after a, even if 'a' is zero.
  */
-char *Shift();
+char *Shift(char *a, int n);
 
 /** Money functions
  *
@@ -121,16 +121,16 @@ char *Shift();
 /* char *money(char *s,int exp);
  * Generate a money number from an integer and exponant
  */
-char *money();
+char *money(char *s, int exp);
 
-char *Madd();
-char *Msub();
-char *Mneg();
-char *Mabs();
-char *Mmul();
-char *Mdiv();
-int Mlong();
-char *Money();
+char *Madd(char *a, char *b);
+char *Msub(char *a, char *b);
+char *Mneg(char *a);
+char *Mabs(char *a);
+char *Mmul(char *a, char *b);
+char *Mdiv(char *a, char *b, int n);
+int Mlong(char *a);
+char *Money(int a);
 
 /** Floating point functions **
  *
@@ -154,76 +154,76 @@ char *Money();
  * The integer is returned as a string, and the exponent is placed at the
  * address 'expa'.
  */
-char *Extract();
+char *Extract(char *a, int *expa);
 
 /* char *Eng(char *s,int exp);
  * Generate a floating point number from an integer and an exponent in
  * the engineering format.
  */
-char *Eng();
+char *Eng(char *a, int exp);
 
 /* char *Fadd(char *a,char *b);
  * Floating point addition: a+b
  */
-char *Fadd();
+char *Fadd(char *a, char *b);
 
 /* char *Fsub(char *a,char *b);
  * Floating point subtraction: a-b
  */
-char *Fsub();
+char *Fsub(char *a, char *b);
 
 /* int Fcmp(char *a,char *b);
  * Comparison: 1 if a>b, 0 if a==b, or -1 if a<b
  */
-int Fcmp();
+int Fcmp(char *a, char *b);
 
 /* int Fucmp(char *a,char *b);
  * Magnitude comparison: 1 if |a|>|b|, 0 if |a|==|b|, or -1 if |a|<|b|
  */
-int Fucmp();
+int Fucmp(char *a, char *b);
 
 /* char *Fneg(char *a);
  * Negate: -a
  */
-char *Fneg();
+char *Fneg(char *a);
 
 /* char *Fabs(char *a);
  * Absolute value: |a|
  */
-char *Fabs();
+char *Fabs(char *);
 
 /* char *Fmul(char *a,char *b);
  * Floating point multiplication: a*b
  */
-char *Fmul();
+char *Fmul(char *a, char *b);
 
 /* char *Fdiv(char *a,char *b,int n);
  * Floating point division: a/b
  * At least n digits are generated.  No rounding takes place: the
  * number is simply truncated.
  */
-char *Fdiv();
+char *Fdiv(char *a, char *b, int n);
 
 /* char *Ftrunc(char *a);
  * Truncate and digits after the decimal point
  */
-char *Ftrunc();
+char *Ftrunc(char *a);
 
 /* char *FtoArb(char *a);
  * Truncate digits after the decimal point and add enough zeros so that the
  * exponent does not need to be generated (I.E., converts the number to an
  * arbitrary length integer).
  */
-char *FtoArb();
+char *FtoArb(char *a);
 
 /* double Fdouble(char *a);
  * Convert to a double
  */
-double Fdouble();
+double Fdouble(char *a);
 
 /* char *Farb(double n);
  * Convert a double to a string
  */
-char *Farb();
+char *Farb(double n);
 
 #endif

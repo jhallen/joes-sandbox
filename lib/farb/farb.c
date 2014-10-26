@@ -18,6 +18,8 @@ JOE; see the file COPYING.  If not, write to the Free Software Foundation,
 
 
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "farb.h"
 
 /* A valid number string is zero terminated C string containing 1 or more ASCII
@@ -25,13 +27,12 @@ JOE; see the file COPYING.  If not, write to the Free Software Foundation,
  * not allowed.  Leading zeros _must_ be suppressed.
  */
 
-static int max(a,b) { return a>=b?a:b; }
-static int min(a,b) { return a<=b?a:b; }
+static int max(int a,int b) { return a>=b?a:b; }
+/* static int min(int a,int b) { return a<=b?a:b; } */
 
 /* Unsigned Add.  If 'n' is true, preceed the result string with '-' */
 
-char *Uadd(a,b,n)
-char *a, *b;
+char *Uadd(char *a,char *b,int n)
  {
  int lena=strlen(a), lenb=strlen(b), lens;
  int c, x;
@@ -76,8 +77,7 @@ char *a, *b;
 /* Unsigned Subtract.  If 'n' is true, preceed the result string with '-'. The
  * magnitude of 'a' _must_ be larger than the magnitude of 'b'. */
 
-char *Usub(a,b,n)
-char *a, *b;
+char *Usub(char *a,char *b,int n)
  {
  int lena=strlen(a), lenb=strlen(b), lens;
  int c, x;
@@ -107,8 +107,7 @@ char *a, *b;
 /* Magnitude comparison.
  * Returns 1 if |a|>|b|, 0 if |a|=|b|, or -1 if |a|<|b| */
 
-static int ncmp(a,lena,b,lenb)
-char *a, *b;
+static int ncmp(char *a,int lena,char *b,int lenb)
  {
  while(*a=='0' && lena!=1) ++a, --lena;
  while(*b=='0' && lenb!=1) ++b, --lenb;
@@ -124,8 +123,7 @@ char *a, *b;
  return 0;
  }
 
-int Ucmp(a,b)
-char *a, *b;
+int Ucmp(char *a,char *b)
  {
  int lena=strlen(a), lenb=strlen(b);
  if(a[0]=='-') --lena, ++a;
@@ -135,8 +133,7 @@ char *a, *b;
 
 /* Compare.  Returns 1 if a>b, 0 if a=b, or -1 if a<b */
 
-int Cmp(a,b)
-char *a, *b;
+int Cmp(char *a,char *b)
  {
  if(a[0]!='-' && b[0]=='-') return 1;
  if(a[0]=='-' && b[0]!='-') return -1;
@@ -146,8 +143,7 @@ char *a, *b;
 
 /* Add */
 
-char *Add(a,b)
-char *a, *b;
+char *Add(char *a,char *b)
  {
  if(a[0]!='-' && b[0]=='-')
   if(Ucmp(a,b)>=0) return Usub(a,b,0);
@@ -161,8 +157,7 @@ char *a, *b;
 
 /* Subtract */
 
-char *Sub(a,b)
-char *a, *b;
+char *Sub(char *a,char *b)
  {
  if(a[0]!='-' && b[0]!='-')
   if(Ucmp(a,b)>=0) return Usub(a,b,0);
@@ -170,14 +165,13 @@ char *a, *b;
  else if(a[0]=='-' && b[0]=='-')
   if(Ucmp(a,b)<=0) return Usub(b,a,0);
   else return Usub(a,b,1);
- else if(a[0]!='-') Uadd(a,b,0);
- else Uadd(a,b,1);
+ else if(a[0]!='-') return Uadd(a,b,0);
+ else return Uadd(a,b,1);
  }
 
 /* Multiply */
 
-char *Mul(a,b)
-char *a, *b;
+char *Mul(char *a,char *b)
  {
  int lena=strlen(a), lenb=strlen(b), lens;
  int n=0;
@@ -192,7 +186,7 @@ char *a, *b;
  memset(s,'0',lens);
 
  for(x=0;x!=lenb;++x)
-  if(m=b[lenb-x-1]-'0')
+  if((m = b[lenb-x-1]-'0') != 0)
    {
    for(y=0, c=0;y!=lena;++y)
     if((s[lens-x-y-1]+=c+(a[lena-y-1]-'0')*m-'0')>=10)
@@ -216,8 +210,7 @@ char *a, *b;
 
 /* Negate */
 
-char *Neg(a)
-char *a;
+char *Neg(char *a)
  {
  if(a[0]=='-') return strdup(a+1);
  else if(a[0]!='0' || a[1])
@@ -232,8 +225,7 @@ char *a;
 
 /* Absolute value */
 
-char *Abs(a)
-char *a;
+char *Abs(char *a)
  {
  if(a[0]=='-') return strdup(a+1);
  else return strdup(a);
@@ -243,8 +235,7 @@ char *a;
  * times (0-9) which we subtracted
  */
 
-static int into(a,lena,b,lenb)
-char *a, *b;
+static int into(char *a,int lena,char *b,int lenb)
  {
  int m;
  for(m=0;ncmp(a,lena,b,lenb)>=0;++m)
@@ -264,12 +255,11 @@ char *a, *b;
 
 /* Divide */
 
-char *Div(a,b)
-char *a, *b;
+char *Div(char *a,char *b)
  {
  int lena=strlen(a), lenb=strlen(b), lenq;
  int n=0;
- int x, m;
+ int x;
  char *q, *r, *z;
 
  if(a[0]=='-') n^=1, ++a, --lena;
@@ -293,12 +283,11 @@ char *a, *b;
 
 /* Modulous */
 
-char *Mod(a,b)
-char *a, *b;
+char *Mod(char *a,char *b)
  {
  int lena=strlen(a), lenb=strlen(b), lenq;
  int n=0;
- int x, m;
+ int x;
  char *q, *r, *z;
 
  if(a[0]=='-') n^=1, ++a, --lena;
@@ -322,8 +311,7 @@ char *a, *b;
 
 /* Convert arb to integer */
 
-int Int(a)
-char *a;
+int Int(char *a)
  {
  int x=0;
  sscanf(a,"%d",&x);
@@ -332,7 +320,7 @@ char *a;
 
 /* Convert integer to arb */
 
-char *Arb(a)
+char *Arb(int a)
  {
  char buf[64];
  sprintf(buf,"%d",a);
@@ -343,9 +331,7 @@ char *Arb(a)
 
 /* Convert floating point number to integer and exponant */
 
-char *Extract(a,expa)
-char *a;
-int *expa;
+char *Extract(char *a,int *expa)
  {
  int ex, 	/* Offset to 'e' or 'E' */
      sgn,	/* Set to 1 if number is negative, otherwise set to zero */
@@ -406,8 +392,7 @@ int *expa;
  * decimal point).
  */
 
-char *Eng(s,exp)
-char *s;
+char *Eng(char *s,int exp)
  {
  int sgn;
  int dot;
@@ -473,8 +458,7 @@ char *s;
 
 /* Add n zeros to end of s */
 
-char *Shift(s,n)
-char *s;
+char *Shift(char *s,int n)
  {
  int len=strlen(s), x;
  char *new=(char *)malloc(len+n+1);
@@ -486,8 +470,7 @@ char *s;
 
 /* Floating point multiply */
 
-char *Fmul(a,b)
-char *a, *b;
+char *Fmul(char *a,char *b)
  {
  char *am, *bm, *r;
  int ae, be, re;
@@ -501,8 +484,7 @@ char *a, *b;
 
 /* Floating point addition */
 
-char *Fadd(a,b)
-char *a, *b;
+char *Fadd(char *a,char *b)
  {
  char *am, *bm, *r;
  int ae, be, re;
@@ -528,8 +510,7 @@ char *a, *b;
 
 /* Floating point subtraction */
 
-char *Fsub(a,b)
-char *a, *b;
+char *Fsub(char *a,char *b)
  {
  char *am, *bm, *r;
  int ae, be, re;
@@ -555,8 +536,7 @@ char *a, *b;
 
 /* Floating point division: to n places */
 
-char *Fdiv(a,b,n)
-char *a, *b;
+char *Fdiv(char *a,char *b,int n)
  {
  char *am, *bm, *r;
  int ae, be, re;
@@ -578,8 +558,7 @@ char *a, *b;
 
 /* Negate */
 
-char *Fneg(a)
-char *a;
+char *Fneg(char *a)
  {
  int exp;
  char *s=Extract(a,&exp), *t, *r;
@@ -592,8 +571,7 @@ char *a;
 
 /* Absolute value */
 
-char *Fabs(a)
-char *a;
+char *Fabs(char *a)
  {
  if(a[0]=='-') return strdup(a+1);
  else return strdup(a);
@@ -601,8 +579,7 @@ char *a;
 
 /* Magnitude comparison */
 
-int Fucmp(a,b)
-char *a, *b;
+int Fucmp(char *a,char *b)
  {
  char *am, *bm;
  int ae, be;
@@ -636,8 +613,7 @@ char *a, *b;
 
 /* Comparison */
 
-int Fcmp(a,b)
-char *a, *b;
+int Fcmp(char *a,char *b)
  {
  if(a[0]=='-' && b[0]!='-') return -1;
  else if(a[0]!='-' && b[0]=='-') return 1;
@@ -647,8 +623,7 @@ char *a, *b;
 
 /* Truncate everything after the decimal point */
 
-char *Ftrunc(a)
-char *a;
+char *Ftrunc(char *a)
  {
  int ae;
  int len;
@@ -671,14 +646,12 @@ char *a;
 /* Convert integer part of floating point number to an integer string with
  * no exponant */
 
-char *FtoArb(a)
-char *a;
+char *FtoArb(char *a)
  {
  int ae;
  int len;
  int sgn;
  char *am=Extract(a,&ae);
- char *r;
  if(am[0]=='-') sgn=1; else sgn=0;
  len=strlen(am);
  if(ae<0)
@@ -698,8 +671,7 @@ char *a;
 
 /* Convert to double */
 
-double Fdouble(a)
-char *a;
+double Fdouble(char *a)
  {
  double n=0.0;
  sscanf(a,"%lg",&n);
@@ -708,8 +680,7 @@ char *a;
 
 /* Convert from double */
 
-char *Farb(n)
-double n;
+char *Farb(double n)
  {
  char buf[64];
  sprintf(buf,"%lg",n);
@@ -719,8 +690,7 @@ double n;
 /* Generate a money number from an arbitrary precision integer and an exponant
  */
 
-char *money(s,exp)
-char *s;
+char *money(char *s,int exp)
  {
  char *r;
  int sgn;
@@ -780,8 +750,7 @@ char *s;
 
 /* Money multiply */
 
-char *Mmul(a,b)
-char *a, *b;
+char *Mmul(char *a,char *b)
  {
  char *am, *bm, *r;
  int ae, be, re;
@@ -795,8 +764,7 @@ char *a, *b;
 
 /* Money addition */
 
-char *Madd(a,b)
-char *a, *b;
+char *Madd(char *a,char *b)
  {
  char *am, *bm, *r;
  int ae, be, re;
@@ -822,8 +790,7 @@ char *a, *b;
 
 /* Floating point subtraction */
 
-char *Msub(a,b)
-char *a, *b;
+char *Msub(char *a,char *b)
  {
  char *am, *bm, *r;
  int ae, be, re;
@@ -849,8 +816,7 @@ char *a, *b;
 
 /* Money division */
 
-char *Mdiv(a,b,n)
-char *a, *b;
+char *Mdiv(char *a,char *b,int n)
  {
  char *am, *bm, *r;
  int ae, be, re;
@@ -872,8 +838,7 @@ char *a, *b;
 
 /* Negate */
 
-char *Mneg(a)
-char *a;
+char *Mneg(char *a)
  {
  int exp;
  char *s=Extract(a,&exp), *t, *r;
@@ -886,8 +851,7 @@ char *a;
 
 /* Format money strings nicely */
 
-char *Mfmt(s,flg)
-char *s;
+char *Mfmt(char *s,int flg)
  {
  char *r;
  int sgn;
@@ -913,11 +877,11 @@ char *s;
  return r;
  }
 
-main(arbc,argv)
-char *argv[];
+int main(int arbc,char *argv[])
  {
  int n;
  sscanf(argv[3],"%d",&n);
  printf("%s\n",Fdiv(argv[1],argv[2],n));
 /* printf("%s\n",Mfmt(Madd(argv[1],argv[2]),1)); */
+ return 0;
  }
