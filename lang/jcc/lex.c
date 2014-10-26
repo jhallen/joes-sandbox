@@ -413,7 +413,6 @@ const char *unesc(int c)
 
 int escape(int c)
 {
-        loop:
         if (c == '\\') {
                 c = tok_getc();
                 switch (c) {
@@ -618,7 +617,7 @@ char *macro_subst(struct macro *m, char *s)
                                 do {
                                         word_buffer_next(c);
                                         c = *s++;
-                                } while (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_');
+                                } while ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_');
                                 --s;
                                 word_buffer[word_buffer_len] = 0;
                                 for (arg = m->args; m; arg = arg->next)
@@ -746,8 +745,8 @@ int get_tok(int preproc)
 		        word_buffer_first(c);
 		        for (;;) {
         		  	c = tok_getc();
-        		  	if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z' ||
-        		  	    c >= 'A' && c <= 'Z' || c == '_') {
+        		  	if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') ||
+        		  	    (c >= 'A' && c <= 'Z') || c == '_') {
         		  		word_buffer_next(c);
         		  	} else {
         		  		tok_ungetc(c);
@@ -1127,7 +1126,7 @@ void set_macro(char *name, struct macro_arg *args, char *body)
 
 void clr_macro(char *name)
 {
-        struct macro **m, *n;
+        struct macro **m;
         for (m = &macros; *m; m = &(*m)->next)
                 if (!strcmp((*m)->name, name))
                         break;
@@ -1407,7 +1406,7 @@ void handle_preproc()
                                                         word_buffer_next(c);
                                         }
                                         word_buffer_done();
-                                        if (d == '<' && c == '>' || d == '\"' && c == '\"') {
+                                        if ((d == '<' && c == '>') || (d == '\"' && c == '\"')) {
                                                 fi = file_name;
                                                 li = line;
                                                 check_eol();
@@ -1486,7 +1485,7 @@ void handle_preproc()
                                         for (m = macros; m; m = m->next)
                                                 if (!strcmp(m->name, word_buffer))
                                                         break;
-                                        if (m && c == pIFDEF || !m && c == pIFNDEF) {
+                                        if ((m && c == pIFDEF) || (!m && c == pIFNDEF)) {
                                                 push_cond(1);
                                         } else {
                                                 push_cond(-1);
@@ -1598,7 +1597,7 @@ void show_tok(int c)
                 case tNUM: printf("%s %d: tNUM (%llu%s%s)\n", file_name, line, num.num, (num.is_unsigned ? "u" : ""), (num.is_long_long ? "ll" : "")); break;
                 case tSTRING: {
                         int x;
-                        printf("%s %d: tSTRING \"", file_name, line, word_buffer);
+                        printf("%s %d: tSTRING \"", file_name, line);
                         for (x = 0; x != word_buffer_len; ++x)
                                 printf("%s", unesc(((unsigned char *)word_buffer)[x]));
                         printf("\"\n");
@@ -1654,7 +1653,6 @@ void show_macros()
         struct macro *m;
         for (m = macros; m; m = m->next) {
                 struct macro_arg *a;
-                struct tok_list *t;
                 printf("Macro %s (", m->name);
                 for (a = m->args; a; a = a->next) {
                         printf(" %s ", a->name);
