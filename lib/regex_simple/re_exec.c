@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include "re.h"
 
-int dfa_match(struct dfa *dfa, unsigned char *s)
+int dfa_match(struct dfa *dfa, char *s)
 {
-	int x;
 	while (dfa && *s) {
-		dfa = dfa->nxt[*s++];
+		dfa = dfa->nxt[*(unsigned char *)s++];
 	}
 	if (dfa && dfa->eof)
 		return 1;

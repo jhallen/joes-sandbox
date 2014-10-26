@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "regex.h"
 
 /* Simple (slow) regular expression parser.  Returns true if 'string'
@@ -14,7 +16,7 @@
  *    x      other characters match themselves only.
  */
 
-static int rmatch(unsigned char *string,unsigned char *pattern,unsigned char **result)
+static int rmatch(char *string,char *pattern,char **result)
   {
   int q;
   char sense;
@@ -51,13 +53,13 @@ static int rmatch(unsigned char *string,unsigned char *pattern,unsigned char **r
             test[q]=1;
           ++pattern;
           }
-        else test[*pattern]=1;
+        else test[*(unsigned char *)pattern]=1;
         ++pattern;
         }
       if(*pattern) ++pattern;
       }
     else			/* Match character itself */
-      test[*pattern++]=1;
+      test[*(unsigned char *)pattern++]=1;
 
     /* Check for spanning characters... */
     if(*pattern=='*' || *pattern=='+')
@@ -67,7 +69,7 @@ static int rmatch(unsigned char *string,unsigned char *pattern,unsigned char **r
       int lastx= -1;
       if(*pattern++=='+')
         {
-        if(test[*string]!=sense) return 0;
+        if(test[*(unsigned char *)string]!=sense) return 0;
         buf[x++]=*string++;
         }
       laststring=0;
@@ -78,7 +80,7 @@ static int rmatch(unsigned char *string,unsigned char *pattern,unsigned char **r
           lastx=x;
           laststring=string;
           }
-        if(!*string || test[*string]!=sense) break;
+        if(!*string || test[*(unsigned char *)string]!=sense) break;
         buf[x++]= *string++;
         }
       if(lastx>=0)
@@ -91,7 +93,7 @@ static int rmatch(unsigned char *string,unsigned char *pattern,unsigned char **r
       }
     else
       { /* Just one character */
-      if(test[*string++]!=sense) return 0;
+      if(test[*(unsigned char *)string++]!=sense) return 0;
       }
     }
   }
@@ -108,7 +110,7 @@ void subst(char *out,char *pat,char *sub,char *in)
     res[x]=buf+256*x;
     buf[x*256]=0;
     }
-  if(pat && sub && rmatch(in,pat,&res))
+  if(pat && sub && rmatch(in,pat,res))
     {
     while(*sub)
       if(*sub=='&' && (sub[1]>='0' && sub[1]<='9' || sub[1]=='_'))

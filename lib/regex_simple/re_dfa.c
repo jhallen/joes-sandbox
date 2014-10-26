@@ -191,11 +191,12 @@ struct dfa *do_nfa_to_dfa(struct list *nfa)
 		dfa->nfa = list;
 		for (x = -1; x != 256; ++x) {
 			struct list *l = move(list, x);
-			if (l)
+			if (l) {
 				if (x == -1)
 					dfa->eof = &eof;
 				else
 					dfa->nxt[x] = do_nfa_to_dfa(l);
+			}
 		}
 	}
 	return dfa;

@@ -1,4 +1,7 @@
-OBJS = scan.c main.c pretty.c
+OBJS = scan.o main.o pretty.o
 
 vfmt: $(OBJS)
 	gcc -g -o vfmt $(OBJS)
+
+clean:
+	rm -f $(OBJS) *~

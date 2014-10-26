@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "database.h"
 #include "simp.h"
 #include "tree.h"
-#include "database.h"
 #include "chdr.h"
 #include "extract.h"
 

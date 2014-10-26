@@ -1,4 +1,7 @@
-OBJS = scan.c parse.c main.c database.c tree.c simp.c chdr.c regex.c extract.c
+OBJS = scan.o parse.o main.o database.o tree.o simp.o chdr.o regex.o extract.o
 
 vcsr: $(OBJS)
 	gcc -g -o vcsr $(OBJS)
+
+clean:
+	rm -f $(OBJS) *~

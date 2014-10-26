@@ -1,6 +1,8 @@
 // Constant expression evaluator
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "database.h"
 #include "tree.h"
 #include "simp.h"

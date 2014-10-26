@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "database.h"
 #include "simp.h"
 #include "tree.h"
-#include "database.h"
 
 struct module *modules;		// Modules
 struct module *top;		// Top-level module
