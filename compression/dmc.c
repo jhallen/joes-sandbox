@@ -16,6 +16,7 @@ Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 /* The order of the statistical model */
 
@@ -33,7 +34,7 @@ int buflen;
 
 /* Output n bits of c */
 
-void emit(c,n)
+void emit(int c,int n)
  {
  accu|=c<<nbits;
  nbits+=n;
@@ -49,7 +50,7 @@ void flsh()
 
 /* Get n bits */
 
-int get(n)
+int get(int n)
  {
  unsigned char c;
  while(nbits<n) accu|=*buf++<<nbits, nbits+=8;
@@ -97,7 +98,7 @@ struct huff_node *allocate_huff_node()
 void free_huff_nodes()
  {
  struct huff_node *h;
- while(h=alloced_huff_node)
+ while((h=alloced_huff_node) != 0)
   {
   alloced_huff_node=h->zero;
   free(h);
@@ -144,7 +145,7 @@ struct entry *allocate_entry()
 void free_entries()
  {
  struct entry *e;
- while(e=alloced_entry)
+ while((e=alloced_entry) != 0)
   {
   alloced_entry=e->next;
   free(e);
@@ -160,8 +161,7 @@ struct entry *htab[HTSIZE];
 
 /* Add a new node to a huffman table */
 
-void add(base,ent)
-struct entry *base, *ent;
+void add(struct entry *base,struct entry *ent)
  {
  struct huff_node *new=allocate_huff_node();
  struct huff_node *coppied=allocate_huff_node();
@@ -193,9 +193,7 @@ struct entry *base, *ent;
 
 /* Increment count on a huffman node and update huffman tree */
 
-void update(base,i)
-struct entry *base;
-struct huff_node *i;
+void update(struct entry *base,struct huff_node *i)
  {
  while(i)
   {
@@ -247,8 +245,7 @@ struct huff_node *i;
 
 /* Create a new huffman table */
 
-void mklevel(base,ent)
-struct entry *base, *ent;
+void mklevel(struct entry *base,struct entry *ent)
  {
  struct huff_node *root=allocate_huff_node();
  struct huff_node *esc=allocate_huff_node();
@@ -283,16 +280,14 @@ struct entry *base, *ent;
 
 /* Output a huffman code */
 
-void up(i)
-struct huff_node *i;
+void up(struct huff_node *i)
  {
  if(i->parent) up(i->parent), emit(i->parent->one==i,1);
  }
 
 /* Decode a huffman code */
 
-struct huff_node *down(i)
-struct huff_node *i;
+struct huff_node *down(struct huff_node *i)
  {
  while(i->zero)
   if(get(1)) i=i->one;
@@ -302,8 +297,7 @@ struct huff_node *i;
 
 /* Lookup a string in the hash table */
 
-struct entry *find(str,len)
-unsigned char *str;
+struct entry *find(unsigned char *str,int len)
  {
  struct entry *p;
  unsigned long hval=0;
@@ -331,8 +325,7 @@ unsigned char *str;
 /* Encode last byte of string.  All but the last byte of the string is used
  * to select the huffman table to use */
 
-void encode(str,len)
-unsigned char *str;
+void encode(unsigned char *str,int len)
  {
  struct entry *base, *ent;
  base=find(str,len-1);
@@ -362,8 +355,7 @@ unsigned char *str;
 /* Decode one character.  Adds the character to right after end of string.
  * Uses characters already in the string to select huffman table */
 
-unsigned char decode(str,len)
-unsigned char *str;
+void decode(unsigned char *str, int len)
  {
  struct entry *base=find(str,len);
  struct entry *ent;
@@ -409,8 +401,7 @@ unsigned char *str;
 /* Encode a block (src/len) into an output buffer (dst).  Returns encoded size
  */
 
-int h(dst,src,len)
-unsigned char *dst, *src;
+int h(unsigned char *dst,unsigned char *src,int len)
  {
  int x;
 
@@ -435,8 +426,7 @@ unsigned char *dst, *src;
  * the decoded size, not the encoded size
  */
 
-int uh(dst,src,len)
-unsigned char *dst, *src;
+int uh(unsigned char *dst,unsigned char *src,int len)
  {
  int x;
 
@@ -456,8 +446,7 @@ unsigned char *dst, *src;
 
 /* Decode options and encode or decode stdin to stdout */
 
-int main(argc,argv)
-char *argv[];
+int main(int argc,char *argv[])
  {
  unsigned char ibuf[65536];
  unsigned char obuf[65536];
@@ -536,4 +525,5 @@ char *argv[];
     }
    } while(ilen==bksize);
   }
+ return 0;
  }

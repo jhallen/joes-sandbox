@@ -1,5 +1,6 @@
 /* LZ78 compression */
 
+#include <string.h>
 #include "lz78.h"
 
 extern void *malloc(int);
@@ -198,8 +199,6 @@ int ucmp(unsigned char *dst, unsigned char *src, int len)
 
   while(len)
    {
-   int hv;
-
    /* Get */
    while(nbits<bits)
     {

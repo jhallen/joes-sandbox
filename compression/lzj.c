@@ -21,6 +21,8 @@ this software; see the file COPYING.  If not, write to the Free Software
 Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 /* Parameters */
 
@@ -53,7 +55,7 @@ unsigned char *buf;
 
 /* Output n bits of c */
 
-void emit(c,n)
+void emit(int c,int n)
  {
  accu|=c<<nbits;
  nbits+=n;
@@ -69,7 +71,7 @@ void flsh()
 
 /* Get n bits */
 
-int get(n)
+int get(int n)
  {
  unsigned c;
  while(nbits<n) accu|=*buf++<<nbits, nbits+=8;
@@ -91,8 +93,7 @@ struct entry
 
 /* Find longest (up to given length) matching string */
 
-struct entry *find(str,len)
-unsigned char *str;
+struct entry *find(unsigned char *str,int len)
  {
  unsigned hval;
  struct entry *e, *f;
@@ -110,8 +111,7 @@ unsigned char *str;
 
 /* Add a string of a given length to the database */
 
-void add(str,len,pos)
-unsigned char *str;
+void add(unsigned char *str,int len,int pos)
  {
  unsigned hval;
  struct entry *e;
@@ -131,8 +131,7 @@ unsigned char *str;
 
 /* Delete string from hash table */
 
-void del(str,len,pos)
-unsigned char *str;
+void del(unsigned char *str,int len,int pos)
  {
  unsigned hval;
  struct entry *e;
@@ -179,8 +178,7 @@ void clrtab()
 
 /* Calculate benefit of twp adjacent finds */
 
-int lzj(dst,src,len)
-unsigned char *dst, *src;
+int lzj(unsigned char *dst,unsigned char *src,int len)
  {
  int x;
 
@@ -274,8 +272,7 @@ unsigned char *dst, *src;
  * must be passed in 'len'
  */
 
-void ulzj(dst,src,len)
-unsigned char *dst, *src;
+void ulzj(unsigned char *dst,unsigned char *src,int len)
  {
  int x;
 
@@ -301,8 +298,7 @@ unsigned char *dst, *src;
 
 /** Example main **/
 
-int main(argc,argv)
-char *argv[];
+int main(int argc,char *argv[])
  {
  unsigned char ibuf[65536];
  unsigned char obuf[65536];
@@ -375,4 +371,5 @@ char *argv[];
     }
    } while(ilen==bksize);
   }
+ return 0;
  }
