@@ -52,12 +52,12 @@ static int line=1;		/* Current line number */
 static char tok_str[1024];	/* String associated with token */
 static int tok_unget= -1;	/* Ungotten token */
 
-void xml_unget(int c)
+static void xml_unget(int c)
   {
   tok_unget=c;
   }
 
-int xml_tok(FILE *f)
+static int xml_tok(FILE *f)
   {
   int c;
   if(tok_unget!=-1)
@@ -159,12 +159,12 @@ int xml_tok(FILE *f)
 
 /* Get next non-whitepace/non-comment character or tag */
 
-int xml_skip(FILE *f)
+static int xml_skip(FILE *f)
   {
   int c;
   do
     c=xml_tok(f);
-    while(c==' ' || c==10 || c==13 || c==9 || c==TAG && (tok_str[0]=='!' || tok_str[0]=='?'));
+    while(c==' ' || c==10 || c==13 || c==9 || (c==TAG && (tok_str[0]=='!' || tok_str[0]=='?')));
   return c;
   }
 
@@ -445,7 +445,7 @@ void lisp_print_untagged(FILE *f,int i,struct base *b)
         {
         char *s;
         for(x=0;x!=i+2;++x) fputc(' ',f);
-        fprintf(f,"\"",q->str);
+        fprintf(f,"\"");
         s= *t++;
         while(*s)
           {

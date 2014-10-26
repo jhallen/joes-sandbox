@@ -49,7 +49,7 @@ struct meta metadata[]=
 
 /* Search for metadata structure definition table entry */
 
-HASH *meta_hash;
+static HASH *meta_hash;
 
 struct meta *metafind(char *name)
   {

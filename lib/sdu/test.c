@@ -7,12 +7,12 @@
 
 #include "meta.h"
 
-main(int argc,char *argv[])
+int main(int argc,char *argv[])
   {
   FILE *f=fopen(argv[1],"r");
 
   // Parse XML file
-  struct foo *b=xml_parse(f,metadata);
+  struct foo *b=(struct foo *)xml_parse(f,metadata);
   struct item *i;
 
   // Access values in foo
@@ -23,17 +23,17 @@ main(int argc,char *argv[])
   printf("root->items->next->next->val = %d\n",b->items->next->next->val);
 
   // Print in various formats
-  xml_print(stdout,0,b);
+  xml_print(stdout,0,(struct base *)b);
 
-  lisp_print(stdout,0,b);
+  lisp_print(stdout,0,(struct base *)b);
 
-  lisp_print_untagged(stdout,0,b);
+  lisp_print_untagged(stdout,0,(struct base *)b);
 
-  indent_print(stdout,0,b);
+  indent_print(stdout,0,(struct base *)b);
 
-  indent_print_untagged(stdout,0,b);
+  indent_print_untagged(stdout,0,(struct base *)b);
 
-  json_print(stdout,0,b,0);
+  json_print(stdout,0,(struct base *)b,0);
 
   // Create a database within C
   b=mk("foo");
@@ -49,5 +49,7 @@ main(int argc,char *argv[])
   i->val=9;
 
   // Print it
-  xml_print(stdout,0,b);
+  xml_print(stdout,0,(struct base *)b);
+
+  return 0;
   }

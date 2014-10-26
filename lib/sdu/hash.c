@@ -13,12 +13,12 @@
 
 static HENTRY *freentry = NULL;
 
-unsigned long hash(unsigned char *s)
+unsigned long hash(char *s)
 {
 	unsigned long accu = 0;
 
 	while (*s) {
-		accu = hnext(accu, *s++);
+		accu = hnext(accu, *(unsigned char *)s++);
 	}
 	return accu;
 }
@@ -38,7 +38,7 @@ void htrm(HASH *ht)
 	free(ht);
 }
 
-void *htadd(HASH *ht, unsigned char *name, void *val)
+void *htadd(HASH *ht, char *name, void *val)
 {
 	int idx = hash(name) & ht->len;
 	HENTRY *entry;
@@ -59,7 +59,7 @@ void *htadd(HASH *ht, unsigned char *name, void *val)
 	return entry->val = val;
 }
 
-void *htfind(HASH *ht, unsigned char *name)
+void *htfind(HASH *ht, char *name)
 {
 	HENTRY *e;
 
