@@ -183,7 +183,7 @@ Syntax                    | Meaning
 STRUCT(name,&lt;contents&gt;)   | Define a structure
 STRING(name)              | Declare a string within a structure
 INTEGER(name)             | Declare an integer within a structure
-SUBSTRUCT(name,structure-name) | Declare a single sub-structure within a structure
+SUBSTRUCT(name,structure-name) | Declare a sub-structure within a structure
 LIST(name,structure-name) | Declare a list of structures within a structure
 
 There must be a least one structure defined in schema.h
@@ -194,14 +194,14 @@ The following functions are provided:
 
 Function                                                       | Description
 --------                                                       | -----------
-struct base *xml_parse(FILE *f,char *name,struct meta *expect,int require);           | Load an XML formatted file from stream 'f'.  'expect' is pointer to meta data of the expected root structure.  If _metadata_ is placed here, the first structure defined in schema.h is used.
-void xml_print(FILE *f,char *name,int indent,struct base *b);             | Write database as XML formatted file to stream 'f'.  <em>indent</em> is starting indentation level (set to zero).
+struct base *xml_parse(FILE *f,char *name,struct meta *expect,int require);           | Load an XML formatted file from with root element named _name_ from stream _f_.  _expect_ is a pointer to meta data of the expected root structure.  If _metadata_ is placed here, the first structure defined in schema.h is used.  If _require_ is set, the file must contain the root element, otherwise an error is printed.
+void xml_print(FILE *f,char *name,int indent,struct base *b);             | Write database _b_ as XML formatted file to stream _f_.  _indent_ is starting indentation level (set to zero). _name_ is name of root element.
 void lisp_print(FILE *f,char *name,int indent,struct base *b);            | Write database as LISP formatted file
-void lisp_print_untagged(FILE *f,char *name,int indent,struct base *b);   | Write database as LISP formatted file (structure members unnamed)
+void lisp_print_untagged(FILE *f,char *name,int indent,struct base *b);   | Write database as LISP formatted file, but where structure members are unnamed.
 void indent_print(FILE *f,char *name,int indent,struct base *b); | Write database as indented file
-void indent_print_untagged(FILE *f,char *name,int indent,struct base *b); | Write database as indented file (structure member unnamed)
-void json_print(FILE *f,int indent,struct base *b);            | Write database as JSON formatted file
-struct base *mk(char *name);                                   | Create a structure which exists in the schema
+void indent_print_untagged(FILE *f,char *name,int indent,struct base *b); | Write database as indented file, but where structure members are unnamed.
+void json_print(FILE *f,int indent,struct base *b);            | Write database as JSON formatted file.
+struct base *mk(char *name);                                   | Create a structure which exists in the schema.
 struct meta *metafind(char *name);                             | Find meta data for named structure type.
 
 ## Todo
