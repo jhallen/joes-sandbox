@@ -41,6 +41,7 @@ struct schema
 #define tLIST 2
 #define tSTRING 3
 #define tINTEGER 4
+#define tLINK 5
 
 /* Base class */
 

@@ -26,9 +26,9 @@ SDU; see the file COPYING.  If not, write to the Free Software Foundation,
 
 #define STRUCT(name,contents) { tSTRUCT, #name }, contents { 0, 0 },
 
-#define SUBSTRUCT(name,type) { tSTRUCT, #name }, { -1, #type },
+#define SUBSTRUCT(name,type) { tSTRUCT, #name }, { tLINK, #type },
 
-#define LIST(name,type) { tLIST, #name }, { -1, #type },
+#define LIST(name,type) { tLIST, #name }, { tLINK, #type },
 
 #define STRING(name) { tSTRING, #name },
 
