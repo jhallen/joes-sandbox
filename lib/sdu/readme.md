@@ -52,15 +52,24 @@ Both of these files include "schema.h".
 ``` C
     /* A Book */
 
-    STRUCT(order
+    STRUCT(order,
        STRING(title)
        INTEGER(size)
-       LIST(items,item)
+       SUBSTUCT(shipto, address)
+       LIST(items, item)
        )
 
-    STRUCT(item
+    STRUCT(item,
        STRING(name)
        INTEGER(price)
+       )
+
+    STRUCT(address,
+       STRING(name)
+       STRING(street)
+       STRING(city)
+       STRING(state)
+       STRING(zip)
        )
 ```
 
@@ -70,18 +79,26 @@ Here is a legal XML data file for the above schema:
 ``` XML
     <?xml version="1.0" ?>
 
-    <order>
+    <root>
 
     <title>Hello</title>
 
     <size>123</size>
+
+    <shipto>
+      <name>My Company</name>
+      <street>101 Main St.</street>
+      <city>My City</city>
+      <state>NJ</state>
+      <zip>12345</zip>
+    </shipto>
 
     <items>
     <item><name>Joe Allen</name><price>34</price></item>
     <item><name>Bill Allen</name><price>29</price></item>
     </items>
 
-    </order>
+    </root>
 ```
 
 Here is how each element is accessed from C:
@@ -90,6 +107,8 @@ Path               | Description
 ----               | -----------
 root->title        | The name
 root->size         | The size
+root->shipto->name | Name part of shipto address
+root->shipto->city | City part of shipto address
 root->items        | The first item
 root->items->name  | Name of first item
 root->items->price | Price of first item
@@ -106,14 +125,33 @@ In fact, these C structures get defined:
 
       struct order *next;	/* Next structure in list */
       struct base *mom;	/* Parent */
-      char *_name;		/* String name of structure type */
+      char *_name;		/* "order" */
       struct meta *_meta;	/* Meta definition of structure */
 
       /* User's data */
 
       char *title;
       int size;
+      struct address *shipto;
       struct item *items;
+      };
+
+    struct address
+      {
+      /* Standard header */
+
+      struct item *next;	/* Next in list */
+      struct base  *mom;	/* Parent */
+      char *_name;		/* "address" */
+      struct meta *_meta;
+
+      /* User's data */
+
+      char *name;
+      char *street;
+      char *city;
+      char *state;
+      char *zip;
       };
 
     struct item
@@ -145,6 +183,7 @@ Syntax                    | Meaning
 STRUCT(name,&lt;contents&gt;)   | Define a structure
 STRING(name)              | Declare a string within a structure
 INTEGER(name)             | Declare an integer within a structure
+SUBSTRUCT(name,structure-name) | Declare a single sub-structure within a structure
 LIST(name,structure-name) | Declare a list of structures within a structure
 
 There must be a least one structure defined in schema.h
@@ -155,11 +194,12 @@ The following functions are provided:
 
 Function                                                       | Description
 --------                                                       | -----------
-struct base *xml_parse(FILE *f,struct meta *expect);           | Load an XML formatted file from stream 'f'.  'expect' is pointer to meta data of the expected root structure.  If _metadata_ is placed here, the first structure defined in schema.h is used.
-void xml_print(FILE *f,int indent,struct base *b);             | Write database as XML formatted file to stream 'f'.  <em>indent</em> is starting indentation level (set to zero).
-void lisp_print(FILE *f,int indent,struct base *b);            | Write database as LISP formatted file
-void lisp_print_untagged(FILE *f,int indent,struct base *b);   | Write database as LISP formatted file (primitive types get no tags)
-void indent_print_untagged(FILE *f,int indent,struct base *b); | Write database as indented file (primitive types get no tags)
+struct base *xml_parse(FILE *f,char *name,struct meta *expect,int require);           | Load an XML formatted file from stream 'f'.  'expect' is pointer to meta data of the expected root structure.  If _metadata_ is placed here, the first structure defined in schema.h is used.
+void xml_print(FILE *f,char *name,int indent,struct base *b);             | Write database as XML formatted file to stream 'f'.  <em>indent</em> is starting indentation level (set to zero).
+void lisp_print(FILE *f,char *name,int indent,struct base *b);            | Write database as LISP formatted file
+void lisp_print_untagged(FILE *f,char *name,int indent,struct base *b);   | Write database as LISP formatted file (structure members unnamed)
+void indent_print(FILE *f,char *name,int indent,struct base *b); | Write database as indented file
+void indent_print_untagged(FILE *f,char *name,int indent,struct base *b); | Write database as indented file (structure member unnamed)
 void json_print(FILE *f,int indent,struct base *b);            | Write database as JSON formatted file
 struct base *mk(char *name);                                   | Create a structure which exists in the schema
 struct meta *metafind(char *name);                             | Find meta data for named structure type.
