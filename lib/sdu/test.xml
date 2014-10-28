@@ -1,7 +1,8 @@
 <?xml version="1.0" ?>
 <root>
 <val>7</val>
-<val_name>hi&amp;  &lt;  there  &gt; !</val_name>
+<val_name>h	i&amp;  &lt;  \t
+he"re  &gt; !</val_name>
 <!-- this is a comment -->
 <items>
   <item><val>1</val></item>

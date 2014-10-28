@@ -735,8 +735,16 @@ void json_print(FILE *f,char *name,int i,struct base *b,int comma)
           {
           switch(*s)
             {
-            case '"': fprintf(f,"\""); break;
-            default: fputc(*s,f);
+            case '\\': fprintf(f,"\\\\"); break;
+            case '\r': fprintf(f,"\\r"); break;
+            case '\n': fprintf(f,"\\n"); break;
+            case '\f': fprintf(f,"\\f"); break;
+            case '\b': fprintf(f,"\\b"); break;
+            case '\t': fprintf(f,"\\t"); break;
+            case '"': fprintf(f,"\\\""); break;
+            default:
+              if (*(unsigned char *)s < 32) fprintf(f,"\\u%4.4x",*(unsigned char *)s);
+              else fputc(*s,f);
             }
           ++s;
           }
