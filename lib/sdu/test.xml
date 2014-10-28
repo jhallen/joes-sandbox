@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<foo>
+<root>
 <val>7</val>
 <val_name>hi&amp;  &lt;  there  &gt; !</val_name>
 <!-- this is a comment -->
@@ -8,4 +8,4 @@
   <item><val>2</val></item>
   <item><val>3</val></item>
 </items>
-</foo>
+</root>

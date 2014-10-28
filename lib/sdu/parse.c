@@ -170,11 +170,11 @@ static int xml_skip(FILE *f)
 
 /* Parse a structure */
 
-struct base *xml_parse(FILE *f,struct meta *expect)
+struct base *xml_parse(FILE *f,char *name,struct meta *expect,int require)
   {
   /* Looking for whitespace <name> ..... </name> */
   int c=xml_skip(f);
-  if(c==TAG && !strcmp(tok_str,expect->str))
+  if(c==TAG && !strcmp(tok_str,name))
     {
     struct base *b=mkraw(expect);
     struct meta *m;
@@ -194,20 +194,22 @@ struct base *xml_parse(FILE *f,struct meta *expect)
               fprintf(stderr,"Error in grammar '%s' not found\n",(m+1)->str);
               exit(-1);
               }
-            first=last=xml_parse(f,n);
+            first=last=xml_parse(f,n->str,n,0);
             while(last)
-              last=last->next=xml_parse(f,n);
+              last=last->next=xml_parse(f,n->str,n,0);
             *t++ = first;
             c=xml_skip(f);
             if(c!=END_TAG || strcmp(tok_str,m->str))
               {
-              fprintf(stderr,"%d: Missing end tag\n",line);
+              fprintf(stderr,"%d: Missing end tag '%s'\n",line,m->str);
               xml_unget(c);
               }
+            ++m;
             }
           else
             {
-            fprintf(stderr,"%d: missing list\n",line);
+            fprintf(stderr,"%d: missing list '%s'\n",line,m->str);
+            if (c == TAG) fprintf(stderr,"%d:  ... we found '%s'\n",line,tok_str);
             return 0;
             }
           break;
@@ -215,8 +217,15 @@ struct base *xml_parse(FILE *f,struct meta *expect)
 
         case tSTRUCT:
           { /* Structure reference (rethink this)... */
+          struct meta *n=metafind((m+1)->str);
+          if (!n)
+            {
+            fprintf(stderr,"Error in grammar '%s' not found\n",m->str);
+            exit(-1);
+            }
+          if ((*t++ = xml_parse(f,m->str,n,1)) == 0)
+            return 0;
           ++m;
-          *t++ = xml_parse(f,m);
           break;
           }
 
@@ -241,13 +250,14 @@ struct base *xml_parse(FILE *f,struct meta *expect)
             *t++ = s;
             if(c!=END_TAG || strcmp(tok_str,m->str))
               {
-              fprintf(stderr,"%d: missing end tag\n",line);
+              fprintf(stderr,"%d: missing end tag '%s'\n",line,m->str);
               if(c!=EOF) xml_unget(c);
               }
             }
           else
             {
-            fprintf(stderr,"%d: missing string\n",line);
+            fprintf(stderr,"%d: missing string '%s'\n",line,m->str);
+            if (c == TAG) fprintf(stderr,"%d:  ... we found '%s'\n",line,tok_str);
             return 0;
             }
           break;
@@ -269,28 +279,33 @@ struct base *xml_parse(FILE *f,struct meta *expect)
             else *t++ = (void *)val;
             if(c!=END_TAG || strcmp(tok_str,m->str))
               {
-              fprintf(stderr,"%d: missing end tag\n",line);
+              fprintf(stderr,"%d: missing end tag '%s'\n",line,m->str);
               if(c!=EOF) xml_unget(c);
               }
             }
           else
             {
-            fprintf(stderr,"%d: missing integer\n",line);
+            fprintf(stderr,"%d: missing integer '%s'\n",line,m->str);
+            if (c == TAG) fprintf(stderr,"%d:  ... we found '%s'\n",line,tok_str);
             return 0;
             }
           break;
           }
         }
     c=xml_skip(f);
-    if(c!=END_TAG || strcmp(tok_str,expect->str))
+    if(c!=END_TAG || strcmp(tok_str,name))
       {
-      fprintf(stderr,"%d: Missing end tag\n",line);
+      fprintf(stderr,"%d: Missing end tag '%s'\n",line,m->str);
       xml_unget(c);
       }
     return b;
     }
   else
     {
+    if (require) {
+      fprintf(stderr,"%d: Missing struct '%s'\n",line,name);
+      if (c == TAG) fprintf(stderr,"%d:  ... we found '%s'\n",line,tok_str);
+    }
     xml_unget(c);
     return 0;
     }
@@ -298,14 +313,14 @@ struct base *xml_parse(FILE *f,struct meta *expect)
 
 /* Print XML structure */
 
-void xml_print(FILE *f,int i,struct base *b)
+void xml_print(FILE *f,char *name,int i,struct base *b)
   {
   struct meta *m=b->_meta;
   struct meta *q;
   int x;
   void **t=(void **)((char *)b+sizeof(struct base));
   for(x=0;x!=i;++x) fputc(' ',f);
-  fprintf(f,"<%s>\n",m->str);
+  fprintf(f,"<%s>\n",name);
   for(q=m+1;q->code;++q)
     switch(q->code)
       {
@@ -314,7 +329,7 @@ void xml_print(FILE *f,int i,struct base *b)
         struct base *bb;
         for(x=0;x!=i+2;++x) fputc(' ',f);
         fprintf(f,"<%s>\n",q->str);
-        for(bb=(struct base *)*t++;bb;bb=bb->next) xml_print(f,i+4,bb);
+        for(bb=(struct base *)*t++;bb;bb=bb->next) xml_print(f,bb->_meta->str,i+4,bb);
         for(x=0;x!=i+2;++x) fputc(' ',f);
         fprintf(f,"</%s>\n",q->str);
         ++q;
@@ -322,7 +337,8 @@ void xml_print(FILE *f,int i,struct base *b)
         }
       case tSTRUCT:
         {
-        xml_print(f,i+2,(struct base *)*t++);
+        xml_print(f,q->str,i+2,(struct base *)*t++);
+        ++q;
         break;
         }
       case tSTRING:
@@ -353,19 +369,20 @@ void xml_print(FILE *f,int i,struct base *b)
         }
       }
   for(x=0;x!=i;++x) fputc(' ',f);
-  fprintf(f,"</%s>\n",m->str);
+  fprintf(f,"</%s>\n",name);
   }
 
 /* Print LISP structure */
 
-void lisp_print(FILE *f,int i,struct base *b)
+void lisp_print(FILE *f,char *name,int i,struct base *b)
   {
   struct meta *m=b->_meta;
   struct meta *q;
   int x;
   void **t=(void **)((char *)b+sizeof(struct base));
   for(x=0;x!=i;++x) fputc(' ',f);
-  fprintf(f,"(%s\n",m->str);
+  fprintf(f,"(%s\n",name); // Instance name
+  // fprintf(f,"(%s\n",m->str); // Type name
   for(q=m+1;q->code;++q)
     switch(q->code)
       {
@@ -374,7 +391,7 @@ void lisp_print(FILE *f,int i,struct base *b)
         struct base *bb;
         for(x=0;x!=i+2;++x) fputc(' ',f);
         fprintf(f,"(%s\n",q->str);
-        for(bb=(struct base *)*t++;bb;bb=bb->next) lisp_print(f,i+4,bb);
+        for(bb=(struct base *)*t++;bb;bb=bb->next) lisp_print(f,bb->_meta->str,i+4,bb);
         for(x=0;x!=i+2;++x) fputc(' ',f);
         fprintf(f,")\n");
         ++q;
@@ -382,7 +399,8 @@ void lisp_print(FILE *f,int i,struct base *b)
         }
       case tSTRUCT:
         {
-        lisp_print(f,i+2,(struct base *)*t++);
+        lisp_print(f,q->str,i+2,(struct base *)*t++);
+        ++q;
         break;
         }
       case tSTRING:
@@ -414,14 +432,15 @@ void lisp_print(FILE *f,int i,struct base *b)
   fprintf(f,")\n");
   }
 
-void lisp_print_untagged(FILE *f,int i,struct base *b)
+void lisp_print_untagged(FILE *f,char *name,int i,struct base *b)
   {
   struct meta *m=b->_meta;
   struct meta *q;
   int x;
   void **t=(void **)((char *)b+sizeof(struct base));
   for(x=0;x!=i;++x) fputc(' ',f);
-  fprintf(f,"(%s\n",m->str);
+  // fprintf(f,"(%s\n",name); // Instance name
+  fprintf(f,"(%s\n",m->str); // Type name
   for(q=m+1;q->code;++q)
     switch(q->code)
       {
@@ -429,8 +448,9 @@ void lisp_print_untagged(FILE *f,int i,struct base *b)
         {
         struct base *bb;
         for(x=0;x!=i+2;++x) fputc(' ',f);
-        fprintf(f,"(%s\n",q->str);
-        for(bb=(struct base *)*t++;bb;bb=bb->next) lisp_print_untagged(f,i+4,bb);
+        // fprintf(f,"(%s\n",q->str);
+        fprintf(f,"(LIST\n");
+        for(bb=(struct base *)*t++;bb;bb=bb->next) lisp_print_untagged(f,bb->_meta->str,i+4,bb);
         for(x=0;x!=i+2;++x) fputc(' ',f);
         fprintf(f,")\n");
         ++q;
@@ -438,7 +458,8 @@ void lisp_print_untagged(FILE *f,int i,struct base *b)
         }
       case tSTRUCT:
         {
-        lisp_print_untagged(f,i+2,(struct base *)*t++);
+        lisp_print_untagged(f,q->str,i+2,(struct base *)*t++);
+        ++q;
         break;
         }
       case tSTRING:
@@ -472,14 +493,14 @@ void lisp_print_untagged(FILE *f,int i,struct base *b)
 
 /* Print indent structure */
 
-void indent_print(FILE *f,int i,struct base *b)
+void indent_print(FILE *f,char *name,int i,struct base *b)
   {
   struct meta *m=b->_meta;
   struct meta *q;
   int x;
   void **t=(void **)((char *)b+sizeof(struct base));
   for(x=0;x!=i;++x) fputc(' ',f);
-  fprintf(f,"%s\n",m->str);
+  fprintf(f,"%s\n",name);
   for(q=m+1;q->code;++q)
     switch(q->code)
       {
@@ -488,13 +509,14 @@ void indent_print(FILE *f,int i,struct base *b)
         struct base *bb;
         for(x=0;x!=i+2;++x) fputc(' ',f);
         fprintf(f,"%s\n",q->str);
-        for(bb=(struct base *)*t++;bb;bb=bb->next) indent_print(f,i+4,bb);
+        for(bb=(struct base *)*t++;bb;bb=bb->next) indent_print(f,bb->_meta->str,i+4,bb);
         ++q;
         break;
         }
       case tSTRUCT:
         {
-        indent_print(f,i+2,(struct base *)*t++);
+        indent_print(f,q->str,i+2,(struct base *)*t++);
+        ++q;
         break;
         }
       case tSTRING:
@@ -524,13 +546,14 @@ void indent_print(FILE *f,int i,struct base *b)
       }
   }
 
-void indent_print_untagged(FILE *f,int i,struct base *b)
+void indent_print_untagged(FILE *f,char *name,int i,struct base *b)
   {
   struct meta *m=b->_meta;
   struct meta *q;
   int x;
   void **t=(void **)((char *)b+sizeof(struct base));
   for(x=0;x!=i;++x) fputc(' ',f);
+  // fprintf(f,"%s\n",name);
   fprintf(f,"%s\n",m->str);
   for(q=m+1;q->code;++q)
     switch(q->code)
@@ -539,14 +562,15 @@ void indent_print_untagged(FILE *f,int i,struct base *b)
         {
         struct base *bb;
         for(x=0;x!=i+2;++x) fputc(' ',f);
-        fprintf(f,"%s\n",q->str);
-        for(bb=(struct base *)*t++;bb;bb=bb->next) indent_print_untagged(f,i+4,bb);
+        fprintf(f,"LIST\n");
+        for(bb=(struct base *)*t++;bb;bb=bb->next) indent_print_untagged(f,bb->_meta->str,i+4,bb);
         ++q;
         break;
         }
       case tSTRUCT:
         {
-        indent_print_untagged(f,i+2,(struct base *)*t++);
+        indent_print_untagged(f,(q+1)->str,i+2,(struct base *)*t++);
+        ++q;
         break;
         }
       case tSTRING:
@@ -578,14 +602,17 @@ void indent_print_untagged(FILE *f,int i,struct base *b)
 
 /* Print JSON structure */
 
-void json_print(FILE *f,int i,struct base *b,int comma)
+void json_print(FILE *f,char *name,int i,struct base *b,int comma)
   {
   struct meta *m=b->_meta;
   struct meta *q;
   int x;
   void **t=(void **)((char *)b+sizeof(struct base));
   for(x=0;x!=i;++x) fputc(' ',f);
-  fprintf(f,"{\n");
+  if (name)
+    fprintf(f,"\"%s\" : {\n", name);
+  else
+    fprintf(f,"{\n");
   for(q=m+1;q->code;++q)
     switch(q->code)
       {
@@ -594,7 +621,7 @@ void json_print(FILE *f,int i,struct base *b,int comma)
         struct base *bb;
         for(x=0;x!=i+2;++x) fputc(' ',f);
         fprintf(f,"\"%s\" : [\n",q->str);
-        for(bb=(struct base *)*t++;bb;bb=bb->next) json_print(f,i+4,bb,(int)bb->next);
+        for(bb=(struct base *)*t++;bb;bb=bb->next) json_print(f,NULL,i+4,bb,(int)bb->next);
         for(x=0;x!=i+2;++x) fputc(' ',f);
         ++q;
         if((q+1)->code)
@@ -605,7 +632,8 @@ void json_print(FILE *f,int i,struct base *b,int comma)
         }
       case tSTRUCT:
         {
-        json_print(f,i+2,(struct base *)*t++,(q+1)->code);
+        json_print(f,q->str,i+2,(struct base *)*t++,(q+2)->code);
+        ++q;
         break;
         }
       case tSTRING:

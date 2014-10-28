@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<root>
+<num>7</num>
+<str>hi&amp;  &lt;  there  &gt; !</str>
+<bar>
+  <a>1</a>
+  <b>2</b>
+</bar>
+<!-- this is a comment -->
+<items>
+  <item><val>1</val></item>
+  <item><val>2</val></item>
+  <item><val>3</val></item>
+</items>
+<list>
+  <fred><a>4</a><b>7</b></fred>
+  <fred><a>8</a><b>9</b></fred>
+  <fred><a>12</a><b>13</b></fred>
+</list>
+</root>

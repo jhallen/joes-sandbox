@@ -29,7 +29,7 @@ SDU; see the file COPYING.  If not, write to the Free Software Foundation,
 #define STRUCT(name,contents) { tSTRUCT, #name }, contents { 0, 0 },
 
 #define LIST(name,type) { tLIST, #name }, { -1, #type },
-#define SUBSTRUCT(name,type) { tSTRUCT, #name } { -1, #type },
+#define SUBSTRUCT(name,type) { tSTRUCT, #name }, { -1, #type },
 #define STRING(name) { tSTRING, #name },
 #define INTEGER(name) { tINTEGER, #name },
 

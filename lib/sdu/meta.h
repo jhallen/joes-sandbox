@@ -78,14 +78,14 @@ struct base
 #undef FILE
 #undef DIR
 
-void xml_print(FILE *f,int i,struct base *b);
-void lisp_print(FILE *f,int i,struct base *b);
-void lisp_print_untagged(FILE *f,int i,struct base *b);
-void json_print(FILE *f,int i,struct base *b,int comma);
-void indent_print(FILE *f,int i,struct base *b);
-void indent_print_untagged(FILE *f,int i,struct base *b);
+void xml_print(FILE *f,char *name,int i,struct base *b);
+void lisp_print(FILE *f,char *name,int i,struct base *b);
+void lisp_print_untagged(FILE *f,char *name,int i,struct base *b);
+void json_print(FILE *f,char *name,int i,struct base *b,int comma);
+void indent_print(FILE *f,char *name,int i,struct base *b);
+void indent_print_untagged(FILE *f,char *name,int i,struct base *b);
 
-struct base *xml_parse(FILE *f,struct meta *expect);
+struct base *xml_parse(FILE *f,char *name,struct meta *expect,int require);
 void *mk(char *type_name);			/* Create object of given type */
 void *mkraw(struct meta *m);
 struct meta *metafind(char *name);
