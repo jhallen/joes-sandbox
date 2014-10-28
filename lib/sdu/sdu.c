@@ -32,10 +32,40 @@ struct meta *metafind(struct schema *schema, char *name)
     {
     int x;
     schema->meta_hash=htmk(64);
-    for(x=0;schema->metadata[x].code;)
+    /* First pass: add all structures to hash table */
+    for(x=0;schema->metadata[x].code;++x)
       {
+      /* Add this structure */
       htadd(schema->meta_hash,schema->metadata[x].str,schema->metadata+x);
-      while(schema->metadata[x++].code);
+      /* Skip to end of it */
+      do
+        ++x;
+        while(schema->metadata[x].code);
+      }
+    /* Second pass: link */
+    for (x = 0; schema->metadata[x].code; ++x)
+      {
+      int y = x;
+      // printf("struct %s\n", schema->metadata[x].str);
+      /* Skip structure name */
+      for (++x; schema->metadata[x].code; ++x)
+        {
+        switch (schema->metadata[x].code)
+          {
+          case tLIST: case tSTRUCT:
+            {
+            ++x;
+            schema->metadata[x].link = htfind(schema->meta_hash, schema->metadata[x].str);
+            if (!schema->metadata[x].link)
+              {
+              fprintf(stderr, "Error in schema: couldn't find structure named '%s' (found in structure '%s')\n", schema->metadata[x].str,
+                      schema->metadata[y].str);
+              exit(-1);
+              }
+            break;
+            }
+          }
+        }
       }
     }
   return htfind(schema->meta_hash,name);
@@ -239,7 +269,7 @@ static int xml_skip(FILE *f)
 
 /* Parse a structure */
 
-struct base *xml_parse(FILE *f,char *name,struct schema *schema, struct meta *expect,int require)
+struct base *xml_parse(FILE *f,char *name,struct schema *schema,struct meta *expect,int require)
   {
   /* Looking for whitespace <name> ..... </name> */
   int c=xml_skip(f);
@@ -257,12 +287,7 @@ struct base *xml_parse(FILE *f,char *name,struct schema *schema, struct meta *ex
           if(c==TAG && !strcmp(tok_str,m->str))
             {
             struct base *first, *last;
-            struct meta *n=metafind(schema,(m+1)->str);
-            if(!n)
-              {
-              fprintf(stderr,"Error in grammar '%s' not found\n",(m+1)->str);
-              exit(-1);
-              }
+            struct meta *n=(m+1)->link;
             first=last=xml_parse(f,n->str,schema,n,0);
             while(last)
               last=last->next=xml_parse(f,n->str,schema,n,0);
@@ -286,12 +311,7 @@ struct base *xml_parse(FILE *f,char *name,struct schema *schema, struct meta *ex
 
         case tSTRUCT:
           { /* Structure reference (rethink this)... */
-          struct meta *n=metafind(schema,(m+1)->str);
-          if (!n)
-            {
-            fprintf(stderr,"Error in grammar '%s' not found\n",m->str);
-            exit(-1);
-            }
+          struct meta *n=(m+1)->link;
           if ((*t++ = xml_parse(f,m->str,schema,n,1)) == 0)
             return 0;
           ++m;

@@ -14,7 +14,7 @@ struct schema myschema=
     {
 #include "meta.h"
 #include "schema.h"
-      { 0, 0 }
+      { 0 }
     }
   };
 

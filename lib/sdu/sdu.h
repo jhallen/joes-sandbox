@@ -24,6 +24,7 @@ struct meta
   {
   int code;
   char *str;
+  struct meta *link;
   };
 
 /* Compiled schema */
