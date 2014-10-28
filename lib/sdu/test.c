@@ -5,14 +5,25 @@
 #include <string.h>
 #include <stddef.h>
 
+#include "sdu.h"
+#include "schema.h"
+
+struct schema myschema=
+  {
+    NULL,
+    {
 #include "meta.h"
+#include "schema.h"
+      { 0, 0 }
+    }
+  };
 
 int main(int argc,char *argv[])
   {
   FILE *f=fopen(argv[1],"r");
 
   // Parse XML file
-  struct foo *b=(struct foo *)xml_parse(f,"root",metadata,1);
+  struct foo *b=(struct foo *)xml_parse(f,"root",&myschema,metafind(&myschema, "foo"),1);
   struct item *i;
 
   // Access values in foo
@@ -36,16 +47,16 @@ int main(int argc,char *argv[])
   json_print(stdout,NULL,0,(struct base *)b,0);
 
   // Create a database within C
-  b=mk("foo");
+  b=mk(&myschema, "foo");
   b->val=10;
   b->val_name=strdup("Hello");
 
   // Build list
-  i=b->items=mk("item");
+  i=b->items=mk(&myschema, "item");
   i->val=7;
-  i=i->next=mk("item");
+  i=i->next=mk(&myschema, "item");
   i->val=8;
-  i=i->next=mk("item");
+  i=i->next=mk(&myschema, "item");
   i->val=9;
 
   // Print it

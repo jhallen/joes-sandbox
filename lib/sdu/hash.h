@@ -6,6 +6,9 @@
  *	This file is part of JOE (Joe's Own Editor)
  */
 
+#ifndef _Ihash
+#define _Ihash 1
+
 typedef struct entry HENTRY;
 typedef struct hash HASH;
 
@@ -25,3 +28,5 @@ HASH *htmk(int len);
 void htrm(HASH *ht);
 void *htadd(HASH *ht, char *name, void *val);
 void *htfind(HASH *ht, char *name);
+
+#endif

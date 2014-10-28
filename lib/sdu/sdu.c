@@ -1,4 +1,4 @@
-/* Parsers/Printers
+/* Meta data table and utilities
    Copyright (C) 2005 Joseph H. Allen
 
 This file is part of SDU (Structured Data Utilities)
@@ -15,6 +15,81 @@ details.
 You should have received a copy of the GNU General Public License along with 
 SDU; see the file COPYING.  If not, write to the Free Software Foundation, 
 675 Mass Ave, Cambridge, MA 02139, USA.  */ 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stddef.h>
+
+#include "sdu.h"
+#include "hash.h"
+
+/* Search for metadata structure definition table entry */
+
+struct meta *metafind(struct schema *schema, char *name)
+  {
+  if(!schema->meta_hash)
+    {
+    int x;
+    schema->meta_hash=htmk(64);
+    for(x=0;schema->metadata[x].code;)
+      {
+      htadd(schema->meta_hash,schema->metadata[x].str,schema->metadata+x);
+      while(schema->metadata[x++].code);
+      }
+    }
+  return htfind(schema->meta_hash,name);
+  }
+
+/* Return allocation size of structure */
+
+int structsize(struct meta *m)
+  {
+  int x;
+  /* Count no. members of structure */
+  for(x=0,++m;m->code;++x)
+    switch(m->code)
+      {
+      case tSTRUCT: m+=2; break;
+      case tLIST: m+=2; break;
+      case tSTRING: m+=1; break;
+      case tINTEGER: m+=1; break;
+      }
+
+  /* Add in size for name and next pointers.  Multiply by member size. */
+  return x*sizeof(void *)+sizeof(struct base);
+  }
+
+/* Create record */
+
+void *mkraw(struct meta *m)
+  {
+  struct base *b=malloc(structsize(m));
+  void **t=(void **)((char *)b+sizeof(struct base));
+  b->_name=0;
+  b->mom=0;
+  b->_meta=m;
+  b->next=0;
+  for(++m;m->code;)
+    {
+    *t++=0;
+    switch(m->code)
+      {
+      case tSTRUCT: m+=2; break;
+      case tLIST: m+=2; break;
+      case tSTRING: m+=1; break;
+      case tINTEGER: m+=1; break;
+      }
+    }
+  return b;
+  }
+
+/* Create record by name */
+
+void *mk(struct schema *schema, char *name)
+  {
+  return mkraw(metafind(schema, name));
+  }
 
 /* Todo:
       List of primitive types.
@@ -35,12 +110,6 @@ SDU; see the file COPYING.  If not, write to the Free Software Foundation,
       Strings should use length or zero terminate?
       Binary (base64) data?
 */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stddef.h>
-#include "meta.h"
 
 /* Read next character or tag */
 
@@ -170,7 +239,7 @@ static int xml_skip(FILE *f)
 
 /* Parse a structure */
 
-struct base *xml_parse(FILE *f,char *name,struct meta *expect,int require)
+struct base *xml_parse(FILE *f,char *name,struct schema *schema, struct meta *expect,int require)
   {
   /* Looking for whitespace <name> ..... </name> */
   int c=xml_skip(f);
@@ -188,15 +257,15 @@ struct base *xml_parse(FILE *f,char *name,struct meta *expect,int require)
           if(c==TAG && !strcmp(tok_str,m->str))
             {
             struct base *first, *last;
-            struct meta *n=metafind((m+1)->str);
+            struct meta *n=metafind(schema,(m+1)->str);
             if(!n)
               {
               fprintf(stderr,"Error in grammar '%s' not found\n",(m+1)->str);
               exit(-1);
               }
-            first=last=xml_parse(f,n->str,n,0);
+            first=last=xml_parse(f,n->str,schema,n,0);
             while(last)
-              last=last->next=xml_parse(f,n->str,n,0);
+              last=last->next=xml_parse(f,n->str,schema,n,0);
             *t++ = first;
             c=xml_skip(f);
             if(c!=END_TAG || strcmp(tok_str,m->str))
@@ -217,13 +286,13 @@ struct base *xml_parse(FILE *f,char *name,struct meta *expect,int require)
 
         case tSTRUCT:
           { /* Structure reference (rethink this)... */
-          struct meta *n=metafind((m+1)->str);
+          struct meta *n=metafind(schema,(m+1)->str);
           if (!n)
             {
             fprintf(stderr,"Error in grammar '%s' not found\n",m->str);
             exit(-1);
             }
-          if ((*t++ = xml_parse(f,m->str,n,1)) == 0)
+          if ((*t++ = xml_parse(f,m->str,schema,n,1)) == 0)
             return 0;
           ++m;
           break;

@@ -5,14 +5,25 @@
 #include <string.h>
 #include <stddef.h>
 
+#include "sdu.h"
+#include "schema.h"
+
+struct schema myschema=
+  {
+    NULL,
+    {
 #include "meta.h"
+#include "schema.h"
+      { 0, 0 }
+    }
+  };
 
 int main(int argc,char *argv[])
   {
   FILE *f=fopen(argv[1],"r");
 
   // Parse XML file
-  struct foo *b=(struct foo *)xml_parse(f,"root",metadata,1);
+  struct foo *b=(struct foo *)xml_parse(f,"root",&myschema, metafind(&myschema, "foo"), 1);
 
   if (b) {
 
