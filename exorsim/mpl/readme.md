@@ -53,9 +53,7 @@ MPLSLIB.RO.  MPLULIB has these procedures:
 
 	MDOS DSPLY KEYIN PRINT PUSH2 PULL2
 
-Finally, there is an ad for the [Resident MPL Compiler](mplad.md) in this [1979
-Microcomputer Development Systems
-Catalog](http://www.mirrorservice.org/sites/www.bitsavers.org/pdf/motorola/_catalogs/1979_microcomputer_development_systems.pdf). 
+Finally, there is an ad for the [Resident MPL Compiler](mplad.md).
 
 ## The compiler
 
@@ -901,7 +899,7 @@ Here is an example program showing some of these procedures.
 ## Support functions
 
 MPLSLIB contains language support subroutines for operations which are not
-native to the 6800.  I have figured out some of them do:
+native to the 6800.  I have figured out some of them:
 
 * .F0F  Copy string from T to X.  If source is short, fill with space.  Left justify
   * .T has source
