@@ -34,7 +34,7 @@ specifically:
 [154 - MPLUTIL](http://test.dankohn.info/~myhome/projects/68HC11/AXIOM_HC11/Source/Users%20Group/UG154)
 
 The disk image provides a few more hints.  There is a file with MPL 2.1
-[release notes](https://github.com/jhallen/joes-sandbox/tree/master/exorsim/mpl/mplsnews.sa).  Also
+[release notes](https://github.com/jhallen/joes-sandbox/tree/master/exorsim/mpl/mplnews.sa).  Also
 the compiler binary can be inspected for likely keywords.  I find these:
 
 	LE GE LT GT NE EQ IEOR IAND IOR SHIFT NOT AND OR ADDR DECLARE DCL
