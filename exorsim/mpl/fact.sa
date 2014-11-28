@@ -1,0 +1,35 @@
+/* COMPUTE FACTORIAL OF ENTERED NUMBERS */
+FACT:
+  PROC OPTIONS(MAIN)
+  DCL N BIN(2)
+  DCL M BIN(2)
+  DCL P BIN(2)
+  DCL OD DEC(5)
+  DCL CR1 BIN INIT(13)
+  DCL ID DEC(2)
+  DCL MSG CHAR(30) INIT('!!   abc ')
+  DCL CR BIN INIT(13)
+  
+  /* DISPLAY WELCOME MESSAGE */
+  CALL DSPLY<1,1,ADDR(MSG)>
+ 
+  M=1
+  DO WHILE M NE 0
+    /* ENTER NUMBER */
+    CALL KEYIN<1,2,ADDR(ID)>
+    /* CONVERT TO BINARY */
+    M = ID
+    N = M
+    /* COMPUTE FACTORIAL */
+    P = 1
+    DO WHILE N NE 1
+      P = P * N
+      N = N - 1
+      END
+    /* PRINT RESULT */
+    OD = P
+    CALL DSPLY<1,1,ADDR(OD)>
+    END
+  /* BYE */
+  CALL MDOS
+  END

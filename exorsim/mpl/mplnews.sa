@@ -1,0 +1,157 @@
+                              MPL 2.1
+                              -------
+  
+  
+      MPL 2.1 differs from MPL 2.0 in the following ways:
+  
+ 1.  Unsigned binary multiplication and division are allowed.
+  
+     Example:
+  
+       DCL B2 BIN(2), B1A INIT(100), B1B INIT(100)
+       B2 = B1A*B1B
+       /* B2 becomes 10000 */
+  
+ 2.  Integer, decimal, hexadecimal, string, and address constants may be
+     given symbolic names called "compile-time constants".  The process is
+     called "declaring a compile-time constant" and is done as follows:
+  
+          DCL name CONST(constant)
+       or DCL name CONSTANT(constant)
+  
+     Wherever a name so declared appears in the program after its
+     declaration, the effect is exactly the same as if the associated
+     constant had appeared in its place.
+  
+     Compile-time constants may not be declared within structures.
+  
+     Example:
+  
+       DCL B1, D5 DEC(5), ZERO CONST(0)
+       B1 = ZERO     /* assigns BIN(1) 0 */
+       D5 = ZERO     /* assigns DEC(5) 0 */
+  
+ 3.  Variables may be declared to be in a labelled common block by
+     labelling their DCL statement with the name of the block.  For
+     example, to declare SAM to be a BIN(2) variable in a BSCT labelled
+     common block BBL1, the statement
+  
+       BBL1:  DCL BSCT SAM BIN(2)
+  
+     may be used.
+  
+     Variables declared in labelled common blocks may not have the
+     EXTERNAL or CSCT attributes.
+  
+ 4.  Local procedures may be defined.  (A local procedure is one which
+     may be called only from procedures within the same compilation.)  A
+     procedure is defined to be local by nesting it within another
+     procedure.  For example, in
+  
+       P:PROC OPTIONS(MAIN)
+         DCL I
+         .
+         .
+         .
+         I = 1
+         Q:PROC
+           .
+           .
+           .
+           RETURN
+           END
+         I = 2
+         .
+         .
+         .
+         END
+  
+     Q is a local procedure.
+  
+     Control flows around local procedures.  This means, for example, that
+     the next statement to be executed after "I = 1" above will be "I = 2".
+  
+ 5.  The following synonyms are provided:
+  
+       = for EQ
+       # or <> for NE
+       <= for LE
+       >= for GE
+       EXT for EXTERNAL
+       OPTS for OPTIONS
+  
+ 6.  Variables declared in BSCT with the EXTERNAL attribute will be
+     addressed with single-byte addressing.
+  
+ 7.  Declaring a structure with the EXTERNAL or GLOBAL attributes results
+     in only the (level-1) name of the structure being known globally.  The
+     level-n components of the structure (n > 1) are known only within the
+     compilation.
+  
+     Example:
+  
+                  (separate compilations)
+       DCL 1 S GLOBAL,           DCL 1 S EXTERNAL,
+             2 B1A,                    2 B2 BIN(2)
+             2 B1B
+  
+ 8.  When a variable is declared with the "DEFINED variable" attribute, its
+     size (the number of bytes required to store its value) may be less
+     than or equal to the size of the variable to which it is DEFINED.
+  
+     Example:
+  
+       DCL 1 S,
+             2 BIT4A BIT(4),
+             2 BIT4B BIT(4),
+             2 F              /* S is 2 bytes long */
+       DCL SB DEF S           /* BIN(1) version of the "BIT" byte */
+  
+ 9.  Names longer than six characters are truncated to six characters
+     before being used in the label fields of statements in the AI file.
+  
+ 10. Output format changes:
+  
+     a.  Source listings include a page heading and an error count.
+  
+     b.  Embedded assembly language statements, like all others, are
+         included as comments in the AI file if the S option is specified.
+  
+     c.  The first record in the AI file has the form
+  
+           * MADE BY MPL revisionnumber
+  
+ 11. Error message changes:
+  
+     511:  Unsigned variable declared with an INITIAL attribute containing
+           a constant preceded by a minus sign.
+  
+     536:  More than 3 parameters specified in CALL p<...>, GIVING <...>,
+           p:PROC<...>, or RETURN<...>.
+  
+     537:  a.  Decimal constant specified in CALL p(...).
+  
+           b.  Two-byte hexadecimal constant used in CHAR(1) context.
+  
+           c.  Integer or decimal constant with too many integer-part
+               digits used in DEC(m, n) or SIGNED DEC(m, n) context.
+  
+           d.  Integer or decimal constant with too many digits used in
+               CHAR(m) context.
+  
+           e.  Integer or decimal constant used in CHAR(m) context, m > 30.
+  
+           f.  Character-string constant with too many characters for its
+               context used (was error 511).
+  
+     568:  Compile-time constant declared within structure.
+  
+     569:  One variable has been DEFINED to another. The size of the first
+           exceeds the size of the second.
+  
+     570:  "DEFINED variable" attributes are nested.
+  
+     594:  Variable declared in labelled common block has EXTERNAL or CSCT
+           attributes.
+  
+     596:  (No longer issued.)

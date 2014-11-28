@@ -1,0 +1,156 @@
+DCL RSTR CHAR(5) INIT('REAL ')
+DCL RSTRZ INIT(0)
+
+DCL ISTR CHAR(5) INIT('IMAG ')
+DCL ISTRZ INIT(0)
+
+/* Print single character to console */
+
+PUTCH: PROC<CHOUT,,>
+  DCL CHOUT
+$ JSR $F018
+  RETURN
+  END
+
+/* Print $ or NUL terminated string to console */
+/* If string ends with $, print newline */
+
+PUTS: PROC<,,PTSSTR>
+  DCL PTSSTR BIN(2)
+  DCL RDC BIN BASED
+  DO WHILE PTSSTR->RDC NE $24 AND PTSSTR->RDC NE 0
+    CALL PUTCH<PTSSTR->RDC>
+    PTSSTR = PTSSTR + 1
+    END
+  IF PTSSTR->RDC = $24 THEN CALL PUTCH<10,,>
+  RETURN
+  END
+
+/* Print string then number */
+
+PRDEC: PROC(PSTR,DVAL)
+  DCL PSTR BIN(2)
+  DCL DVAL SIGNED DEC(9,6)
+  DCL BUF CHAR(10)
+  DCL TERM INIT($24)
+  CALL PUTS<,,PSTR>
+  BUF = DVAL
+  CALL PUTS<,,ADDR(BUF)>
+  RETURN
+  END
+
+/* Print a graph */
+
+SHOW: PROC(R, I)
+    DCL R SIGNED DEC(9,6)
+    DCL I SIGNED DEC(9,6)
+    DCL RA SIGNED DEC(9,6)
+    DCL IA SIGNED DEC(9,6)
+    DCL HM SIGNED DEC(3)
+    DCL Q SIGNED BIN(2)
+    DCL QS CHAR(20)
+    DCL QCR INIT($24)
+    RA = R ! Copy args so we can pass them again
+    IA = I
+    ! CALL PRDEC(ADDR(RSTR), RA)
+    ! CALL PRDEC(ADDR(ISTR), IA)
+    RA = RA * 20.0 + 40.0
+    HM = RA ! Truncate
+    Q = HM ! Convert to binary
+    ! QS = Q
+    ! CALL PUTS<,,ADDR(QS)>
+    IF Q > 79 THEN Q = 79
+    /* Print the graph */
+    DO WHILE Q > 0
+        CALL PUTCH<$20,,>
+        Q = Q - 1
+        END
+    CALL PUTCH<$2A,,>
+    CALL PUTCH<10,,>
+    RETURN
+    END
+
+/* Discrete forrier transform */
+
+DFT: PROC(FR, FI)
+    /* Real and imaginary parts of input data */
+    DCL FR(64) SIGNED DEC(9,6)
+    DCL FI(64) SIGNED DEC(9,6)
+
+    /* omega = e ^ (-2*pi/n) */
+    DCL ROMEGA SIGNED DEC(9,6) INIT(0.995184)  ! cos(-2*pi/n)
+    DCL IOMEGA SIGNED DEC(9,6) INIT(-0.098017) ! sin(-2*pi/n)
+
+    /* Compute nomega = omega^(n/2) */
+    DCL NROMEG SIGNED DEC(9,6) INIT(1.0)
+    DCL NIOMEG SIGNED DEC(9,6) INIT(0.0)
+    DCL TR SIGNED DEC(9,6)
+    DCL TI SIGNED DEC(9,6)
+    DCL N SIGNED BIN
+    DO N = 0 TO 32
+        TR = NROMEG * ROMEGA - NIOMEG * IOMEGA
+        TI = NIOMEG * ROMEGA + NROMEG * IOMEGA
+        NROMEG = TR
+        NIOMEG = TI
+        END
+
+    ! CALL PRDEC(ADDR(RSTR), NROMEG)
+    ! CALL PRDEC(ADDR(ISTR), NIOMEG)
+
+    /* Transform */
+    DO N = 1 TO 64
+        DCL RACCU SIGNED DEC(9,6)
+        DCL IACCU SIGNED DEC(9,6)
+        DCL Z
+        DCL ZN
+        RACCU = 0.0
+        IACCU = 0.0
+        DO Z = 1 TO 64
+            /* ACCU = ACCU * NOMEGA + F */
+            ZN = 65 - Z
+            TR = RACCU * NROMEG - IACCU * NIOMEG + FR(ZN)
+            TI = IACCU * NROMEG + RACCU * NIOMEG + FI(ZN)
+            RACCU = TR
+            IACCU = TI
+            END
+	CALL SHOW(RACCU, IACCU)
+        RACCU = RACCU / 64.0
+        IACCU = IACCU / 64.0
+
+        
+        /* NOMEGA *= OMEGA */
+        TR = NROMEG * ROMEGA - NIOMEG * IOMEGA
+        TI = NIOMEG * ROMEGA + NROMEG * IOMEGA
+        NROMEG = TR
+        NIOMEG = TI
+        END
+    RETURN
+    END
+
+/* Main */
+
+TRY: PROC OPTIONS(MAIN)
+    DCL REAL(64) SIGNED DEC(9,6)
+    DCL IMAG(64) SIGNED DEC(9,6)
+    DCL XR SIGNED DEC(9,6)
+    DCL XI SIGNED DEC(9,6)
+    DCL Y
+    DCL INPSTR CHAR(7) INIT('Input:$')
+    CALL PUTS<,,ADDR(INPSTR)>
+    /* Initialize with a square wave */
+    DO Y = 1 TO 64
+        IF ((Y-1)&4) = 0 THEN
+            REAL(Y) = 1.0
+        ELSE
+            REAL(Y) = -1.0
+        IMAG(Y) = 0.0
+        XR = REAL(Y)
+        XI = IMAG(Y)
+        CALL SHOW(XR, XI)
+        END
+    /* Compute and print DFT */
+    DCL OUTSTR CHAR(8) INIT('Output:$')
+    CALL PUTS<,,ADDR(OUTSTR)>
+    CALL DFT(REAL, IMAG)
+    CALL MDOS
+    END
