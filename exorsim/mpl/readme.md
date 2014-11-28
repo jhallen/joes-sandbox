@@ -736,7 +736,7 @@ T$     COMM DSCT
 ### RETURN statement
 
 The __RETURN__ statement is required at the end of each procedure, otherwise
-the RTS instruction will be missing.  You can see this in the pass-by
+the RTS instruction will be missing.  You can see this in the by
 reference version of ADDEM above.  You are free to __RETURN__ at any other
 point of the procedure.
 
