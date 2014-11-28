@@ -1019,7 +1019,7 @@ SHOW: PROC(R, I)
     RETURN
     END
 
-/* Discrete forrier transform */
+/* Discrete fourier transform */
 
 DFT: PROC(FR, FI)
     /* Real and imaginary parts of input data */

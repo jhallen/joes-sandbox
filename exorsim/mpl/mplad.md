@@ -11,11 +11,11 @@ Catalog](http://www.mirrorservice.org/sites/www.bitsavers.org/pdf/motorola/_cata
 > language is a subset of PL/I with features chosen for applicability to the
 > Microprocessor environment.
 
-> MPL was deisgned to simplify the translation from functional
+> MPL was designed to simplify the translation from functional
 > requirements for a microprocessor application to an operating M6800 program. 
 > The MPL language and its associated compiler provide a powerful software
 > tool which can significantly reduce the time and costs associated with
-> microprocessor softare development and maintenance.
+> microprocessor software development and maintenance.
 
 >* EXORciser and EXORterm Resident
 >* Based on PL/I, a Powerful High-Level Programming Language Widely Known and Used
