@@ -34,8 +34,8 @@ specifically:
 [154 - MPLUTIL](http://test.dankohn.info/~myhome/projects/68HC11/AXIOM_HC11/Source/Users%20Group/UG154)
 
 The disk image provides a few more hints.  There is a file with MPL 2.1
-[release notes]().  Also the compiler binary can be inspected for likely
-keywords.  I find these:
+[release notes](https://github.com/jhallen/joes-sandbox/tree/master/exorsim/mpl/mplsnews.sa).  Also
+the compiler binary can be inspected for likely keywords.  I find these:
 
 	LE GE LT GT NE EQ IEOR IAND IOR SHIFT NOT AND OR ADDR DECLARE DCL
 	BASED SIGNED BY INITIAL INIT MAIN GO GOTO TO IF THEN ELSE DO END
