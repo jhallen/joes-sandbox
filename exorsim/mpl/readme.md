@@ -3,7 +3,7 @@
 MPL is a PL/I-like language for Motorola's 8-bit
 [M6800](http://en.wikipedia.org/wiki/Motorola_6800) development system, the
 [Motorola Exorciser](http://exorciser.net/excorciser1_en.htm) (running
-MDOS).  I assume it's Motorola's answer to
+[MDOS](http://exorsim.sourceforge.net/mdos-intro.html)).  I assume it's Motorola's answer to
 [PL/M](http://www.cpm.z80.de/randyfiles/plm/MCS-8_PLMprogGuide1973.pdf) for
 Intel's 8080 microprocessor.  The language seems to have been created before 1976.
 
