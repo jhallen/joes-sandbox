@@ -12,6 +12,10 @@
 
 [OrCad Tools](https://github.com/jhallen/orcad-tools)
 
+[Reverse engineer Zon JR XL](http://jhallenworld.blogspot.com/2012/08/reverse-engineering-verifone-zon-jr-xl.html)
+
+[Acoustic delay line memory (on Hackaday!)](http://hackaday.com/2014/01/07/acoustic-delay-line-memory/)
+
 ### Some projects within joes-sandbox
 
 [MPL - Motorola's Programming Language](https://github.com/jhallen/joes-sandbox/tree/master/exorsim/mpl)
