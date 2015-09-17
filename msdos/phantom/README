@@ -1,3 +1,20 @@
 Compile as compact model -
 
 wcl /ox /mc phantom.c lz78.c
+
+Partition Archiver
+
+  phantom -c archive-file-name     Create archive from partition
+
+  phantom -x archive-file-name     Extract archive to partition
+
+  Archive file should be on a partition different from the one
+  being archived.  Phantom will show the partition table and ask
+  you to choose one of them to archive.
+
+  - You should do a 'smartdrv /c' before running phantom if you
+    have smartdrv running
+
+  - This program can not move or resize partitions - it can only
+    save and restore them
+
