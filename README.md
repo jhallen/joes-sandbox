@@ -14,6 +14,8 @@
 
 ### Some projects within joes-sandbox
 
+[MPL - Motorola's Programming Language](https://github.com/jhallen/joes-sandbox/tree/master/exorsim/mpl)
+
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
 
 [IVY Language](https://github.com/jhallen/joes-sandbox/tree/master/lang/ivy)
@@ -37,3 +39,25 @@
 [Farb - arbitrary precision ASCII floating point library](https://github.com/jhallen/joes-sandbox/tree/master/lib/farb)
 
 [SDU - structured data loader](https://github.com/jhallen/joes-sandbox/tree/master/lib/sdu)
+
+[JCC - A C language pre-processor / tokenizer](https://github.com/jhallen/joes-sandbox/tree/master/lang/jcc)
+
+[A Btree library](https://github.com/jhallen/joes-sandbox/tree/master/lib/btree)
+
+[A version of Malloc](https://github.com/jhallen/joes-sandbox/tree/master/lib/jheap)
+
+[Some regular expression code](https://github.com/jhallen/joes-sandbox/tree/master/lib/regex_simple)
+
+[A C library](https://github.com/jhallen/joes-sandbox/tree/master/lib/lib)
+
+[Some compression code](https://github.com/jhallen/joes-sandbox/tree/master/compression)
+
+[Some math code: complex roots / Fourier transform](https://github.com/jhallen/joes-sandbox/tree/master/math)
+
+[JTERM - an MS-DOS terminal emulator](https://github.com/jhallen/joes-sandbox/tree/master/msdos/jterm)
+
+[Phantom - A "ghost" clone (partition archiver)](https://github.com/jhallen/joes-sandbox/tree/master/msdos/phantom)
+
+[Tetris for Zortech-C](https://github.com/jhallen/joes-sandbox/blob/master/msdos/tetris.c)
+
+[A drafting program for SCO Xenix](https://github.com/jhallen/joes-sandbox/tree/master/xenix/draft)
