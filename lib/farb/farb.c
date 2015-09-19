@@ -23,14 +23,14 @@ JOE; see the file COPYING.  If not, write to the Free Software Foundation,
 #include "farb.h"
 
 /* A valid number string is zero terminated C string containing 1 or more ASCII
- * digits possibly preceeded by a '-' sign.  Whitespace and negative zero is
+ * digits possibly preceded by a '-' sign.  Whitespace and negative zero is
  * not allowed.  Leading zeros _must_ be suppressed.
  */
 
 static int max(int a,int b) { return a>=b?a:b; }
 /* static int min(int a,int b) { return a<=b?a:b; } */
 
-/* Unsigned Add.  If 'n' is true, preceed the result string with '-' */
+/* Unsigned Add.  If 'n' is true, precede the result string with '-' */
 
 char *Uadd(char *a,char *b,int n)
  {
@@ -74,7 +74,7 @@ char *Uadd(char *a,char *b,int n)
  return r;
  }
 
-/* Unsigned Subtract.  If 'n' is true, preceed the result string with '-'. The
+/* Unsigned Subtract.  If 'n' is true, precede the result string with '-'. The
  * magnitude of 'a' _must_ be larger than the magnitude of 'b'. */
 
 char *Usub(char *a,char *b,int n)
@@ -882,6 +882,6 @@ int main(int arbc,char *argv[])
  int n;
  sscanf(argv[3],"%d",&n);
  printf("%s\n",Fdiv(argv[1],argv[2],n));
-/* printf("%s\n",Mfmt(Madd(argv[1],argv[2]),1)); */
+ /* printf("%s\n",Mfmt(Madd(argv[1],argv[2]),1)); */
  return 0;
  }
