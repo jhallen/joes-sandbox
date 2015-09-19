@@ -877,6 +877,7 @@ char *Mfmt(char *s,int flg)
  return r;
  }
 
+#if 0
 int main(int arbc,char *argv[])
  {
  int n;
@@ -885,3 +886,4 @@ int main(int arbc,char *argv[])
  /* printf("%s\n",Mfmt(Madd(argv[1],argv[2]),1)); */
  return 0;
  }
+#endif

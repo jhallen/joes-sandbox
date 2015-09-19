@@ -1,4 +1,0 @@
- Arbitrary precision math routines
- These routines take ASCII numbers in C strings and return
- ASCII string results in malloc blocks.
-
