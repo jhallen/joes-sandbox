@@ -1,0 +1,13 @@
+:section main
+:problem
+Perform the following derivative:
+|y=D(b*x^c)/D(x)
+:prompt y=
+:solution c*b*x^(c-1)
+:vars x
+:random b 2 10 1
+:random c 2 10 1
+:hint
+Use the chain rule
+:hint
+Again, use the chain rule
