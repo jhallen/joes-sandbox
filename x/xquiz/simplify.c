@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stddef.h>
 #include "types.h"
 #include "box.h"
 #include "sym.h"

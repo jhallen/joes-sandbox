@@ -1,8 +1,9 @@
 /* Basic list management functions */
 
-#include "types.h"
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stddef.h>
+#include "types.h"
 #include "box.h"
 
 static LST *freenums = 0;
@@ -27,7 +28,7 @@ NUM *newnum()
 	LST *n;
 	if (!freenums) {
 		n = (LST *) amalloc(ALOCSIZE);
-		*(int *)(&n->d) = tNUM;
+		*(ptrdiff_t *)(&n->d) = tNUM;
 		freenums = ++n;
 		while (n + 1 != freenums + ALOCSIZE / sizeof(NUM) - 1)
 			n->r = n + 1, ++n;

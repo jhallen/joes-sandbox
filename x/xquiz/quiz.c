@@ -6,6 +6,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <math.h>
+#include <stddef.h>
 #include "types.h"
 #include "queue.h"
 #include "xjunk.h"

@@ -1,6 +1,7 @@
 /* Parser */
 
 #include <stdio.h>
+#include <stddef.h>
 #include "types.h"
 #include "box.h"
 #include "scan.h"

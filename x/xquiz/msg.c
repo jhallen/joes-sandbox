@@ -4,6 +4,7 @@
 #include <string.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <stddef.h>
 #include "types.h"
 #include "queue.h"
 #include "display.h"

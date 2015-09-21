@@ -20,11 +20,11 @@ struct sym {
 	I extra2;
 };
 
-#define ALOCSIZE 1024
+#define ALOCSIZE ((ptrdiff_t)(1024))
 
 /* Return the type of the box at the indicated address */
 
-#define typ(x) (*(1+(U *)((U)(x)&~(ALOCSIZE-1))))
+#define typ(x) (*(1+(ptrdiff_t *)((ptrdiff_t)(x)&~(ALOCSIZE-1))))
 
 /* BOX types */
 

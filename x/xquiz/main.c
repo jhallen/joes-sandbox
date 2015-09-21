@@ -2,6 +2,7 @@
 #include <X11/Xutil.h>
 #include <stdio.h>
 #include <signal.h>
+#include <stddef.h>
 #include "types.h"
 #include "queue.h"
 #include "xjunk.h"
