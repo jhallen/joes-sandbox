@@ -50,7 +50,7 @@ Jctrl *b;
 
 static void jctrlstfn(b,c)
 Jctrl *b;
-TASK *c;
+Task *c;
  {
  b->fn=c;
  }

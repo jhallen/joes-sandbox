@@ -17,7 +17,7 @@ struct output
  QITEM(struct output);		/* Doubly-linked list of output commands */
  char *buf;			/* Data */
  int len;			/* Length */
- TASK *write;			/* TASK to call after data has been sent */
+ Task *write;			/* Task to call after data has been sent */
  };
 
 /* A connected port */
@@ -33,7 +33,7 @@ struct connection
  				 * listen mode */
  int bksize;			/* Block mode block size */
  int iflush;			/* 1=flushing the input */
- TASK *read;			/* TASK to call for read data */
+ Task *read;			/* Task to call for read data */
  char *buf;			/* Input buffer */
  int siz;				/* Buffer siz */
  int new;				/* Write point */
@@ -78,7 +78,7 @@ PORT *portlisten();
  */
 PORT *portconnect();
 
-/* void stportread(PORT *,TASK *read,int len);
+/* void stportread(PORT *,Task *read,int len);
  *
  * Set read callback function for a port.  When data is received, further
  * reads are disabled and the callback function is called with the the
@@ -172,7 +172,7 @@ void stnomode();
 /* Amount of data passed to last read callback function */
 #define portlen(p) ((p)->taken)
 
-/* int portwrite(PORT *,char *buf,int len,TASK *fn);
+/* int portwrite(PORT *,char *buf,int len,Task *fn);
  *
  * Write data to port's output buffer (if it's full, portwrite() attempts to
  * empty it by calling write()).  If we were successful, return 1. 
@@ -184,7 +184,7 @@ void stnomode();
  */
 int portwrite();
 
-/* int finalwrite(PORT *,char *buf,int len,TASK *fn);
+/* int finalwrite(PORT *,char *buf,int len,Task *fn);
  *
  * Write any data ahead of us to the port (I.E., with an actual write()
  * call), then write the specified data to the port.  If we were successful,

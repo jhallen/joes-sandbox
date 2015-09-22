@@ -11,33 +11,30 @@ static struct stack
  jmp_buf stack;
  } *freestacks;					/* Free stacks */
 
-static TASK waiting[1]={{waiting,waiting}};	/* Pending task queue */
+static Task waiting[1]={ { waiting, waiting } };	/* Pending task queue */
 
-static TASK timer[1]={{timer,timer}};		/* Timer task queue */
+static Task timer[1]= { { timer, timer } };		/* Timer task queue */
 
-static TASK *thefn;				/* temp vars for go */
+static Task *thefn;				/* temp vars for go */
 static int (*theio)();
 
 static int stackop;	/* Stack allocation operation code */
 
 /* cond for waiting on task queue */
-thread_cond_t go_cond[1]={THREAD_COND_INITIALIZER};
+thread_cond_t go_cond[1] = { THREAD_COND_INITIALIZER };
 
 /* All above variables are protected by this mutex */
-mutex_t go_mutex[1]={MUTEX_INITIALIZER};
+mutex_t go_mutex[1] = { MUTEX_INITIALIZER };
 
 /* Function just copies its args- for saving and restore local variables */
-static void *copyarg(arg)
-void *arg;
+static void *copyarg(void *arg)
  {
  return arg;
  }
 
 /* Execute tasks... */
 
-void go(io,fn)
-int (*io)();
-TASK *fn;
+void go(int (*io)(void),Task *fn)
  {
  mutex_lock(go_mutex);
 
@@ -51,14 +48,14 @@ TASK *fn;
    /* Copy args */
    switch(fn->n)
     {
-    case 5: fn->argptr[4]=fn->args[4];
-    case 4: fn->argptr[3]=fn->args[3];
-    case 3: fn->argptr[2]=fn->args[2];
-    case 2: fn->argptr[1]=fn->args[1];
-    case 1: fn->argptr[0]=fn->args[0];
+    case 5: fn->argptr[4] = fn->args[4];
+    case 4: fn->argptr[3] = fn->args[3];
+    case 3: fn->argptr[2] = fn->args[2];
+    case 2: fn->argptr[1] = fn->args[1];
+    case 1: fn->argptr[0] = fn->args[0];
     }
 
-   fn->state=0;
+   fn->state = 0;
 
    /* Continue existing task (return from go) */
    mutex_unlock(go_mutex);
@@ -68,16 +65,16 @@ TASK *fn;
    { /* Suspend task */
    if(freestacks)
     { /* Switch to top stack on free list and enter task loop. */
-    stackop=2;
-    thefn=copyarg(fn);
-    theio=copyarg(io);
-    longjmp(freestacks->stack,1);
+    stackop = 2;
+    thefn = copyarg(fn);
+    theio = copyarg(io);
+    longjmp(freestacks->stack, 1);
     }
    else
     { /* No free stacks: allocate a stack and enter task loop. */
-    freestacks=malloc(sizeof(struct stack));
-    freestacks->next=0;
-    stackop=3;
+    freestacks = (struct stack *)malloc(sizeof(struct stack));
+    freestacks->next = 0;
+    stackop = 3;
     goto dostack;
     }
    }
@@ -98,64 +95,59 @@ TASK *fn;
     * other threads are already select()ing on every possible I/O source. */
    if(!flg)
     /* Wait for other threads to give us I/O */
-    thread_cond_wait(go_cond,go_mutex);
+    thread_cond_wait(go_cond, go_mutex);
    else
     /* Tell waiting threads that there may be some tasks to do */
     thread_cond_broadcast(go_cond);
    }
 
   /* Extract task from queue */
-  fn=waiting->next;
+  fn = waiting->next;
   DEQUE(fn);
 
   /* Execute the task */
-  if(fn->func)
+  if(fn->func.f0)
    { /* It's a call-back function */
 
    mutex_unlock(go_mutex);
 
-   fn->state=0;
+   fn->state = 0;
 
    /* Execute the task */
    switch(fn->n)
     {
     case 0:
-     fn->func(0);
+     fn->func.f0(0);
      break;
     case 1:
-     fn->func(0,fn->args[0]);
+     fn->func.f1(0, fn->args[0]);
      break;
     case 2:
-     fn->func(0,fn->args[0],fn->args[1]);
+     fn->func.f2(0, fn->args[0], fn->args[1]);
      break;
     case 3:
-     fn->func(0,fn->args[0],fn->args[1],fn->args[2]);
+     fn->func.f3(0, fn->args[0], fn->args[1], fn->args[2]);
      break;
     case 4:
-     fn->func(0,fn->args[0],fn->args[1],fn->args[2],fn->args[3]);
+     fn->func.f4(0, fn->args[0], fn->args[1], fn->args[2], fn->args[3]);
      break;
     case 5:
-     fn->func(0,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4]);
+     fn->func.f5(0, fn->args[0], fn->args[1], fn->args[2], fn->args[3], fn->args[4]);
      break;
     case 6:
-     fn->func(0,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],
-                fn->args[5]);
+     fn->func.f6(0, fn->args[0], fn->args[1], fn->args[2], fn->args[3], fn->args[4], fn->args[5]);
      break;
     case 7:
-     fn->func(0,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],
-                fn->args[5],fn->args[6]);
+     fn->func.f7(0, fn->args[0], fn->args[1], fn->args[2], fn->args[3], fn->args[4], fn->args[5], fn->args[6]);
      break;
     case 8:
-     fn->func(0,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],
-                fn->args[5],fn->args[6],fn->args[7]);
+     fn->func.f8(0, fn->args[0], fn->args[1], fn->args[2], fn->args[3], fn->args[4], fn->args[5], fn->args[6], fn->args[7]);
      break;
     case 9:
-     fn->func(0,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],
-                fn->args[5],fn->args[6],fn->args[7],fn->args[8]);
+     fn->func.f9(0, fn->args[0], fn->args[1], fn->args[2], fn->args[3], fn->args[4], fn->args[5], fn->args[6], fn->args[7], fn->args[8]);
      break;
     case 10:
-     fn->func(0,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],
-                fn->args[5],fn->args[6],fn->args[7],fn->args[8],fn->args[9]);
+     fn->func.f10(0, fn->args[0], fn->args[1], fn->args[2], fn->args[3], fn->args[4], fn->args[5], fn->args[6], fn->args[7], fn->args[8], fn->args[9]);
      break;
     }
 
@@ -165,10 +157,10 @@ TASK *fn;
   else
    { /* Continue a suspended task */
    /* Save this stack for reuse */
-   struct stack *stack=malloc(sizeof(struct stack));
-   stack->next=freestacks;
-   freestacks=stack;
-   stackop=1;
+   struct stack *stack = (struct stack *)malloc(sizeof(struct stack));
+   stack->next = freestacks;
+   freestacks = stack;
+   stackop = 1;
 
    /* Stack allocation entry point. */
    dostack:
@@ -178,24 +170,23 @@ TASK *fn;
     {
     case 1: /* Continue a suspended task. */
      {
-     thefn=copyarg(fn);
-     longjmp(fn->jmpbuf,1);
+     thefn = copyarg(fn);
+     longjmp(fn->jmpbuf, 1);
      }
 
     case 2: /* We just switched to stack on freelist.  Free top structure */
      {
-     stack=freestacks;
-     freestacks=stack->next;
-     fn=copyarg(thefn);
-     io=copyarg(theio);
+     stack = freestacks;
+     freestacks = stack->next;
+     fn = copyarg(thefn);
+     io = copyarg(theio);
      break;
      }
 
     case 3: /* Allocate and switch to new stack. */
      {
      char *newbp;
-     long diff;
-     char *stk=malloc(STACKSIZE);	/* Malloc space for stack */
+     char *stk = (char *)malloc(STACKSIZE);	/* Malloc space for stack */
 
      /* printf("New stack at %8.8x\n",stk); */
 
@@ -204,7 +195,7 @@ TASK *fn;
         and base pointers.  */
      /* Leave enough space on the stack for this function's variables */
 
-     newbp=stk+STACKSIZE-256;
+     newbp = stk + STACKSIZE - 256;
 
      /* printf("New bp at %8.8x\n",newbp); */
 
@@ -217,18 +208,18 @@ TASK *fn;
 
      /* i86 Linux: libc5 */
 
-     diff=newbp-(char *)freestacks->stack->__bp;
+     diff = newbp-(char *)freestacks->stack->__bp;
      					/* Diff. between new and old */
-     ((char *)freestacks->stack->__bp)+=diff;	/* Adjust SP and BP, */
-     ((char *)freestacks->stack->__sp)+=diff;	/* but keep their relationship */
+     ((char *)freestacks->stack->__bp) += diff;	/* Adjust SP and BP, */
+     ((char *)freestacks->stack->__sp) += diff;	/* but keep their relationship */
 
 #else
 
      /* sparc solaris */
-     diff=newbp-(char *)freestacks->stack[3];
+     diff = newbp - (char *)freestacks->stack[3];
      					/* Diff. between new and old */
-     ((char *)freestacks->stack[3])+=diff;	/* Adjust SP and BP, */
-     ((char *)freestacks->stack[1])+=diff;	/* but keep their relationship */
+     ((char *)freestacks->stack[3]) += diff;	/* Adjust SP and BP, */
+     ((char *)freestacks->stack[1]) += diff;	/* but keep their relationship */
 
 #endif
 
@@ -237,10 +228,10 @@ TASK *fn;
 
      /* printf("Old bp at %8.8x\n",freestacks->stack->__jmpbuf[JB_BP]); */
 
-     diff=newbp-(char *)freestacks->stack->__jmpbuf[JB_BP];
+     diff = newbp - (char *)freestacks->stack->__jmpbuf[JB_BP];
      					/* Diff. between new and old */
-     ((char *)freestacks->stack->__jmpbuf[JB_BP])+=diff;	/* Adjust SP and BP, */
-     ((char *)freestacks->stack->__jmpbuf[JB_SP])+=diff;	/* but keep their relationship */
+     ((char *)freestacks->stack->__jmpbuf[JB_BP]) += diff;	/* Adjust SP and BP, */
+     ((char *)freestacks->stack->__jmpbuf[JB_SP]) += diff;	/* but keep their relationship */
 
      /* printf("New bp at %8.8x\n",freestacks->stack->__jmpbuf[JB_BP]); */
 
@@ -249,10 +240,10 @@ TASK *fn;
 #endif
 
      /* Switch to newly allocated stack */
-     stackop=2;
-     thefn=copyarg(fn);
-     theio=copyarg(io);
-     longjmp(freestacks->stack,1);
+     stackop = 2;
+     thefn = copyarg(fn);
+     theio = copyarg(io);
+     longjmp(freestacks->stack, 1);
      }
      break;
     }
@@ -260,97 +251,557 @@ TASK *fn;
   }
  }
 
-TASK *cfn(fn,argptr)
-TASK *fn;
-int *argptr;
+Task *cfn(Task *fn,Arg *argptr,int nargs)
  {
- fn->func=0;
+ fn->func.f0=0;
  fn->n=0;
+ fn->nargs=nargs;
  fn->argptr=argptr;
  fn->state=1;
  return fn;
  }
 
-TASK *fn0(fn,func)
-TASK *fn;
-void (*func)();
+Task *fn0_0(Task *fn,void (*func)(int))
  {
- fn->func=func;
- fn->argptr=0;
- fn->n=0;
- fn->state=1;
+ fn->func.f0 = func;
+ fn->argptr = 0;
+ fn->n = 0;
+ fn->nargs = 0;
+ fn->state = 1;
  return fn;
  }
 
-TASK *fn1(fn,func,pass1)
-TASK *fn;
-void (*func)();
-int pass1;
+Task *fn0_1(Task *fn,void (*func)(int, Arg argv))
  {
- fn->func=func;
- fn->argptr=0;
- fn->n=1;
- fn->args[0]=pass1;
- fn->state=1;
+ fn->func.f1 = func;
+ fn->argptr = 0;
+ fn->n = 0;
+ fn->args[0].p = NULL;
+ fn->nargs = 1;
+ fn->state = 1;
  return fn;
  }
 
-TASK *fn2(fn,func,pass1,pass2)
-TASK *fn;
-void (*func)();
-int pass1,pass2;
+Task *fn0_2(Task *fn,void (*func)(int, Arg argv, Arg argw))
  {
- fn->func=func;
- fn->argptr=0;
- fn->n=2;
- fn->args[0]=pass1; fn->args[1]=pass2;
- fn->state=1;
+ fn->func.f2 = func;
+ fn->argptr = 0;
+ fn->n = 0;
+ fn->args[0].p = NULL;
+ fn->args[1].p = NULL;
+ fn->nargs = 2;
+ fn->state = 1;
  return fn;
  }
 
-TASK *fn3(fn,func,pass1,pass2,pass3)
-TASK *fn;
-void (*func)();
-int pass1,pass2,pass3;
+Task *fn0_3(Task *fn,void (*func)(int, Arg argv, Arg argw, Arg argx))
  {
- fn->func=func;
- fn->argptr=0;
- fn->n=3;
- fn->args[0]=pass1; fn->args[1]=pass2; fn->args[2]=pass3;
- fn->state=1;
+ fn->func.f3 = func;
+ fn->argptr = 0;
+ fn->n = 0;
+ fn->args[0].p = NULL;
+ fn->args[1].p = NULL;
+ fn->args[2].p = NULL;
+ fn->nargs = 3;
+ fn->state = 1;
  return fn;
  }
 
-TASK *fn4(fn,func,pass1,pass2,pass3,pass4)
-TASK *fn;
-void (*func)();
-int pass1,pass2,pass3,pass4;
+Task *fn0_4(Task *fn,void (*func)(int, Arg argv, Arg argw, Arg argx, Arg argy))
  {
- fn->func=func;
- fn->argptr=0;
- fn->n=4;
- fn->args[0]=pass1; fn->args[1]=pass2; fn->args[2]=pass3;
- fn->args[3]=pass4;
- fn->state=1;
+ fn->func.f4 = func;
+ fn->argptr = 0;
+ fn->n = 0;
+ fn->args[0].p = NULL;
+ fn->args[1].p = NULL;
+ fn->args[2].p = NULL;
+ fn->args[3].p = NULL;
+ fn->nargs = 4;
+ fn->state = 1;
  return fn;
  }
 
-TASK *fn5(fn,func,pass1,pass2,pass3,pass4,pass5)
-TASK *fn;
-void (*func)();
-int pass1,pass2,pass3,pass4,pass5;
+Task *fn0_5(Task *fn,void (*func)(int, Arg argv, Arg argw, Arg argx, Arg argy, Arg argz))
  {
- fn->func=func;
- fn->argptr=0;
- fn->n=5;
- fn->args[0]=pass1; fn->args[1]=pass2; fn->args[2]=pass3;
- fn->args[3]=pass4; fn->args[4]=pass5;
- fn->state=1;
+ fn->func.f5 = func;
+ fn->argptr = 0;
+ fn->n = 0;
+ fn->args[0].p = NULL;
+ fn->args[1].p = NULL;
+ fn->args[2].p = NULL;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->nargs = 5;
+ fn->state = 1;
  return fn;
  }
 
-void cont0(fn)
-TASK *fn;
+Task *fn1_0(Task *fn,void (*func)(int, Arg arga), Arg arga)
+ {
+ fn->func.f1 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->n = 1;
+ fn->nargs = 1;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn1_1(Task *fn,void (*func)(int, Arg arga, Arg argv), Arg arga)
+ {
+ fn->func.f2 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->n = 1;
+ fn->args[1].p = NULL;
+ fn->nargs = 2;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn1_2(Task *fn,void (*func)(int, Arg arga, Arg argv, Arg argw), Arg arga)
+ {
+ fn->func.f3 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->n = 1;
+ fn->args[1].p = NULL;
+ fn->args[2].p = NULL;
+ fn->nargs = 3;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn1_3(Task *fn,void (*func)(int, Arg arga, Arg argv, Arg argw, Arg argx), Arg arga)
+ {
+ fn->func.f4 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->n = 1;
+ fn->args[1].p = NULL;
+ fn->args[2].p = NULL;
+ fn->args[3].p = NULL;
+ fn->nargs = 4;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn1_4(Task *fn,void (*func)(int, Arg arga, Arg argv, Arg argw, Arg argx, Arg argy), Arg arga)
+ {
+ fn->func.f5 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->n = 1;
+ fn->args[1].p = NULL;
+ fn->args[2].p = NULL;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->nargs = 5;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn1_5(Task *fn,void (*func)(int, Arg arga, Arg argv, Arg argw, Arg argx, Arg argy, Arg argz), Arg arga)
+ {
+ fn->func.f6 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->n = 1;
+ fn->args[1].p = NULL;
+ fn->args[2].p = NULL;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->nargs = 6;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn2_0(Task *fn,void (*func)(int, Arg arga, Arg argb), Arg arga, Arg argb)
+ {
+ fn->func.f2 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->n = 2;
+ fn->nargs = 2;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn2_1(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argv), Arg arga, Arg argb)
+ {
+ fn->func.f3 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->n = 2;
+ fn->args[2].p = NULL;
+ fn->nargs = 3;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn2_2(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argv, Arg argw), Arg arga, Arg argb)
+ {
+ fn->func.f4 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->n = 2;
+ fn->args[2].p = NULL;
+ fn->args[3].p = NULL;
+ fn->nargs = 4;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn2_3(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argv, Arg argw, Arg argx), Arg arga, Arg argb)
+ {
+ fn->func.f5 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->n = 2;
+ fn->args[2].p = NULL;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->nargs = 5;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn2_4(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argv, Arg argw, Arg argx, Arg argy), Arg arga, Arg argb)
+ {
+ fn->func.f6 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->n = 2;
+ fn->args[2].p = NULL;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->nargs = 6;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn2_5(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argv, Arg argw, Arg argx, Arg argy, Arg argz), Arg arga, Arg argb)
+ {
+ fn->func.f7 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->n = 2;
+ fn->args[2].p = NULL;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->nargs = 7;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn3_0(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc), Arg arga, Arg argb, Arg argc)
+ {
+ fn->func.f3 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->n = 3;
+ fn->nargs = 3;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn3_1(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argv), Arg arga, Arg argb, Arg argc)
+ {
+ fn->func.f4 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->n = 3;
+ fn->args[3].p = NULL;
+ fn->nargs = 4;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn3_2(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argv, Arg argw), Arg arga, Arg argb, Arg argc)
+ {
+ fn->func.f5 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->n = 3;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->nargs = 5;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn3_3(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argv, Arg argw, Arg argx), Arg arga, Arg argb, Arg argc)
+ {
+ fn->func.f6 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->n = 3;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->nargs = 6;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn3_4(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argv, Arg argw, Arg argx, Arg argy), Arg arga, Arg argb, Arg argc)
+ {
+ fn->func.f7 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->n = 3;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->nargs = 7;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn3_5(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argv, Arg argw, Arg argx, Arg argy, Arg argz), Arg arga, Arg argb, Arg argc)
+ {
+ fn->func.f8 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->n = 3;
+ fn->args[3].p = NULL;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->args[7].p = NULL;
+ fn->nargs = 8;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn4_0(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd), Arg arga, Arg argb, Arg argc, Arg argd)
+ {
+ fn->func.f4 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->n = 4;
+ fn->nargs = 4;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn4_1(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg argv), Arg arga, Arg argb, Arg argc, Arg argd)
+ {
+ fn->func.f5 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->n = 4;
+ fn->args[4].p = NULL;
+ fn->nargs = 5;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn4_2(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg argv, Arg argw), Arg arga, Arg argb, Arg argc, Arg argd)
+ {
+ fn->func.f6 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->n = 4;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->nargs = 6;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn4_3(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg argv, Arg argw, Arg argx), Arg arga, Arg argb, Arg argc, Arg argd)
+ {
+ fn->func.f7 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->n = 4;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->nargs = 7;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn4_4(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg argv, Arg argw, Arg argx, Arg argy), Arg arga, Arg argb, Arg argc, Arg argd)
+ {
+ fn->func.f8 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->n = 4;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->args[7].p = NULL;
+ fn->nargs = 8;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn4_5(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg argv, Arg argw, Arg argx, Arg argy, Arg argz), Arg arga, Arg argb, Arg argc, Arg argd)
+ {
+ fn->func.f9 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->n = 4;
+ fn->args[4].p = NULL;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->args[7].p = NULL;
+ fn->args[8].p = NULL;
+ fn->nargs = 9;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn5_0(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg arge), Arg arga, Arg argb, Arg argc, Arg argd, Arg arge)
+ {
+ fn->func.f5 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->args[4] = arge;
+ fn->n = 5;
+ fn->nargs = 5;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn5_1(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg arge, Arg argv), Arg arga, Arg argb, Arg argc, Arg argd, Arg arge)
+ {
+ fn->func.f6 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->args[4] = arge;
+ fn->n = 5;
+ fn->args[5].p = NULL;
+ fn->nargs = 6;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn5_2(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg arge, Arg argv, Arg argw), Arg arga, Arg argb, Arg argc, Arg argd, Arg arge)
+ {
+ fn->func.f7 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->args[4] = arge;
+ fn->n = 5;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->nargs = 7;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn5_3(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg arge, Arg argv, Arg argw, Arg argx), Arg arga, Arg argb, Arg argc, Arg argd, Arg arge)
+ {
+ fn->func.f8 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->args[4] = arge;
+ fn->n = 5;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->args[7].p = NULL;
+ fn->nargs = 8;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn5_4(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg arge, Arg argv, Arg argw, Arg argx, Arg argy), Arg arga, Arg argb, Arg argc, Arg argd, Arg arge)
+ {
+ fn->func.f9 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->args[4] = arge;
+ fn->n = 5;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->args[7].p = NULL;
+ fn->args[8].p = NULL;
+ fn->nargs = 9;
+ fn->state = 1;
+ return fn;
+ }
+
+Task *fn5_5(Task *fn,void (*func)(int, Arg arga, Arg argb, Arg argc, Arg argd, Arg arge, Arg argv, Arg argw, Arg argx, Arg argy, Arg argz), Arg arga, Arg argb, Arg argc, Arg argd, Arg arge)
+ {
+ fn->func.f10 = func;
+ fn->argptr = 0;
+ fn->args[0] = arga;
+ fn->args[1] = argb;
+ fn->args[2] = argc;
+ fn->args[3] = argd;
+ fn->args[4] = arge;
+ fn->n = 5;
+ fn->args[5].p = NULL;
+ fn->args[6].p = NULL;
+ fn->args[7].p = NULL;
+ fn->args[8].p = NULL;
+ fn->args[9].p = NULL;
+ fn->nargs = 10;
+ fn->state = 1;
+ return fn;
+ }
+
+void cont0(Task *fn)
  {
  if(!fn) return;
  if(!fn->state) return;
@@ -360,8 +811,7 @@ TASK *fn;
  mutex_unlock(go_mutex);
  }
 
-void cont1(fn,arg1)
-TASK *fn;
+void cont1(Task *fn,Arg arg1)
  {
  if(!fn) return;
  if(!fn->state) return;
@@ -372,8 +822,7 @@ TASK *fn;
  mutex_unlock(go_mutex);
  }
 
-void cont2(fn,arg1,arg2)
-TASK *fn;
+void cont2(Task *fn,Arg arg1,Arg arg2)
  {
  if(!fn) return;
  if(!fn->state) return;
@@ -385,8 +834,7 @@ TASK *fn;
  mutex_unlock(go_mutex);
  }
 
-void cont3(fn,arg1,arg2,arg3)
-TASK *fn;
+void cont3(Task *fn,Arg arg1,Arg arg2,Arg arg3)
  {
  if(!fn) return;
  if(!fn->state) return;
@@ -399,8 +847,7 @@ TASK *fn;
  mutex_unlock(go_mutex);
  }
 
-void cont4(fn,arg1,arg2,arg3,arg4)
-TASK *fn;
+void cont4(Task *fn,Arg arg1,Arg arg2,Arg arg3,Arg arg4)
  {
  if(!fn) return;
  if(!fn->state) return;
@@ -414,8 +861,7 @@ TASK *fn;
  mutex_unlock(go_mutex);
  }
 
-void cont5(fn,arg1,arg2,arg3,arg4,arg5)
-TASK *fn;
+void cont5(Task *fn,Arg arg1,Arg arg2,Arg arg3,Arg arg4,Arg arg5)
  {
  if(!fn) return;
  if(!fn->state) return;
@@ -430,10 +876,9 @@ TASK *fn;
  mutex_unlock(go_mutex);
  }
 
-void submit(usecs,fn)
-TASK *fn;
+void submit(int usecs,Task *fn)
  {
- TASK *u;
+ Task *u;
  fn->usecs=usecs;
  mutex_lock(go_mutex);
  fn->state=2;
@@ -442,9 +887,9 @@ TASK *fn;
  mutex_unlock(go_mutex);
  }
 
-void note(usecs)
+void note(int usecs)
  {
- TASK *t;
+ Task *t;
  for(t=timer->next;t!=timer;t=t->next)
   if(t->usecs>0) t->usecs-=usecs;
  while(timer->next!=timer && timer->next->usecs<=0)
@@ -464,8 +909,7 @@ int waittim()
  return tim;
  }
 
-void cancel(fn)
-TASK *fn;
+void cancel(Task *fn)
  {
  if(!fn) return;
  if(!fn->state) return;
@@ -473,14 +917,19 @@ TASK *fn;
  if(fn->state>1) DEQUE(fn);
  fn->state=0;
  mutex_unlock(go_mutex);
- switch(fn->n)
+ switch(fn->nargs)
   {
-  case 0: fn->func(-1); break;
-  case 1: fn->func(-1,fn->args[0]); break;
-  case 2: fn->func(-1,fn->args[0],fn->args[1]); break;
-  case 3: fn->func(-1,fn->args[0],fn->args[1],fn->args[2]); break;
-  case 4: fn->func(-1,fn->args[0],fn->args[1],fn->args[2],fn->args[3]); break;
-  case 5: fn->func(-1,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4]);
+  case 0: fn->func.f0(-1); break;
+  case 1: fn->func.f1(-1,fn->args[0]); break;
+  case 2: fn->func.f2(-1,fn->args[0],fn->args[1]); break;
+  case 3: fn->func.f3(-1,fn->args[0],fn->args[1],fn->args[2]); break;
+  case 4: fn->func.f4(-1,fn->args[0],fn->args[1],fn->args[2],fn->args[3]); break;
+  case 5: fn->func.f5(-1,fn->args[0],fn->args[1],fn->args[3],fn->args[4],fn->args[5]); break;
+  case 6: fn->func.f6(-1,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],fn->args[5]); break;
+  case 7: fn->func.f7(-1,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],fn->args[5],fn->args[6]); break;
+  case 8: fn->func.f8(-1,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],fn->args[5],fn->args[6],fn->args[7]); break;
+  case 9: fn->func.f9(-1,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],fn->args[5],fn->args[6],fn->args[7],fn->args[8]); break;
+  case 10: fn->func.f10(-1,fn->args[0],fn->args[1],fn->args[2],fn->args[3],fn->args[4],fn->args[5],fn->args[6],fn->args[7],fn->args[8],fn->args[9]); break;
   }
  }
 
@@ -490,8 +939,7 @@ int anyfns()
  else return 0;
  }
 
-void iztask(t)
-TASK *t;
+void iztask(Task *t)
  {
  IZQUE(t);
  t->state=0;
