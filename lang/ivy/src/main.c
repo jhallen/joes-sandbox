@@ -111,7 +111,7 @@ int main(int argc,char *argv[])
 			if (parser->paren_level)
 				sprintf(prompt, "%d>", parser->paren_level);
 			else
-				sprintf(prompt, ">");
+				sprintf(prompt, " >");
 			s = readline(prompt);
 			if (!s)
 				break;

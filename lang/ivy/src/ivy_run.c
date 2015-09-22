@@ -1809,12 +1809,16 @@ int pexe(Ivy *ivy, int trace)
                         */
 			break;
 		} case iRTS: {	/* Return from function */
+			*psh(ivy) = ivy->stashed;
 			ivy->pc = pc;
 			if (!retfunc(ivy))
 				return 0;
 			if (ivy->call_me)
 				return 1;
                         pc = ivy->pc;
+			break;
+		} case iSTASH: { /* Pop return value */
+			ivy->stashed = popval(ivy);
 			break;
 		} case iPOP: {	/* Pop something off of stack */
 			ivy->sp = rmval(ivy->sp, __LINE__);

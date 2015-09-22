@@ -1038,9 +1038,15 @@ void rtrandom(Ivy *ivy)
 	*psh(ivy) = mkival(tNUM, random());
 }
 
+void rtdepth(Ivy *ivy)
+{
+	*psh(ivy) = mkival(tNUM, ivy->sp - ivy->sptop);
+}
+
 /* Table of built-in functions */
 
 struct builtin builtins[] = {
+	{"depth", rtdepth, ""},
 	{"pr", rtprint, ""},
 	{"vars", rtvars, ""},
 	{"print", rtprint, ""},

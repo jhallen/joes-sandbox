@@ -475,7 +475,7 @@ int parse_rest_done_call(Parser *parser)
 		parser->state.n = cons1(parser->loc, k->what, opt(parser->loc, parser->rtn));
 	} else
 		parser->state.n = cons2(parser->loc, parser->state.op->what, parser->state.n, opt(parser->loc,parser->rtn));
-	if (*parser->loc->ptr == ']')
+	if (*parser->loc->ptr == '}')
 		++parser->loc->ptr, ++parser->loc->col;
 	else
 		error_2(parser->err,"\"%s\" %d: Error: missing ]",parser->loc->name,parser->loc->line);
@@ -659,8 +659,8 @@ int parse_expr_done_square(Parser *parser)
 {
 	PTRACE("parse_expr_done_square");
 	parser->state.n = cons1(parser->loc,nPAREN, parser->rtn);
-	if (*parser->loc->ptr != ']')
-		error_2(parser->err,"\"%s\" %d: Error: missing ]",parser->loc->name,parser->loc->line);
+	if (*parser->loc->ptr != '}')
+		error_2(parser->err,"\"%s\" %d: Error: missing }",parser->loc->name,parser->loc->line);
 	else
 		++parser->loc->ptr, ++parser->loc->col;
 	--parser->paren_level;
@@ -672,8 +672,8 @@ int parse_expr_done_list(Parser *parser)
 {
 	PTRACE("parse_expr_done_list");
 	parser->state.n = cons1(parser->loc,nLIST, opt(parser->loc,parser->rtn));
-	if (*parser->loc->ptr != '}')
-		error_2(parser->err,"\"%s\" %d: Error: missing }",parser->loc->name,parser->loc->line);
+	if (*parser->loc->ptr != ']')
+		error_2(parser->err,"\"%s\" %d: Error: missing ]",parser->loc->name,parser->loc->line);
 	else
 		++parser->loc->ptr, ++parser->loc->col;
 	--parser->paren_level;
@@ -722,6 +722,7 @@ int parse_expr(Parser *parser)
 					else if (*parser->loc->ptr == '_')
 						parser->loc->ptr++, parser->loc->col++;
 				parser->state.n = consnum(parser->loc,num);
+				break;
 			} else if (*parser->loc->ptr == 'b' || *parser->loc->ptr == 'B') { /* Binary */
 				long long num = 0;
 				++parser->loc->ptr;
@@ -733,21 +734,22 @@ int parse_expr(Parser *parser)
 					++parser->loc->col;
 				}
 				parser->state.n = consnum(parser->loc,num);
-			} else { /* Octal */
+				break;
+			} else if (*parser->loc->ptr == 'o' || *parser->loc->ptr == 'O') { /* Octal */
 				long long num = 0;
-				int x;
-				for (x = 0; (parser->loc->ptr[x] >= '0' && parser->loc->ptr[x] <= '7') || parser->loc->ptr[x]=='_'; ++x)
-					if (parser->loc->ptr[x] != '_')
-						num = num * 8 + parser->loc->ptr[x] - '0';
-				if (parser->loc->ptr[x] == '.' || parser->loc->ptr[x] == 'e' || parser->loc->ptr[x] == 'E')
-					goto parsefloat;
-				else {
-					parser->loc->ptr += x;
-					parser->loc->col += x;
-					parser->state.n = consnum(parser->loc,num);
+				++parser->loc->ptr;
+				++parser->loc->col;
+				while((*parser->loc->ptr >= '0' && *parser->loc->ptr <= '7') || *parser->loc->ptr == '_') {
+					if (*parser->loc->ptr != '_')
+						num = (num << 3) + *parser->loc->ptr - '0';
+					++parser->loc->ptr;
+					++parser->loc->col;
 				}
-			}
-			break;
+				parser->state.n = consnum(parser->loc,num);
+				break;
+			} else if (*parser->loc->ptr == '.' || *parser->loc->ptr == 'e' || *parser->loc->ptr == 'E')
+				goto parsefloat;
+			/* Fall into decimal */
 		} case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': {
 			int x;
 			long long num = 0;
@@ -811,13 +813,13 @@ int parse_expr(Parser *parser)
 			pcall(/* parse_paren */ parse_lst,parse_expr_done_paren,0);
 			return 0;
 			break;
-		} case '[': {		/* Prec. */
+		} case '{': {		/* Prec. */
 			++parser->loc->ptr, ++parser->loc->col;
 			++parser->paren_level;
 			pcall(parse_paren,parse_expr_done_square,0);
 			return 0;
 			break;
-		} case '{': { /* List. */
+		} case '[': { /* List. */
 			++parser->loc->ptr, ++parser->loc->col;
 			++parser->paren_level;
 			pcall(parse_lst,parse_expr_done_list,0);
@@ -955,43 +957,6 @@ int parse_cmd_4(Parser *parser)
 		if (parser->loc->lvl > parser->state.blvl) {
 			PTRACE("parse_cmd_4 more indent, starting block")
 			pcall(parse_cmd,parse_cmd_5,0);
-		} else if (parser->loc->lvl == parser->state.blvl &&
-		         !strncmp(parser->loc->ptr, "next", 4) &&
-		         !((parser->loc->ptr[4] >= 'A' && parser->loc->ptr[4] <= 'Z') ||
-		           (parser->loc->ptr[4] >= 'a' && parser->loc->ptr[4] <= 'z') ||
-		           (parser->loc->ptr[4] >= '0' && parser->loc->ptr[4] <= '9') ||
-		           parser->loc->ptr[4] == '_')) {
-		        parser->state.line = parser->loc->line;
-		        parser->loc->col += 4;
-		        parser->loc->ptr += 4;
-		        if (parser->state.blk) {
-				PTRACE("parse_cmd_4 same indent, found next")
-				parser->state.blk = cons1(parser->loc,nPAREN,parser->state.blk);
-				if (parser->state.args)
-					parser->state.args = cons2(parser->loc,nSEMI, parser->state.args, parser->state.blk);
-				else
-					parser->state.args = parser->state.blk;
-			}
-			pjump(parse_cmd_2);
-		} else if (parser->loc->lvl == parser->state.blvl &&
-		         !strncmp(parser->loc->ptr, "last", 4) &&
-		         !((parser->loc->ptr[4] >= 'A' && parser->loc->ptr[4] <= 'Z') ||
-		           (parser->loc->ptr[4] >= 'a' && parser->loc->ptr[4] <= 'z') ||
-		           (parser->loc->ptr[4] >= '0' && parser->loc->ptr[4] <= '9') ||
-		           parser->loc->ptr[4] == '_') && !parser->state.last) {
-				PTRACE("parse_cmd_4 same indent, found last")
-		        parser->state.line = parser->loc->line;
-		        parser->loc->col += 4;
-		        parser->loc->ptr += 4;
-		        parser->state.last = 1;
-		        if (parser->state.blk) {
-				parser->state.blk = cons1(parser->loc,nPAREN,parser->state.blk);
-				if (parser->state.args)
-					parser->state.args = cons2(parser->loc,nSEMI, parser->state.args, parser->state.blk);
-				else
-					parser->state.args = parser->state.blk;
-			}
-			pjump(parse_cmd_2);
 		} else {
 			PTRACE("parse_cmd_4 same or less indent, block done")
 			return parse_cmd_done(parser);
@@ -1043,7 +1008,12 @@ int parse_cmd_2(Parser *parser)
 	} else {
 		/* Maybe we have a block.. */
 		parser->state.blk = 0;
+/* Allow indentation to signal blocks */
+#if 0
 		pjump(parse_cmd_4);
+#else
+		return parse_cmd_done(parser);
+#endif
 	}
 	return 0;
 }

@@ -66,90 +66,145 @@ static void setlist(Frag *frag, int a, int b)
 	}
 }
 
-/* Loop break/continue point list */
+/* Track contents of the stack.  Also track loops.  */
+
+#define lvlSCOPE 0
+#define lvlLOOP 1
+#define lvlVALUE 2
 
 struct looplvl {
 	struct looplvl *next;	/* Next level */
+	int what;		/* 2 = value, 1 = loop, 0 = scope */
 	int cont;		/* List of continue destinations */
 	int brk;		/* List of brk destinations */
-	char *name;	/* Named level */
-	int scopelvl;		/* Scoping level */
+	char *name;		/* Named level */
 };
 
-void mklooplvl(Frag *frag, int cont, int brk)
+void mklooplvl(Frag *frag, int what, int cont, int brk)
 {
 	struct looplvl *ll =
 	    (struct looplvl *) malloc(sizeof(struct looplvl));
+	ll->what = what;
 	ll->cont = cont;
 	ll->brk = brk;
 	ll->next = frag->looplvls;
 	ll->name = 0;
-	ll->scopelvl = frag->scopelvl;
 	frag->looplvls = ll;
+	if (ll->what == lvlSCOPE)
+		emitc(frag, iBEG);
 }
 
-void rmlooplvl(Frag *frag, int cont, int brk)
+void rmlooplvl(Frag *frag, int what, int cont, int brk)
 {
 	struct looplvl *ll = frag->looplvls;
 	frag->looplvls = ll->next;
-	setlist(frag, ll->cont, cont);
-	setlist(frag, ll->brk, brk);
+	if (what != ll->what) {
+		printf("Expected level of type %d\n", what);
+		printf("But we have this:\n");
+		while (ll) {
+			printf("  %d\n", ll->what);
+			ll = ll->next;
+		}
+		abort();
+	}
+	if (ll->what == lvlLOOP) {
+		setlist(frag, ll->cont, cont);
+		setlist(frag, ll->brk, brk);
+	}
+	if (ll->what == lvlSCOPE)
+		emitc(frag, iEND);
 	if (ll->name)
 		free(ll->name);
 	free(ll);
 }
 
+/* Find named loop, or with NULL, find innermost loop */
+
 struct looplvl *findlvl(Frag *frag, char *name)
 {
 	struct looplvl *ll;
-	for (ll = frag->looplvls; ll && (!ll->name || strcmp(ll->name, name)); ll = ll->next);
+	if (name)
+		for (ll = frag->looplvls; ll && (!ll->name || strcmp(ll->name, name)); ll = ll->next);
+	else
+		for (ll = frag->looplvls; ll && ll->what != lvlLOOP; ll = ll->next);
 	return ll;
+}
+
+/* Convert stack list to object */
+
+void fixlooplvl(Frag *frag, int amnt)
+{
+	int x;
+	for (x = 0; x != amnt; ++x)
+		rmlooplvl(frag, lvlVALUE, 0, 0);
+}
+
+/* Pop for premature exit */
+
+void poploops(Frag *frag, struct looplvl *target)
+{
+	struct looplvl *ll;
+	for (ll = frag->looplvls; ll && ll != target; ll = ll->next) {
+		if (ll->what == lvlSCOPE)
+			emitc(frag, iEND);
+		else if (ll->what == lvlVALUE)
+			emitc(frag, iPOP);
+	}
 }
 
 /* Push something */
 
 void push_str(Frag *frag)
 {
+	mklooplvl(frag, lvlVALUE, 0, 0);
 	emitc(frag, iPSH_STR);
 }
 
 void push_nam(Frag *frag)
 {
+	mklooplvl(frag, lvlVALUE, 0, 0);
 	emitc(frag, iPSH_NAM);
 }
 
 void push_narg(Frag *frag)
 {
+	mklooplvl(frag, lvlVALUE, 0, 0);
 	emitc(frag, iPSH_NARG);
 }
 
 void push_func(Frag *frag)
 {
+	mklooplvl(frag, lvlVALUE, 0, 0);
 	emitc(frag, iPSH_FUNC);
 }
 
 void push_lst(Frag *frag)
 {
+	mklooplvl(frag, lvlVALUE, 0, 0);
 	emitc(frag, iPSH_LST);
 }
 
 void push_void(Frag *frag)
 {
+	mklooplvl(frag, lvlVALUE, 0, 0);
 	emitc(frag, iPSH_VOID);
 }
 
 void push_this(Frag *frag)
 {
+	mklooplvl(frag, lvlVALUE, 0, 0);
 	emitc(frag, iPSH_THIS);
 }
 
 void push_num(Frag *frag)
 {
+	mklooplvl(frag, lvlVALUE, 0, 0);
 	emitc(frag, iPSH_NUM);
 }
 
 void push_fp(Frag *frag)
 {
+	mklooplvl(frag, lvlVALUE, 0, 0);
 	emitc(frag, iPSH_FP);
 }
 
@@ -276,6 +331,9 @@ void disasm(FILE *out, Pseudo * c, int ind, int oneline)
 			} case iRTS: {
 				indent(out, ind); fprintf(out, "	rts\n");
 				return;
+			} case iSTASH: {
+				indent(out, ind); fprintf(out, "	stash\n");
+				break;
 			} case iPOP: {
 				indent(out, ind); fprintf(out, "	pop\n");
 				break;
@@ -522,14 +580,12 @@ int genelif(Error_printer *err, Frag *frag, Node * n, int v)
 		case nIF: {
 			int els = genbra(err, frag, n->l, 1);
 			int rtval;
-			emitc(frag, iBEG);
-			++frag->scopelvl;
+			mklooplvl(frag, lvlSCOPE, 0, 0);
 			if (v)
 				gen(err, frag, n->r);
 			else
 				genn(err, frag, n->r);
-			emitc(frag, iEND);
-			--frag->scopelvl;
+			rmlooplvl(frag, lvlSCOPE, 0, 0);
 			emitc(frag, iBRA);
 			rtval = emitn(frag, 0);
 			setlist(frag, els, frag->code);
@@ -568,14 +624,12 @@ void gencond(Error_printer *err, Frag *frag, Node *n, int v)
 
 	if (f && r) { /* elif */
 		int els = genbra(err, frag, f, 1); /* Branch if false */
-		emitc(frag, iBEG);
-		++frag->scopelvl;
+		mklooplvl(frag, lvlSCOPE, 0, 0);
 		if (v)
 			gen(err, frag, r);
 		else
 			genn(err, frag, r);
-		emitc(frag, iEND);
-		--frag->scopelvl;
+		rmlooplvl(frag, lvlSCOPE, 0, 0);
 		emitc(frag, iBRA);
 		if (end)
 			addlist(frag, end, emitn(frag, 0));
@@ -584,14 +638,12 @@ void gencond(Error_printer *err, Frag *frag, Node *n, int v)
 		setlist(frag, els, frag->code);
 		goto loop;
 	} else if (f) { /* else */
-		emitc(frag, iBEG);
-		++frag->scopelvl;
+		mklooplvl(frag, lvlSCOPE, 0, 0);
 		if (v)
 			gen(err, frag, f);
 		else
 			genn(err, frag, f);
-		emitc(frag, iEND);
-		--frag->scopelvl;
+		rmlooplvl(frag, lvlSCOPE, 0, 0);
 		setlist(frag, end, frag->code);
 		return;
 	} else { /* no else */
@@ -620,6 +672,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 			push_lst(frag);
 			emitn(frag, amnt);
 			emitc(frag, iFIX);
+			fixlooplvl(frag, amnt);
 			break;
 		} case nVOID: {
 			push_void(frag);
@@ -649,6 +702,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 //			gena(err, frag, n->l);  (lvalue change)
 			gen(err, frag, n->l);
 			emitc(frag, iSET);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			break;
 		} case nIF: {
 			gencond(err, frag, n->r, 1);
@@ -659,7 +713,9 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 //			gena(err, frag, n->l); (lvalue change)
 			gen(err, frag, n->l);
 			emitc(frag, iSET);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			emitc(frag, iPOP);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			break;
 		} case nADDR: {
 			/* Generate a code snippet */
@@ -673,18 +729,21 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 					emitp(frag, n->r->l->l->s);
 					emitc(frag, iGETF_ATOM);
 					emitc(frag, iSET);
+					rmlooplvl(frag, lvlVALUE, 0, 0);
 				} else if (n->r->l->what==nNAM && n->r->r->what==nSEMI && n->r->r->l->what==nPAREN) { /* fn sq (x) x*x */
 					genfunc(err, frag, n->r->r->l, n->r->r->r);
 					push_nam(frag);
 					emitp(frag, n->r->l->s);
 					emitc(frag, iGETF_ATOM);
 					emitc(frag, iSET);
+					rmlooplvl(frag, lvlVALUE, 0, 0);
 				} else if (n->r->l->what==nNAM && n->r->r->what==nPAREN) { /* fn sq (x) */
 					genfunc(err, frag, n->r->r, consempty(n->loc));
 					push_nam(frag);
 					emitp(frag, n->r->l->s);
 					emitc(frag, iGETF_ATOM);
 					emitc(frag, iSET);
+					rmlooplvl(frag, lvlVALUE, 0, 0);
 				} else if (n->r->l->what==nPAREN) { /* fn (x) x*x */
 					genfunc(err, frag, n->r->l, n->r->r);
 				} else {
@@ -697,6 +756,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 				emitp(frag, n->r->l->s);
 				emitc(frag, iGETF_ATOM);
 				emitc(frag, iSET);
+				rmlooplvl(frag, lvlVALUE, 0, 0);
 			} else if(n->r->what==nPAREN) { /* fn () */
 				genfunc(err,frag, n->r, consempty(n->loc));
 			} else {
@@ -716,11 +776,9 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 					addlist(frag, done, genbra(err, frag, n->r->r->l, 1));
 					n = n->r;
 				}
-				emitc(frag, iBEG);
-				++frag->scopelvl;
+				mklooplvl(frag, lvlSCOPE, 0, 0);
 				gen(err, frag, n->r->r);
-				emitc(frag, iEND);
-				--frag->scopelvl;
+				rmlooplvl(frag, lvlSCOPE, 0, 0);
 				setlist(frag, done, frag->code);
 			} else {
 				genn(err, frag, n->l);
@@ -747,6 +805,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 //			gena(err, frag, n->l); (lvalue change)
 			gen(err, frag, n->l);
 			emitc(frag, iCALL);
+			fixlooplvl(frag, nargs + 1);
 			break;
 		} case nCALL1: { /* Ends up being the same as above */
 //			if (n->r->what != nNAM)
@@ -762,6 +821,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 //			gena(err, frag, n->l); (lvalue change)
 			gen(err, frag, n->l);
 			emitc(frag, iCALL);
+			fixlooplvl(frag, nargs + 1);
 			break;
 		} case nCOM: case nNEG: case nSHL: case nSHR: case nMUL: case nDIV: case nMOD: case nAND:
 		  case nADD: case nSUB: case nOR: case nXOR: case nAT: {
@@ -770,6 +830,8 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 			if (n->r)
 				gen(err, frag, n->r);
 			emitc(frag, what_tab[n->what].i);
+			if (n->r)
+				rmlooplvl(frag, lvlVALUE, 0, 0);
 			break;
 		} default: {
 			if (!genn(err, frag, n))
@@ -833,70 +895,68 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 			if (n->r->what == nSEMI && n->r->l->what == nPAREN) {
 				// Handles with (a,b) f
 				int amnt;
-				emitc(frag, iBEG);
-				++frag->scopelvl;
+				mklooplvl(frag, lvlSCOPE, 0, 0);
 				amnt = genl(err, frag, n->r->l->r);
 				push_lst(frag);
 				emitn(frag, amnt);
 				emitc(frag, iWTH);
+				fixlooplvl(frag, amnt + 1);
 				genn(err, frag, n->r->r);
-				emitc(frag, iEND);
-				--frag->scopelvl;
+				rmlooplvl(frag, lvlSCOPE, 0, 0);
 			} else if (n->r->what == nSEMI && last_is_paren(n->r)) {
 				// Handles with a b [f]
 				Node *r;
 				int amnt;
 				n->r = extract_last_is_paren(n->r, &r);
-				emitc(frag, iBEG);
-				++frag->scopelvl;
+				mklooplvl(frag, lvlSCOPE, 0, 0);
 				amnt = genl(err, frag, n->r);
 				push_lst(frag);
 				emitn(frag, amnt);
 				emitc(frag, iWTH);
+				fixlooplvl(frag, amnt + 1);
 				genn(err, frag, r);
-				emitc(frag, iEND);
-				--frag->scopelvl;
+				rmlooplvl(frag, lvlSCOPE, 0, 0);
 			} else {
 				// Handles with a b c
 				int amnt = genl(err, frag, n->r);
 				push_lst(frag);
 				emitn(frag, amnt);
 				emitc(frag, iWTH);
+				fixlooplvl(frag, amnt + 1);
 			}
 			break;
 		} case nLOCAL: {
 			if (n->r->what == nSEMI && n->r->l->what == nPAREN) {
 				int amnt;
-				emitc(frag, iBEG);
-				++frag->scopelvl;
+				mklooplvl(frag, lvlSCOPE, 0, 0);
 				amnt = genll(err, frag, n->r->l->r);
 				push_lst(frag);
 				emitn(frag, amnt);
 				emitc(frag, iLOC);
+				fixlooplvl(frag, amnt + 1);
 				genla(err, frag, n->r->l->r);
 				genn(err, frag, n->r->r);
-				emitc(frag, iEND);
-				--frag->scopelvl;
+				rmlooplvl(frag, lvlSCOPE, 0, 0);
 			} else if (n->r->what == nSEMI && last_is_paren(n->r)) {
 				// Handles with a b [f]
 				Node *r;
 				int amnt;
 				n->r = extract_last_is_paren(n->r, &r);
-				emitc(frag, iBEG);
-				++frag->scopelvl;
+				mklooplvl(frag, lvlSCOPE, 0, 0);
 				amnt = genll(err, frag, n->r);
 				push_lst(frag);
 				emitn(frag, amnt);
 				emitc(frag, iLOC);
+				fixlooplvl(frag, amnt + 1);
 				genla(err, frag, n->r);
 				genn(err, frag, r);
-				emitc(frag, iEND);
-				--frag->scopelvl;
+				rmlooplvl(frag, lvlSCOPE, 0, 0);
 			} else {
 				int amnt = genll(err, frag, n->r); /* Create variables */
 				push_lst(frag);
 				emitn(frag, amnt);
 				emitc(frag, iLOC);
+				fixlooplvl(frag, amnt + 1);
 				genla(err, frag, n->r); /* Initialize them */
 			}
 			break;
@@ -910,42 +970,40 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 				genn(err, frag, args->l); /* Initializer */
 				emitc(frag, iBRA);
 				emitn(frag, 0);
-				mklooplvl(frag, frag->code-sizeof(int), 0);
+				mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
 				cont = frag->code;
 				setlist(frag,genbra(err, frag, args->r, 0), top); /* Test */
-				rmlooplvl(frag, cont, frag->code);
+				rmlooplvl(frag, lvlLOOP, cont, frag->code);
 			} else if (args->r->r->what != nSEMI) { /* Three args */
 				genn(err, frag, args->l); /* Initializer */
 				emitc(frag, iBRA);
 				emitn(frag, 0);
-				mklooplvl(frag, frag->code-sizeof(int), 0);
+				mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
 				genn(err, frag, args->r->r); /* Increment */
 				cont = frag->code;
 				setlist(frag,genbra(err, frag, args->r->l, 0), top); /* Test */
-				rmlooplvl(frag, cont, frag->code);
+				rmlooplvl(frag, lvlLOOP, cont, frag->code);
 			} else { /* Four args */
 				genn(err, frag, args->l); /* Initializer */
 				emitc(frag, iBRA);
 				emitn(frag, 0);
-				mklooplvl(frag, frag->code-sizeof(int), 0);
+				mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
-				emitc(frag, iBEG);
-				++frag->scopelvl;
+				mklooplvl(frag, lvlSCOPE, 0, 0);
 				genn(err, frag, args->r->r->r); /* Body */
-				emitc(frag,iEND);
-				--frag->scopelvl;
+				rmlooplvl(frag, lvlSCOPE, 0, 0);
 				genn(err, frag, args->r->r->l); /* Increment */
 				cont = frag->code;
 				setlist(frag,genbra(err, frag, args->r->l, 0), top); /* Test */
-				rmlooplvl(frag, cont, frag->code);
+				rmlooplvl(frag, lvlLOOP, cont, frag->code);
 			}
 			break;
 		} case nFOREACH: {
@@ -960,37 +1018,33 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 				if (args->l->what != nNAM) {
 					error_2(err, "\"%s\" %d: First arg to foreach must be a variable", n->loc->name, n->loc->line);
 				}
-				emitc(frag, iBEG);
-				++frag->scopelvl;
+				mklooplvl(frag, lvlSCOPE, 0, 0); /* Scope for args */
 				gen(err, frag, args->l);	/* Variable (check that it really is at runtime) */
 				gen(err, frag, args->r->l);	/* Array/object */
-				emitc(frag, iFIX);
 				push_num(frag);
 				emitl(frag, 0);	/* Temp vars for iFOREACH */
 				push_num(frag);
 				emitl(frag, -1);
 				emitc(frag, iBRA);
 				emitn(frag, 0);
-				mklooplvl(frag, frag->code-sizeof(int), 0);
+				mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0); /* Start loop */
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
-				emitc(frag, iBEG);
-				++frag->scopelvl;
+				mklooplvl(frag, lvlSCOPE, 0, 0); /* Scope for body */
 				genn(err, frag, args->r->r);
-				emitc(frag, iEND);
-				--frag->scopelvl;
+				rmlooplvl(frag, lvlSCOPE, 0, 0); /* Body scope done */
 				cont = frag->code;
 				emitc(frag, iFOREACH);
 				align_frag(frag, sizeof(int));
 				emitn(frag, top - (frag->code));
-				rmlooplvl(frag, cont, frag->code);
+				rmlooplvl(frag, lvlLOOP, cont, frag->code); /* Complete loop */
 				emitc(frag, iPOP);
 				emitc(frag, iPOP);
 				emitc(frag, iPOP);
 				emitc(frag, iPOP);
-				emitc(frag, iEND);
-				--frag->scopelvl;
+				fixlooplvl(frag, 4); /* POP temp vars */
+				rmlooplvl(frag, lvlSCOPE, 0, 0); /* POP args scope */
 			}
 			break;
 		} case nWHILE: {
@@ -1003,22 +1057,20 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 			}
 			emitc(frag, iBRA);
 			emitn(frag, 0);
-			mklooplvl(frag, frag->code-sizeof(int), 0);
+			mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
 			if (name)
 				frag->looplvls->name = strdup(name->r->s);
 			top = frag->code;
-			emitc(frag, iBEG);
-			++frag->scopelvl;
+			mklooplvl(frag, lvlSCOPE, 0, 0);
 			if (args->what==nSEMI)
 				genn(err, frag, args->r);
-			emitc(frag, iEND);
-			--frag->scopelvl;
+			rmlooplvl(frag, lvlSCOPE, 0, 0);
 			cont = frag->code;
 			if (args->what==nSEMI)
 				setlist(frag, genbra(err, frag, args->l, 0), top);
 			else
 				setlist(frag, genbra(err, frag, args, 0), top);
-			rmlooplvl(frag, cont, frag->code);
+			rmlooplvl(frag, lvlLOOP, cont, frag->code);
 			break;
 		} case nRETURN: {
 			int z;
@@ -1026,8 +1078,9 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 				gen(err, frag, n->r);
 			else
 				push_void(frag);
-			for (z = 0; z != frag->scopelvl; ++z)
-				emitc(frag, iEND);
+			emitc(frag, iSTASH);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
+			poploops(frag, NULL);
 			emitc(frag, iBRA);
 			z = emitn(frag, 0);
 			if (frag->rtn)
@@ -1040,21 +1093,19 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 			Node *name;
 			Node *args = extract_loop_name(n->r, &name);
 			cont = frag->code;
-			mklooplvl(frag, 0, 0);
+			mklooplvl(frag, lvlLOOP, 0, 0);
 			if (name)
 				frag->looplvls->name = strdup(name->r->s);
-			emitc(frag, iBEG);
-			++frag->scopelvl;
+			mklooplvl(frag, lvlSCOPE, 0, 0);
 			genn(err, frag, args);
-			emitc(frag, iEND);
-			--frag->scopelvl;
+			rmlooplvl(frag, lvlSCOPE, 0, 0);
 			emitc(frag, iBRA);
 			align_frag(frag, sizeof(int));
 			emitn(frag, cont - (frag->code));
-			rmlooplvl(frag, cont, frag->code);
+			rmlooplvl(frag, lvlLOOP, cont, frag->code);
 			break;
 		} case nBREAK: {
-			struct looplvl *ll = frag->looplvls;
+			struct looplvl *ll = findlvl(frag, NULL);
 			if (n->r) {
 				// printf("looking... %s %p %p\n",n->r->s,frag,ll);
 				if (n->r->what == nNAM)
@@ -1065,8 +1116,7 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 			if (ll) {
 				int z;
 				// printf("break %d %d\n", ll->scopelvl, frag->scopelvl);
-				for (z = ll->scopelvl; z != frag->scopelvl; ++z)
-					emitc(frag, iEND);
+				poploops(frag, ll);
 				emitc(frag, iBRA);
 				z = emitn(frag, 0);
 				if (ll->brk)
@@ -1077,7 +1127,7 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 				error_2(err, "\"%s\" %d: break with no loop", n->loc->name, n->loc->line);
 			return 1;
 		} case nCONT: {
-			struct looplvl *ll = frag->looplvls;
+			struct looplvl *ll = findlvl(frag, NULL);
 			if (n->r) {
 				if (n->r->what == nNAM)
 					ll = findlvl(frag, n->r->s);
@@ -1086,8 +1136,7 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 			}
 			if (ll) {
 				int z;
-				for (z = ll->scopelvl; z != frag->scopelvl; ++z)
-					emitc(frag, iEND);
+				poploops(frag, ll);
 				emitc(frag, iBRA);
 				z = emitn(frag, 0);
 				if (ll->cont)
@@ -1099,12 +1148,11 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 			return 1;
 		} case nUNTIL: {
 			int els = genbra(err, frag, n->r, 1);
-			struct looplvl *ll = frag->looplvls;
+			struct looplvl *ll = findlvl(frag, NULL);
 			if (ll) {
 				int z;
 				// printf("break %d %d\n", ll->scopelvl, frag->scopelvl);
-				for (z = ll->scopelvl; z != frag->scopelvl; ++z)
-					emitc(frag, iEND);
+				poploops(frag, ll);
 				emitc(frag, iBRA);
 				z = emitn(frag, 0);
 				if (ll->brk)
@@ -1138,11 +1186,9 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 					addlist(frag, done, genbra(err, frag, n->r->r->l, 1));
 					n = n->r;
 				}
-				emitc(frag, iBEG);
-				++frag->scopelvl;
+				mklooplvl(frag, lvlSCOPE, 0, 0);
 				genn(err, frag, n->r->r);
-				emitc(frag, iEND);
-				--frag->scopelvl;
+				rmlooplvl(frag, lvlSCOPE, 0, 0);
 				setlist(frag, done, frag->code);
 			} else {
 				genn(err, frag, n->l);
@@ -1154,6 +1200,7 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 		} default: {
 			gen(err, frag, n);
 			emitc(frag, iPOP);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 		}
 	}
 	return 0;
@@ -1166,55 +1213,67 @@ static int genbra(Error_printer *err, Frag *frag, Node * n, int t)
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
 			emitc(frag, iCMP);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			if (t)
 				emitc(frag, iBNE);
 			else
 				emitc(frag, iBEQ);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			return emitn(frag, 0);
 		} case nNE: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
 			emitc(frag, iCMP);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			if (t)
 				emitc(frag, iBEQ);
 			else
 				emitc(frag, iBNE);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			return emitn(frag, 0);
 		} case nGT: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
 			emitc(frag, iCMP);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			if (t)
 				emitc(frag, iBLE);
 			else
 				emitc(frag, iBGT);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			return emitn(frag, 0);
 		} case nGE: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
 			emitc(frag, iCMP);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			if (t)
 				emitc(frag, iBLT);
 			else
 				emitc(frag, iBGE);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			return emitn(frag, 0);
 		} case nLT: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
 			emitc(frag, iCMP);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			if (t)
 				emitc(frag, iBGE);
 			else
 				emitc(frag, iBLT);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			return emitn(frag, 0);
 		} case nLE: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
 			emitc(frag, iCMP);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			if (t)
 				emitc(frag, iBGT);
 			else
 				emitc(frag, iBLE);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			return emitn(frag, 0);
 		} case nNOT: {
 			return genbra(err, frag, n->r, !t);
@@ -1240,6 +1299,7 @@ static int genbra(Error_printer *err, Frag *frag, Node * n, int t)
 				emitc(frag, iBEQ);
 			else
 				emitc(frag, iBNE);
+			rmlooplvl(frag, lvlVALUE, 0, 0);
 			return emitn(frag, 0);
 		}
 	}
@@ -1254,6 +1314,8 @@ Pseudo *codegen(Error_printer *err, Node *n)
 	init_frag(frag);
 
 	gen(err, frag, n);
+
+	emitc(frag, iSTASH);
 
 	if (frag->rtn)
 		setlist(frag, frag->rtn, frag->code);
