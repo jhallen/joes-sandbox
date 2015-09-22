@@ -156,6 +156,34 @@ static void xml_unget(int c)
   tok_unget=c;
   }
 
+#define GETC(f) do { \
+  c = getc(f); \
+  if (c == '\n') \
+    ++line; \
+  } while (0)
+
+#define UNGETC(f, c) do { \
+  if (c == '\n') \
+    --line; \
+  ungetc((c),(f)); \
+  } while (0)
+
+// Some XML information:
+
+//     Whitespace: space, \r, \n, \t
+//       _ means optional whitespace
+//      ' ' means required whitespace
+//     Element: <name[ attribute_=_value_]*>content</name_>
+//     Empty element: <name[ attribute_=_value_]* /> (whitespace allowed around =)
+//       Value: 'text' (no single quotes in text) | "text" (no double quotes in text)
+//     content has:
+//        Any characters except < or &
+//        References: &#123; &#xFe; &name;
+//          Predefined entities: &lt; &gt; &amp; &apos; &quot;
+//        Comments: <!-- text -->  (-- is not allowed within text)
+//        Processing instructions: <?name text ?>
+//        Quoted: <![CDATA[....]]>   .... can have anything but ]]>
+
 static int xml_tok(FILE *f)
   {
   int c;
@@ -165,94 +193,93 @@ static int xml_tok(FILE *f)
     tok_unget= -1;
     return c;
     }
-  again: c=getc(f);
-  switch(c)
+  GETC(f);
+  if (c == '<')
     {
-    case '<':
+    int t;
+    int x;
+    GETC(f);
+    if(c=='/')
+      t=END_TAG;
+    else
       {
-      int t;
-      int x;
-      c=getc(f);
-      if(c=='/')
-        t=END_TAG;
+      t=TAG;
+      UNGETC(c,f);
+      }
+    for(x=0;x!=sizeof(tok_str)-1;++x)
+      {
+      GETC(f);
+      if(c!='>' && c != ' ' && c != '\n' && c != '\r' && c != '\t' && c!=EOF)
+        tok_str[x]=c;
       else
-        {
-        t=TAG;
-        ungetc(c,f);
-        }
-      for(x=0;x!=1023;++x)
-        {
-        c=getc(f);
-        if(c=='\n')
-          ++line;
-        if(c!='>' && c!=EOF)
-          tok_str[x]=c;
-        else
-          break;
-        }
-      while(c!='>' && c!=EOF)
-        {
-        c=getc(f);
-        if(c=='\n')
-          ++line;
-        }
-      tok_str[x]=0;
-      return t;
+        break;
       }
-
-    case '&':
+    while(c!='>' && c!=EOF)
       {
-      int hash;
-
-      /* Read to next ; or EOF.  Save first MAX_ENTITY_LEN chars. */
-      hash=0;
-
-      c=getc(f);
-      if(c==EOF || c==';') goto done;
-      hash = c;
-
-      c=getc(f);
-      if(c==EOF || c==';') goto done;
-      hash = (hash<<8) + c;
-
-      c=getc(f);
-      if(c==EOF || c==';') goto done;
-      hash = (hash<<8) + c;
-
-      c=getc(f);
-      if(c==EOF || c==';') goto done;
-      hash = (hash<<8) + c;
-
-      c=getc(f);
-      if(c==EOF || c==';') goto done;
-      hash = 0;
-
-      while(c!=';' && c!=EOF)
-        c=getc(f);
-
-      done:
-
-      switch(hash)
+      if (c == '"')
         {
-        case ('l'<<8)+'t': return '<';
-        case ('g'<<8)+'t': return '>';
-        case ('q'<<24)+('u'<<16)+('o'<<8)+'t': return '"';
-        case ('a'<<24)+('p'<<16)+('o'<<8)+'s': return '\'';
-        case ('a'<<16)+('m'<<8)+'p': return '&';
+        do
+          GETC(f);
+          while(c != '"' && c != EOF);
         }
-
-      fprintf(stderr,"%d: skipping bad entity\n",line);
-      goto again;
+      else if (c == '\'')
+        {
+        do
+          GETC(f);
+          while(c != '\'' && c != EOF);
+        }
+      GETC(f);
       }
+    tok_str[x]=0;
+    return t;
+    }
+  else if (c == '&')
+    {
+    int hash;
 
-    case '\n':
+    /* Read to next ; or EOF.  Save first MAX_ENTITY_LEN chars. */
+    hash=0;
+
+    GETC(f);
+    if(c==EOF || c==';') goto done;
+    hash = c;
+
+    GETC(f);
+    if(c==EOF || c==';') goto done;
+    hash = (hash<<8) + c;
+
+    GETC(f);
+    if(c==EOF || c==';') goto done;
+    hash = (hash<<8) + c;
+
+    GETC(f);
+    if(c==EOF || c==';') goto done;
+    hash = (hash<<8) + c;
+
+    GETC(f);
+    if(c==EOF || c==';') goto done;
+    hash = 0;
+
+    while(c!=';' && c!=EOF)
+      GETC(f);
+
+    done:
+
+    switch(hash)
       {
-      ++line;
-      return c;
+      case ('l'<<8)+'t': return '<';
+      case ('g'<<8)+'t': return '>';
+      case ('q'<<24)+('u'<<16)+('o'<<8)+'t': return '"';
+      case ('a'<<24)+('p'<<16)+('o'<<8)+'s': return '\'';
+      case ('a'<<16)+('m'<<8)+'p': return '&';
       }
 
-    default:
-      return c;
+    fprintf(stderr,"%d: bad entity\n",line);
+    return ' ';
+    }
+  else
+    {
+    return c;
     }
   }
 
@@ -689,6 +716,170 @@ void indent_print_untagged(FILE *f,char *name,int i,struct base *b)
       }
   }
 
+/* Parse JSON structure */
+
+// { items }
+//
+// item:
+//   "name" : value
+//
+// value:
+//    number
+//    "string"
+//    { items }
+
+#define STR -4
+#define NUM -5
+
+static int json_tok(FILE *f)
+  {
+  int c;
+  if (tok_unget!=-1)
+    {
+    c = tok_unget;
+    tok_unget = -1;
+    return c;
+    }
+  GETC(f);
+  if (c == '"')
+    {
+    for (x = 0; x != sizeof(tok_str) - 1; ++x)
+      {
+      GETC(f);
+      if (c == '"' || c == EOF)
+        break;
+      else if (c == '\\')
+        {
+        GETC(f);
+        switch(c)
+          {
+          case '\\': tok_str[x] = '\\'; break;
+          case '"': tok_str[x] = '"'; break;
+          case 'n': tok_str[x] = '\n'; break;
+          case 'r': tok_str[x] = '\r'; break;
+          case 't': tok_str[x] = '\t'; break;
+          case 'b': tok_str[x] = '\b'; break;
+          case 'f': tok_str[x] = '\f'; break;
+          case 'u':
+            {
+            }
+          default:
+            {
+            fprintf(stderr, "%d: Error: Unknown escape character\n", line);
+            }
+          }
+        }
+      else
+        tok_str[x] = c;
+      }
+    for (;;)
+      {
+      GETC(f);
+      if (c == '"' || c == EOF)
+        break;
+      else if (c == '\\')
+        {
+        GETC(f);
+        switch(c)
+          {
+          case '\\': break;
+          case '"': break;
+          case 'n': break;
+          case 'r': break;
+          case 't': break;
+          case 'b': break;
+          case 'f': break;
+          }
+        }
+      }
+    tok_str[x] = 0;
+    return STR;
+    }
+  else if (c == '-')
+    {
+    tok_str[x = 0] = c;
+    goto num;
+    }
+  else if (c == '.')
+    {
+    tok_str[x = 0] = c;
+    goto flt_after_dp;
+    }
+  else if (c >= '0' && c <= '9')
+    {
+    tok_str[x = 0] = c;
+    num:
+    for (;;)
+      {
+      GETC(f);
+      if (c >= '0' && c <= '9')
+        {
+        tok_str[x++] = c;
+        }
+      else break;
+      }
+    if (c == '.')
+      {
+      tok_str[x++] = c;
+      goto flt_after_dp;
+      }
+    else if (c == 'e' || c =='E')
+      {
+      tok_str[x++] = 'e';
+      goto flt_after_e;
+      }
+    else
+      {
+      UNGETC(f, c);
+      tok_str[x] = 0;
+      return NUM;
+      }
+    }
+  else
+    return c;
+  }
+
+static int json_skip(FILE *f)
+  {
+  int c;
+  do
+    c = json_tok(f);
+    while (c == ' ' || c == 10 || c == 13 || c == 9);
+  return c;
+  }
+
+struct base *json_parse(FILE *f,char *name,struct schema *schema,struct meta *expect,int require)
+  {
+  int c;
+  c = json_skip(f);
+  if (name) /* Named object */
+    {
+    if (c != STR)
+      {
+      fprintf(stderr,"%d: Missing name (expected named \"%s\")\n", line, name);
+      return 0;
+      }
+    if (strcmp(tok_str, name))
+      {
+      fprintf(stderr,"%d: Unexpected name (found \"%s\", but expected \"%s\"\n", line, tok_str, name);
+      return 0;
+      }
+    c = json_skip(f);
+    if (c != ':')
+      {
+      fprintf(stdrr,"%d: Missing : between name and value\n", line);
+      return 0;
+      }
+    c = json_skip(f);
+    }
+  if (c != '{')
+    {
+    fprintf(stderr,"%d: Unexpected start of object, but got '%c'\n", line, c);
+    return NULL;
+    }
+  
+  }
+
 /* Print JSON structure */
 
 void json_print(FILE *f,char *name,int i,struct base *b,int comma)
@@ -701,7 +892,7 @@ void json_print(FILE *f,char *name,int i,struct base *b,int comma)
   if (name)
     fprintf(f,"\"%s\" : {\n", name);
   else
-    fprintf(f,"{\n");
+    fputs("{\n", f);
   for(q=m+1;q->code;++q)
     switch(q->code)
       {
@@ -714,9 +905,9 @@ void json_print(FILE *f,char *name,int i,struct base *b,int comma)
         for(x=0;x!=i+2;++x) fputc(' ',f);
         ++q;
         if((q+1)->code)
-          fprintf(f,"],\n");
+          fputs("],\n", f);
         else
-          fprintf(f,"]\n");
+          fputs("]\n", f);
         break;
         }
       case tSTRUCT:
@@ -735,13 +926,13 @@ void json_print(FILE *f,char *name,int i,struct base *b,int comma)
           {
           switch(*s)
             {
-            case '\\': fprintf(f,"\\\\"); break;
-            case '\r': fprintf(f,"\\r"); break;
-            case '\n': fprintf(f,"\\n"); break;
-            case '\f': fprintf(f,"\\f"); break;
-            case '\b': fprintf(f,"\\b"); break;
-            case '\t': fprintf(f,"\\t"); break;
-            case '"': fprintf(f,"\\\""); break;
+            case '\\': fputs("\\\\", f); break;
+            case '\r': fputs("\\r", f); break;
+            case '\n': fputs("\\n", f); break;
+            case '\f': fputs("\\f", f); break;
+            case '\b': fputs("\\b", f); break;
+            case '\t': fputs("\\t", f); break;
+            case '"': fputs("\\\"", f); break;
             default:
               if (*(unsigned char *)s < 32) fprintf(f,"\\u%4.4x",*(unsigned char *)s);
               else fputc(*s,f);
@@ -749,9 +940,9 @@ void json_print(FILE *f,char *name,int i,struct base *b,int comma)
           ++s;
           }
         if((q+1)->code)
-          fprintf(f,"\",\n");
+          fputs("\",\n", f);
         else
-          fprintf(f,"\"\n");
+          fputs("\"\n", f);
         break;
         }
       case tINTEGER:
@@ -766,7 +957,7 @@ void json_print(FILE *f,char *name,int i,struct base *b,int comma)
       }
   for(x=0;x!=i;++x) fputc(' ',f);
   if(comma)
-    fprintf(f,"},\n");
+    fputs("},\n", f);
   else
-    fprintf(f,"}\n");
+    fputs("}\n", f);
   }

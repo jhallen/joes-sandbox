@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
-<root>
-<val>7</val>
+<root hi=">" there='>'>
+<val>7<!-- foo -->7</val>
 <val_name>h	i&amp;  &lt;  \t
 he"re  &gt; !</val_name>
 <!-- this is a comment -->
