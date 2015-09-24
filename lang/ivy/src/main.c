@@ -108,16 +108,17 @@ int main(int argc,char *argv[])
 		printf("\nIvy\n\n");
 		printf("type 'help' if you need it\n\n");
 		for(;;) {
-			if (parser->paren_level)
-				sprintf(prompt, "%d>", parser->paren_level);
+			if (parser->need_more)
+				sprintf(prompt, "%d#", parser->paren_level);
 			else
-				sprintf(prompt, " >");
+				sprintf(prompt, "->");
 			s = readline(prompt);
 			if (!s)
 				break;
 			add_history(s);
 			parse(ivy, parser, s, unasm, ptree, ptop, norun, trace);
-			parse_done(ivy, parser, unasm, ptree, ptop, norun, trace);
+			if (!parser->need_more)
+				parse_done(ivy, parser, unasm, ptree, ptop, norun, trace);
 			free(s);
 		}
 		rmparser(parser);

@@ -1,16 +1,43 @@
-Refernece leak:
-  get var
-  get var
-  add     reduces stack by one but doesn't reference var
 
+
+add tests for "continue"
+
+We track references to variables, for example if a closure goes away but a variable within it
+is still beingn referenced, we keep the variable.. but in current implementation:
+
+  Refernece leak:
+    get var
+    get var
+    add     reduces stack by one but doesn't reference var
+
+  I think overhead for this is high.
+
+  We track references in this case:
+     a=5    We get value of a on left side, but as side effect take a reference on the variable a.
+
+
+with problem:
+  we indicate that object is part of with scope if ->next is set.
+
+  but we can't clear ->next.. it's needed for closures (for closure case
+  object goes away when de-referenced)
+
+  simplify: dump with.
 
 Lack of keyword problems:
 
   # Doesn't work because while is not a keyword..
-  x=0 while x!=10
-    x=x+1
+       x=0 while x!=10 {
+         x=x+1
+       }
 
-  loop break          does not work (break should be treated as a keyword here..)
+  # have to do this:
+       x = 0; while ...
+    or
+       x = 0; while(x!=10,...)
+
+  loop break          does not work (treat break as a keyword here?)
+  loop break()        this does work
 
 
 loop [break]        does work
@@ -50,13 +77,6 @@ read_file "fred" fn((er, data),[
 ])
 
 
-with problem:
-  we indicate that object is part of with scope if ->next is set.
-
-  but we can't clear ->next.. it's needed for closures (for closure case
-  object goes away when de-referenced)
-
-
 Simplifications:
   Dump 'dynamic'.. it's intersting, but do we ever need it?
   Dump 'with'.. it's interesting, but do we ever need it?
@@ -78,4 +98,18 @@ Fixed:
   create circular reference).
 
   Added `name loop labels
+
+  break and return deep in expressions now works
+
+  why does this crash?: print /2
+  [fixed]
+
+  we now allow strings to cross lines
+
+  we allow \ as last character in a string to ignore the line crossing
+
+  we do not try to get more input if the line ends with an infix operator:
+     print 1+
+     2
+  [fixed]
 - - - -

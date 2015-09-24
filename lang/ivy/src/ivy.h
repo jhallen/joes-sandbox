@@ -137,6 +137,7 @@ struct parser {
 	int str_len;		/* Current length of string in buffer */
 
 	int paren_level;	/* Parenthesis depth */
+	int need_more;		/* Set for continuation line */
 
 	Parse_state state;	/* Current state */
 	Node *rtn;

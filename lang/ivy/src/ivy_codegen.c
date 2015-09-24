@@ -625,11 +625,15 @@ void gencond(Error_printer *err, Frag *frag, Node *n, int v)
 	if (f && r) { /* elif */
 		int els = genbra(err, frag, f, 1); /* Branch if false */
 		mklooplvl(frag, lvlSCOPE, 0, 0);
-		if (v)
+		if (v) {
 			gen(err, frag, r);
-		else
+			rmlooplvl(frag, lvlVALUE, 0, 0);
+		} else
 			genn(err, frag, r);
 		rmlooplvl(frag, lvlSCOPE, 0, 0);
+		if (v) {
+			mklooplvl(frag, lvlVALUE, 0, 0);
+		}
 		emitc(frag, iBRA);
 		if (end)
 			addlist(frag, end, emitn(frag, 0));
@@ -639,11 +643,15 @@ void gencond(Error_printer *err, Frag *frag, Node *n, int v)
 		goto loop;
 	} else if (f) { /* else */
 		mklooplvl(frag, lvlSCOPE, 0, 0);
-		if (v)
+		if (v) {
 			gen(err, frag, f);
-		else
+			rmlooplvl(frag, lvlVALUE, 0, 0);
+		} else
 			genn(err, frag, f);
 		rmlooplvl(frag, lvlSCOPE, 0, 0);
+		if (v) {
+			mklooplvl(frag, lvlVALUE, 0, 0);
+		}
 		setlist(frag, end, frag->code);
 		return;
 	} else { /* no else */

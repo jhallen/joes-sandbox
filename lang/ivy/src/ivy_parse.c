@@ -563,11 +563,11 @@ int parse_rest(Parser *parser)
 			if (parser->state.op->meth & 4) {	/* Make into assignment? */
 				PTRACE("parse_rest pcall parse_expr");
 				pcall(parse_expr,parse_rest_done_infix1,parser->state.op->prec);
-				return 0;
+				return 2;
 			} else {
 				PTRACE("parse_rest pcall parse_expr1");
 				pcall(parse_expr,parse_rest_done_infix,parser->state.op->prec);
-				return 0;
+				return 2;
 			}
 		}
 	} else if (parser->state.op && parser->state.op->postfix && (!parser->state.op->prefix || left <= right) &&
@@ -616,18 +616,24 @@ int parse_string(Parser *parser)
 {
 	PTRACE("parse_string");
 	/* Copy character into str_buf */
-	while (*parser->loc->ptr && *parser->loc->ptr != '"') {
+	while (*parser->loc->ptr && *parser->loc->ptr != '"' && !(parser->loc->ptr[0] == '\\' && !parser->loc->ptr[1])) {
 		check_str_buf();
 		parser->str_buf[parser->str_len++] = escape(parser->loc);
 	}
 
 	/* Done? */
-	if (!*parser->loc->ptr) {
+	if (!*parser->loc->ptr || *parser->loc->ptr == '\\') {
+		if (*parser->loc->ptr == '\\') {
+			++parser->loc->ptr;
+		} else {
+			check_str_buf();
+			parser->str_buf[parser->str_len++] = '\n';
+		}
 		if (parser->loc->eof) {
 			error_2(parser->err,"\"%s\" %d: Missing closing \"",parser->loc->name,parser->loc->line);
 		} else {
 			/* Get more input */
-			return 0;
+			return 3;
 		}
 	} else {
 		/* Skip over terminating " */
@@ -770,7 +776,7 @@ int parse_expr(Parser *parser)
 			if (*parser->loc->ptr == '\'')
 				++parser->loc->ptr, ++parser->loc->col;
 			else
-				error_2(parser->err,"\"%s\" %d: Error: missing '",parser->loc->name,parser->loc->line);
+				error_2(parser->err,"\"%s\" %d: Error missing '",parser->loc->name,parser->loc->line);
 			parser->state.n = consnum(parser->loc,num);
 			break;
 		} case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':		/* Name */
@@ -805,7 +811,7 @@ int parse_expr(Parser *parser)
 			++parser->loc->col;
 			parser->str_len = 0;
 			pjump(parse_string);
-			return 0;
+			return parse_string(parser); /* Don't get more input yet */
 			break;
 		} case '(': {		/* Prec. */
 			++parser->loc->ptr, ++parser->loc->col;
@@ -858,13 +864,14 @@ int parse_expr(Parser *parser)
 			char *oops = parser->loc->ptr;
 			int oopscol = parser->loc->col;
 			parser->state.op = opr(parser->loc);
-			if (parser->state.op && (parser->state.op = &what_tab[parser->state.op->prefix])) {
+			if (parser->state.op && parser->state.op->prefix) {
+				parser->state.op = &what_tab[parser->state.op->prefix];
 				if (parser->state.op->meth & 4)	{ /* Make operator into an assignment (++ --) */
 					pcall(parse_expr,parse_expr_done_prefix1,parser->state.op->prec);
-					return 0;
+					return 2;
 				} else {
 					pcall(parse_expr,parse_expr_done_prefix,parser->state.op->prec);
-					return 0;
+					return 2;
 				}
 			} else {
 				parser->state.n = 0;
@@ -1224,9 +1231,17 @@ Val parse(Ivy *ivy, Parser *parser, char *text, int unasm, int ptree, int ptop, 
 	parser->loc->lvl = -1;
 	++parser->loc->line;
 	PTRACE("Parse: giving a line");
+	/* Skip blank lines if we are waiting for more input, keep need_more set */
+	if (parser->need_more == 2) {
+		skipws(parser->loc);
+		if (!*parser->loc->ptr)
+			return rtn_val;
+	}
+	parser->need_more = 0;
 	/* Keep feeding parser as long as we have data */
-	while (*parser->loc->ptr || (parser->loc->eof && parser->state.state != parse_idle))
-		if (parser->state.state(parser)) {
+	while (*parser->loc->ptr || (parser->loc->eof && parser->state.state != parse_idle)) {
+		int sts = parser->state.state(parser);
+		if (sts == 1) { /* We completed parsing something */
 			Pseudo *code;
 			if (ptree && parser->rtn) prtree(ivy->out, parser->rtn, 0);
 			if (!parser->err->error_flag) {
@@ -1246,13 +1261,21 @@ Val parse(Ivy *ivy, Parser *parser, char *text, int unasm, int ptree, int ptop, 
 			/* rm(parser->loc, parser->rtn); */
 			/* Fast free: */
 			fr_all(parser->free_list);
+		} else if (sts == 2 || sts == 3) { /* Get more input if nothing else is on the line */
+			skipws(parser->loc);
+			if (!*parser->loc->ptr) {
+				parser->need_more = sts;
+			}
 		}
+	}
+	if (parser->paren_level)
+		parser->need_more = 2;
 	return rtn_val;
 }
 
 void parse_done(Ivy *ivy, Parser *parser, int unasm, int ptree, int ptop, int norun, int trace)
 {
-	if (!parser->paren_level) {
+	if (!parser->need_more) {
 		parser->loc->eof = 1;
 		parse(ivy, parser, "", unasm, ptree, ptop, norun, trace);
 		parser->loc->eof = 0;
@@ -1280,6 +1303,7 @@ Parser *mkparser(Ivy *ivy, char *file_name)
 	parser->loc->free_list = parser->free_list;
 
 	parser->paren_level = 0;
+	parser->need_more = 0;
 
 	parser->state.state = parse_idle;
 	parser->state.next = 0;
