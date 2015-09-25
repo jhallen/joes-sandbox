@@ -1,9 +1,11 @@
+print source code line number when we crash, not just stack trace.
 
+Need a way to have & implied on variable arguments.
 
 add tests for "continue"
 
 We track references to variables, for example if a closure goes away but a variable within it
-is still beingn referenced, we keep the variable.. but in current implementation:
+is still being referenced, we keep the variable.. but in current implementation:
 
   Refernece leak:
     get var
@@ -25,6 +27,16 @@ with problem:
   simplify: dump with.
 
 Lack of keyword problems:
+
+define and call is weird:
+
+	y=fn((),{ body })()
+	y={ fn () { body } }()
+
+	it would be nice if we had:
+		y=fn(){ body }()
+	or
+		z=fn(){ body }
 
   # Doesn't work because while is not a keyword..
        x=0 while x!=10 {
@@ -112,4 +124,10 @@ Fixed:
      print 1+
      2
   [fixed]
+
+this crashes:
+    fn set(&a &b) {
+       *a = *b
+    }
+[fixed]
 - - - -

@@ -838,7 +838,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 			if (n->r)
 				gen(err, frag, n->r);
 			emitc(frag, what_tab[n->what].i);
-			if (n->r)
+			if (n->r && n->l)
 				rmlooplvl(frag, lvlVALUE, 0, 0);
 			break;
 		} default: {
