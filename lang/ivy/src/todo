@@ -1,4 +1,8 @@
 
+a.b()  : run b with mom set to a?  (javascript a.b.call(a))
+
+line ending with ; mess up the parsing because we try to read too much input..
+
 check that objects get deleted..  I'm confused about rmvlvl.. we set ivy->vars
 to get_mom(ivy->vars).. but why no refcount transfer here.
 
