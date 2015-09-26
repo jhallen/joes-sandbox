@@ -1072,7 +1072,7 @@ int parse_paren_2(Parser *);
 int parse_paren_1(Parser *parser)
 {
 	PTRACE("parse_paren_1");
-	skipws(parser->loc);
+	skipwss(parser->loc);
 	if (!*parser->loc->ptr) {
 		if (parser->loc->eof)
 			pret(parser->state.n);
