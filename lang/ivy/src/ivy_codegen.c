@@ -304,9 +304,6 @@ void disasm(FILE *out, Pseudo * c, int ind, int oneline)
 			} case iLOC: {
 				indent(out, ind); fprintf(out, "	loc\n");
 				break;
-			} case iWTH: {
-				indent(out, ind); fprintf(out, "   wth\n");
-				break;
 			} case iGET: {
 				indent(out, ind); fprintf(out, "	get\n");
 				break;
@@ -397,7 +394,7 @@ void disasm(FILE *out, Pseudo * c, int ind, int oneline)
 static int genl(Error_printer *, Frag *, Node *);
 static int genbra(Error_printer *, Frag *, Node *, int);
 static void gen(Error_printer *, Frag *, Node *);
-static int genn(Error_printer *, Frag *, Node *);
+static void genn(Error_printer *, Frag *, Node *);
 
 /* Count no. of comma seperated elements.  Use for args and 1st expr of FOR */
 
@@ -842,8 +839,8 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 				rmlooplvl(frag, lvlVALUE, 0, 0);
 			break;
 		} default: {
-			if (!genn(err, frag, n))
-				push_void(frag);
+			genn(err, frag, n);
+			push_void(frag);
 		}
 	}
 }
@@ -887,7 +884,7 @@ static Node *extract_loop_name(Node *n, Node **r)
 	}
 }
 
-static int genn(Error_printer *err, Frag *frag, Node * n)
+static void genn(Error_printer *err, Frag *frag, Node * n)
 {
 	switch(n->what) {
 		case nPAREN: {
@@ -898,40 +895,6 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 			break;
 		} case nLABEL: {
 			frag->looplvls->name = strdup(n->s);
-			break;
-		} case nWITH: {
-			if (n->r->what == nSEMI && n->r->l->what == nPAREN) {
-				// Handles with (a,b) f
-				int amnt;
-				mklooplvl(frag, lvlSCOPE, 0, 0);
-				amnt = genl(err, frag, n->r->l->r);
-				push_lst(frag);
-				emitn(frag, amnt);
-				emitc(frag, iWTH);
-				fixlooplvl(frag, amnt + 1);
-				genn(err, frag, n->r->r);
-				rmlooplvl(frag, lvlSCOPE, 0, 0);
-			} else if (n->r->what == nSEMI && last_is_paren(n->r)) {
-				// Handles with a b [f]
-				Node *r;
-				int amnt;
-				n->r = extract_last_is_paren(n->r, &r);
-				mklooplvl(frag, lvlSCOPE, 0, 0);
-				amnt = genl(err, frag, n->r);
-				push_lst(frag);
-				emitn(frag, amnt);
-				emitc(frag, iWTH);
-				fixlooplvl(frag, amnt + 1);
-				genn(err, frag, r);
-				rmlooplvl(frag, lvlSCOPE, 0, 0);
-			} else {
-				// Handles with a b c
-				int amnt = genl(err, frag, n->r);
-				push_lst(frag);
-				emitn(frag, amnt);
-				emitc(frag, iWTH);
-				fixlooplvl(frag, amnt + 1);
-			}
 			break;
 		} case nLOCAL: {
 			if (n->r->what == nSEMI && n->r->l->what == nPAREN) {
@@ -1095,7 +1058,7 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 				addlist(frag, frag->rtn, z);
 			else
 				frag->rtn = z;
-			return 1;
+			break;
 		} case nLOOP: {
 			int cont;
 			Node *name;
@@ -1133,7 +1096,7 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 					ll->brk = z;
 			} else
 				error_2(err, "\"%s\" %d: break with no loop", n->loc->name, n->loc->line);
-			return 1;
+			break;
 		} case nCONT: {
 			struct looplvl *ll = findlvl(frag, NULL);
 			if (n->r) {
@@ -1153,7 +1116,7 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 					ll->cont = z;
 			} else
 				error_2(err, "\"%s\" %d: continue with no loop", n->loc->name, n->loc->line);
-			return 1;
+			break;
 		} case nUNTIL: {
 			int els = genbra(err, frag, n->r, 1);
 			struct looplvl *ll = findlvl(frag, NULL);
@@ -1174,13 +1137,6 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 			break;
 		} case nIF: {
 			gencond(err, frag, n->r, 0);
-/*
-			int no = genbra(err, frag, n->l, 1);
-			emitc(frag, iBEG);
-			genn(err, frag, n->r);
-			emitc(frag, iEND);
-			setlist(frag, no, frag->code);
-*/
 			break;
 		} case nELSE: {
 			error_2(err, "\"%s\" %d: else with no if", n->loc->name, n->loc->line);
@@ -1204,14 +1160,14 @@ static int genn(Error_printer *err, Frag *frag, Node * n)
 			}
 			break;
 		} case nEMPTY: {
-			return 0;
+			break;
 		} default: {
 			gen(err, frag, n);
 			emitc(frag, iPOP);
 			rmlooplvl(frag, lvlVALUE, 0, 0);
+			break;
 		}
 	}
-	return 0;
 }
 
 static int genbra(Error_printer *err, Frag *frag, Node * n, int t)

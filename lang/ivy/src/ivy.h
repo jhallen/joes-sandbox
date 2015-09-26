@@ -256,10 +256,11 @@ struct fun {
 
 struct obj {
 	Ref ref;		/* Reference count or mark */
+#ifdef ONEXT
 	Obj *next;		/* Next outer scoping level or NULL for root */
-	int nnext;		/* No. of OBJs linked through 'next' which are part of
-				   this scoping level.  They are removed as a group by
-				   rmvlvl(). */
+#else
+				/* Next outer scoping level is in mom */
+#endif
 
 	Entry **tab;		/* Hash table of 'ENTRY' pointers */
 	int size;		/* No. of ENTRY pointers in 'tab' array */
@@ -272,6 +273,8 @@ struct obj {
 
 	int objno;
 };
+
+Obj *get_mom(Obj *o);
 
 /* A hash table entry: for variables and structure members */
 
@@ -319,7 +322,6 @@ enum {
 	iBEG,			/* iBEG                 Make new block level */
 	iEND,			/* iEND                 Remove 1 level of local vars */
 	iLOC,			/* iLOC                 Create local variable */
-	iWTH,			/* iWTH                 With statement */
 
 	/* Variable lookup */
 	iGET,			/* iGET                 Get named variable's value */

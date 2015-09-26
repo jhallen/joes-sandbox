@@ -193,7 +193,6 @@ What what_tab[]=
 	{ nIF, "if", 0, 0, 0, 0, 0, 1, 0, 0 },
 	{ nFOR, "for", 0, 0, 0, 0, 0, 1, 0, 0 },
 	{ nWHILE, "while", 0, 0, 0, 0, 0, 1, 0, 0 },
-	{ nWITH, "with", 0, 0, 0, 0, 0, 1, 0, 0 },
 	{ nLOCAL, "var", 0, 0, 0, 0, 0, 1, 0, 0 },
 	{ nELSE, "else", 0, 0, 0, 0, 0, 2, 0, 0 },
 	{ nLOOP, "loop", 0, 0, 0, 0, 0, 2, 0, 0 },
@@ -370,7 +369,7 @@ int escape(Loc *loc)
 /* Keyword (statement) table */
 
 int ikwtab[] =
-    { nIF, nELSE, nFOR, nWHILE, nWITH, nLOOP, nLOCAL, nUNTIL, nBREAK, nCONT, nRETURN, nFOREACH, nDEFUN, nLAMBDA, -1 };
+    { nIF, nELSE, nFOR, nWHILE, nLOOP, nLOCAL, nUNTIL, nBREAK, nCONT, nRETURN, nFOREACH, nDEFUN, nLAMBDA, -1 };
 
 #define KWHTLEN 32
 What *kwhtab[KWHTLEN];

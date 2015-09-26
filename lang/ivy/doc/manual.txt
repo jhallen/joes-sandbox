@@ -683,23 +683,6 @@ Var statement
 			  return x
 			}
 
-With statement
-
-	with a, b, c, ...
-
-		The members of the specified objects look like local
-		variables inside of the block.
-
-	e.g.    the following will print "3"
-		list=[`value = 2]
-		with list {
-		  value = 3;
-		}
-		print list.value;
-		
-
-              
-
 Include statement
 
 	include "string"
@@ -723,7 +706,7 @@ variables becomes visible:
 			This function's dynamic scope
 
 		argv	Contains an object containing numbered members
-			which are each set the arguments passed to the
+			which are set the arguments passed to the
 			function.
 
 	So for example, if the function:

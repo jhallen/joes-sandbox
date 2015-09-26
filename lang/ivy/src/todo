@@ -1,3 +1,7 @@
+
+check that objects get deleted..  I'm confused about rmvlvl.. we set ivy->vars
+to get_mom(ivy->vars).. but why no refcount transfer here.
+
 print source code line number when we crash, not just stack trace.
 
 Need a way to have & implied on variable arguments.
@@ -17,14 +21,6 @@ is still being referenced, we keep the variable.. but in current implementation:
   We track references in this case:
      a=5    We get value of a on left side, but as side effect take a reference on the variable a.
 
-
-with problem:
-  we indicate that object is part of with scope if ->next is set.
-
-  but we can't clear ->next.. it's needed for closures (for closure case
-  object goes away when de-referenced)
-
-  simplify: dump with.
 
 Lack of keyword problems:
 
@@ -54,9 +50,6 @@ define and call is weird:
 
 loop [break]        does work
 fred: loop [break]  does not work
-
-with a [print x]    does not work
-[with a; print x]   this does work
 
 
 form 1:	with a b c			ok
@@ -91,7 +84,6 @@ read_file "fred" fn((er, data),[
 
 Simplifications:
   Dump 'dynamic'.. it's intersting, but do we ever need it?
-  Dump 'with'.. it's interesting, but do we ever need it?
 
 
 Fixed:
@@ -130,4 +122,12 @@ this crashes:
        *a = *b
     }
 [fixed]
+
+Dump 'with'.. it's interesting, but do we ever need it?
+[dumped]
+
+Instead of obj->next, we now use obj.mom (variable mom in obj).  So there is
+now only a single link to the parent.  Also now, the parent can be changed
+with an assignment.  Parent can be set on regular objects, not just scoping
+levels.
 - - - -
