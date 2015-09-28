@@ -791,7 +791,9 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
 				t->a = setn(t->argv->val.u.obj, t->argn);
 				rmval(&t->a->val, __LINE__);
 				t->q = dupval(&t->a->val, t->q);
-				f = t->a->val.u.fun;
+				/* Quote extra args if last formal arg was quoted */
+				if (!t->o->f->nargs || !t->o->f->quote[t->o->f->nargs - 1])
+					f = t->a->val.u.fun;
 				++t->argn;
 			} else { /* Unnamed arg */
 				t->a = set(ivy->vars, t->o->f->args[t->argn]);

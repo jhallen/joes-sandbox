@@ -624,18 +624,18 @@ void gencond(Error_printer *err, Frag *frag, Node *n, int v)
 		mklooplvl(frag, lvlSCOPE, 0, 0);
 		if (v) {
 			gen(err, frag, r);
+			/* Value is still here, but we need to pop the lvlSCOPE */
+			/* Value is put back at the branch target point: XXX */
 			rmlooplvl(frag, lvlVALUE, 0, 0);
 		} else
 			genn(err, frag, r);
 		rmlooplvl(frag, lvlSCOPE, 0, 0);
-		if (v) {
-			mklooplvl(frag, lvlVALUE, 0, 0);
-		}
 		emitc(frag, iBRA);
 		if (end)
 			addlist(frag, end, emitn(frag, 0));
 		else
 			end = emitn(frag, 0);
+		/* Value is gone after the branch */
 		setlist(frag, els, frag->code);
 		goto loop;
 	} else if (f) { /* else */
@@ -647,13 +647,13 @@ void gencond(Error_printer *err, Frag *frag, Node *n, int v)
 			genn(err, frag, f);
 		rmlooplvl(frag, lvlSCOPE, 0, 0);
 		if (v) {
-			mklooplvl(frag, lvlVALUE, 0, 0);
+			mklooplvl(frag, lvlVALUE, 0, 0); /* here XXX */
 		}
 		setlist(frag, end, frag->code);
 		return;
 	} else { /* no else */
 		if (v) {
-			push_void(frag);
+			push_void(frag); /* or here XXX */
 		}
 		setlist(frag, end, frag->code);
 		return;

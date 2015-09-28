@@ -6,7 +6,12 @@ to get_mom(ivy->vars).. but why no refcount transfer here.
 
 print source code line number when we crash, not just stack trace.
 
-Need a way to have & implied on variable arguments.
+add forin (gets index instead of value as in foreach)
+  (forin is more general than foreach: make foreach a library function?)
+
+foreach only works on array- it should also work on objects
+
+make switch native for speed?
 
 add tests for "continue"
 
@@ -135,4 +140,8 @@ levels.
 
 line ending with ; mess up
 [fixed]
+
+Need a way to have & implied on variable arguments.
+  If & is on last argument, then any extra have it?
+[done- now we can implement switch]
 - - - -
