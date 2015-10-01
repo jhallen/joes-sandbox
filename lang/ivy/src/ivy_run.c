@@ -1027,6 +1027,16 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
 
                                 ivy->sp[0].var = o;
                                 inc_ref(&o->ref, &ivy->sp[0], rVAL);
+
+                                /* If we just looked up a function, change scope to object it was found in */
+                                if (ivy->sp[0].type == tFUN) {
+                                	if (ivy->sp[0].u.fun->scope) {
+                                		if (!dec_ref(&ivy->sp[0].u.fun->scope->ref, ivy->sp[0].u.fun->scope))
+                                			rmobj(ivy->sp[0].u.fun->scope);
+                                	}
+                                	ivy->sp[0].u.fun->scope = obj;
+					inc_ref(&obj->ref, ivy->sp[0].u.fun, rFUN);
+                                }
                         } else {
                                 error_0(ivy->errprn, "Invalid object index type...");
                                 longjmp(ivy->err, 1);

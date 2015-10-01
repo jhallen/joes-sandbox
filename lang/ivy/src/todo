@@ -1,5 +1,11 @@
+a=[]  automatically set mom of this object to parent:
+	a=[`mom=this]?
+	We can't really do this.. a.print will turn up in non-objects.
 
-a.b()  : run b with mom set to a?  (javascript a.b.call(a))
+mixing named and numbered args is weird:
+  we assign left to right.  NUmber starts at first arg.
+
+add something like this: a.call(b,...)
 
 check that objects get deleted..  I'm confused about rmvlvl.. we set ivy->vars
 to get_mom(ivy->vars).. but why no refcount transfer here.
@@ -144,4 +150,7 @@ line ending with ; mess up
 Need a way to have & implied on variable arguments.
   If & is on last argument, then any extra have it?
 [done- now we can implement switch]
+
+a.b()  : run b with mom set to a?  (javascript a.b.call(a))
+[done]
 - - - -

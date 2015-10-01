@@ -168,7 +168,7 @@ void push_nam(Frag *frag)
 
 void push_narg(Frag *frag)
 {
-	mklooplvl(frag, lvlVALUE, 0, 0);
+	// mklooplvl(frag, lvlVALUE, 0, 0); /* It's counted with the value */
 	emitc(frag, iPSH_NARG);
 }
 
