@@ -78,8 +78,9 @@ Obj *mkobj(int size, void *ref_who, int ref_type, int line)
         o->objno = objno++;
         MEM_PRINTF1("mkobj %d\n", o->objno);
 	o->size = size;
+#ifdef ONEXT
 	o->next = 0;
-	o->nnext = 0;
+#endif
 	o->nitems = 0;
 	o->arysiz = 16;
 	o->ary = (Var **) calloc(o->arysiz, sizeof(Var *));
@@ -109,9 +110,11 @@ void rmobj(Obj * o)
 		        if (!dec_ref(&o->ary[x]->ref, o))
 				rmvar(o->ary[x], __LINE__);
         free(o->ary);
+#ifdef ONEXT
 	if (o->next)
 	        if (!dec_ref(&o->next->ref, o))
 			rmobj(o->next);
+#endif
 	free(o);
 }
 
@@ -615,8 +618,10 @@ void addlvl(Ivy *ivy, Obj *dyn)
 	setvar(var, mkpval(tOBJ, dyn));
 	inc_ref(&dyn->ref, &var->val, rVAL);
 
+#ifdef ONEXT
 	o->next = ivy->vars;
 	inc_ref(&ivy->vars->ref, o, rOBJ);
+#endif
 
 	ivy->vars = o;
 	SCOPE_PRINTF1("addlvl, new scope is %p\n", ivy->vars);
@@ -624,27 +629,35 @@ void addlvl(Ivy *ivy, Obj *dyn)
 
 /* Remove a level of local variables */
 
+Obj *get_mom(Obj *o)
+{
+	Var *u = get_atom(o, mom_atom);
+	Obj *rtn = 0;
+	if (u && u->val.type == tOBJ)
+		rtn = u->val.u.obj;
+	return rtn;
+}
+
 void rmvlvl(Ivy *ivy)
 {
-	int amnt = ivy->vars->nnext; // Handle with
 	SCOPE_PRINTF1("rmvlvl, pop amount = %d\n", amnt + 1);
-	ivy->vars->nnext = 0;
-	do {
-		Obj *o = ivy->vars->next;
-		SCOPE_PRINTF2("rmvlvl, pop scope %p restored to %p\n", ivy->vars, o);
-		if (!dec_ref(&ivy->vars->ref, NULL))
-			rmobj(ivy->vars);
-                else {
-#if REF_DEBUG
-                        SCOPE_PRINTF("rmvlvl, still referenced by:\n");
-                        show_ref(&ivy->vars->ref);
+#ifdef ONEXT
+	Obj *o = ivy->vars->next;
 #else
-                        SCOPE_PRINTF1("rmvlvl, still %d referenced\n", ivy->vars->ref);
+	Obj *o = get_mom(ivy->vars);
 #endif
-                }
-                
-		ivy->vars = o;
-	} while (amnt--);
+	SCOPE_PRINTF2("rmvlvl, pop scope %p restored to %p\n", ivy->vars, o);
+	if (!dec_ref(&ivy->vars->ref, NULL))
+		rmobj(ivy->vars);
+	else {
+#if REF_DEBUG
+		SCOPE_PRINTF("rmvlvl, still referenced by:\n");
+		show_ref(&ivy->vars->ref);
+#else
+		SCOPE_PRINTF1("rmvlvl, still %d referenced\n", ivy->vars->ref);
+#endif
+	}
+	ivy->vars = o;
 }
 
 /* Lookup a variable.  Check all scoping levels for the variable */
@@ -652,25 +665,49 @@ void rmvlvl(Ivy *ivy)
 Var *getv(Ivy *ivy, char *name)
 {
 	Obj *o = ivy->vars;
+	Obj *next;
 	Var *e;
-	do
+	do {
 		if ((e = get(o, name)))
 			return e;
-	while ((o = o->next));
+#ifdef ONEXT
+		next = o->next;
+#else
+		next = get_mom(o);
+#endif
+	} while ((o = next));
 	return 0;
 }
 
 /* Lookup a variable.  Check all scoping levels for the variable */
 
-Var *getv_atom(Ivy *ivy, char *name)
+Var *getv_atom(Obj *o, char *name)
 {
-	Obj *o = ivy->vars;
+	Obj *next;
 	Var *e;
-	do
+	do {
 		if ((e = get_atom(o, name)))
 			return e;
-	while ((o = o->next));
+#ifdef ONEXT
+		next = o->next;
+#else
+		next = get_mom(o);
+#endif
+	} while ((o = next));
 	return 0;
+}
+
+/* Lookup a variable.  Check all scoping levels for the variable.
+   If none found, create it in the inner-most level. */
+
+Var *setv(Obj *o, char *name)
+{
+	char *s = atom_add(name);
+	Var *v = getv_atom(o, s);
+	if (!v) {
+		v = set_atom(o, s);
+	}
+	return v;
 }
 
 /* Simple call for initializers */
@@ -754,7 +791,9 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
 				t->a = setn(t->argv->val.u.obj, t->argn);
 				rmval(&t->a->val, __LINE__);
 				t->q = dupval(&t->a->val, t->q);
-				f = t->a->val.u.fun;
+				/* Quote extra args if last formal arg was quoted */
+				if (!t->o->f->nargs || !t->o->f->quote[t->o->f->nargs - 1])
+					f = t->a->val.u.fun;
 				++t->argn;
 			} else { /* Unnamed arg */
 				t->a = set(ivy->vars, t->o->f->args[t->argn]);
@@ -977,7 +1016,7 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
 
                         } else if (index->val.type == tSTR) {
                                 Str *str = index->val.u.str;
-                                Var *o = set(obj, str->s);
+                                Var *o = setv(obj, str->s);
                                 SCOPE_PRINTF("copy_next_str_arg (obj2):\n");
                                 rmvlvl(ivy);
                                 dupval(psh(ivy), &o->val);
@@ -988,6 +1027,16 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
 
                                 ivy->sp[0].var = o;
                                 inc_ref(&o->ref, &ivy->sp[0], rVAL);
+
+                                /* If we just looked up a function, change scope to object it was found in */
+                                if (ivy->sp[0].type == tFUN) {
+                                	if (ivy->sp[0].u.fun->scope) {
+                                		if (!dec_ref(&ivy->sp[0].u.fun->scope->ref, ivy->sp[0].u.fun->scope))
+                                			rmobj(ivy->sp[0].u.fun->scope);
+                                	}
+                                	ivy->sp[0].u.fun->scope = obj;
+					inc_ref(&obj->ref, ivy->sp[0].u.fun, rFUN);
+                                }
                         } else {
                                 error_0(ivy->errprn, "Invalid object index type...");
                                 longjmp(ivy->err, 1);
@@ -1643,25 +1692,6 @@ int pexe(Ivy *ivy, int trace)
                                         ivy->sp = rmval(ivy->sp, __LINE__);
                                 }
 			break;
-                } case iWTH: {	/* Include object memebers */
-                        long long y = ivy->sp--->u.num, x;
-                        for (x = 0; x != y; ++x) {
-                                if (ivy->sp->type == tOBJ)
-                                        if (!ivy->sp[0].u.obj->next) {
-                                                SCOPE_PRINTF3("with, insert %p, vars=%p vars->next=%p\n", ivy->sp[0].u.obj, ivy->vars, ivy->vars->next);
-                                                ivy->sp[0].u.obj->next = ivy->vars->next;
-                                                ivy->vars->next = ivy->sp[0].u.obj;
-                                                ++ivy->vars->nnext;
-                                                --ivy->sp;
-                                        } else {
-                                                error_0(ivy->errprn, "Error: Table already scoped in");
-                                                longjmp(ivy->err, 1);
-                                } else {
-                                        error_0(ivy->errprn, "Error: Need tables for with");
-                                        longjmp(ivy->err, 1);
-                                }
-			}
-			break;
                 } case iGET: {	/* Replace variable's name with its value */
 			if (ivy->sp->type != tSTR) {
 			        error_0(ivy->errprn, "Incorrect argument for iGET (supposed to be a string)");
@@ -1686,7 +1716,7 @@ int pexe(Ivy *ivy, int trace)
 			        error_0(ivy->errprn, "Incorrect argument for iGET_ATOM (supposed to be a string)");
 				longjmp(ivy->err, 1);
 			} else {
-				Var *o = getv_atom(ivy, ivy->sp[0].u.name);
+				Var *o = getv_atom(ivy->vars, ivy->sp[0].u.name);
 				if (!o) {
 	        			// error_0(ivy->errprn, "Error: Variable does not exist");
 				        // longjmp(ivy->err,1);
@@ -1809,12 +1839,16 @@ int pexe(Ivy *ivy, int trace)
                         */
 			break;
 		} case iRTS: {	/* Return from function */
+			*psh(ivy) = ivy->stashed;
 			ivy->pc = pc;
 			if (!retfunc(ivy))
 				return 0;
 			if (ivy->call_me)
 				return 1;
                         pc = ivy->pc;
+			break;
+		} case iSTASH: { /* Pop return value */
+			ivy->stashed = popval(ivy);
 			break;
 		} case iPOP: {	/* Pop something off of stack */
 			ivy->sp = rmval(ivy->sp, __LINE__);

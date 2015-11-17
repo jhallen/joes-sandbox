@@ -1,15 +1,20 @@
 var x, y
 
 x = 0
-loop `outer
+loop `outer {
   y = 0
-  loop `inner
+  loop `inner {
     print "outer ", x, " inner ", y
-    if x == 5 && y == 5
+    if x == 5 && y == 5 {
       break outer
+    }
     y = y + 1
-    if y == 10
+    if y == 10 {
       break
+    }
+  }
   x = x + 1
-  if x == 10
+  if x == 10 {
     break
+  }
+}

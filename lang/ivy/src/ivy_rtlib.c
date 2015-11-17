@@ -306,7 +306,11 @@ void rtlen(Ivy *ivy)
 
 void rtvars(Ivy *ivy)
 {
+#ifdef ONEXT
 	Val x = mkpval(tOBJ, ivy->vars->next);
+#else
+	Val x = mkpval(tOBJ, get_mom(ivy->vars));
+#endif
 	pr(ivy->out, &x, 0);
 	fprintf(ivy->out, "\n");
 	mkval(psh(ivy), tVOID);
@@ -1038,9 +1042,15 @@ void rtrandom(Ivy *ivy)
 	*psh(ivy) = mkival(tNUM, random());
 }
 
+void rtdepth(Ivy *ivy)
+{
+	*psh(ivy) = mkival(tNUM, ivy->sp - ivy->sptop);
+}
+
 /* Table of built-in functions */
 
 struct builtin builtins[] = {
+	{"depth", rtdepth, ""},
 	{"pr", rtprint, ""},
 	{"vars", rtvars, ""},
 	{"print", rtprint, ""},

@@ -12,7 +12,7 @@ struct keypadfuncs keypadfuncs;
 int keypadfn(stat,b,t,n,task)
 Keypad *b;
 Button *t;
-TASK *task;
+Task *task;
  {
  if(!stat)
   {
@@ -24,7 +24,7 @@ TASK *task;
 
 void keypadstfn(b,fn)
 Keypad *b;
-TASK *fn;
+Task *fn;
  {
  b->fn=fn;
  }

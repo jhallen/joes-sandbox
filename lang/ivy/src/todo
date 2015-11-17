@@ -1,23 +1,68 @@
-Refernece leak:
-  get var
-  get var
-  add     reduces stack by one but doesn't reference var
+a=[]  automatically set mom of this object to parent:
+	a=[`mom=this]?
+	We can't really do this.. a.print will turn up in non-objects.
+
+mixing named and numbered args is weird:
+  we assign left to right.  NUmber starts at first arg.
+
+add something like this: a.call(b,...)
+
+check that objects get deleted..  I'm confused about rmvlvl.. we set ivy->vars
+to get_mom(ivy->vars).. but why no refcount transfer here.
+
+print source code line number when we crash, not just stack trace.
+
+add forin (gets index instead of value as in foreach)
+  (forin is more general than foreach: make foreach a library function?)
+
+foreach only works on array- it should also work on objects
+
+make switch native for speed?
+
+add tests for "continue"
+
+We track references to variables, for example if a closure goes away but a variable within it
+is still being referenced, we keep the variable.. but in current implementation:
+
+  Refernece leak:
+    get var
+    get var
+    add     reduces stack by one but doesn't reference var
+
+  I think overhead for this is high.
+
+  We track references in this case:
+     a=5    We get value of a on left side, but as side effect take a reference on the variable a.
 
 
 Lack of keyword problems:
 
-  # Doesn't work because while is not a keyword..
-  x=0 while x!=10
-    x=x+1
+define and call is weird:
 
-  loop break          does not work (break should be treated as a keyword here..)
+	y=fn((),{ body })()
+	y={ fn () { body } }()
+
+	it would be nice if we had:
+		y=fn(){ body }()
+	or
+		z=fn(){ body }
+
+  # Doesn't work because while is not a keyword..
+       x=0 while x!=10 {
+         x=x+1
+       }
+
+  # have to do this:
+       x = 0; while ...
+    or
+       x = 0; while(x!=10,...)
+
+  loop break          does not work (treat break as a keyword here?)
+  loop break()        this does work
 
 
 loop [break]        does work
 fred: loop [break]  does not work
-
-with a [print x]    does not work
-[with a; print x]   this does work
 
 
 form 1:	with a b c			ok
@@ -50,16 +95,8 @@ read_file "fred" fn((er, data),[
 ])
 
 
-with problem:
-  we indicate that object is part of with scope if ->next is set.
-
-  but we can't clear ->next.. it's needed for closures (for closure case
-  object goes away when de-referenced)
-
-
 Simplifications:
   Dump 'dynamic'.. it's intersting, but do we ever need it?
-  Dump 'with'.. it's interesting, but do we ever need it?
 
 
 Fixed:
@@ -78,4 +115,42 @@ Fixed:
   create circular reference).
 
   Added `name loop labels
+
+  break and return deep in expressions now works
+
+  why does this crash?: print /2
+  [fixed]
+
+  we now allow strings to cross lines
+
+  we allow \ as last character in a string to ignore the line crossing
+
+  we do not try to get more input if the line ends with an infix operator:
+     print 1+
+     2
+  [fixed]
+
+this crashes:
+    fn set(&a &b) {
+       *a = *b
+    }
+[fixed]
+
+Dump 'with'.. it's interesting, but do we ever need it?
+[dumped]
+
+Instead of obj->next, we now use obj.mom (variable mom in obj).  So there is
+now only a single link to the parent.  Also now, the parent can be changed
+with an assignment.  Parent can be set on regular objects, not just scoping
+levels.
+
+line ending with ; mess up
+[fixed]
+
+Need a way to have & implied on variable arguments.
+  If & is on last argument, then any extra have it?
+[done- now we can implement switch]
+
+a.b()  : run b with mom set to a?  (javascript a.b.call(a))
+[done]
 - - - -

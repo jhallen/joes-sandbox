@@ -47,10 +47,49 @@ typedef struct ref_list Ref;
 typedef int Ref;
 #endif
 
+/* A value */
+
+struct val {
+	union {
+		long long num;	/* An integer */
+		double fp;	/* Floating point */
+		Var *var;	/* A variable */
+		Str *str;	/* A string */
+		Fun *fun;	/* A function */
+		Obj *obj;	/* An object */
+		Pos *pos;	/* A string position */
+		struct callfunc *callfunc; /* Only in tRET_IVY */
+		void (*func)();	/* Some kind of function address */
+		char *name;	/* An atom */
+	} u;
+	int type;		/* What type this thing is */
+	Var *var;		/* Variable where value came from */
+};
+
+/* Value types */
+
+enum {
+	tNUM,			/* Integer */
+	tSTR,			/* String */
+	tNAM,			/* A name (an atom) */
+	tOBJ,			/* Object */
+	tVAR,			/* A variable */
+	tFUN,			/* A function in its context */
+	tFUNC,			/* A function */
+	tLST,			/* List count (only on stack) */
+	tNARG,			/* Named argument (only on stack) */
+	tPOS,			/* A string position (only on stack) */
+	tVOID,			/* Nothing */
+	tFP,			/* Floating point */
+	tRET_IVY,		/* Normal function return */
+	tRET_SIMPLE		/* Return from simple call (for initializers and quoting) */
+};
+
 /* An interpreter */
 
 struct ivy {
 	Error_printer errprn[1];	/* Error printer */
+	Val stashed;	/* Stashed return value */
 	Val *sptop;	/* Base of stack */
 	Val *sp;	/* Stack */
 	int spsize;	/* Stack size */
@@ -98,6 +137,7 @@ struct parser {
 	int str_len;		/* Current length of string in buffer */
 
 	int paren_level;	/* Parenthesis depth */
+	int need_more;		/* Set for continuation line */
 
 	Parse_state state;	/* Current state */
 	Node *rtn;
@@ -133,44 +173,6 @@ void addfunc(Error_printer *err, char *name, char *argstr, void (*cfunc) ());
 /* Compute hash value of atom address */
 
 #define ahash(s) (((unsigned long)(s)>>3) ^ ((unsigned long)(s)>>12))
-
-/* A value */
-
-struct val {
-	union {
-		long long num;	/* An integer */
-		double fp;	/* Floating point */
-		Var *var;	/* A variable */
-		Str *str;	/* A string */
-		Fun *fun;	/* A function */
-		Obj *obj;	/* An object */
-		Pos *pos;	/* A string position */
-		struct callfunc *callfunc; /* Only in tRET_IVY */
-		void (*func)();	/* Some kind of function address */
-		char *name;	/* An atom */
-	} u;
-	int type;		/* What type this thing is */
-	Var *var;		/* Variable where value came from */
-};
-
-/* Value types */
-
-enum {
-	tNUM,			/* Integer */
-	tSTR,			/* String */
-	tNAM,			/* A name (an atom) */
-	tOBJ,			/* Object */
-	tVAR,			/* A variable */
-	tFUN,			/* A function in its context */
-	tFUNC,			/* A function */
-	tLST,			/* List count (only on stack) */
-	tNARG,			/* Named argument (only on stack) */
-	tPOS,			/* A string position (only on stack) */
-	tVOID,			/* Nothing */
-	tFP,			/* Floating point */
-	tRET_IVY,		/* Normal function return */
-	tRET_SIMPLE		/* Return from simple call (for initializers and quoting) */
-};
 
 /* A reference list (for debugging) */
 
@@ -254,10 +256,11 @@ struct fun {
 
 struct obj {
 	Ref ref;		/* Reference count or mark */
+#ifdef ONEXT
 	Obj *next;		/* Next outer scoping level or NULL for root */
-	int nnext;		/* No. of OBJs linked through 'next' which are part of
-				   this scoping level.  They are removed as a group by
-				   rmvlvl(). */
+#else
+				/* Next outer scoping level is in mom */
+#endif
 
 	Entry **tab;		/* Hash table of 'ENTRY' pointers */
 	int size;		/* No. of ENTRY pointers in 'tab' array */
@@ -270,6 +273,8 @@ struct obj {
 
 	int objno;
 };
+
+Obj *get_mom(Obj *o);
 
 /* A hash table entry: for variables and structure members */
 
@@ -317,7 +322,6 @@ enum {
 	iBEG,			/* iBEG                 Make new block level */
 	iEND,			/* iEND                 Remove 1 level of local vars */
 	iLOC,			/* iLOC                 Create local variable */
-	iWTH,			/* iWTH                 With statement */
 
 	/* Variable lookup */
 	iGET,			/* iGET                 Get named variable's value */
@@ -331,7 +335,8 @@ enum {
 
 	/* Functions / Arrays / Structures */
 	iCALL,			/* iCALL                Call or get member/element */
-	iRTS,			/* iRTS                 Return from subroutine */
+	iSTASH,			/* iSTACH		Pop and stash return value */
+	iRTS,			/* iRTS                 Return from subroutine (PUSH stashed return value) */
 
 	/* Stack */
 	iPOP,			/* iPOP                 Kill 1st */

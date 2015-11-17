@@ -52,8 +52,8 @@ in UNIX.
 Expression syntax
 
 Everything in Ivy is an expression, meaning that statements and function
-calls have the same syntax (new "statements" can be added to the language by
-defining new functions):
+calls have the same syntax.  A consequence of this is that new "statements"
+can be added to the language by defining new functions:
 
 	print(square(10))	Call square function with 10 as arg, and
 				print result.
@@ -67,7 +67,7 @@ A list of expressions is expected within parenthesis and brackets:
 	(list)			Argument list, parenthetical expression,
 				or formal args for function definition.
 
-	{list}			An object.
+	[list]			An object.
 
 If a list is expected in the given context, the list is used as is.  If a
 single expression is expected in the given context, all of the expressions
@@ -122,18 +122,17 @@ There is a "command" format for function calls:
 
 	function-name arg arg arg ; function-name arg arg arg ; ...
 
-This is available at the top-level (non-enclosed) and within square
-brackets:
+This is available at the top-level (non-enclosed) and within brackets:
 
-	[commands]
+	{commands}
 
 In this context, semicolons and new-lines have the same low precedence: either
 can be used to separate successive commands.  Commas and whitespace can be
 used as argument separators, just as in lists.
 
-"function-name" must be a single simple name.  If it is a more complicated
-expression, the command is reduced to a list of expressions until the next
-new-line or semicolon.
+"function-name" must be a single simple name or a member name.  If it is a
+more complicated expression, the command is reduced to a list of expressions
+until the next new-line or semicolon.
 
 	print 10 20		# Print 10 and 20 (one command)
 
@@ -147,38 +146,28 @@ simple name.  This can be done by surrounding the name with parenthesis:
 
 Blocks
 
-Arguments to commands can be given as indented blocks:
+Arguments to commands can be given as blocks or expressions.  These are all
+equivalent:
 
-	if a==1 [print 10; print 20]
+	if(a==1,print("one"),a==2,print("two"),print("something else"))
 
-	if a==1
-	  print 10
-	  print 20
+	if a==1 print("one") a==2 print("two") print("something else")
 
-Block arguments can be separated with the 'next' and 'last' keywords:
+	if a==1 { print "one" } a==2 { print "two" } { print "else" }
 
-	if(a==1,print("It's one"),
-           a==2,print("It's two"),
-           print("It's something else"))
-
-	if a==1
-	  print "It's one"
-	next a==2
-	  print "It's two"
-	last
-	  print "It's something else"
-
-Interactive mode
-
-When Ivy is in interactive mode, the indented block feature is disabled.  In
-this mode, you either have to use square brackets to enter blocks of
-commands or you use the expression format.
+	if a==1 {
+		print "one"
+	} a==2 {
+		print "two"
+	} {
+		print "something else"
+	}
 
 . values
 
 	Integers may be entered in a variety of bases:
 
-		x=0127		# Octal
+		x=0o127		# Octal
 		x=0x80		# Hexadecimal
 		x=0b11		# Binary
 		x=123		# Decimal
@@ -206,7 +195,7 @@ character:
 		x='\b'		# Backspace
 		x='\t'		# Tab
 		x='\a'		# Alert (bell)
-		x='\e'		# ESC
+		x='\e'		# Escape
 		x='\f'		# Form-feed
 		x='\^A'		# Ctrl-A (works for ^@ to ^_ and ^?)
 		x='\010'	# Octal for 8
@@ -246,12 +235,12 @@ members are similar to structures.
 
 	or all at once:
 
-		o={`a=5, `b=6}
+		o=[`a=5, `b=6]
 
 	Objects are assigned by reference.  This means that if you have an
 object in one variable:
 
-		x={1 2 3}
+		x=[1 2 3]
 
 	And you assign it to another:
 
@@ -277,13 +266,13 @@ function call, or an object.  Examples of each of these cases follow:
 		25			Constant
 
 		(expressions)		Precidence
-		[commands]
+		{commands}
 
 		expr(expr ...)		Function call
 
-		{1 2 3 4}		An array object
+		[1 2 3 4]		An array object
 
-		{`next=item `value=1}	A structure object
+		[`next=item `value=1]	A structure object
 
 		(fn (x,y) x*y)(3,5)	Calling a lambda function
 
@@ -333,15 +322,15 @@ or member name in a command, function call or object.  For example:
 
 		open `name="joe.c",  `mode="r"
 		square(`x=5, `y=6)
-		{`1=5 `0=7}			# Array object
-		{`x=10 `y=10}			# Structure object
+		[`1=5 `0=7]			# Array object
+		[`x=10 `y=10]			# Structure object
 
 	. Member selection
 
 		This operator is used to select a named member from an
 object.  For example:
 
-		o={`x=5, `y=10}		# Create an object
+		o=[`x=5, `y=10]		# Create an object
 		pr o.x			# Print member x
 		pr o.y			# Print member y
 		pr o("y")		# Same as above
@@ -397,8 +386,9 @@ Examples of each of these follow:
 		This prefix operator is used to call a zero argument
 	function.
 
-		fn set(&a b)
-		  *a=b
+		fn set(&a b) {
+			*a=b
+		}
 
 		x=3
 		set x 10	# Set x to 10
@@ -426,11 +416,11 @@ Examples of each of these follow:
 		'+' will also append an element on the right into an
 	array object on the left:
 
-		a={1 2 3}
-		a+=4			# a now is { 1 2 3 4 }
+		a=[1 2 3]
+		a+=4			# a now is [ 1 2 3 4 ]
 
-		pr {}+1+2+3+4		# same as pr {1 2 3 4}
-		pr {}+1+2+3+{4 5}	# same as pr {1 2 3 {4 5}}
+		pr []+1+2+3+4		# same as pr [1 2 3 4]
+		pr []+1+2+3+[4 5]	# same as pr [1 2 3 [4 5]]
 
 	- Subtract
 
@@ -441,9 +431,9 @@ Examples of each of these follow:
         numerically referenced members, OR will append the array on the
         right to the array on the left.  For example:
 
-		a={1 2 3}
-		b={4 5 6}
-		a|=b			# a now is {1 2 3 4 5 6}
+		a=[1 2 3]
+		b=[4 5 6]
+		a|=b			# a now is [1 2 3 4 5 6]
 
 	^ Bit-wise Exclusive OR
 
@@ -494,14 +484,15 @@ Examples of each of these follow:
 			useful for traversing linked lists.  For example:
 
 			for list=0\ x=0, x!=10, ++x	# Build list
-			  list={`next=list, `value=x}
+			  list=[`next=list, `value=x]
 
 			(note, this builds the list in reverse
 			order.  9,8,7...)
 				
-			for a=list, a, a.=next		# Print list  (second
+			for a=list, a, a.=next {	# Print list  (second
 							# expr evals for 0)
-			  pr a.value
+				print a.value
+			}
 
 		x+:1	Is the same as x++
 		x+=1	Is the same as ++x
@@ -535,8 +526,9 @@ Function declaration:
 
 		fn name(args) expr
 
-		fn name(args)
-	          body
+		fn name(args) {
+	        	body
+		}
 
 	Named function declarations which look like function calls:
 
@@ -544,7 +536,7 @@ Function declaration:
 
 	Unnamed function declaration which looks like a command:
 
-		[fn (args) body-expr]
+		{fn (args) body-expr}
 
 	Unnamed function declaration which looks like a function call:
 
@@ -554,10 +546,11 @@ Function declaration:
 
 		fn square(x) x*x
 
-		fn square (x)
-		  x*x
+		fn square (x) {
+			x*x
+		}
 
-		square=(fn (x) x*x)
+		square={fn (x) x*x}
 
 		square=fn((x), x*x)
 
@@ -570,12 +563,13 @@ Function declaration:
 
 If statement
 
-	if expr
-	  block
-	next expr
-	  block
-	last
-	  block
+	if expr {
+		block
+	} expr {
+		block
+	} {
+		block
+	}
 
 	if(test1,expr1,test2,expr2,...,else-expr)
 
@@ -583,61 +577,63 @@ Foreach statement
 
 	foreach variable expr block
 
-	LABEL: foreach variable expr block
+	foreach `label variable expr block
 
 		Sets the variable to each element in the array resulting
 		from expr and executes the block.
 
-		'foreach' may optionally be preceded by a label for matching
+		'foreach' may optionally be labeled for matching
 		with the argument to 'break' and 'continue'
 
 	e.g.
-	foreach a {1 2 3}
-	  print a		# prints 123
+	foreach a [1 2 3] {
+		print a		# prints 123
+	}
 
 
 Loop statement
 
 	loop block
-	LABEL: loop block
+	loop `label block
 
 		The block gets repeatedly executed until a 'break' or
                 'until' statement within the block terminates the loop.
 
 
-		'loop' may optionally be preceded by a label for matching
+		'loop' may optionally be labeled for matching
 		with the argument to 'break' and 'continue'
 
 While statement
 
 	while expr block
 
-	LABEL: while expr block
+	while `label expr block
 
 		The block is repeatedly executed if the expression is true.
 
 
-		'while' may optionally be preceded by a label for matching
+		'while' may optionally be labeled for matching
 		with the argument to 'break' and 'continue'
 
 For statement
 
 	for expr1, expr2, expr3 block
 
-	LABEL: for expr1, expr2, expr3 block
+	for `label expr1, expr2, expr3 block
 
 		This is a shorthand for the follow while statement:
 
-			expr1 while expr2
-			 block
-			 expr3
+			expr1 while expr2 {
+				block
+				expr3
+			}
 
 		Thus,
         	   expr1 is usually used as an index variable initializer
 		   expr2 is the loop test
 	           expr3 is the index variable incrementer
 
-		'for' may optionally be preceded by a label for matching
+		'for' may optionally be labeled for matching
 		with the argument to 'break' and 'continue'
 
 Return statement
@@ -681,26 +677,11 @@ Var statement
 
 			var a=10, b=20
 
-			fn raise(a)
+			fn raise(a) {
 			  var x
 			  for x=1, a, x<<=1\ --a
 			  return x
-
-With statement
-
-	with a, b, c, ...
-
-		The members of the specified objects look like local
-		variables inside of the block.
-
-	e.g.    the following will print "3"
-		list={`value = 2}
-		with list
-		  value = 3;
-		print list.value;
-		
-
-              
+			}
 
 Include statement
 
@@ -725,14 +706,16 @@ variables becomes visible:
 			This function's dynamic scope
 
 		argv	Contains an object containing numbered members
-			which are each set the arguments passed to the
+			which are set the arguments passed to the
 			function.
 
 	So for example, if the function:
 	
-		fn x()
-		  for a=0, a!=len(argv), ++a
-		    print argv(a)
+		fn x() {
+			for a=0, a!=len(argv), ++a {
+				print argv(a)
+			}
+		}
 
 	gets called as follows:
 	
@@ -747,8 +730,9 @@ variables becomes visible:
 	Default values may be specified for missing arguments in function
 calls.  For example if this function:
 
-		fn func(x=5, y=6)
-		  x*y
+		fn func(x=5, y=6) {
+			x*y
+		}
 
 	Is called as follows:
 	
@@ -761,11 +745,13 @@ calls.  For example if this function:
 example you can define a function 'apply' which applies a function to an
 argument:
 
-		fn apply(x y)
-		  return x(y)
+		fn apply(x y) {
+			return x(y)
+		}
 
-		fn square(x)
-		  return x*x
+		fn square(x) {
+			return x*x
+		}
 
 		print apply(square,5)	# Prints 25
 
@@ -775,17 +761,20 @@ named function, 'return' must be used since it forces its argument to be an
 expression (otherwise the returned function name would look like a function
 call).  For example:
 
-		fn square(x)
-		  return x*x
+		fn square(x) {
+			return x*x
+		}
 
-		fn foo()
-		  return square
+		fn foo() {
+			return square
+		}
 
 		print foo()(4)		# Prints 16	() needed
 					# because bar is an expr
 
-		fn bar()
-                  (fn((x),x*x))		# Return lambda function
+		fn bar() {
+                	(fn((x),x*x))	# Return lambda function
+		}
 
 		pr bar()(4)		# Prints 16    
 
@@ -794,24 +783,28 @@ call).  For example:
 especially useful for manipulating the argument lists of pre-existing
 functions.  Suppose you had an averaging function:
 
-		fn avg(func from to)
-		  var x, accu
-		  for x=from\ accu=0, x!=to, ++x
-		    accu+=func(x)
-		  return accu/(to-from)
+		fn avg(func from to) {
+			var x, accu
+			for x=from\ accu=0, x!=to, ++x {
+				accu+=func(x)
+			}
+			return accu/(to-from)
+		}
 
 	And suppose that you have another function which takes two arguments
 which you'd like to average, but with one argument set to a constant:
 	
 
-		fn add(a b)
-		  return a+b
+		fn add(a b) {
+			return a+b
+		}
 
 	You could do this by using a function which creates a function
 which calls add, but with one argument set to a constant:
 
-		fn curry(y)
-		  return fn((x),add(x,y))
+		fn curry(y) {
+			return fn((x),add(x,y))
+		}
 
 	Now 'avg' can be used on 'add':
 
@@ -841,8 +834,9 @@ which calls add, but with one argument set to a constant:
 
                 # Add line numbers to input
                 n=1
-		while a=get()
-		  print n++, " ", a
+		while a=get() {
+			print n++, " ", a
+		}
 
 	x=atoi("2")
 

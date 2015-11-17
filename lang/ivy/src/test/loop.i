@@ -12,9 +12,16 @@ var x y
 #  if y == 5
 #    break outer
 
-for `outer x=0 x!=10 ++x
+#for `outer x=0 x!=10 ++x
+foreach `outer x [0 1 2 3 4 5 6 7 8 9 ] {
   print "Outer " x
-  foreach y {1 2 3 4 5 6 7}
+#  foreach y [1 2 3 4 5 6 7]
+  for y=0 y!=10 ++y {
     print y
-    if y == 7
+    if y == 7 {
       break outer
+    }
+  }
+}
+
+print "Done"

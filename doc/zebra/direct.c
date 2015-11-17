@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 	FILE *f;
 	int i;
 	int w = 0;
-	sprintf(buf, "form <%s", argv[1]);
+	sprintf(buf, "./form %s", argv[1]);
 	f = popen(buf, "r");
 	while (fgets(buf, 4095, f)) {
 		fields(buf, ptr, ':');

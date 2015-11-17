@@ -238,7 +238,7 @@ PORT *port;
 
 void stportread(port,fn,len)
 PORT *port;
-TASK *fn;
+Task *fn;
 int len;
  {
  mutex_lock(io_mutex);
@@ -378,7 +378,7 @@ PORT *port;
 static void dofinalwrite(port,data,len,fn)
 PORT *port;
 char *data;
-TASK *fn;
+Task *fn;
  {
  if(port->fd!=-1)
   {
@@ -394,7 +394,7 @@ TASK *fn;
 void finalwrite(port,data,len,fn)
 PORT *port;
 char *data;
-TASK *fn;
+Task *fn;
  {
  mutex_lock(io_mutex);
  dofinalwrite(port,data,len,fn);
@@ -406,7 +406,7 @@ TASK *fn;
 int portwrite(port,data,datalen,fn)
 PORT *port;
 char *data;
-TASK *fn;
+Task *fn;
  {
  mutex_lock(io_mutex);
  if(port->fd==-1)
