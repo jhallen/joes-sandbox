@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 /* Convert floating point ascii number into engineering format */
 
@@ -52,15 +53,20 @@ char *eng(char *d, size_t d_len, const char *s)
 				++dp;
 			}
 		}
-		while (*s >= '0' && *s <= '9') {
-			a[a_len++] = *s++;
-			++dp;
+		if (*s >= '0' && *s <= '9') {
+			while (*s >= '0' && *s <= '9') {
+				a[a_len++] = *s++;
+				++dp;
+			}
+		} else {
+			/* No non-zero digits? */
+			dp = 0;
 		}
-		/* Trim trailing zeros */
-		while (a_len && a[a_len - 1] == '0') {
-			--a_len;
-			--dp;
-		}
+	}
+	/* Trim trailing zeros */
+	while (a_len && a[a_len - 1] == '0') {
+		--a_len;
+		--dp;
 	}
 
 	/* Exponent? */
@@ -174,9 +180,41 @@ char *eng(char *d, size_t d_len, const char *s)
 	return d_org;
 }
 
+#if 0
+
+/* Unit test */
+int main(int argc, char *argv[])
+{
+	char buf1[128];
+	char buf2[128];
+	char buf3[128];
+	int pass = 1;
+	srandom(time(NULL));
+	for (;;) {
+		long long x = (((long long)random() << 60) ^ ((long long)random() << 30) ^ (long long)random());
+		double v;
+		*(long long *)&v = x;
+		sprintf(buf1, "%.16G", v);
+		eng(buf2, 128, buf1);
+		v = 0.0;
+//		printf("'%s'\n", buf1);
+		v = strtod(buf2, NULL);
+		sprintf(buf3, "%.16G", v);
+		if (strcmp(buf1, buf3)) {
+			printf("%d: Mismatch in=%s eng=%s g=%G out=%s\n", pass, buf1, buf2, v, buf3);
+		}
+		if (++pass % 100000 == 0)
+			printf("pass %d\n", pass);
+	}
+}
+
+#else
+
 int main(int argc, char *argv[])
 {
 	char buf[1024];
 	printf("%s\n", eng(buf, sizeof(buf), argv[1]));
 	return 0;
 }
+
+#endif
