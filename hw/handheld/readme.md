@@ -1,7 +1,10 @@
+# Handheld computer
+
 This is a handheld computer for driving a Zebra-140 label printer I made in
 1996.
 
 Specs:
+
 	IDT R3041 32-bit MIPS CPU
 	512KB SRAM
 	32KB EEPROM
