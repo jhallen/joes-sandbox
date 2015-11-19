@@ -2,7 +2,7 @@
 
 This is a simple line driver for a 1200 BAUD multi-drop bus.  It converts
 RS-232 into long haul twisted pair.  It uses brute force high transmit power
-to acheive greater distance than the otherwise very similar RS-485.
+to achieve greater distance than the otherwise very similar RS-485.
 
 It was used for a network of timeclocks spanning two manufacturing
 locations: one 5 km long bus.  In this system, there is one master, an IBM
