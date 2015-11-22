@@ -7,22 +7,23 @@ mixing named and numbered args is weird:
 
 add something like this: a.call(b,...)
 
+forindex doesn't handle changes to the object while it's running.  Make a
+ snapshot of the object indexes before running?
+
+can we use atoms (tNAMs) instead of strings for forindex for speed?
+
 check that objects get deleted..  I'm confused about rmvlvl.. we set ivy->vars
 to get_mom(ivy->vars).. but why no refcount transfer here.
 
 print source code line number when we crash, not just stack trace.
 
-add forin (gets index instead of value as in foreach)
-  (forin is more general than foreach: make foreach a library function?)
-
-foreach only works on array- it should also work on objects
-
 make switch native for speed?
 
 add tests for "continue"
 
-We track references to variables, for example if a closure goes away but a variable within it
-is still being referenced, we keep the variable.. but in current implementation:
+We track references to variables, for example if a closure goes away but a
+variable within it is still being referenced, we keep the variable..  but in
+current implementation:
 
   Refernece leak:
     get var
@@ -153,4 +154,10 @@ Need a way to have & implied on variable arguments.
 
 a.b()  : run b with mom set to a?  (javascript a.b.call(a))
 [done]
+
+foreach/forindex only work on arrays- it should also work on objects
+[fixed- now it works on objects]
+
+add forin (gets index instead of value as in foreach)
+[done: we added forindex]
 - - - -

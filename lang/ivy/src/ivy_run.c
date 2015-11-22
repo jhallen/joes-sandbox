@@ -556,6 +556,7 @@ void mkval(Val *v, int type)
 	v->type = type;
 	v->var = 0;
 	v->u.num = 0;
+	v->u.iter = 0;
 }
 
 Val mkival(int type, long long i)
@@ -1918,21 +1919,96 @@ int pexe(Ivy *ivy, int trace)
 		} case iFOREACH: { /* List iteration */
                         Val newv;
                         Obj *o = ivy->sp[-2].u.obj;
+                        Entry *e = ivy->sp[-1].u.iter;
                         long long n = ivy->sp[0].u.num;
                         pc += align_o(pc, sizeof(int));
-                        do {
-                                if (++n == o->nitems) {
-                                        pc += sizeof(int);
-                                        goto bye;
-                                }
-                        } while (!o->ary[n]);
-                        dupval(&newv, &o->ary[n]->val);
+                        if (e) {
+                        	e = e->next;
+                        	if (!e) {
+                        		for (++n; n != o->size; ++n)
+                        			if ((e = o->tab[n]))
+                        				break;
+					if (n == o->size) {
+						pc += sizeof(int);
+						goto bye;
+					}
+                        	}
+                        } else {
+	                        do {
+	                                if (++n == o->nitems) {
+	                                	break;
+	                                }
+	                        } while (!o->ary[n]);
+	                        if (n == o->nitems) {
+	                        	/* Find first named entry */
+	                        	for (n = 0; n != o->size; ++n)
+	                        		if ((e = o->tab[n]))
+	                        			break;
+					if (n == o->size) {
+						pc += sizeof(int);
+						goto bye;
+					}
+	                        }
+			}
+                        // Foreach
+                        if (e)
+                        	dupval(&newv, &e->var->val);
+                        else
+	                        dupval(&newv, &o->ary[n]->val);
                         // FIXME add checking here: is it really a variable?
                         rmval(&ivy->sp[-3].var->val, __LINE__);
                         ivy->sp[-3].var->val = newv;
                         ivy->sp[0].u.num = n;
+                        ivy->sp[-1].u.iter = e;
                         pc += *(int *)pc;
                         bye:;
+			break;
+		} case iFORINDEX: { /* List iteration */
+                        Val newv;
+                        Obj *o = ivy->sp[-2].u.obj;
+                        Entry *e = ivy->sp[-1].u.iter;
+                        long long n = ivy->sp[0].u.num;
+                        pc += align_o(pc, sizeof(int));
+                        if (e) {
+                        	e = e->next;
+                        	if (!e) {
+                        		for (++n; n != o->size; ++n)
+                        			if ((e = o->tab[n]))
+                        				break;
+					if (n == o->size) {
+						pc += sizeof(int);
+						goto bye1;
+					}
+                        	}
+                        } else {
+	                        do {
+	                                if (++n == o->nitems) {
+	                                	break;
+	                                }
+	                        } while (!o->ary[n]);
+	                        if (n == o->nitems) {
+	                        	/* Find first named entry */
+	                        	for (n = 0; n != o->size; ++n)
+	                        		if ((e = o->tab[n]))
+	                        			break;
+					if (n == o->size) {
+						pc += sizeof(int);
+						goto bye1;
+					}
+	                        }
+			}
+                        // Foreach
+                        if (e) {
+				newv = mkpval(tSTR, mkstr(strdup(e->name), strlen(e->name), 0, 0, 0));
+			} else
+				newv = mkival(tNUM, n);
+                        // FIXME add checking here: is it really a variable?
+                        rmval(&ivy->sp[-3].var->val, __LINE__);
+                        ivy->sp[-3].var->val = newv;
+                        ivy->sp[0].u.num = n;
+                        ivy->sp[-1].u.iter = e;
+                        pc += *(int *)pc;
+                        bye1:;
 			break;
 		} case iFIX: { /* Convert stack list into an array */
                         Val newv = popval(ivy);

@@ -339,6 +339,11 @@ void disasm(FILE *out, Pseudo * c, int ind, int oneline)
 				indent(out, ind); fprintf(out, "	foreach %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
+			} case iFORINDEX: {
+				c += align_o(c, sizeof(int));
+				indent(out, ind); fprintf(out, "	forindex %d\n", *(int *)c + (int)(c - start));
+				c += sizeof(int);
+				break;
 			} case iFIX: {
 				indent(out, ind); fprintf(out, "	fix\n");
 				break;
@@ -977,7 +982,7 @@ static void genn(Error_printer *err, Frag *frag, Node * n)
 				rmlooplvl(frag, lvlLOOP, cont, frag->code);
 			}
 			break;
-		} case nFOREACH: {
+		} case nFOREACH: case nFORINDEX: {
 			int top, cont;
 			Node *name;
 			Node *args = extract_loop_name(n->r, &name);
@@ -1006,7 +1011,10 @@ static void genn(Error_printer *err, Frag *frag, Node * n)
 				genn(err, frag, args->r->r);
 				rmlooplvl(frag, lvlSCOPE, 0, 0); /* Body scope done */
 				cont = frag->code;
-				emitc(frag, iFOREACH);
+				if (n->what == nFOREACH)
+					emitc(frag, iFOREACH);
+				else
+					emitc(frag, iFORINDEX);
 				align_frag(frag, sizeof(int));
 				emitn(frag, top - (frag->code));
 				rmlooplvl(frag, lvlLOOP, cont, frag->code); /* Complete loop */

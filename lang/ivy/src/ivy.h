@@ -61,6 +61,7 @@ struct val {
 		struct callfunc *callfunc; /* Only in tRET_IVY */
 		void (*func)();	/* Some kind of function address */
 		char *name;	/* An atom */
+		Entry *iter;
 	} u;
 	int type;		/* What type this thing is */
 	Var *var;		/* Variable where value came from */
@@ -351,7 +352,8 @@ enum {
 	iPSH_NAM,
 	iPSH_FUNC,
 
-	iFOREACH,		/* iFOREACH             Iterate a list */
+	iFOREACH,		/* iFOREACH             Iterate a list values */
+	iFORINDEX,		/* iFORINDEX		Iterate a list keys */
 
 	iFIX			/* iFIX                 Stack list -> object */
 };

@@ -591,6 +591,24 @@ Foreach statement
 	}
 
 
+Forindex statement
+
+	forindex variable expr block
+
+	forindex `label variable expr block
+
+		Sets the variable to each valid index into the array
+		resulting from expr and executes the block.
+
+		'forindex' may optionally be labeled for matching
+		with the argument to 'break' and 'continue'
+
+	e.g.
+	forindex a [10 20 30] {
+		print a		# prints 0, 1 and 2.
+	}
+
+
 Loop statement
 
 	loop block
