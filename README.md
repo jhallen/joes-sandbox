@@ -65,3 +65,5 @@
 [Tetris for Zortech-C](https://github.com/jhallen/joes-sandbox/blob/master/msdos/tetris.c)
 
 [A drafting program for SCO Xenix](https://github.com/jhallen/joes-sandbox/tree/master/xenix/draft)
+
+[An I2C bus monitor for an Altera FPGA](https://github.com/jhallen/joes-sandbox/tree/master/fpga/i2c_monitor)
