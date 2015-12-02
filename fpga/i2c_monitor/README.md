@@ -19,27 +19,27 @@ for "Altera Board".
 
 ### I2C
 
-Connect SCL to pin 79
-Connect SDA to pin 75
+* Connect SCL to pin 79
+* Connect SDA to pin 75
 
 SCL and SDA have de-glitch filters so that single cycle (50 MHz) pulses are
 ignored.
 
 ### LEDs
 
-LED0 (D2) blinks at 1 Hz
-LED1 (D4) is SDA (on if high)
-LED2 (D5) is SCL (on if high)
+* LED0 (D2) blinks at 1 Hz
+* LED1 (D4) is SDA (on if high)
+* LED2 (D5) is SCL (on if high)
 
 ### RS-232
 
 BAUD rate is 115200, but you can change the BAUD parameter in baud.v to
 change this.  BAUD rates up to 921600 work well.  There is an 8K FIFO buffer
-to help buffer short burst of high-speed I2C.  The serial port support
+to help buffer short bursts of high-speed I2C.  The serial port supports
 XON/XOFF (^S/^Q) flow control.
 
-Connect TTL serial output is to pin 72
-Connect TTL serial input is from pin 71
+* Connect TTL serial output is to pin 72
+* Connect TTL serial input is from pin 71
 
 Output on serial will look like this:
 
