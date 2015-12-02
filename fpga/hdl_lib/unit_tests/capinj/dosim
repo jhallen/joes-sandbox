@@ -1,0 +1,5 @@
+ncverilog +sv +access+r \
+capture.v \
+inject.v \
+ram_dp.v \
+tb.v

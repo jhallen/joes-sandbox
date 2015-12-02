@@ -1,0 +1,4 @@
+ncverilog +sv +access+r \
+arbiter.v \
+round_robin.v \
+tb.v

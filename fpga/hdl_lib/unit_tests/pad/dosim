@@ -1,0 +1,9 @@
+ncverilog +sv +access+r \
+tb.v \
+pad_iobuf.v \
+pad_iobuf_reg.v \
+/hwtools2/third-party/altera/altera7.2/quartus/eda/sim_lib/altera_mf.v \
+/hwtools2/third-party/altera/altera7.2/quartus/eda/sim_lib/altera_primitives.v \
+/hwtools2/third-party/altera/altera7.2/quartus/eda/sim_lib/stratixiii_atoms.v \
+/hwtools2/third-party/altera/altera7.2/quartus/eda/sim_lib/sgate.v \
+/hwtools2/third-party/altera/altera7.2/quartus/eda/sim_lib/220model.v

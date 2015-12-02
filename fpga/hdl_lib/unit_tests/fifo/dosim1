@@ -1,0 +1,7 @@
+ncverilog +sv +access+r \
+tracking.v \
+fifo_sync.v \
+fifo_sync_late.v \
+ram_blk_dp.v \
+ram_sp.v \
+tb1.v

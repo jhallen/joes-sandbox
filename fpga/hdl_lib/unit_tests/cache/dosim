@@ -1,0 +1,4 @@
+ncverilog +sv +access+r \
+cache.v \
+ram_blk_sp.v \
+tb.v

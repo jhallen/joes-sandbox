@@ -1,0 +1,6 @@
+ncverilog +sv +access+r \
+fred.v \
+fifo_sync.v \
+fifo_sync_late.v \
+ram_blk_dp.v \
+tb.v

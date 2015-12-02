@@ -1,0 +1,4 @@
+ncverilog +sv +access+r +nc64bit \
+buflet_map.v \
+ram_sp.v \
+tb.v

@@ -1,0 +1,9 @@
+ncverilog +sv +access+r \
+fifo_sync_late.v \
+fifo_sync.v \
+ram_dp.v \
+tcheck.v \
+tbreak.v \
+tmerge.v \
+tgen.v \
+tb.v
