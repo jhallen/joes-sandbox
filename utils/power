@@ -1,0 +1,91 @@
+#!/bin/bash
+
+PORT="/dev/ttyS0"
+
+while [ "$1" ]; do
+	case "$1" in
+		--port)
+			shift
+			PORT="$1"
+			;;
+		-h|--help)
+			cat >&2 <<EOF
+Usage: power [options] command outlet
+Control CPS power strip
+  Options:
+    --port device	Use serial port other than /dev/ttyS0
+  Commands:
+    on			Turn outlet on
+    off			Turn outlet off
+    reboot		Turn outlet off then turn it on
+    cycle		Repeatedly power cycle
+  Outlet:
+    1, 2 or 3
+EOF
+			;;
+		1)
+			OUTLET=1
+			;;
+		2)
+			OUTLET=2
+			;;
+		3)
+			OUTLET=3
+			;;
+		on)
+			CMD=on
+			;;
+		off)
+			CMD=off
+			;;
+		cycle)
+			CMD=cycle
+			;;
+		reboot)
+			CMD=reboot
+			;;
+		*)
+			echo "Unknown command"
+			exit 1
+			;;
+	esac
+	shift
+done
+
+if [ "$PORT" -a "$CMD" -a "$OUTLET" ]; then
+	case "$CMD" in
+		on)
+			echo Turning on outlet ${OUTLET}...
+			/root/c $PORT --baud 300 --send *1${OUTLET}1
+			echo done
+			;;
+		off)
+			echo Turning off outlet ${OUTLET}...
+			/root/c $PORT --baud 300 --send *1${OUTLET}0
+			echo done
+			;;
+		reboot)
+			echo Turning off outlet ${OUTLET}...
+			/root/c $PORT --baud 300 --send *1${OUTLET}0
+			echo done
+			sleep 10
+			echo Turning on outlet ${OUTLET}...
+			/root/c $PORT --baud 300 --send *1${OUTLET}1
+			echo done
+			;;
+		cycle)
+			while true; do
+				echo Turning off outlet ${OUTLET}...
+				/root/c $PORT --baud 300 --send *1${OUTLET}0
+				echo Done...
+				sleep 18
+				echo Turning on outlet ${OUTLET}...
+				/root/c $PORT --baud 300 --send *1${OUTLET}1
+				sleep 300
+				echo Done...
+			done
+			;;
+	esac
+else
+	echo "Missing arguments"
+fi
