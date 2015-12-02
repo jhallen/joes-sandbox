@@ -1,4 +1,4 @@
-Short utilities:
+## Short utilities:
 
 * exotobin: Convert Motorola S19 files to binary
 
@@ -44,7 +44,7 @@ programmer:
 * exo: Convert Xilinx .exo file to binary (computes checksum)
 * mcs: Convert Xilinx .mcs file to binary (computes checksum)
 
-* Serial connect: c.c
+## Serial connect: c.c
 
 This is a replacement for the very old "cu" program (original part of
 UUCP!).
@@ -53,7 +53,9 @@ Use this to turn an old Linux box into a console server, so that you can
 "telnet linux-box 2002" to connect to ttyS2.  Also, it can be used to
 connect to the serial port directly from the shell.
 
-For console server:
+There is on-line help.  You will see when you run the program.
+
+### For console server:
 
 Put this into /etc/xinetd.d/direct_ttyS2
 
@@ -106,7 +108,7 @@ an rc file for each of these.  For example, this is for c2:
 	off = "/root/power off 1"
 	on = "/root/power on 1"
 
-For direct use on command line:
+### For direct use on command line:
 
 Just type:
 	./c /dev/ttyS2 --baud=19200
