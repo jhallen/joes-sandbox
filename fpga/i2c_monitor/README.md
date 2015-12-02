@@ -33,10 +33,11 @@ ignored.
 
 ### RS-232
 
-BAUD rate is 115200, but you can change the BAUD parameter in baud.v to
-change this.  BAUD rates up to 921600 work well.  There is an 8K FIFO buffer
-to help buffer short bursts of high-speed I2C.  The serial port supports
-XON/XOFF (^S/^Q) flow control.
+BAUD rate is 921600, but you can change this: look for the .baud_rate signal
+in i2cmon.v.  BAUD rates up to 921600 work well with cheap USB to serial
+converters.  Faster rates might be possible with real serial ports.  There
+is an 8K FIFO buffer to help buffer short bursts of high-speed I2C.  The
+serial port supports XON/XOFF (^S/^Q) flow control.
 
 * Connect TTL serial output is to pin 72
 * Connect TTL serial input is from pin 71
