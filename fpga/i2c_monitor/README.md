@@ -1,16 +1,17 @@
 
-# I2C Bus Monitor
+# I2C Bus / SMBUS Monitor
 
 This converts a cheap Cyclone-II EP2C5T144 "minimum system board" into a
 nice I2C bus monitor.  It converts I2C into a readable ASCII format and
-sends it over an 3.3V TTL-level RS-232 interface.  You can use a USB
-to TTL-level RS-232 cable to connect this to a PC.  You could perform
-long-term monitoring of an I2C bus by enabling loggin in Minicom or some
-other similar serial communications program.
+sends it over a 3.3V TTL-level RS-232 interface.  You can use a USB to
+TTL-level RS-232 cable to connect this to a PC.  You could perform long-term
+monitoring of an I2C bus by enabling logging in Minicom or some other
+similar serial communications program.
 
 ## Board
 
-You can get these on [EBay](ttp://www.ebay.com/itm/ALTERA-FPGA-Cyclone-II-EP2C5T144-Minimum-System-Development-Board-/201070505640?hash=item2ed0bc6ea8:g:13IAAMXQrhdTRPs4):
+Here is an Altera "Minimum system board" that you can buy on EBay.  Search
+for "Altera Board".
 
 [EP2C5T144 Board](https://github.com/jhallen/joes-sandbox/tree/master/fpga/i2c_monitor/mp2c5board.jpg)
 
@@ -32,7 +33,11 @@ LED2 (D5) is SCL (on if high)
 
 ### RS-232
 
-BAUD rate is 230400
+BAUD rate is 115200, but you can change the BAUD parameter in baud.v to
+change this.  BAUD rates up to 921600 work well.  There is an 8K FIFO buffer
+to help buffer short burst of high-speed I2C.  The serial port support
+XON/XOFF (^S/^Q) flow control.
+
 Connect TTL serial output is to pin 72
 Connect TTL serial input is from pin 71
 
