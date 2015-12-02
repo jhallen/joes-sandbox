@@ -111,8 +111,11 @@ an rc file for each of these.  For example, this is for c2:
 ### For direct use on command line:
 
 Just type:
+
 	./c /dev/ttyS2 --baud=19200
+
 or:
+
 	./c /dev/ttyUSB0 --baud=9600
 
 Here is a shell script to control CPS Power string (uses 300 baud serial
