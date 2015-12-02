@@ -47,29 +47,30 @@ Time check, printed every 10 seconds:
 
 	[0040.0] CD
 
-	___C___ if SCL is high. ___c___ if SCL is low
-	___D___ if SDA is high. ___d___ if SDA is low
-	Time is in [seconds . tenths of seconds].
+* ___C___ if SCL is high. ___c___ if SCL is low
+* ___D___ if SDA is high. ___d___ if SDA is low
+
+Time is in [seconds . tenths of seconds].
 
 Received data:
 
 	[0043.9] A0+ 0B+ R A1+ 08-
 
-	___+___ means ACK after 8 bits
-	___-___ means NAK after 8 bits
+* ___+___ means ACK after 8 bits
+* ___-___ means NAK after 8 bits
 
-	___?___ means short byte: less than 8-bits + ACK received
-                before Stop or Repeated Start.
+* ___?___ means short byte: less than 8-bits + ACK received before
+          Stop or Repeated Start.
 
-	___R___ means repeated start detected (normally indicates
-	that the following byte is an address with R/~W (bit 0) high
-	to indicate read, then followed by read bytes).
+* ___R___ means repeated start detected (normally indicates
+          that the following byte is an address with R/~W (bit 0) high
+          to indicate read, then followed by read bytes).
 
 Empty transaction:
 
 	[0043.9] E
 
-	It means we got Start and then Stop, but no data.
+* It means we got Start and then Stop, but no data.
 
 End of transaction is indicated by CR-LF.  If cursor is not at beginning of
 line, it means transaction did not end.  (it would be nice to add time
