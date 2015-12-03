@@ -54,7 +54,7 @@ reg [3:0] double_free_who, nxt_double_free_who;
 output [15:0] count;
 reg [15:0] count, nxt_count;
 
-// Buflet bitmap.
+// bitmap.
 // 0 means allocated, 1 means free
 
 // Top-level index
@@ -164,7 +164,7 @@ always @(posedge clk or negedge reset_l)
       // (multiply aobve bit numbers by 1024 to get page number)
       level_1 <= 32'hffff_fff8;
 
-      count <= 32768 - (3 * 1024); // 29696 buflets
+      count <= 32768 - (3 * 1024); // 29696 available
 
       level_2_wr_data <= 32'hffff_ffff;
       level_2_addr <= 0;
