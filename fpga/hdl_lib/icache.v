@@ -10,9 +10,11 @@
 // Word 0 is read first, then the rest in succession.  If a cache-line boundary is crossed,
 // there will be a gap in the sequence of valid bits going high.
 
-// Valid bits remain unchanged until new data is actually written to client_rd_data.
-// This gives xp_useq a chance to use the old data in case it changes its mind as
-// to what address it wants to read from.
+// Valid bits remain unchanged until new data is actually written to
+// client_rd_data.
+
+// This gives the client a chance to use the old data in case it changes its
+// mind as to what address it wants to read from.
 
 module icache
   (
