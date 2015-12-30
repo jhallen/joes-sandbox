@@ -2,10 +2,10 @@ a=[]  automatically set mom of this object to parent:
 	a=[`mom=this]?
 	We can't really do this.. a.print will turn up in non-objects.
 
+add something like this: a.call(b,...) so we can call with different mom.
+
 mixing named and numbered args is weird:
   we assign left to right.  NUmber starts at first arg.
-
-add something like this: a.call(b,...)
 
 forindex doesn't handle changes to the object while it's running.  Make a
  snapshot of the object indexes before running?
