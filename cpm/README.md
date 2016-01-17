@@ -1,15 +1,18 @@
 
-# CP/M Emulator
+# CP/M Emulator for ANSI terminal emulators
 
-This is a modified version of Parag Patel's Z80 / CP/M emulator.  This version
-includes a filter/emulator for VT-52 and ADM3A terminals.  Basically it converts
-VT-52 codes into ANSI codes.  This allows screen oriented programs such as
-WordStar to operate properly with ANSI terminal emulators, such as Xterm in
-Linux.
+This is a modified version of Parag Patel's Z80 / CP/M emulator.  This
+version includes a filter/emulator for VT-52 and ADM-3A terminals. 
+Basically it converts VT-52 codes into ANSI codes on output and converts
+arrow keys and PgUp / PgDn into WordStar motion keys on input.
+
+This allows screen oriented programs such as WordStar, Turbo PASCAL and
+DBase to operate directly with ANSI terminal emulators, such as Xterm or
+RXVT for Linux and Cygwin.
 
 Type 'make' to build the program.
 
-Type './cpm' to start it, you should get the CP/M A> prompt.
+Type './cpm' to start it, you should get the CP/M __A>__ prompt.
 
 At the __A>__ prompt:
 
@@ -18,6 +21,55 @@ Type __bye__ to exit back to Linux
 Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
 
 Type __getunix unixfile cpm-file__ to copy a file from UNIX/Linux into CP/M.
+
+The A-Hdrive and B-Hdrive disk images include some programs.  Many more are
+available:
+
+
+At the __A>__ prompt:
+
+Type __bye__ to exit back to Linux
+
+Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
+
+Type __getunix unixfile cpm-file__ to copy a file from UNIX/Linux into CP/M.
+
+                        -- Joe Allen
+ Joe's Own Editor 4.1 (ascii) ** Type Ctrl-K Q to exit or Ctrl-K H for help **
+File README.md not changed so no update needed
+laptop:~/git/joes-sandbox/cpm$ 
+laptop:~/git/joes-sandbox/cpm$ 
+laptop:~/git/joes-sandbox/cpm$ ls
+A-Hdrive  bye.mac    defs.h       list     Makefile     README~
+B-Hdrive  cpm@       disassem.c   main.c   putunix.mac  z80.c
+bios.c    cpm.c      disassem.o   main.c~  README.md    z80.exe*
+bios.o    cpmdisc.h  getunix.mac  main.o   README.md~   z80.o
+laptop:~/git/joes-sandbox/cpm$ 
+laptop:~/git/joes-sandbox/cpm$ ls
+A-Hdrive  bye.mac    defs.h       list     Makefile     README~
+B-Hdrive  cpm@       disassem.c   main.c   putunix.mac  z80.c
+bios.c    cpm.c      disassem.o   main.c~  README.md    z80.exe*
+bios.o    cpmdisc.h  getunix.mac  main.o   README.md~   z80.o
+laptop:~/git/joes-sandbox/cpm$ joe README.md
+^K  IW   README.md (Modified)(md)                              Row 25   Col 5   
+Type 'make' to build the program.
+
+Type './cpm' to start it, you should get the CP/M __A>__ prompt.
+
+At the __A>__ prompt:
+
+Type __bye__ to exit back to Linux
+
+Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
+    IW   README.md (Modified)(md)                              Row 28   Col 1   
+Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
+
+Type __getunix unixfile cpm-file__ to copy a file from UNIX/Linux into CP/M.
+
+The A-Hdrive and B-Hdrive disk images include some programs.  Many more are
+available:
+
+[http://www.retroarchive/org/cpm/](http://www.retroarchive.org/cpm/)
 
 			-- Joe Allen
 
