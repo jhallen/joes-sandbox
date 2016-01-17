@@ -25,50 +25,6 @@ Type __getunix unixfile cpm-file__ to copy a file from UNIX/Linux into CP/M.
 The A-Hdrive and B-Hdrive disk images include some programs.  Many more are
 available:
 
-
-At the __A>__ prompt:
-
-Type __bye__ to exit back to Linux
-
-Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
-
-Type __getunix unixfile cpm-file__ to copy a file from UNIX/Linux into CP/M.
-
-                        -- Joe Allen
- Joe's Own Editor 4.1 (ascii) ** Type Ctrl-K Q to exit or Ctrl-K H for help **
-File README.md not changed so no update needed
-laptop:~/git/joes-sandbox/cpm$ 
-laptop:~/git/joes-sandbox/cpm$ 
-laptop:~/git/joes-sandbox/cpm$ ls
-A-Hdrive  bye.mac    defs.h       list     Makefile     README~
-B-Hdrive  cpm@       disassem.c   main.c   putunix.mac  z80.c
-bios.c    cpm.c      disassem.o   main.c~  README.md    z80.exe*
-bios.o    cpmdisc.h  getunix.mac  main.o   README.md~   z80.o
-laptop:~/git/joes-sandbox/cpm$ 
-laptop:~/git/joes-sandbox/cpm$ ls
-A-Hdrive  bye.mac    defs.h       list     Makefile     README~
-B-Hdrive  cpm@       disassem.c   main.c   putunix.mac  z80.c
-bios.c    cpm.c      disassem.o   main.c~  README.md    z80.exe*
-bios.o    cpmdisc.h  getunix.mac  main.o   README.md~   z80.o
-laptop:~/git/joes-sandbox/cpm$ joe README.md
-^K  IW   README.md (Modified)(md)                              Row 25   Col 5   
-Type 'make' to build the program.
-
-Type './cpm' to start it, you should get the CP/M __A>__ prompt.
-
-At the __A>__ prompt:
-
-Type __bye__ to exit back to Linux
-
-Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
-    IW   README.md (Modified)(md)                              Row 28   Col 1   
-Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
-
-Type __getunix unixfile cpm-file__ to copy a file from UNIX/Linux into CP/M.
-
-The A-Hdrive and B-Hdrive disk images include some programs.  Many more are
-available:
-
 [http://www.retroarchive/org/cpm/](http://www.retroarchive.org/cpm/)
 
 			-- Joe Allen
