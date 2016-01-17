@@ -52,7 +52,6 @@ static FILE *logfile = NULL;
 #	define termio termios
 #endif
 static struct termio rawterm, oldterm;	/* for raw terminal I/O */
-static int keybd = -1;			/* to check keyboard for data */
 #endif
 
 
@@ -896,12 +895,10 @@ input(z80info *z80, byte haddr, byte laddr, byte *val)
 #elif defined DJGPP
 		*val = (kbhit()) ? 0xFF : 0;
 #else	/* UNIX or BeBox */
-		/* "keybd" should already be opened for non-blocking read */
 		fflush(stdout);
 
-		if (last == -1 && keybd >= 0)
+		if (last == -1)
 		        last = kget(1);
-//			read(keybd, &last, 1);
 
 
 		*val = (last != -1) ? 0xFF : 0;
@@ -1296,40 +1293,6 @@ main(int argc, const char *argv[])
 		return -1;
 
 	initterm();
-
-// #if defined BeBox_TurnedOff
-#if 1
-	/* try to open the keyboard for non-blocking read */
-	keybd = dup(0);		/* dup stdin */
-
-	if (keybd < 0)
-	{
-		fprintf(stderr, "Cannot dup stdin for I/O.\r\n");
-		exit(1);
-	}
-
-	if (fcntl(keybd, F_SETFL, O_NONBLOCK) < 0)
-	{
-		fprintf(stderr, "Cannot set fcntl for I/O.\r\n");
-		exit(1);
-	}
-#elif defined UNIX
-	/* try to open the keyboard for non-blocking read */
-#if defined O_NONBLOCK
-	keybd = open("/dev/tty", O_RDONLY | O_NONBLOCK);
-#elif defined O_NDELAY
-	keybd = open("/dev/tty", O_RDONLY | O_NDELAY);
-#else
-	#error Need to specify non-blocking I/O.
-#endif
-	printf("Opened keybd with /dev/tty\n");
-
-	if (keybd < 0)
-	{
-		fprintf(stderr, "Cannot open /dev/tty for I/O.\r\n");
-		exit(1);
-	}
-#endif
 
 	/* set up the signals */
 #ifdef SIGQUIT
