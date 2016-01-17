@@ -720,10 +720,34 @@ loadfile(z80info *z80, const char *fname)
 
 int mode = 0;
 
+int kpoll(int w)
+{
+	int c;
+	unsigned char d;
+	int tries;
+	for (tries = 0; tries != 1; ++tries) {
+		int flags;
+		if (w) {
+			flags = fcntl(fileno(stdin), F_GETFL);
+			fcntl(fileno(stdin), F_SETFL, flags | O_NONBLOCK);
+		}
+		c = read(fileno(stdin), &d, 1);
+		if (w) {
+			fcntl(fileno(stdin), F_SETFL, flags);
+		}
+		if (c == 1) {
+//			printf("\r\nkpoll got %d \r\n", d);
+			return d;
+		}
+//		usleep(1);
+	}
+//	printf("\r\n--- no char after esc? ---\r\n"); fflush(stdout);
+	return -1;
+}
+
 int kget(int w)
 {
         int c;
-        unsigned char d;
         if (mode == 1) {
                 mode = 0;
                 return 's';
@@ -732,26 +756,15 @@ int kget(int w)
                 return 'd';
         }
         loop:
-        if (w) {
-                d = 0;
-                read(keybd, &d, 1);
-                c = d;
-        } else {
-                c = getchar();
-        }
+        c = kpoll(w);
         if (c != 27) {
                 return c;
         }
         // We got ESC.. see if any chars follow
-        usleep(10000);
-        d = 0;
-        if (read(keybd, &d, 1) != 1) {
-                return 27;
-        }
-        c = d;
+        c = kpoll(1);
 
         if (c == '[') {
-                c = getchar();
+                c = kpoll(0);
                 if (c == 'A')
                         return 'E' - '@';
                 else if (c == 'B')
@@ -761,29 +774,29 @@ int kget(int w)
                 else if (c == 'D') {
                         return 'S' - '@';
                 } else if (c == '3') {
-                        c = getchar();
+                        c = kpoll(0);
                         return 'G' - '@';
                 } else if (c == '2') {
-                        c = getchar();
+                        c = kpoll(0);
                         return 'V' - '@';
                 } else if (c == '5') {
-                        c = getchar();
+                        c = kpoll(0);
                         return 'R' - '@';
                 } else if (c == '6') {
-                        c = getchar();
+                        c = kpoll(0);
                         return 'C' - '@';
                 } else if (c == '7') {
                         mode = 1;
-                        c = getchar();
+                        c = kpoll(0);
                         return 'Q' - '@';
                 } else if (c == '8') {
                         mode = 2;
-                        c = getchar();
+                        c = kpoll(0);
                         return 'Q' - '@';
                 } else
                         goto loop;
         } else if (c == 'O') {
-                c = getchar();
+                c = kpoll(0);
                 if (c == 'd')
                         return 'A' - '@';
                 else if (c == 'c')
@@ -807,7 +820,7 @@ int kget(int w)
 boolean
 input(z80info *z80, byte haddr, byte laddr, byte *val)
 {
-	static int last = 0;	/* the last character read from the tty */
+	static int last = -1;	/* the last character read from the tty */
 	int data;
 
 	/* just uses the lower 8-bits of the I/O address for now... */
@@ -817,10 +830,10 @@ input(z80info *z80, byte haddr, byte laddr, byte *val)
 	/* return a character from the keyboard - wait for it if necessary  --
 	   return "last" if we have already read in something via 0x01 */
 	case 0x00:
-		if (last)
+		if (last != -1)
 		{
 			data = last;
-			last = 0;
+			last = -1;
 		}
 		else
 		{
@@ -886,12 +899,12 @@ input(z80info *z80, byte haddr, byte laddr, byte *val)
 		/* "keybd" should already be opened for non-blocking read */
 		fflush(stdout);
 
-		if (!last && keybd >= 0)
+		if (last == -1 && keybd >= 0)
 		        last = kget(1);
 //			read(keybd, &last, 1);
 
 
-		*val = last ? 0xFF : 0;
+		*val = (last != -1) ? 0xFF : 0;
 #endif
 		break;
 
@@ -1284,7 +1297,8 @@ main(int argc, const char *argv[])
 
 	initterm();
 
-#if defined BeBox_TurnedOff
+// #if defined BeBox_TurnedOff
+#if 1
 	/* try to open the keyboard for non-blocking read */
 	keybd = dup(0);		/* dup stdin */
 
@@ -1308,6 +1322,7 @@ main(int argc, const char *argv[])
 #else
 	#error Need to specify non-blocking I/O.
 #endif
+	printf("Opened keybd with /dev/tty\n");
 
 	if (keybd < 0)
 	{
