@@ -1,0 +1,11 @@
+;       EXIT CP/M - return to Unix
+;
+        .Z80
+CBIOS   EQU     0EA00H
+FINISH  EQU     CBIOS+42H
+
+        CSEG
+        ENTRY   START
+START:
+        CALL    FINISH
+        END

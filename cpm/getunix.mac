@@ -1,0 +1,95 @@
+;       GET UNIX FILE INTO CP/M UTILITY
+;       getunix unixfilename.extension driveletter:cpmfilename.extension
+;
+        .Z80
+
+SRCFCB  EQU     005CH
+SECFCB  EQU     006CH
+
+CBIOS   EQU     0EA00H
+OPNUNX  EQU     CBIOS+33H
+RDUNX   EQU     CBIOS+39H
+CLSUNX  EQU     CBIOS+3FH
+
+BDOS    EQU     5
+CREATE  EQU     22
+WRITE   EQU     21
+CLOSE   EQU     16
+SETDMA  EQU     26
+PRINT   EQU     9
+
+        CSEG
+        ENTRY   START
+START:
+        LD      SP,STACK
+;MOVE DESTINATION FCB
+        LD      HL,SECFCB
+        LD      DE,DSTFCB
+        LD      BC,10H
+        LDIR
+        LD      HL,DSTFCB+16
+        LD      DE,DSTFCB+17
+        LD      (HL),0
+        LD      BC,20H
+        LDIR
+;OPEN SOURCE FILE
+        LD      DE,SRCFCB
+        CALL    OPNUNX
+        AND     A
+        JP      NZ,ERROR1
+;CREATE DESTINATION FILE
+        LD      DE,DSTFCB
+        LD      C,CREATE
+        CALL    BDOS
+        CP      0FFH
+        JP      Z,ERROR2
+;SET DMA ADDRESS
+        LD        DE,0080H
+        LD        C,SETDMA
+        CALL        BDOS
+;READ ONE, WRITE ONE
+LOOP:        LD        DE,SRCFCB
+        CALL        RDUNX
+        AND        A
+        JP        NZ,CLOSEM
+        LD        DE,DSTFCB
+        LD        C,WRITE
+        CALL        BDOS
+        AND        A
+        JP        NZ,ERROR4
+        JP        LOOP
+;CLOSE UNIX FILE
+CLOSEM:        LD        DE,SRCFCB
+        CALL        CLSUNX
+        AND        A
+        JP        Z,CLSCPM
+
+CLSCPM:        LD        DE,DSTFCB
+        LD        C,CLOSE
+        CALL        BDOS
+        JP        0
+
+ERROR1:        LD        DE,STR1
+        JP        ERROR
+STR1:        DEFM        "ERROR1"
+        DEFB        13,10,'$'
+ERROR2:        LD        DE,STR2
+        JP        ERROR
+STR2:        DEFM        "ERROR2"
+        DEFB        13,10,'$'
+ERROR3:        LD        DE,STR3
+        JP        ERROR
+STR3:        DEFM        "ERROR3"
+        DEFB        13,10,'$'
+ERROR4:        LD        DE,STR4
+        JP        ERROR
+STR4:        DEFM        "ERROR4"
+        DEFB        13,10,'$'
+
+ERROR:        LD        C,PRINT
+        CALL        BDOS
+        JP        0
+
+DSTFCB:        DEFS        200
+STACK:        DEFS        1
+        END

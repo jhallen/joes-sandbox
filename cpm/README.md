@@ -1,0 +1,163 @@
+
+# CP/M Emulator
+
+This is a modified version of Parag Patel's Z80 / CP/M emulator.  This version
+includes a filter/emulator for a VT-52 terminal.  Basically it converts
+VT-52 codes into ANSI codes.  This allows screen oriented programs such as
+WordStar to operate properly with ANSI terminal emulators, such as xterm in
+Linux.
+
+Type 'make' to build the program.
+
+Type './cpm' to start it, you should get the CP/M A> prompt.
+
+At the __A>__ prompt:
+
+Type __bye__ to exit back to Linux
+
+Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
+
+Type __getunix unixfile cpm-file__ to copy a file from UNIX/Linux into CP/M.
+
+# Original README
+
+This is a Z80 instruction-set simulator written entirely ANSI C.  It can
+boot and run CP/M or CP/M clones.  It's also got a builtin debugger
+which supports tracing, single-stepping, breakpoints, read or write
+protected memory, memory-mapped I/O, logging, and disassembly.  This is
+not the fastest emulator around, but it's very portable.
+
+So far z80 has been tested under Linux, FreeBSD, DEC's UNIX on Alpha,
+and SunOS, the Macintosh using either Think C or CodeWarrior (PPC and
+68k), MS-DOS using DJGPP, and the BeOS.  It should be quite easy to port
+to other UNIX-line systems.
+
+The file "Makefile" will need tweaking for your system.  The two key
+compilation flags are -DLITTLE_ENDIAN and -DPOSIX_TTY as described
+further in the Makefile.  You'll almost certainly have to tweak the
+other make variables, such as CFLAGS and CC.  Then just type "make".
+
+For the Macintosh, the file "MacProj.hqx" is a BinHex SIT archive with
+three project files for Think C, CodeWarrior 68k, and CW PowerPC.
+
+The file "main.c" contains UNIX routines for character-mode I/O, if
+these need to be ported to your flavor of UNIX.  They're pretty generic
+and ought to work under just about anything.
+
+Once z80 is built, run it, and enter 'b' at the prompt to boot CP/M.
+Enter '?'  to see a list of debugging commands it understands.  The
+interrupt character, ^C, is wanted by CP/M for its own uses, so to force
+the z80 into its debugger, use ^_ (control-underscore).  (You may have
+to type <return> after the ^_ to wake it up.)
+
+If z80 is linked or renamed to "cpm", it will directly boot into CP/M
+without displaying the debugger prompt.  If an "A-Hdrive" doesn't exist
+in the current working directory for CP/M, it will be created.
+
+The file "z80.c" contains the emulator proper.  Most variables are
+accessed via macros defined in "defs.h".  The file "bios.c" contains the
+mock-BIOS code that allows the emulator to boot and run CP/M or its
+clones.  The file "cpm.c" contains an image of P2D0S 2.3 and ZCPR1, so
+it should be safe to distribute freely.  (This allows the z80 to
+directly boot CP/M.)
+
+The z80 program will automatically create virtual CP/M "drives" as they
+are accessed, and will only allocate disk space for them when it is
+needed.  The obsolete "makedisc.c" program is included to allocate all
+the space for a floppy at once and also allows placing a single Unix
+file within it.
+
+The "bios.c" code is built for two 5Mb virtual hard-drives (A-Hdrive,
+and B-Hdrive), and a bunch of floppy drives (C-drive, D-drive, and so
+on).  It is possible to rebuild it for different numbers of hard-drives
+by changing the macro NUMHDISCS at the top.  The hard disks emulated are
+the venerable ST-506 5Mb 5" 5Mb drives.  The floppies are the
+traditional 8" 256k drives.  The code names the virtual hard-drives as
+"?-Hdrive" and floppies as "?-drive" to help avoid accidentlally
+confusing one for the other.  Their contents should be identical to the
+real thing, even down to the reserved tracks, assuming I did it right.
+
+There are several "*.mac" files which are Z80 macro-assembly sources for
+getting files from UNIX into CP/M (GETUNIX.MAC), putting files out from
+CP/M to UNIX (PUTUNIX.MAC), and quitting the emulator (BYE.MAC).  All
+these files are also in "A-Hdrive", all assembled and ready to run.
+They do little useful error checking, but it should be pretty obvious
+from the code how they work.  Any text files transfered into CP/M must
+have CR-LF as the line separator or it gets awfully confused.
+
+Usage:
+	PUTUNIX <CP/M-file> <unixfile>
+	GETUNIX <unixfile> <CP/M-file>
+	BYE
+
+Additional utilities that come with the P2DOS23 distribution are also
+included to support the date/time functions of P2DOS.  These are located
+within the "A-Hdrive" and within the P2DOS archive.  These are date.com,
+ddir.com, initdir.com, public.com, set.com, and touch.com.
+
+I had picked up a Z80 assembler named "zmac" from the Internet quite
+some time ago.  I've hacked it heavily to add a lot of support for
+different assembler formats but it's still kind of finicky.  You'll need
+yacc of some flavor to compile it up.  Sorry, but I don't have a
+Makefile for it any longer.  The "*.z" files there are sample assembly
+sources.  There's also a separate Z80 disassembler that came with zmac.
+Unfortunately the sources did not come with any copyright, but the file
+"zmac.y" does contain a somewhat cryptic list of folks who hacked it.  I
+don't know if "zdis" is by the same authors or not - there are no
+comments in it.
+
+zmac assembled P2DOS 2.3 (off of the CP/M archives on oak.oakland.edu)
+without too much trouble.  ZCPR1 (from the archives) needed to be
+converted from the .ASM format to .MAC, which I did using XLATE5 (also
+from the Oak archives).  Then the resulting output had to be hacked
+somewhat so that zmac could assemble it.  Z80DOS23 and Z80CCP from the
+archives also assembled up without much trouble.
+
+To play with different BDOS/CCP replacements, just rename the assembler
+output HEX file from wherever you built it into the files "bdos.hex" and
+"ccp.hex".  If z80 sees these in the current directory, it will load
+them to boot CP/M instead of using its builtin versions of P2DOS/ZCPR1.
+
+There's a lot of stuff to do in this code, but it's functional enough to
+leave the rest as an exercise for the student.  The Mac version needs a
+really cool interface, with separate windows for the out, setting
+registers, tracing, a virtual terminal, etc.  The debug-level prompting
+code pretty much sucks and needs to be thrown out.
+
+This code has been designed so that the z80 emulator proper should be
+thread-safe and runs independently of CP/M.  It should be possible to
+run multiple z80s within one program if desired.
+
+The CP/M layer may be built so that the fake BIOS is turned into real
+Z80 code with all I/O occurring through fake devices using either
+INPUT/OUTPUT or the memory-mapped I/O hooks.  Conversely, it's also
+possible to turn then entire BDOS/CCP into C code much as the BIOS is
+currently coded with magic hooks that trigger the appropriate actions.
+
+Use this code as you wish, so long as it is properly attributed.  That
+is, display our copyrights where you would display yours (manuals,
+boot-up, etc) and do not claim that this code is yours.  If you do use
+it, please drop me a note.  This code is "as-is" without any warrantee.
+Be warned that P2DOS23 and ZCPR1 only allow free redistribution for
+non-commercial use.  (See their documentation for more details.)
+
+Copyright 1986-1988 by Parag Patel.  All Rights Reserved.
+Copyright 1994-1995 by CodeGen, Inc.  All Rights Reserved.
+
+
+		-- Parag Patel <parag@cgt.com>
+
+
+Version history:
+
+3.1	Added support for virtual 5Mb ST-506 drives in bios.c.
+	Fixed a few bugs in emulator, fake BIOS, and console I/O.
+	String search for "cpm" in argv[0] now uses strrchr() in main.c.
+	Change all "(char)" casts to "(signed char)" for AIX and other
+		systems that have "char" default to "unsigned".
+	Making a start at adding support for printing.
+
+3.0	First public release 1995.
+	Use publicly available P2DOS23 and ZCPR1 instead of
+		copyrighted CP/M 2.2.
+	Added date/time support for P2DOS and its utilities.
