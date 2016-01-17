@@ -764,31 +764,31 @@ int kget(int w)
 
         if (c == '[') {
                 c = kpoll(0);
-                if (c == 'A')
+                if (c == 'A') { /* Up arrow */
                         return 'E' - '@';
-                else if (c == 'B')
+                } else if (c == 'B') { /* Down arrow */
                         return 'X' - '@';
-                else if (c == 'C')
+                } else if (c == 'C') { /* Right arrow */
                         return 'D' - '@';
-                else if (c == 'D') {
+                } else if (c == 'D') { /* Left arrow */
                         return 'S' - '@';
-                } else if (c == '3') {
+                } else if (c == '3') { /* Delete key */
                         c = kpoll(0);
                         return 'G' - '@';
-                } else if (c == '2') {
+                } else if (c == '2') { /* Insert key */
                         c = kpoll(0);
                         return 'V' - '@';
-                } else if (c == '5') {
+                } else if (c == '5') { /* PgUp */
                         c = kpoll(0);
                         return 'R' - '@';
-                } else if (c == '6') {
+                } else if (c == '6') { /* PgDn */
                         c = kpoll(0);
                         return 'C' - '@';
-                } else if (c == '7') {
+                } else if (c == '1' || c == '7' || c == 'H') { /* Home */
                         mode = 1;
                         c = kpoll(0);
                         return 'Q' - '@';
-                } else if (c == '8') {
+                } else if (c == '4' || c == '8' || c == 'F') { /* End */
                         mode = 2;
                         c = kpoll(0);
                         return 'Q' - '@';
@@ -796,11 +796,25 @@ int kget(int w)
                         goto loop;
         } else if (c == 'O') {
                 c = kpoll(0);
-                if (c == 'd')
+                if (c == 'A') { /* Up arrow */
+                        return 'E' - '@';
+                } else if (c == 'B') { /* Down arrow */
+                        return 'X' - '@';
+                } else if (c == 'C') { /* Right arrow */
+                        return 'D' - '@';
+                } else if (c == 'D') { /* Left arrow */
+                        return 'S' - '@';
+                } else if (c == 'd') { /* Ctrl left arrow (rxvt) */
                         return 'A' - '@';
-                else if (c == 'c')
+                } else if (c == 'c') { /* Ctrl right arrow (rxvt) */
                         return 'F' - '@';
-                else
+                } else if (c == 'H') { /* Home */
+                        mode = 1;
+                        return 'Q' - '@';
+                } else if (c == 'F') { /* End */
+                        mode = 2;
+                        return 'Q' - '@';
+                } else
                         goto loop;
         } else {
                 goto loop;
