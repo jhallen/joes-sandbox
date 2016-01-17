@@ -2,9 +2,9 @@
 # CP/M Emulator
 
 This is a modified version of Parag Patel's Z80 / CP/M emulator.  This version
-includes a filter/emulator for a VT-52 terminal.  Basically it converts
+includes a filter/emulator for VT-52 and ADM3A terminals.  Basically it converts
 VT-52 codes into ANSI codes.  This allows screen oriented programs such as
-WordStar to operate properly with ANSI terminal emulators, such as xterm in
+WordStar to operate properly with ANSI terminal emulators, such as Xterm in
 Linux.
 
 Type 'make' to build the program.
