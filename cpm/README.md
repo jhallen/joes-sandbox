@@ -1,5 +1,5 @@
 
-# CP/M Emulator for ANSI terminal emulators
+# CP/M Emulator for ANSI terminals
 
 This is a modified version of Parag Patel's Z80 / CP/M emulator.  This
 version includes a filter/emulator for VT-52 and ADM-3A terminals. 
