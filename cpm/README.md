@@ -19,6 +19,8 @@ Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
 
 Type __getunix unixfile cpm-file__ to copy a file from UNIX/Linux into CP/M.
 
+			-- Joe Allen
+
 # Original README
 
 This is a Z80 instruction-set simulator written entirely ANSI C.  It can
