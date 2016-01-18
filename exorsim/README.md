@@ -43,16 +43,16 @@ rudimentary terimnal.</li>
 
 <li>Simulates 6800 CPU and the following peripherals:
 <ul>
-	<li>ACIA serial port.</li>
-	<li>Line printer port.</li>
-	<li>Floppy disk controller:
-		<ul><li>EXORdisk-II floppy diskette controller emulated by
-		intercepting calls to the controller ROM</li>
+<li>ACIA serial port.</li>
+<li>Line printer port.</li>
+<li>Floppy disk controller:
+<ul><li>EXORdisk-II floppy diskette controller emulated by
+intercepting calls to the controller ROM</li>
 
-		<li><a href="http://en.wikipedia.org/wiki/Western_Digital_FD1771">FD1771</a> hardware emulation for <a
-		href="http://www.swtpc.com/mholley/MF_68/MF_68_Index.htm">MF68
-		with DC_1 controller</a> floppy drive</li>
-		</ul>
+<li><a href="http://en.wikipedia.org/wiki/Western_Digital_FD1771">FD1771</a> hardware emulation for <a
+href="http://www.swtpc.com/mholley/MF_68/MF_68_Index.htm">MF68
+with DC_1 controller</a> floppy drive</li>
+</ul>
 </ul>
 
 <li>Provides a separate command, MDOS, which allows you to read and write
@@ -62,32 +62,32 @@ files to MDOS diskette images.</li>
 
 <li>Includes a powerful debug monitor which allows you to:
 
-		<ul><li>Assemble 6800 directly to memory.  The assembler is
-		symbolic and powerful enough to assemble programs in the
-		<a
-		href="http://test.dankohn.info/~myhome/projects/68HC11/AXIOM_HC11/Source/Users%20Group/">Motorola User's Group
-		Library</a>.  One way is to select the entire source listing
-		from the web-browser and paste into the monitor after
-		starting the "a" command.</li>
+<ul><li>Assemble 6800 directly to memory.  The assembler is
+symbolic and powerful enough to assemble programs in the
+<a
+href="http://test.dankohn.info/~myhome/projects/68HC11/AXIOM_HC11/Source/Users%20Group/">Motorola User's Group
+Library</a>.  One way is to select the entire source listing
+from the web-browser and paste into the monitor after
+starting the "a" command.</li>
 		
-		<li>Disassemble memory to the screen.</li>
+<li>Disassemble memory to the screen.</li>
 
-		<li>Load and save Motorola <a href="http://en.wikipedia.org/wiki/SREC_%28file_format%29">S19</a> files
-		/ tapes.</li>
+<li>Load and save Motorola <a href="http://en.wikipedia.org/wiki/SREC_%28file_format%29">S19</a> files
+/ tapes.</li>
 
-		<li>Load and save binary images.</li>
+<li>Load and save binary images.</li>
 
-		<li>Trace program execution.</li>
+<li>Trace program execution.</li>
 
-		<li>Single step and continue until breakpoint.  A trace
-		buffer is provided, so you can see the instructions which
-		led up to the breakpoint.</li>
+<li>Single step and continue until breakpoint.  A trace
+buffer is provided, so you can see the instructions which
+led up to the breakpoint.</li>
 
-		<li>Call a 6800 subroutine and return to debug monitor when
-		it returns.</li>
+<li>Call a 6800 subroutine and return to debug monitor when
+it returns.</li>
 
-		<li>Hex dump and memory/register modifiction.</li>
-		</ul>
+<li>Hex dump and memory/register modifiction.</li>
+</ul>
 </li>
 
 <li>The output from the disassembler and the tracing features of the debug
@@ -118,7 +118,7 @@ To run the simulator:
 
 You can get MDOS disk images here:
 
-	ftp://bitsavers.informatik.uni-stuttgart.de/bits/Motorola/mdos/
+	[ftp://bitsavers.informatik.uni-stuttgart.de/bits/Motorola/mdos/]([ftp://bitsavers.informatik.uni-stuttgart.de/bits/Motorola/mdos/)
 
 You need to use "ImageDisk" to extract the binary data from from the .IMD
 files.
@@ -127,11 +127,11 @@ files.
 
 You can get ImageDisk from here:
 
-	http://www.classiccmp.org/dunfield/img/index.htm
+	[http://www.classiccmp.org/dunfield/img/index.htm]([http://www.classiccmp.org/dunfield/img/index.htm)
 
 Documentation about MDOS can be found here:
 
-	http://www.bitsavers.org/pdf/motorola/
+	[http://www.bitsavers.org/pdf/motorola/](http://www.bitsavers.org/pdf/motorola/)
 
 		M68MDOS3_MDOS3um_Jun79.pdf	Operating system user's manual.
 		MEK6800D2.pdf			Microprocessor datasheet
@@ -148,7 +148,6 @@ To run FLEX2:
 
 You can get FLEX2 disk images here:
 
-	http://75.147.194.108/Downloads.htm
+	[http://75.147.194.108/Downloads.htm](http://75.147.194.108/Downloads.htm)
 
-	Download the "Emulator executable with images", install it and find
-the FLEX2 .DSK files.
+	Download the "Emulator executable with images", install it and find the FLEX2 .DSK files.
