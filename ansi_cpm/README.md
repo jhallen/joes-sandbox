@@ -1,13 +1,14 @@
 
-# CP/M Emulator for ANSI terminals
+# ANSI CP/M Emulator
 
-This is a modified version of Parag Patel's Z80 / CP/M emulator.  This
-version includes a filter/emulator for VT-52 and ADM-3A terminals. 
+This is a modified version of Parag Patel's [CP/M](https://en.wikipedia.org/wiki/CP/M) emulator.  This
+version includes a filter/emulator for [VT-52](https://en.wikipedia.org/wiki/VT52) and
+[ADM-3A](https://en.wikipedia.org/wiki/ADM-3A) terminals. 
 Basically it converts VT-52 codes into ANSI codes on output and converts
 arrow keys and PgUp / PgDn into WordStar motion keys on input.
 
 This allows screen oriented programs such as WordStar, Turbo PASCAL and
-DBase to operate directly with ANSI terminal emulators, such as Xterm or
+dBASE-II to operate directly with ANSI terminal emulators, such as Xterm or
 RXVT for Linux and Cygwin.
 
 Type 'make' to build the program.
@@ -26,6 +27,10 @@ The A-Hdrive and B-Hdrive disk images include some programs.  Many more are
 available:
 
 [http://www.retroarchive/org/cpm/](http://www.retroarchive.org/cpm/)
+
+Here is CP/M WordStar running on Ubuntu in an xterm:
+
+![CP/M WordStar](cpmws.png)
 
 			-- Joe Allen
 
