@@ -1,4 +1,4 @@
-# EXORsim
+# EXORsim - Motorola EXORciser Emulator
 
 ### Links
 
