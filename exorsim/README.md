@@ -31,7 +31,7 @@ operating system.
 
 <p>EXORsim now emulates an EXORterm!  I was finally able to find
 manuals for the EXORterm 155, so I've implemented an emulator for it.  This
-allows the EDITORM Resident Editor to operate in screen mode.  See [EDITORM Resident Editor](https://github.com/jhallen/joes-sandbox/blob/master/exorsim/doc/mdos-intro.md#e-editorm-resident-editor).</p>
+allows the EDITORM Resident Editor to operate in screen mode.  See <a href="https://github.com/jhallen/joes-sandbox/blob/master/exorsim/doc/mdos-intro.md#e-editorm-resident-editor">EDITORM Resident Editor</a>.</p>
 
 <p>The EXORterm emulator operates as a filter between the EXORciser and the
 user's ANSI terminal emulator (such as XTerm).  This allows you to use
