@@ -1,0 +1,52 @@
+Exor:
+
+  "make install" (needs paths to binaries).
+
+  Step over function (we only have step into now)
+  Break key
+  More breakpoints
+  Switch disks
+  Ctrl-C twice sends Ctrl-C to program?
+
+  6801, 6811, 6816 support
+
+  6809 version
+
+  Share symbols from assembler for facts
+  Show top of stack command?
+
+  User GNU readline or add history for monitor jgetline?
+
+  Exorterm emulation (if we can find docs for it..)
+
+  Televideo emulation for Flex2?  Maybe not necessary.
+
+Mdos:
+
+  Support writing binary files
+  Add rename function
+  Add extract all?
+  Add format function to create a blank disk.
+  Check for read/write errors to disk.
+  Check disk size for reads/writes.
+  Check MDOS file name is 8.2
+
+Unasm:
+
+  Tracing to discover all valid code...
+
+HTDOCs:
+
+  Finish MDOS tech page.
+  Add inline links to MDOS info.  Add links to MDOS info source.
+  Mention Windows exor emulator.
+  Add installation information
+
+  Document what emulator actually emulates (hardware addresses, subroutine
+  calls..)
+
+  Document monitor ROMs.
+
+Other:
+
+  Create Linux version of ImageDisk imdu command.
