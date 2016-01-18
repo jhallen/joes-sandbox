@@ -27,7 +27,9 @@ available:
 
 [http://www.retroarchive/org/cpm/](http://www.retroarchive.org/cpm/)
 
-Here is CP/M WordStar running on Ubuntu in an xterm: [CP/M WordStar](cpmws.png)
+Here is CP/M WordStar running on Ubuntu in an xterm:
+
+![CP/M WordStar](cpmws.png)
 
 			-- Joe Allen
 
