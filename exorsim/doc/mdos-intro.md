@@ -448,8 +448,7 @@ line
 <dt>RESE N<dd>Eliminate line numbers
 <dt>MERG <i>name</i><dd>Insert file
 <dt>I<dd>Enter insert mode: Insert lines until you try to enter a blank
-line...  except it does not seem to work.  E is still in command mode after
-I type I.
+line (in scroll mode) or hit F1 (in crt mode).
 </dl>
 <h3>EDITM</h3>
 
