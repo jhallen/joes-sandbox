@@ -387,12 +387,14 @@ first)</p>
 
 <p>This is a screen editor (for an ExorTERM 155) with a line editor mode. 
 This was the only editor I used when I used MDOS professionally.  I only
-used it in line mode, because we did not have an ExorTERM 155.  Also, I
-think the version I used had been patched to always start in line mode.</p>
+used it in line mode ("scroll mode"), because we did not have an ExorTERM
+155.  Also, I think the version I used had been patched to always start in
+scroll mode.</p>
 
 <p>Invoke the editor with: <code>E FILENAME;S-N</code></p>
-<p>Option <b>S</b> disables screen editor mode.  Option <b>-N</b> disables
-automatic line numbering of new files.</b>
+
+<p>Option <b>S</b> disables screen editor mode ("crt" mode).  Option
+<b>-N</b> disables automatic line numbering of new files.</b>
 
 <p>If someone knows the control sequences for an ExorTERM 155, please send
 them to me.  I'll add a translater to EXORSIM so that E can be used as a
@@ -403,6 +405,16 @@ implemented an emulator for it so that now E can run in screen editor mode.
 Check it out:</p>
 
 <img src="crteditor.gif" alt="E in CRT mode">
+
+<p>In this mode, E is a modal editor like vi.  You type commands (see the
+list below) into a prompt.  You move the "current line" pointer using the
+arrow keys, scrolling keys (F3 - F6) or by executing one of the commands. 
+If you type the insert command, the cursor jumps into the text at the
+current line.  When you are done inserting new lines, hit F1 to get back
+to the command prompt.</p>
+
+<p>At any time you can switch between scroll mode or crt mode by hitting F2
+or F1.</p>
 
 <h4>E Editor commands:</h4>
 
@@ -441,7 +453,7 @@ I type I.
 </dl>
 <h3>EDITM</h3>
 
-<p>A "simple" line editor which requires you to use line numbers (because it
+<p>This is a "simple" line editor which requires you to use line numbers (because it
 has no notion of current line).  Since no programming languages except BASIC
 expect line numbers, you have to "rese n" (delete them) before saving the
 file.</p>
