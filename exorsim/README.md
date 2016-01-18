@@ -11,6 +11,8 @@
 [EXORsim usage guide](doc/usage.md)
 <br>
 [MPL language](mpl/readme.md)
+<br>
+[EXORterm info](doc/exorterm.md)
 
 ## Introduction
 
@@ -32,7 +34,7 @@ operating system.
 <p>EXORsim provides these features:
 <ul>
 
-<li>New for verson 1.2: EXORterm emulation!  I was finally able to find
+<li>EXORterm emulation!  I was finally able to find
 manuals for the EXORterm 155, so I've implemented an emulator for it.  This
 allows the EDITORM Resident Editor to operate in screen mode.</li>
 
