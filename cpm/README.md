@@ -7,7 +7,7 @@ Basically it converts VT-52 codes into ANSI codes on output and converts
 arrow keys and PgUp / PgDn into WordStar motion keys on input.
 
 This allows screen oriented programs such as WordStar, Turbo PASCAL and
-DBase to operate directly with ANSI terminal emulators, such as Xterm or
+dBASE-II to operate directly with ANSI terminal emulators, such as Xterm or
 RXVT for Linux and Cygwin.
 
 Type 'make' to build the program.
@@ -27,9 +27,7 @@ available:
 
 [http://www.retroarchive/org/cpm/](http://www.retroarchive.org/cpm/)
 
-Here is CP/M Wordstar running on Ubuntu in an xterm:
-
-[CP/M Wordstar](cpmws.png)
+Here is CP/M WordStar running on Ubuntu in an xterm: [CP/M WordStar](cpmws.png)
 
 			-- Joe Allen
 
