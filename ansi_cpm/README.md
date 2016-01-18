@@ -2,7 +2,8 @@
 # ANSI CP/M Emulator
 
 This is a modified version of Parag Patel's [CP/M](https://en.wikipedia.org/wiki/CP/M) emulator.  This
-version includes a filter/emulator for VT-52 and ADM-3A terminals. 
+version includes a filter/emulator for [VT-52](https://en.wikipedia.org/wiki/VT52) and
+[ADM-3A](https://en.wikipedia.org/wiki/ADM-3A) terminals. 
 Basically it converts VT-52 codes into ANSI codes on output and converts
 arrow keys and PgUp / PgDn into WordStar motion keys on input.
 
