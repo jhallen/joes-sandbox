@@ -4,8 +4,6 @@
 
 [Joe's Own Editor](http://joe-editor.sourceforge.net)
 
-[ExorSim - A Motorola Exorciser Simulator](http://exorsim.sourceforge.net)
-
 [Relaysbc - A single board relay computer](http://relaysbc.sourceforge.net)
 
 [Atari Tools](https://github.com/jhallen/atari-tools)
@@ -18,7 +16,9 @@
 
 ### Some projects within joes-sandbox
 
-[MPL - Motorola's Programming Language](https://github.com/jhallen/joes-sandbox/tree/master/exorsim/mpl)
+[ExorSim - A Motorola Exorciser Simulator](https://github.com/jhallen/joes-sandbox/tree/master/exorsim)
+
+[ANSI CP/M Simulator](https://github.com/jhallen/joes-sandbox/tree/master/ansi_cpm)
 
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
 
