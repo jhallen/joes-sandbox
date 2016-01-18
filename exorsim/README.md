@@ -118,7 +118,7 @@ To run the simulator:
 
 You can get MDOS disk images here:
 
-	[ftp://bitsavers.informatik.uni-stuttgart.de/bits/Motorola/mdos/]([ftp://bitsavers.informatik.uni-stuttgart.de/bits/Motorola/mdos/)
+	<a href="ftp://bitsavers.informatik.uni-stuttgart.de/bits/Motorola/mdos/">ftp://bitsavers.informatik.uni-stuttgart.de/bits/Motorola/mdos/</a>
 
 You need to use "ImageDisk" to extract the binary data from from the .IMD
 files.
@@ -127,11 +127,11 @@ files.
 
 You can get ImageDisk from here:
 
-	[http://www.classiccmp.org/dunfield/img/index.htm]([http://www.classiccmp.org/dunfield/img/index.htm)
+	<a href="http://www.classiccmp.org/dunfield/img/index.htm">http://www.classiccmp.org/dunfield/img/index.htm</a>
 
 Documentation about MDOS can be found here:
 
-	[http://www.bitsavers.org/pdf/motorola/](http://www.bitsavers.org/pdf/motorola/)
+	<a href="http://www.bitsavers.org/pdf/motorola">http://www.bitsavers.org/pdf/motorola/</a>
 
 		M68MDOS3_MDOS3um_Jun79.pdf	Operating system user's manual.
 		MEK6800D2.pdf			Microprocessor datasheet
@@ -148,6 +148,6 @@ To run FLEX2:
 
 You can get FLEX2 disk images here:
 
-	[http://75.147.194.108/Downloads.htm](http://75.147.194.108/Downloads.htm)
+	<a href="http://www.evenson-consulting.com/swtpc/Downloads.htm">http://www.evenson-consulting.com/swtpc/Downloads.htm</a>
 
-	Download the "Emulator executable with images", install it and find the FLEX2 .DSK files.
+	Download the "FULL kit", install it and find the FLEX2 .DSK files.
