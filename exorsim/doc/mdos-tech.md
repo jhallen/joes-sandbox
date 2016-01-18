@@ -1,32 +1,3 @@
-<html>
-<head><title>EXORsim - MDOS Technical Reference</title></head>
-<body>
-<big><big><big><span style="font-family:
-helvetica,arial,sans-serif;"><big><big><small><big><small><small>&nbsp;&nbsp;6800&nbsp;&nbsp;&nbsp;&nbsp;
-<small>EXORsim</small></small></small></small></big></big></small></big></big></span></big></big></big><br>
-<br>
-<table width="100%" cellspacing=0>
-  <tbody>
-    <tr height="50">
-    <td bgcolor="#5a8e94" align=center></td>
-    <td bgcolor="#5a8e94" align=center><big>EXORsim - MDOS Technical Reference</big></td>
-    </tr>
-    <tr valign="top">
-      <td width="120" valign="top" bgcolor="#5a8e94">
-      <hr>
-      <a href="index.html" color="#ffffff">Home page</a><br>
-      <a href="changelog.html">Change Log</a><br>
-      <a href="news.html">News</a><br>
-      <a href="usage.html">Usage</a><br>
-      <a href="mdos-intro.html" color="#ffffff">MDOS Intro</a><br>
-      <a href="mdos-ref.html" color="#ffffff">MDOS Commands</a><br>
-      <a href="mdos-tech.html" color="#ffffff">MDOS Tech. info</a><br>
-      <hr>
-      <a href="http://www.sourceforge.net/projects/exorsim">Project page</a><br>
-      <a href="https://sourceforge.net/projects/exorsim/files/exor-1.1.tar.gz/download">Download source</a><br>
-      </td>
-      <td valign="top">
-<table cellspacing=10><tr valign="top"><td>
 <h3>Filesystem</h3>
 
 <p>MDOS uses single sided or double sided 8-inch soft sectored single
@@ -74,10 +45,3 @@ can have up to 32 clusters.  This works out to a maximum file size of 912 KB
 <p>The RIB contains a list of SDWs- 16-bit words which give the starting
 cluster number and size of each extent.  The RIB also contains the load
 address and starting execution address of binary files.</p>
-</td></tr></table>
-</td>
-</tr>
-</tbody>
-</table>
-</body>
-</html>
