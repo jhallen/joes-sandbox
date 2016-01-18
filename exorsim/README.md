@@ -29,20 +29,19 @@ System</a>, which allows you to run the <a
 href="http://en.wikipedia.org/wiki/FLEX_%28operating_system%29">TSC FLEX</a>
 operating system.
 
-<p>
+<p>EXORsim now emulates an EXORterm!  I was finally able to find
+manuals for the EXORterm 155, so I've implemented an emulator for it.  This
+allows the EDITORM Resident Editor to operate in screen mode.</p>
+
+<p>The EXORterm emulator operates as a filter between the EXORciser and the
+user's ANSI terminal emulator (such as XTerm).  This allows you to use
+terminal emulator features such as scroll-back.  I find this to be more
+useful than some emulators which run under MS-Windows, but provide only a
+very rudimentary terimnal.</li>
 
 <p>EXORsim provides these features:
+
 <ul>
-
-<li>EXORterm emulation!  I was finally able to find
-manuals for the EXORterm 155, so I've implemented an emulator for it.  This
-allows the EDITORM Resident Editor to operate in screen mode.</li>
-
-<li>Linux or Cygwin console-based emulation allows you to use terminal
-emulator features such as scroll-back.  I find this to be more useful than
-some emulators which run under MS-Windows, but provide only a very
-rudimentary terimnal.</li>
-
 <li>Simulates 6800 CPU and the following peripherals:
 <ul>
 <li>ACIA serial port.</li>
@@ -142,7 +141,7 @@ Documentation about MDOS can be found here:
 
 Some text documentation and notes can be found here:
 
-	doc/
+[EXORsim usage guide](doc/usage.md)
 
 To run FLEX2:
 
