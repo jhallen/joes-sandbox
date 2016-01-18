@@ -66,9 +66,7 @@ static void dumptrace(z80info *z80);
 void
 resetterm(void)
 {
-#ifdef TCSETAW
-	ioctl(0, TCSETAW, &oldterm);
-#endif
+	tcsetattr(fileno(stdin), TCSADRAIN, &oldterm);
 }
 
 
@@ -80,9 +78,7 @@ resetterm(void)
 void
 setterm(void)
 {
-#ifdef TCSETAW
-	ioctl(0, TCSETAW, &rawterm);
-#endif
+	tcsetattr(fileno(stdin), TCSADRAIN, &rawterm);
 }
 
 
@@ -95,16 +91,18 @@ setterm(void)
 static void
 initterm(void)
 {
-#ifdef TCGETA
-	/* try to setup the terminal into raw mode */
-	if (ioctl(0, TCGETA, &oldterm) < 0
-			|| ioctl(1, TCGETA, &oldterm) < 0)
+	if (tcgetattr(fileno(stdin), &oldterm))
 	{
-		fprintf(stderr, "Sorry.  Must be using a terminal.\n");
+		fprintf(stderr, "Sorry, Must be using a terminal.\n");
 		exit(1);
 	}
-
 	rawterm = oldterm;
+	rawterm.c_iflag &= ~(ICRNL | IXON | IXOFF | INLCR | ICRNL);
+	rawterm.c_lflag &= ~(ICANON | ECHO);
+
+	// tcsetattr(fileno(stdin), TCSADRAIN, &rawterm);
+
+#if 0
 	/* rawterm.c_lflag &= ~(ISIG | ICANON | ECHO); */
 	rawterm.c_lflag &= ~(ICANON | ECHO);
 #ifdef IENQAK
@@ -784,13 +782,19 @@ int kget(int w)
                 } else if (c == '6') { /* PgDn */
                         c = kpoll(0);
                         return 'C' - '@';
-                } else if (c == '1' || c == '7' || c == 'H') { /* Home */
+                } else if (c == '1' || c == '7') { /* Home */
                         mode = 1;
                         c = kpoll(0);
                         return 'Q' - '@';
-                } else if (c == '4' || c == '8' || c == 'F') { /* End */
+                } else if (c == '4' || c == '8') { /* End */
                         mode = 2;
                         c = kpoll(0);
+                        return 'Q' - '@';
+                } else if (c == 'H') { /* Home */
+                        mode = 1;
+                        return 'Q' - '@';
+                } else if (c == 'F') { /* End */
+                        mode = 2;
                         return 'Q' - '@';
                 } else
                         goto loop;
