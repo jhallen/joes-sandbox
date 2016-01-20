@@ -11,6 +11,11 @@ This allows screen oriented programs such as WordStar, Turbo PASCAL and
 dBASE-II to operate directly with ANSI terminal emulators, such as Xterm or
 RXVT for Linux and Cygwin.
 
+The output side of the VT52/ADM-3A emulation comes from Benjamin C.  Sittler
+bsittler@iname.com from another emulator: cpm-0.2.1-mod2.  This other
+emulator has BDOS emulation so that the Linux current directory shows up as
+a CP/M disk.  I'm thinking of integrating that part of it as well.
+
 Type 'make' to build the program.
 
 Type './cpm' to start it, you should get the CP/M __A>__ prompt.
