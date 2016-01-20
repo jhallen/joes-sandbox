@@ -126,7 +126,8 @@ typedef unsigned long longword;
 typedef struct z80info
 {
     boolean event;
-    byte regaf[2], regbc[2], regde[2], reghl[2];
+//    byte regaf[2], regbc[2], regde[2], reghl[2];
+    word regaf, regbc, regde, reghl;
     word regaf2, regbc2, regde2, reghl2;
     word regsp, regpc, regix, regiy;
     byte regi, regr;
@@ -205,31 +206,31 @@ typedef struct z80info
 /* how to access the z80 registers & register pairs */
 
 #ifdef LITTLE_ENDIAN
-#  define A	z80->regaf[1]
-#  define F	z80->regaf[0]
-#  define B	z80->regbc[1]
-#  define C	z80->regbc[0]
-#  define D	z80->regde[1]
-#  define E	z80->regde[0]
-#  define H	z80->reghl[1]
-#  define L	z80->reghl[0]
+#  define A	((unsigned char *)&z80->regaf)[1]
+#  define F	((unsigned char *)&z80->regaf)[0]
+#  define B	((unsigned char *)&z80->regbc)[1]
+#  define C	((unsigned char *)&z80->regbc)[0]
+#  define D	((unsigned char *)&z80->regde)[1]
+#  define E	((unsigned char *)&z80->regde)[0]
+#  define H	((unsigned char *)&z80->reghl)[1]
+#  define L	((unsigned char *)&z80->reghl)[0]
 #else
-#  define A	z80->regaf[0]
-#  define F	z80->regaf[1]
-#  define B	z80->regbc[0]
-#  define C	z80->regbc[1]
-#  define D	z80->regde[0]
-#  define E	z80->regde[1]
-#  define H	z80->reghl[0]
-#  define L	z80->reghl[1]
+#  define A	((unsigned char *)&z80->regaf)[0]
+#  define F	((unsigned char *)&z80->regaf)[1]
+#  define B	((unsigned char *)&z80->regbc)[0]
+#  define C	((unsigned char *)&z80->regbc)[1]
+#  define D	((unsigned char *)&z80->regde)[0]
+#  define E	((unsigned char *)&z80->regde)[1]
+#  define H	((unsigned char *)&z80->reghl)[0]
+#  define L	((unsigned char *)&z80->reghl)[1]
 #endif
 
 #define I	z80->regi
 #define R	z80->regr
-#define AF	(*(word *)z80->regaf)
-#define BC	(*(word *)z80->regbc)
-#define DE	(*(word *)z80->regde)
-#define HL	(*(word *)z80->reghl)
+#define AF	z80->regaf
+#define BC	z80->regbc
+#define DE	z80->regde
+#define HL	z80->reghl
 #define AF2	z80->regaf2
 #define BC2	z80->regbc2
 #define DE2	z80->regde2
