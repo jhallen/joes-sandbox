@@ -152,7 +152,7 @@ loop:	/* "infinite" loop */
 	for (s = str; *s == ' ' || *s == '\t'; s++)
 		;
 
-	switch (isupper(*s) ? tolower(*s) : *s)
+	switch (isupper(*(unsigned char *)s) ? tolower(*(unsigned char *)s) : *s)
 	{
 	case '?':					/* help */
 		printf("   Q(uit)  T(race on/off)  S(tep trace)  D(ump regs)\n");
@@ -176,7 +176,7 @@ loop:	/* "infinite" loop */
 			printf("    Logfile name? ");
 			gets(str);
 
-			for (s = str; isspace(*s); s++)
+			for (s = str; isspace(*(unsigned char *)s); s++)
 				;
 
 			if (*s == '\0')
@@ -286,7 +286,7 @@ loop:	/* "infinite" loop */
 		printf("    Set breakpoint at loc? (A for abort): ");
 		gets(str);
 
-		if (tolower(*str) == 'a' || *str == '\0')
+		if (tolower(*(unsigned char *)str) == 'a' || *str == '\0')
 			break;
 
 		sscanf(str, "%x", &t);
@@ -313,7 +313,7 @@ loop:	/* "infinite" loop */
 		printf("    Clear breakpoint at loc? (A for all) : ");
 		gets(str);
 
-		if (tolower(*str) == 'a')
+		if (tolower(*(unsigned char *)str) == 'a')
 		{
 			for (i = 0; i < sizeof z80->membrk; i++)
 				z80->membrk[i] &= ~M_BREAKPOINT;
@@ -408,7 +408,7 @@ loop:	/* "infinite" loop */
 		for (s = str; *s == ' ' || *s == '\t'; s++)
 			;
 
-		switch (tolower(*s))
+		switch (tolower(*(unsigned char *)s))
 		{
 		case 'a': A = i; break;
 		case 'f': F = i; break;
@@ -419,9 +419,9 @@ loop:	/* "infinite" loop */
 		case 'h': H = i; break;
 		case 'l': L = i; break;
 		case 'i': 
-			if (tolower(s[1]) == 'x')
+			if (tolower(((unsigned char *)s)[1]) == 'x')
 				IX = i;
-			else if (tolower(s[1]) == 'y')
+			else if (tolower(((unsigned char *)s)[1]) == 'y')
 				IY = i;
 
 			break;

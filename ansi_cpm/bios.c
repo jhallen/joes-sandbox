@@ -618,7 +618,7 @@ liststat(z80info *z80)
  * of the byte-order on the host.
  */
 static int
-addr2int(char *addr)
+addr2int(unsigned char *addr)
 {
 	unsigned char *a = (unsigned char*)addr;
 	unsigned int t;
@@ -628,7 +628,7 @@ addr2int(char *addr)
 }
 
 static void
-int2addr(char *addr, int val)
+int2addr(unsigned char *addr, int val)
 {
 	unsigned char *a = (unsigned char*)addr;
 	unsigned int t = (unsigned int)val;

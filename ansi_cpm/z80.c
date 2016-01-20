@@ -694,12 +694,16 @@ contsw:
 				else		/* no HALF */
 				{
 					if ((A & MASKU4) <= 0x20)
+					{
 						if ((A & MASK4) <= 0x09)
 						{
 							t = 0x60;
 						}
 						else
+						{
 							t = 0x66;
+						}
+					}
 				}
 			}
 			else			/* no CARRY */
@@ -707,12 +711,16 @@ contsw:
 				if (F & HALF)
 				{
 					if ((A & MASK4) <= 0x03)
+					{
 						if ((A & MASKU4) <= 0x90)
 						{
 							t = 0x06;
 						}
 						else
+						{
 							t = 0x66;
+						}
+					}
 				}
 				else		/* no HALF */
 				{
@@ -728,7 +736,9 @@ contsw:
 							t = 0x06;
 						}
 						else
+						{
 							t = 0x66;
+						}
 					}
 				}
 			}
