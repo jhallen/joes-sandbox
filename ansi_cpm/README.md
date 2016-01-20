@@ -1,6 +1,8 @@
 
 # ANSI CP/M Emulator
 
+This emulator is for Linux and Cygwin.
+
 This is a modified version of Parag Patel's [CP/M](https://en.wikipedia.org/wiki/CP/M) emulator.  This
 version includes a filter/emulator for [VT-52](https://en.wikipedia.org/wiki/VT52) and
 [ADM-3A](https://en.wikipedia.org/wiki/ADM-3A) terminals. 
@@ -15,6 +17,9 @@ The output side of the VT52/ADM-3A emulation comes from Benjamin C.  Sittler
 bsittler@iname.com from another emulator: cpm-0.2.1-mod2.  This other
 emulator has BDOS emulation so that the Linux current directory shows up as
 a CP/M disk.  I'm thinking of integrating that part of it as well.
+
+CPM-0.2.1 is i686 only- it's partially written in assembly language.  Hence
+I prefer Parag's all C emulator.
 
 Type 'make' to build the program.
 
@@ -181,3 +186,48 @@ Version history:
 	Use publicly available P2DOS23 and ZCPR1 instead of
 		copyrighted CP/M 2.2.
 	Added date/time support for P2DOS and its utilities.
+
+## Readme from cpm-0.2.1-mod2
+
+The Kaypro 2x supports several extensions to the ADM 3A terminal
+escapes, and I added translations to vt52() for some of these
+extensions. vt52() should probably be replaced by a proper curses
+applications so we don't depend on having an ANSI terminal, but I'm
+lazy...
+
+Here are the added escape sequences:
+
+	ESC E (insert line)
+	ESC R (delete line)
+	ESC B 0 (start reverse video)
+	ESC C 0 (stop reverse video)
+	ESC B 1 (start half intensity)
+	ESC C 1 (stop half intensity)
+	ESC B 2 (start blinking)
+	ESC C 2 (stop blinking)
+	ESC B 3 (start underlining)
+	ESC C 3 (stop underlining)
+	ESC B 4 (cursor on)
+	ESC C 4 (cursor off)
+	ESC B 6 (remember cursor position)
+	ESC C 6 (restore cursor position)
+
+The following sequences are recognized by vt52() but don't cause any
+ANSI output:
+
+	ESC B 5 (enter video mode)
+	ESC C 5 (leave video mode)
+	ESC B 7 (preserve status line)
+	ESC C 7 (don't preserve status line)
+	ESC * row+32 col+32 (set pixel)
+	ESC SPC row+32 col+32 (clear pixel)
+	ESC L row+32 col+32 row+32 col+32 (set line)
+	ESC D row+32 col+32 row+32 col+32 (delete line)
+
+I also added a VBELL #define in io.c which causes those annoying BELs
+to be replaced by temporary flashing, providing your terminal supports
+the ESC [ ? 5 h and ESC ? 5 l sequences (invert and revert screen.)
+Both XFree86 3.3.1 xterm and the Linux console support them, so I'm
+happy.
+
+ -- "Benjamin C. W. Sittler" <bsittler@iname.com>
