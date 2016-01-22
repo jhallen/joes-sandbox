@@ -639,6 +639,42 @@ int2addr(unsigned char *addr, int val)
 	a[3] = (t >> 24) & 0xFF;
 }
 
+/* Allocate file pointers - index is stored in DE */
+
+#define CPM_FILES 4
+
+FILE *cpm_file[CPM_FILES];
+
+int cpm_file_alloc(FILE *f)
+{
+	int x;
+	for (x = 0; x != CPM_FILES; ++x)
+		if (!cpm_file[x]) {
+			cpm_file[x] = f;
+			return x;
+		}
+	return -1;
+}
+
+FILE *cpm_file_get(int idx)
+{
+	if (idx < 0 || idx > CPM_FILES)
+		return 0;
+	else
+		return cpm_file[idx];
+}
+
+int cpm_file_free(int x)
+{
+	if (x >= 0 && x < CPM_FILES && cpm_file[x]) {
+		int rtn = fclose(cpm_file[x]);
+		cpm_file[x] = 0;
+		return rtn;
+	} else {
+		return -1;
+	}
+}
+
 /* DE points to a CP/M FCB.
    On return, A contains 0 if all went well, 0xFF otherwise.
    The algorithm uses the FCB to store info about the UNIX file.
@@ -650,6 +686,7 @@ openunix(z80info *z80)
 	byte *cp;
 	int i;
 	FILE *fd;
+	int fd_no;
 
 	cp = &(z80->mem[DE + 1]);
 	fp = filename;
@@ -675,9 +712,11 @@ openunix(z80info *z80)
 		if ((fd = fopen(filename, "rb")) == NULL)
 			return;
 
-	A = 0;
+	fd_no = cpm_file_alloc(fd);
+	if (fd_no != -1)
+		A = 0;
 
-	int2addr(&z80->mem[DE + FDOFFSET], (int)fd);
+	int2addr(&z80->mem[DE + FDOFFSET], fd_no);
 	int2addr(&z80->mem[DE + BLKOFFSET], 0);
 	int2addr(&z80->mem[DE + SZOFFSET], 0);
 }
@@ -694,6 +733,7 @@ createunix(z80info *z80)
 	byte *cp;
 	int i;
 	FILE *fd;
+	int fd_no;
 
 	cp = &(z80->mem[DE + 1]);
 	fp = filename;
@@ -717,9 +757,11 @@ createunix(z80info *z80)
 	if ((fd = fopen(filename, "wb+")) == NULL)
 		return;
 
-	A = 0;
+	fd_no = cpm_file_alloc(fd);
+	if (fd_no != -1)
+		A = 0;
 
-	int2addr(&z80->mem[DE + FDOFFSET], (int)fd);
+	int2addr(&z80->mem[DE + FDOFFSET], fd_no);
 	int2addr(&z80->mem[DE + BLKOFFSET], 0);
 	int2addr(&z80->mem[DE + SZOFFSET], 0);
 }
@@ -735,13 +777,17 @@ rdunix(z80info *z80)
 	byte *cp;
 	int i, blk, size;
 	FILE *fd;
-
+	int fd_no;
+  
 	cp = &(z80->mem[z80->dma]);
-	fd = (FILE *)addr2int(&z80->mem[DE + FDOFFSET]);
+	fd = cpm_file_get((fd_no = addr2int(&z80->mem[DE + FDOFFSET])));
 	blk = addr2int(&z80->mem[DE + BLKOFFSET]);
 	size = addr2int(&z80->mem[DE + SZOFFSET]);
 
 	A = 0xFF;
+
+	if (!fd)
+		return;
 
 	if (fseek(fd, (long)blk << 7, SEEK_SET) != 0)
 		return;
@@ -758,7 +804,7 @@ rdunix(z80info *z80)
 	A = 0;
 	blk += 1;
 
-	int2addr(&z80->mem[DE + FDOFFSET], (int)fd);
+	int2addr(&z80->mem[DE + FDOFFSET], fd_no);
 	int2addr(&z80->mem[DE + BLKOFFSET], blk);
 	int2addr(&z80->mem[DE + SZOFFSET], size);
 }
@@ -774,9 +820,10 @@ wrunix(z80info *z80)
 	byte *cp;
 	int i, blk, size;
 	FILE *fd;
+	int fd_no;
 
 	cp = &(z80->mem[z80->dma]);
-	fd = (FILE *)addr2int(&z80->mem[DE + FDOFFSET]);
+	fd = cpm_file_get((fd_no = addr2int(&z80->mem[DE + FDOFFSET])));
 	blk = addr2int(&z80->mem[DE + BLKOFFSET]);
 	size = addr2int(&z80->mem[DE + SZOFFSET]);
 
@@ -793,7 +840,7 @@ wrunix(z80info *z80)
 	A = 0;
 	blk += 1;
 
-	int2addr(&z80->mem[DE + FDOFFSET], (int)fd);
+	int2addr(&z80->mem[DE + FDOFFSET], fd_no);
 	int2addr(&z80->mem[DE + BLKOFFSET], blk);
 	int2addr(&z80->mem[DE + SZOFFSET], size);
 }
@@ -805,12 +852,12 @@ wrunix(z80info *z80)
 static void
 closeunix(z80info *z80)
 {
-	FILE *fd;
+	int fd_no;
 
-	fd = (FILE *)addr2int(&z80->mem[DE + FDOFFSET]);
+	fd_no = addr2int(&z80->mem[DE + FDOFFSET]);
 	A = 0xFF;
 
-	if (fclose(fd) != 0)
+	if (cpm_file_free(fd_no))
 		return;
 
 	A = 0;

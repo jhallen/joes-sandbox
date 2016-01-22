@@ -58,6 +58,17 @@ static struct termio rawterm, oldterm;	/* for raw terminal I/O */
 static void dumptrace(z80info *z80);
 
 
+char *jgets(char *s, int len, FILE *f)
+{
+	char *rtn = fgets(s, len, f);
+	if (rtn)
+	{
+		int x;
+		for (x = 0; s[x] && s[x] != '\r' && s[x] != '\n'; ++x);
+		s[x] = 0;
+	}
+	return rtn;
+}
 
 /*-----------------------------------------------------------------------*\
  |  resetterm  --  reset terminal characteristics to original settings
@@ -174,7 +185,7 @@ loop:	/* "infinite" loop */
 		else
 		{
 			printf("    Logfile name? ");
-			gets(str);
+			jgets(str, sizeof(str), stdin);
 
 			for (s = str; isspace(*(unsigned char *)s); s++)
 				;
@@ -232,7 +243,7 @@ loop:	/* "infinite" loop */
 
 	case 'e':					/* examine memory */
 		printf("    Starting at loc? (%.4X) : ", pe);
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 		t = pe;
 		sscanf(str, "%x", &t);
 		pe = t;
@@ -251,10 +262,10 @@ loop:	/* "infinite" loop */
 	
 	case 'w':			/* write memory to file */
 		printf("    Starting at loc? ");
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 		sscanf(str, "%x", &t);
 		printf("    Ending at loc? ");
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 		sscanf(str, "%x", &e);
 		fp = fopen("mem", "w");
 
@@ -284,7 +295,7 @@ loop:	/* "infinite" loop */
 	case 'x':			/* set breakpoint */
 #ifdef MEM_BREAK
 		printf("    Set breakpoint at loc? (A for abort): ");
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 
 		if (tolower(*(unsigned char *)str) == 'a' || *str == '\0')
 			break;
@@ -311,7 +322,7 @@ loop:	/* "infinite" loop */
 	case 'y':			/* clear breakpoints */
 #ifdef MEM_BREAK
 		printf("    Clear breakpoint at loc? (A for all) : ");
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 
 		if (tolower(*(unsigned char *)str) == 'a')
 		{
@@ -344,7 +355,7 @@ loop:	/* "infinite" loop */
 
 	case 'z':			/* z80 disassembled memory dump */
 		printf("    Starting at loc? (%.4X) : ", pe);
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 		t = pe;
 		sscanf(str, "%x", &t);
 		pe = t;
@@ -369,14 +380,14 @@ loop:	/* "infinite" loop */
 
 	case 'p':				/* poke memory */
 		printf("    Start at loc? (%.4X) : ", po);
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 		sscanf(str, "%x", &i);
 		po = i;
 
 		for (;;)
 		{
 			printf("    Mem[%.4X] (%.2X) = ", po, z80->mem[po]);
-			gets(str);
+			jgets(str, sizeof(str), stdin);
 
 			for (s = str; *s == ' ' || *s == '\t'; s++)
 				;
@@ -399,11 +410,11 @@ loop:	/* "infinite" loop */
 			
 	case 'r':				/* set a register */
 		printf("    Value? = ");
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 		i = 0;
 		sscanf(str, "%x", &i);
 		printf("    Reg? (A,F,B,C,D,E,H,L,IX,IY,SP,PC) : ");
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 
 		for (s = str; *s == ' ' || *s == '\t'; s++)
 			;
@@ -440,7 +451,7 @@ loop:	/* "infinite" loop */
 
 	case 'l':			/* load a file into z80 memory */
 		printf("    File-name: ");
-		gets(str);
+		jgets(str, sizeof(str), stdin);
 
 		if (!loadfile(z80, str))
 			fprintf(stderr, "Cannot load file %s!\r\n", str);
