@@ -24,9 +24,9 @@ version includes a filter/emulator for [VT-52](https://en.wikipedia.org/wiki/VT5
 Basically it converts VT-52 codes into ANSI codes on output and converts
 arrow keys and PgUp / PgDn into WordStar motion keys on input.
 
-This allows screen oriented programs such as WordStar, Turbo PASCAL and
-dBASE-II to operate directly with ANSI terminal emulators, such as Xterm or
-RXVT for Linux and Cygwin.
+This allows screen oriented programs written for Kaypro-II such as WordStar,
+Turbo PASCAL and dBASE-II to operate directly with ANSI terminal emulators,
+such as Xterm or RXVT for Linux and Cygwin.
 
 The output side of the VT52/ADM-3A and the BDOS emulation comes from
 Benjamin C.  Sittler bsittler@iname.com from another emulator:
