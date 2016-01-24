@@ -7,7 +7,7 @@
 #				which will noticably slow down emulation
 
 CC = gcc
-CFLAGS = -O2 -pipe -Wall -DPOSIX_TTY -DLITTLE_ENDIAN -DMEM_BREAK
+CFLAGS = -g -pipe -Wall -DPOSIX_TTY -DLITTLE_ENDIAN -DMEM_BREAK
 LDFLAGS = 
 
 FILES = README Makefile MacProj.hqx z80.proj A-Hdrive.gz	\
@@ -23,12 +23,8 @@ OBJS =	bios.o \
 	bdos.o \
 	z80.o
 
-cpm: z80
-	rm -f cpm
-	ln -s z80 cpm
-
-z80: $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o z80 $(OBJS)
+cpm: $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o cpm $(OBJS)
 
 
 bios.o:		bios.c defs.h cpmdisc.h cpm.c
@@ -37,7 +33,7 @@ disassem.o:	disassem.c defs.h
 main.o:		main.c defs.h
 
 clean:
-	rm -f z80 cpm *.o
+	rm -f cpm *.o
 
 tags:	$(FILES)
 	cxxtags *.[hc]

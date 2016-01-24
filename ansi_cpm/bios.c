@@ -119,6 +119,10 @@ warmboot(z80info *z80)
 
 	closeall(z80);
 
+	if (silent_exit) {
+		finish(z80);
+	}
+
 	/* load CCP and BDOS into memory (max 0x1600 in size) */
 	for (i = 0; i < 0x1600 && i < sizeof cpm_array; i++)
 		SETMEM(CCP + i, cpm_array[i]);
@@ -864,7 +868,7 @@ closeunix(z80info *z80)
 }
 
 /* clean up and quit - never returns */
-static void
+void
 finish(z80info *z80)
 {
 	resetterm();

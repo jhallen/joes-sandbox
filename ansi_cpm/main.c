@@ -1018,7 +1018,26 @@ interrupt(int s)
 int
 main(int argc, const char *argv[])
 {
-	const char *s;
+	int x;
+	char cmd[256];
+
+	cmd[0] = 0;
+
+	for (x = 1; argv[x]; ++x) {
+		if (argv[x][0] == '-' && argv[x][1] == '-') {
+		} else {
+			if (!cmd[0]) {
+				strcpy(cmd, argv[x]);
+			} else {
+				strcat(cmd, " ");
+				strcat(cmd, argv[x]);
+			}
+		}
+	}
+
+	if (cmd[0]) {
+		stuff_cmd = cmd;
+	}
 
 	z80 = new_z80info();
 
@@ -1043,27 +1062,7 @@ main(int argc, const char *argv[])
 
 	setterm();
 
-	/* if we had an argument on the command line, try to load that file &
-	   immediately execute the z80  --  otherwise go to the command level */
-	if (strcmp(argv[0], "cpm") == 0 ||
-		((s = strrchr(argv[0], '/')) != NULL &&
-		strcmp(s + 1, "cpm") == 0))
-	{
-		sysreset(z80);
-	}
-	else
-	{
-		if (argc <= 1)
-			command(z80);
-
-		else if (!loadfile(z80, argv[1]))
-		{
-			/* cannot load it - exit */
-			fprintf(stderr, "Cannot load file %s!\r\n", argv[1]);
-			resetterm();
-			return -2;
-		}
-	}
+	sysreset(z80);
 
 	while (1)
 	{
