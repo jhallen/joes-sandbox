@@ -509,7 +509,7 @@ void check_BDOS_hook(z80info *z80) {
 	break;
     case 41:
 	for (s = (char *)(z80->mem + DE); *s; ++s)
-	    *s = tolower(*s);
+	    *s = tolower(*(unsigned char *)s);
 	A = HL = 
 	    restricted_mode || chdir((char  *)(z80->mem + DE)) ? 0xff : 0x00;
 	break;

@@ -2,8 +2,16 @@
 # ANSI CP/M Emulator
 
 This emulator allows you to execute CP/M commands on UNIX (Linux or Cygwin). 
-A CP/M command can be provided on the command line, otherwise you will get
-the CP/M command prompt.
+
+If a CP/M command is provided on the command line, it is executed
+immediately.  For example, this will start WordStar:
+
+	cpm ws
+
+Otherwise, you will get the CP/M command prompt:
+
+	cpm
+	A>
 
 By default, BDOS is emulated so that the current directory in UNIX appears
 as the __A>__ drive from CP/M.  The BDOS emulation can be optionally
@@ -22,10 +30,8 @@ RXVT for Linux and Cygwin.
 
 The output side of the VT52/ADM-3A and the BDOS emulation comes from
 Benjamin C.  Sittler bsittler@iname.com from another emulator:
-cpm-0.2.1-mod2.
-
-CPM-0.2.1 is i686 only- it's partially written in assembly language.  Hence
-I prefer Parag's all C emulator.
+cpm-0.2.1-mod2.  CPM-0.2.1 is i686 only- it's partially written in assembly
+language.  Hence I prefer Parag's all C emulator.
 
 Type 'make' to build the program.
 
