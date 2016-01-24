@@ -15,7 +15,7 @@ Otherwise, you will get the CP/M command prompt:
 
 By default, BDOS is emulated so that the current directory in UNIX appears
 as the __A>__ drive from CP/M.  The BDOS emulation can be optionally
-disabled.  In this case, P2DOS (a BDOS clone) is used and accesses real disk
+disabled.  In this case, P2DOS (a BDOS clone) is used to access real disk
 images.
 
 This is a modified version of Parag Patel's [CP/M](https://en.wikipedia.org/wiki/CP/M) emulator.  This
