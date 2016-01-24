@@ -289,12 +289,12 @@ void check_BDOS_hook(z80info *z80) {
 	}
 	break;
     case 9:	/* Print String */
-	s = z80->mem + DE;
+	s = (char *)(z80->mem + DE);
 	while (*s != '$')
 	    vt52(0x7F & *s++);
 	break;
     case 10:    /* Read Command Line */
-	s = rdcmdline(z80, *(t = z80->mem + DE), 1);
+	s = rdcmdline(z80, *(t = (char *)(z80->mem + DE)), 1);
 	if (PC == BIOS+3) { 	/* ctrl-C pressed */
 	    /* check_BIOS_hook(); */		/* execute WBOOT */
 	    warmboot(z80);
@@ -429,7 +429,7 @@ void check_BDOS_hook(z80info *z80) {
 	    /* OK, fcb block is filled */
 	    /* match name */
 	    p -= 11;
-	    sr = z80->mem+sfn;
+	    sr = (char *)(z80->mem + sfn);
 	    for (i = 1; i <= 12; ++i)
 		if (sr[i] != '?' && sr[i] != p[i])
 		    goto nocpmname;
@@ -508,10 +508,10 @@ void check_BDOS_hook(z80info *z80) {
 	}
 	break;
     case 41:
-	for (s = z80->mem + DE; *s; ++s)
+	for (s = (char *)(z80->mem + DE); *s; ++s)
 	    *s = tolower(*s);
 	A = HL = 
-	    restricted_mode || chdir(z80->mem + DE) ? 0xff : 0x00;
+	    restricted_mode || chdir((char  *)(z80->mem + DE)) ? 0xff : 0x00;
 	break;
     default:
 	printf("\n\nUnrecognized BDOS-Function:\n");
