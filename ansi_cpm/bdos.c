@@ -40,7 +40,7 @@ char *rdcmdline(z80info *z80, int max, int ctrl_c_enable)
     	vt52(' ');
     	vt52('\b');
     	strcpy(s + i, stuff_cmd);
-    	printf("'%s'\n", stuff_cmd);
+    	/* printf("'%s'\n", stuff_cmd); */
     	i = 1 + strlen(s + i);
     	stuff_cmd = 0;
     	silent_exit = 1;
