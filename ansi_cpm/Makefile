@@ -10,11 +10,9 @@ CC = gcc
 CFLAGS = -g -pipe -Wall -DPOSIX_TTY -DLITTLE_ENDIAN -DMEM_BREAK
 LDFLAGS = 
 
-FILES = README Makefile MacProj.hqx z80.proj A-Hdrive.gz	\
-	cpmdisc.h defs.h vt.h vt.c bdos.c	\
-	cpm.c bios.c disassem.c main.c z80.c	\
-	bye.mac getunix.mac putunix.mac	\
-	makedisc.c
+FILES = README.md Makefile A-Hdrive B-Hdrive cpmws.png \
+	bdos.c bios.c cpm.c cpmdisc.h defs.h disassem.c main.c vt.c vt.h z80.c \
+	bye.mac getunix.mac putunix.mac
 
 OBJS =	bios.o \
 	disassem.o \
@@ -39,7 +37,7 @@ tags:	$(FILES)
 	cxxtags *.[hc]
 
 tar:
-	tar -zcf z80.tgz $(FILES) p2dos zcpr1 zmac
+	tar -zcf z80.tgz $(FILES)
 
 files:
 	@echo $(FILES)

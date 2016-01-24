@@ -366,11 +366,10 @@ static void
 realizedisk(z80info *z80)
 {
 	int drive = z80->drive;
+	char drivestr[80];
 
-	char hdrivebuf[] = "A-Hdrive";
-	char drivebuf[] = "A-drive";
-	char *drivestr = drive < NUMHDISCS ? hdrivebuf : drivebuf;
-	*drivestr += drive; /* set the 1st letter to the drive name */
+	strcpy(drivestr, drive < NUMHDISCS ? "A-Hdrive" : "A-drive");
+	drivestr[0] += drive; /* set the 1st letter to the drive name */
 
 	if (z80->drives[drive] == NULL)
 	{
@@ -416,6 +415,8 @@ realizedisk(z80info *z80)
 
 			secs = 1;
 		}
+
+		/* printf(stderr,"\r\nOpen %s on drive %d\n", drivestr, drive); */
 
 		z80->drives[drive] = fp;
 		z80->drivelen[drive] = secs * SECTORSIZE;
