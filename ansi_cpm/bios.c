@@ -29,7 +29,7 @@
 #include "cpm.c"
 
 /* The BDOS/CCP had better be built with these values! */
-#define CCP		0xD400
+#define CCP		0xD400 /* (BIOS - 0x1600) */
 #define BDOS		0xDC00
 #define CBIOS		0xEA00
 
@@ -112,7 +112,7 @@ closeall(z80info *z80)
 	}
 }
 
-static void
+void
 warmboot(z80info *z80)
 {
 	int i;

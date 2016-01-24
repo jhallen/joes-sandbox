@@ -1025,6 +1025,11 @@ contsw:
 		break;
 	}					/* end of main "switch" */
 
+/*	if (PC == BDOS_HOOK)
+	{
+		check_BDOS_hook(z80);
+	} */
+
 	goto infloop;
 
 

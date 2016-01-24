@@ -274,9 +274,14 @@ extern boolean loadfile(z80info *z80, const char *fname);
 /* bios.c */
 extern void bios(z80info *z80, int fn);
 extern void sysreset(z80info *z80);
+extern void warmboot(z80info *z80);
 
 /* disassem.c */
 extern int disassemlen(z80info *z80);
 extern int disassem(z80info *z80, word start, FILE *fp);
+
+/* bdos */
+#define BDOS_HOOK 0xDC06
+void check_BDOS_hook(z80info *z80);
 
 #endif /* __DEFS_H_ */

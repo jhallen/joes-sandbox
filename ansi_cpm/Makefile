@@ -11,7 +11,7 @@ CFLAGS = -O2 -pipe -Wall -DPOSIX_TTY -DLITTLE_ENDIAN -DMEM_BREAK
 LDFLAGS = 
 
 FILES = README Makefile MacProj.hqx z80.proj A-Hdrive.gz	\
-	cpmdisc.h defs.h	\
+	cpmdisc.h defs.h vt.h vt.c bdos.c	\
 	cpm.c bios.c disassem.c main.c z80.c	\
 	bye.mac getunix.mac putunix.mac	\
 	makedisc.c
@@ -19,6 +19,8 @@ FILES = README Makefile MacProj.hqx z80.proj A-Hdrive.gz	\
 OBJS =	bios.o \
 	disassem.o \
 	main.o \
+	vt.o \
+	bdos.o \
 	z80.o
 
 cpm: z80
