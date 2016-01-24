@@ -10,6 +10,7 @@
 #include <string.h>
 #include "defs.h"
 
+int nobdos;
 
 /* All the following macros assume access to a parameter named "z80" */
 
@@ -1025,7 +1026,7 @@ contsw:
 		break;
 	}					/* end of main "switch" */
 
-	if (PC == BDOS_HOOK)
+	if (!nobdos && PC == BDOS_HOOK)
 	{
 		check_BDOS_hook(z80);
 	}

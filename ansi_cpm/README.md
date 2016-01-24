@@ -1,7 +1,14 @@
 
 # ANSI CP/M Emulator
 
-This emulator is for Linux and Cygwin.
+This emulator allows you to execute CP/M commands on UNIX (Linux or Cygwin). 
+A CP/M command can be provided on the command line, otherwise you will get
+the CP/M command prompt.
+
+By default, BDOS is emulated so that the current directory in UNIX appears
+as the __A>__ drive from CP/M.  The BDOS emulation can be optionally
+disabled.  In this case, P2DOS (a BDOS clone) is used and accesses real disk
+images.
 
 This is a modified version of Parag Patel's [CP/M](https://en.wikipedia.org/wiki/CP/M) emulator.  This
 version includes a filter/emulator for [VT-52](https://en.wikipedia.org/wiki/VT52) and
@@ -13,17 +20,22 @@ This allows screen oriented programs such as WordStar, Turbo PASCAL and
 dBASE-II to operate directly with ANSI terminal emulators, such as Xterm or
 RXVT for Linux and Cygwin.
 
-The output side of the VT52/ADM-3A emulation comes from Benjamin C.  Sittler
-bsittler@iname.com from another emulator: cpm-0.2.1-mod2.  This other
-emulator has BDOS emulation so that the Linux current directory shows up as
-a CP/M disk.  I'm thinking of integrating that part of it as well.
+The output side of the VT52/ADM-3A and the BDOS emulation comes from
+Benjamin C.  Sittler bsittler@iname.com from another emulator:
+cpm-0.2.1-mod2.
 
 CPM-0.2.1 is i686 only- it's partially written in assembly language.  Hence
 I prefer Parag's all C emulator.
 
 Type 'make' to build the program.
 
-Type './cpm' to start it, you should get the CP/M __A>__ prompt.
+Type './cpm __command__' to execute a CP/M .COM file located in the current
+directory.
+
+Type './cpm' to get the __A>__ prompt.  Type __bye__ to exit back to UNIX.
+
+Type './cpm --nobdos' to start it without BDOS emulation and instead use
+disk images called A-Hdrive and B-Hdrive.  In this case:
 
 At the __A>__ prompt:
 
@@ -34,7 +46,7 @@ Type __putunix cpm-file unixfile__ to copy a file out of CP/M and to UNIX/Linux.
 Type __getunix unixfile cpm-file__ to copy a file from UNIX/Linux into CP/M.
 
 The A-Hdrive and B-Hdrive disk images include some programs.  Many more are
-available:
+available from here.
 
 [http://www.retroarchive/org/cpm/](http://www.retroarchive.org/cpm/)
 

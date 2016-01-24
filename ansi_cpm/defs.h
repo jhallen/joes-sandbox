@@ -260,6 +260,8 @@ extern void delete_z80info(z80info *z80);
 
 extern boolean z80_emulator(z80info *z80, int count);
 
+extern int nobdos;
+
 /* main.c */
 extern void resetterm(void);
 extern void setterm(void);

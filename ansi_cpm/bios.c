@@ -360,25 +360,19 @@ home(z80info *z80)
 	z80->sector = 1;
 }
 
+/* Open disk image */
+
 static void
-seldisc(z80info *z80)
+realizedisk(z80info *z80)
 {
+	int drive = z80->drive;
+
 	char hdrivebuf[] = "A-Hdrive";
 	char drivebuf[] = "A-drive";
-	char *drivestr = C < NUMHDISCS ? hdrivebuf : drivebuf;
+	char *drivestr = drive < NUMHDISCS ? hdrivebuf : drivebuf;
+	*drivestr += drive; /* set the 1st letter to the drive name */
 
-	*drivestr += C;		/* set the 1st letter to the drive name */
-	H = 0;
-	L = 0;
-
-	if (C >= MAXDISCS)
-	{
-		fprintf(stderr, "seldisc(): Attempt to open bogus drive %d\r\n",
-			C);
-		return;
-	}
-
-	if (z80->drives[C] == NULL)
+	if (z80->drives[drive] == NULL)
 	{
 		struct stat statbuf;
 		long secs;
@@ -423,8 +417,22 @@ seldisc(z80info *z80)
 			secs = 1;
 		}
 
-		z80->drives[C] = fp;
-		z80->drivelen[C] = secs * SECTORSIZE;
+		z80->drives[drive] = fp;
+		z80->drivelen[drive] = secs * SECTORSIZE;
+	}
+}
+
+static void
+seldisc(z80info *z80)
+{
+	H = 0;
+	L = 0;
+
+	if (C >= MAXDISCS)
+	{
+		fprintf(stderr, "seldisc(): Attempt to open bogus drive %d\r\n",
+			C);
+		return;
 	}
 
 	z80->drive = C;
@@ -484,8 +492,11 @@ rdsector(z80info *z80)
 	int sectors = (drive < NUMHDISCS) ? HDSECTORSPERTRACK : SECTORSPERTRACK;
 	long offset = SECTORSIZE * ((long)z80->sector - SECTOROFFSET +
 			sectors * ((long)z80->track - TRACKOFFSET));
-	FILE *fp = z80->drives[drive];
-	long len = z80->drivelen[drive];
+	FILE *fp;
+	long len;
+	realizedisk(z80);
+	fp = z80->drives[drive];
+	len = z80->drivelen[drive];
 
 	if (fp == NULL)
 	{
@@ -529,8 +540,11 @@ wrsector(z80info *z80)
 	int sectors = (drive < NUMHDISCS) ? HDSECTORSPERTRACK : SECTORSPERTRACK;
 	long offset = SECTORSIZE * ((long)z80->sector - SECTOROFFSET +
 			sectors * ((long)z80->track - TRACKOFFSET));
-	FILE *fp = z80->drives[drive];
-	long len = z80->drivelen[drive];
+	FILE *fp;
+	long len;
+	realizedisk(z80);
+	fp = z80->drives[drive];
+	len = z80->drivelen[drive];
 
 	if (fp == NULL)
 	{

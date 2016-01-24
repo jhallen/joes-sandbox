@@ -1020,11 +1020,20 @@ main(int argc, const char *argv[])
 {
 	int x;
 	char cmd[256];
+	int help = 0;
 
 	cmd[0] = 0;
 
 	for (x = 1; argv[x]; ++x) {
 		if (argv[x][0] == '-' && argv[x][1] == '-') {
+			if (!strcmp(argv[x], "--help")) {
+				help = 1;
+			} else if (!strcmp(argv[x], "--nobdos")) {
+				nobdos = 1;
+			} else {
+				fprintf(stderr, "Unknown option %s\n", argv[x]);
+				exit(1);
+			}
 		} else {
 			if (!cmd[0]) {
 				strcpy(cmd, argv[x]);
@@ -1033,6 +1042,16 @@ main(int argc, const char *argv[])
 				strcat(cmd, argv[x]);
 			}
 		}
+	}
+
+	if (help) {
+		fprintf(stderr, "\n%s [options] [CP/M command]\n", argv[0]);
+		fprintf(stderr, "\n   Options:\n\n");
+		fprintf(stderr, "    --help         Show this help\n");
+		fprintf(stderr, "    --nobdos       Do not emulate BDOS: only emulate BIOS\n");
+		fprintf(stderr, "                   Real disk images will be used.        \n");
+		fprintf(stderr, "\n");
+		exit(0);
 	}
 
 	if (cmd[0]) {
