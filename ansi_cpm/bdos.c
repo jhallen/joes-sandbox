@@ -251,6 +251,7 @@ void check_BDOS_hook(z80info *z80) {
 	break;
     case 1:     /* Console Input */
 	A = HL = kget(0);
+	F = 0;
 	if (A < ' ') {
 	    switch(A) {
 	    case '\r':
@@ -279,11 +280,14 @@ void check_BDOS_hook(z80info *z80) {
 	switch (E) {
 	case 0xff:  if (!constat()) {
 	    A = HL = 0;
+	    F = 0;
 	    break;
 	}
 	case 0xfd:  A = HL = kget(0);
+	    F = 0;
 	    break;
 	case 0xfe:  A = HL = constat() ? 0xff : 0;
+	    F = 0;
 	    break;
 	default:    vt52(0x7F & E);
 	}
@@ -307,6 +311,7 @@ void check_BDOS_hook(z80info *z80) {
     case 12:    /* Return Version Number */
     	B = H = 0x00;
 	A = HL = 0x22;      /* emulate Cp/M 2.2 */
+	F = 0;
 	break;
     case 26:    /* Set DMA Address */
 	z80->dma = DE;
@@ -322,6 +327,7 @@ void check_BDOS_hook(z80info *z80) {
 
     case 11:	/* Console Status */
 	A = HL = (constat() ? 0xff : 0x00);
+	F = 0;
 	break;
 
     case 13:	/* reset disk system */
@@ -349,6 +355,7 @@ void check_BDOS_hook(z80info *z80) {
 	    if (!fp) {
 		/* still no success */
 		A = HL = 0xFF;
+		F = 0;
 		break;
 	    }
 	}
@@ -357,6 +364,7 @@ void check_BDOS_hook(z80info *z80) {
 	z80->mem[DE + 15] = 0;	/* rc field of FCB */
 	if (fstat(fileno(fp), &stbuf) || !S_ISREG(stbuf.st_mode)) {
 	    A = HL = 0xFF;
+	    F = 0;
 	    fclose(fp);
 	    break;
 	}
@@ -368,6 +376,7 @@ void check_BDOS_hook(z80info *z80) {
 		z80->mem[DE+15] = pos;
 	}
 	A = HL = 0;
+	F = 0;
 	/* where to store fp? */
 	storefp(z80, fp, DE);
 	/* printf("opening file %s\n", name); */
@@ -376,6 +385,7 @@ void check_BDOS_hook(z80info *z80) {
 	fp = getfp(z80, DE);
 	delfp(z80, DE);
 	fclose(fp);
+	/* printf("close file\n"); */
 	break;
     case 17:	/* search for first */
 	if (dp)
@@ -398,6 +408,7 @@ void check_BDOS_hook(z80info *z80) {
 		dp = NULL;
 	    retbad:
 		A = HL = 0xff;
+		F = 0;
 		break;
 	    }
 	    /* printf("\r\nlooking at %s\r\n", de->d_name); */
@@ -435,12 +446,14 @@ void check_BDOS_hook(z80info *z80) {
 		    goto nocpmname;
 	    /* yup, it matches */
 	    A = HL = 0x00;	/* always at pos 0 */
+	    F = 0;
 	    p[32] = p[64] = p[96] = 0xe5;
 	}
 	break;
     case 19:	/* delete file (no wildcards yet) */
 	FCB_to_filename(z80->mem + DE, name);
 	unlink(name);
+	A = B = HL = 0;
 	break;
     case 20:	/* read sequential */
 	fp = getfp(z80, DE);
@@ -449,16 +462,22 @@ void check_BDOS_hook(z80info *z80) {
 	    if (i != 128)
 		memset(z80->mem+z80->dma+i, 0x1a, 128-i);
 	    A = HL = 0x00;
-	} else
+	    B = 0;
+	} else {
 	    A = HL = 0x1;	/* ff => pip error */
+	    B = 0;
+	}    
 	break;
     case 21:	/* write sequential */
 	fp = getfp(z80, DE);
     writeseq:
-	if (fwrite(z80->mem+z80->dma, 1, 128, fp) == 128)
+	if (fwrite(z80->mem+z80->dma, 1, 128, fp) == 128) {
 	    A = HL = 0x00;
-	else
+	    B = 0;
+	} else {
 	    A = HL = 0xff;
+	    B = 0;
+	}
 	break;
     case 22:	/* make file */
 	mode = "w+b";
@@ -468,15 +487,19 @@ void check_BDOS_hook(z80info *z80) {
 	FCB_to_filename(z80->mem + DE + 16, name2);
 	/* printf("rename %s %s called\n", name, name2); */
 	rename(name, name2);
+	A = B = HL = 0;
 	break;
     case 24:	/* return login vector */
 	A = HL = 1;	/* only A: online */
+	F = 0;
 	break;
     case 25:	/* return current disk */
 	A = HL = 0;	/* only A: */
+	F = 0;
 	break;
     case 29:	/* return r/o vector */
 	A = HL = 0;	/* none r/o */
+	F = 0;
 	break;
     case 31:    /* get disk parameters */
         HL = DPB0;    /* only A: */
@@ -502,9 +525,10 @@ void check_BDOS_hook(z80info *z80) {
 	{   long pos;
 	    pos = ftell(fp) >> 7;
 	    A = HL = 0x00;	/* dunno, if necessary */
-	    z80->mem[DE + 21] = pos & 0xff;
-	    z80->mem[DE + 22] = pos >> 8;
-	    z80->mem[DE + 23] = pos >> 16;
+	    B = 0;
+	    z80->mem[DE + 33] = pos & 0xff;
+	    z80->mem[DE + 34] = pos >> 8;
+	    z80->mem[DE + 35] = pos >> 16;
 	}
 	break;
     case 41:
@@ -512,6 +536,7 @@ void check_BDOS_hook(z80info *z80) {
 	    *s = tolower(*(unsigned char *)s);
 	A = HL = 
 	    restricted_mode || chdir((char  *)(z80->mem + DE)) ? 0xff : 0x00;
+	B = 0;
 	break;
     default:
 	printf("\n\nUnrecognized BDOS-Function:\n");

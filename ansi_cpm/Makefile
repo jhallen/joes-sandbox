@@ -37,7 +37,7 @@ tags:	$(FILES)
 	cxxtags *.[hc]
 
 tar:
-	tar -zcf z80.tgz $(FILES)
+	tar -zcf cpm.tgz $(FILES)
 
 files:
 	@echo $(FILES)
