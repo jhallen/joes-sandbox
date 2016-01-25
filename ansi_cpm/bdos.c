@@ -21,6 +21,7 @@ unsigned short usercode = 0x00;
 int restricted_mode = 0;
 int silent_exit = 0;
 char *stuff_cmd = 0;
+int trace_bdos = 0;
 
 char *rdcmdline(z80info *z80, int max, int ctrl_c_enable)
 {
@@ -103,6 +104,7 @@ static struct FCB {
 
 static void FCB_to_filename(unsigned char *p, char *name) {
     int i;
+    char *org = name;
     /* strcpy(name, "test/");
        name += 5; */
     for (i = 0; i < 8; ++i)
@@ -115,6 +117,27 @@ static void FCB_to_filename(unsigned char *p, char *name) {
 		*name++ = tolower(p[i+9]);
     }
     *name = '\0';
+    if (trace_bdos)
+    	printf("File name is %s\r\n", org);
+}
+
+static void FCB_to_ufilename(unsigned char *p, char *name) {
+    int i;
+    char *org = name;
+    /* strcpy(name, "test/");
+       name += 5; */
+    for (i = 0; i < 8; ++i)
+	if (p[i+1] != ' ')
+	    *name++ = toupper(p[i+1]);
+    if (p[9] != ' ') {
+	*name++ = '.';
+	for (i = 0; i < 3; ++i)
+	    if (p[i+9] != ' ')
+		*name++ = toupper(p[i+9]);
+    }
+    *name = '\0';
+    if (trace_bdos)
+    	printf("File name is %s\r\n", org);
 }
 
 static struct stfps {
@@ -182,9 +205,44 @@ static void delfp(z80info *z80, unsigned where) {
     exit(1);
 }
 
-#define ADDRESS  (((long)z80->mem[z80->regde+33] + \
-		    (long)z80->mem[z80->regde+34] * 256) * 128L)
+/* FCB fields */
+#define FCB_DR 0
+#define FCB_F1 1
+#define FCB_T1 9
+#define FCB_EX 12
+#define FCB_S1 13
+#define FCB_S2 14
+#define FCB_RC 15
+#define FCB_CR 32
+#define FCB_R0 33
+#define FCB_R1 34
+#define FCB_R2 35
+
+/* Support 8MB files */
+
+#define ADDRESS  (((long)z80->mem[z80->regde+FCB_R0] + \
+		    (long)z80->mem[z80->regde+FCB_R1] * 256) * 128L)
 /* (long)z80->mem[z80->regde+35] * 65536L; */
+
+
+/* For sequential access, the record number is also in the FCB:
+ *    EX + 32 * S2 is extent number (0 .. 8191).  Each extent has 16 blocks.  Each block is 1K.
+ *          extent number = (file offset) / 16384
+ *
+ *    RC  has number of records in current extent: (0 .. 128)
+ *          maybe just set to 128?
+ *          otherwise: 
+ *
+ *    CR  is current record offset within current extent: (0 .. 127)
+ *          ((file offset) % 16384) / 128
+ */
+#define SEQ_ADDRESS  (16384L * ((long)z80->mem[DE + FCB_EX] + 32L * (long)z80->mem[DE + FCB_S2]) + \
+                        128L * (long)z80->mem[DE + FCB_CR])
+
+#define SEQ_CR(n) (((n) % 16384) / 128)
+#define SEQ_EXTENT(n) ((n) / 16384)
+#define SEQ_EX(n) (SEQ_EXTENT(n) % 32)
+#define SEQ_S2(n) (SEQ_EXTENT(n) / 32)
 
 static DIR *dp = NULL;
 static unsigned sfn = 0;
@@ -226,6 +284,51 @@ char *bdos_decode(int n)
 	}
 }
 
+/* True if DE points to an FCB for a given BDOS call */
+
+int bdos_fcb(int n)
+{
+	switch (n) {
+	    case 15: return 1; // "open file";
+	    case 16: return 1; // "close file";
+	    case 17: return 1; // "search for first";
+	    case 18: return 1; // "search for next";
+	    case 19: return 1; // "delete file (no wildcards yet)";
+	    case 20: return 1; // "read sequential";
+	    case 21: return 1; // "write sequential";
+	    case 22: return 1; // "make file";
+	    case 23: return 1; // "rename file";
+	    case 33: return 1; // "read random record";
+	    case 34: return 1; // "write random record";
+	    case 35: return 1; // "compute file size";
+	    case 36: return 1; // "set random record";
+	    default: return 0;
+	}
+}
+
+void bdos_fcb_dump(z80info *z80)
+{
+	char buf[80];
+	printf("FCB %x: ", DE);
+	buf[0] = (0x7F & z80->mem[DE + 1]);
+	buf[1] = (0x7F & z80->mem[DE + 2]);
+	buf[2] = (0x7F & z80->mem[DE + 3]);
+	buf[3] = (0x7F & z80->mem[DE + 4]);
+	buf[4] = (0x7F & z80->mem[DE + 5]);
+	buf[5] = (0x7F & z80->mem[DE + 6]);
+	buf[6] = (0x7F & z80->mem[DE + 7]);
+	buf[7] = (0x7F & z80->mem[DE + 8]);
+	buf[8] = '.';
+	buf[9] = (0x7F & z80->mem[DE + 9]);
+	buf[10] = (0x7F & z80->mem[DE + 10]);
+	buf[11] = (0x7F & z80->mem[DE + 11]);
+	buf[12] = 0;
+	printf("DR=%x F='%s' EX=%x S1=%x S2=%x RC=%x CR=%x R0=%x R1=%x R2=%x\n",
+	       z80->mem[DE + 0], buf, z80->mem[DE + 12], z80->mem[DE + 13],
+	       z80->mem[DE + 14], z80->mem[DE + 15], z80->mem[DE + 32], z80->mem[DE + 33],
+	       z80->mem[DE + 34], z80->mem[DE + 35]);
+}
+
 /* emulation of BDOS calls */
 
 void check_BDOS_hook(z80info *z80) {
@@ -236,7 +339,14 @@ void check_BDOS_hook(z80info *z80) {
     FILE *fp;
     char *s, *t;
     const char *mode;
-    /* printf("\r\nbdos %d %s\r\n", C, bdos_decode(C)); */
+    if (trace_bdos)
+    {
+        printf("\r\nbdos %d %s (AF=%04x BC=%04x DE=%04x HL =%04x SP=%04x STACK=", C, bdos_decode(C), AF, BC, DE, HL, SP);
+	for (i = 0; i < 8; ++i)
+	    printf(" %4x", z80->mem[SP + 2*i]
+		   + 256 * z80->mem[SP + 2*i + 1]);
+	printf(")\r\n");
+    }
     switch (C) {
     case  0:    /* System Reset */
 	warmboot(z80);
@@ -307,6 +417,7 @@ void check_BDOS_hook(z80info *z80) {
 	++t;
 	for (i = 0; i <= *s; ++i)
 	    t[i] = s[i];
+	A = B = HL = 0;
 	break;
     case 12:    /* Return Version Number */
     	B = H = 0x00;
@@ -315,8 +426,10 @@ void check_BDOS_hook(z80info *z80) {
 	break;
     case 26:    /* Set DMA Address */
 	z80->dma = DE;
+	A = B = HL = 0;
 	break;
     case 32:    /* Get/Set User Code */
+	A = B = HL = 0;
 	if (E == 0xff)  /* Get Code */
 	    A = usercode;
 	else
@@ -328,6 +441,7 @@ void check_BDOS_hook(z80info *z80) {
     case 11:	/* Console Status */
 	A = HL = (constat() ? 0xff : 0x00);
 	F = 0;
+	B = 0;
 	break;
 
     case 13:	/* reset disk system */
@@ -336,46 +450,62 @@ void check_BDOS_hook(z80info *z80) {
 	    closedir(dp);
 	dp = NULL;
 	z80->dma = 0x80;
+	A = B = HL = 0;
 	/* select only A:, all r/w */
 	break;
     case 14:	/* select disk */
+	A = B = HL = 0;
 	break;
     case 15:	/* open file */
 	mode = "r+b";
     fileio:
-	FCB_to_filename(z80->mem+DE, name);
+	FCB_to_filename(z80->mem+DE, name); /* Try lowercase */
 	if (!(fp = fopen(name, mode))) {
-	    if (*mode == 'r') {
-		char ss[50];
-		sprintf(ss, "%s/%s", CPMLIBDIR, name);
-		fp = fopen(ss, mode);
-		if (! fp)
-		  fp = fopen(ss, "rb");
-	    }
-	    if (!fp) {
-		/* still no success */
-		A = HL = 0xFF;
-		F = 0;
-		break;
-	    }
+	    FCB_to_ufilename(z80->mem+DE, name); /* Try all uppercase instead */
+            if (!(fp = fopen(name, mode))) {
+	            FCB_to_filename(z80->mem+DE, name);
+		    if (*mode == 'r') {
+			char ss[50];
+			sprintf(ss, "%s/%s", CPMLIBDIR, name);
+			fp = fopen(ss, mode);
+			if (!fp)
+			  fp = fopen(ss, "rb");
+		    }
+		    if (!fp) {
+			/* still no success */
+			A = HL = 0xFF;
+			F = 0;
+			B = 0;
+			break;
+		    }
+            }
 	}
 	/* success */
-	memset(z80->mem + DE + 12, 0, 33-12);
-	z80->mem[DE + 15] = 0;	/* rc field of FCB */
+
+	/* memset(z80->mem + DE + 12, 0, 33-12); */
+	/* User has to set EX, S2, and CR: don't change these */
+	z80->mem[DE + FCB_S1] = 0;
+	memset(z80->mem + DE + 16, 0, 16);
+	/* R0 - R2? */
+	memset(z80->mem + DE + 33, 0, 3);
+
+	z80->mem[DE + FCB_RC] = 0;	/* rc field of FCB */
 	if (fstat(fileno(fp), &stbuf) || !S_ISREG(stbuf.st_mode)) {
 	    A = HL = 0xFF;
 	    F = 0;
+	    B = 0;
 	    fclose(fp);
 	    break;
 	}
 	{   unsigned long pos;
 	    pos = (stbuf.st_size + 127) >> 7;	/* number of records */
 	    if (pos > 128)
-		z80->mem[DE+15] = 0x80;
+		z80->mem[DE+FCB_RC] = 0x80;
 	    else
-		z80->mem[DE+15] = pos;
+		z80->mem[DE+FCB_RC] = pos;
 	}
 	A = HL = 0;
+	B = 0;
 	F = 0;
 	/* where to store fp? */
 	storefp(z80, fp, DE);
@@ -385,6 +515,7 @@ void check_BDOS_hook(z80info *z80) {
 	fp = getfp(z80, DE);
 	delfp(z80, DE);
 	fclose(fp);
+	A = B = HL = 0;
 	/* printf("close file\n"); */
 	break;
     case 17:	/* search for first */
@@ -409,6 +540,7 @@ void check_BDOS_hook(z80info *z80) {
 	    retbad:
 		A = HL = 0xff;
 		F = 0;
+		B = 0;
 		break;
 	    }
 	    /* printf("\r\nlooking at %s\r\n", de->d_name); */
@@ -447,6 +579,7 @@ void check_BDOS_hook(z80info *z80) {
 	    /* yup, it matches */
 	    A = HL = 0x00;	/* always at pos 0 */
 	    F = 0;
+	    B = 0;
 	    p[32] = p[64] = p[96] = 0xe5;
 	}
 	break;
@@ -458,11 +591,15 @@ void check_BDOS_hook(z80info *z80) {
     case 20:	/* read sequential */
 	fp = getfp(z80, DE);
     readseq:
-	if ((i = fread(z80->mem+z80->dma, 1, 128, fp)) > 0) {
+	if (!fseek(fp, SEQ_ADDRESS, SEEK_SET) && ((i = fread(z80->mem+z80->dma, 1, 128, fp)) > 0)) {
+	    long ofst = ftell(fp);
 	    if (i != 128)
 		memset(z80->mem+z80->dma+i, 0x1a, 128-i);
 	    A = HL = 0x00;
 	    B = 0;
+	    z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
+	    z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
+	    z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
 	} else {
 	    A = HL = 0x1;	/* ff => pip error */
 	    B = 0;
@@ -471,7 +608,11 @@ void check_BDOS_hook(z80info *z80) {
     case 21:	/* write sequential */
 	fp = getfp(z80, DE);
     writeseq:
-	if (fwrite(z80->mem+z80->dma, 1, 128, fp) == 128) {
+	if (!fseek(fp, SEQ_ADDRESS, SEEK_SET) && fwrite(z80->mem+z80->dma, 1, 128, fp) == 128) {
+	    long ofst = ftell(fp);
+	    z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
+	    z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
+	    z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
 	    A = HL = 0x00;
 	    B = 0;
 	} else {
@@ -492,43 +633,63 @@ void check_BDOS_hook(z80info *z80) {
     case 24:	/* return login vector */
 	A = HL = 1;	/* only A: online */
 	F = 0;
+	B = 0;
 	break;
     case 25:	/* return current disk */
 	A = HL = 0;	/* only A: */
 	F = 0;
+	B = 0;
 	break;
     case 29:	/* return r/o vector */
 	A = HL = 0;	/* none r/o */
+	B = 0;
 	F = 0;
 	break;
     case 31:    /* get disk parameters */
         HL = DPB0;    /* only A: */
+        A = B = 0;
         break;
     case 33:	/* read random record */
+        {
+        long ofst;
 	fp = getfp(z80, DE);
 	/* printf("data is %02x %02x %02x\n", z80->mem[z80->regde+33],
 	       z80->mem[z80->regde+34], z80->mem[z80->regde+35]); */
-	fseek(fp, ADDRESS, SEEK_SET);
+	ofst = ADDRESS;
+        z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
+	z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
+	z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
 	goto readseq;
+	}
     case 34:	/* write random record */
+        {
+        long ofst;
 	fp = getfp(z80, DE);
 	/* printf("data is %02x %02x %02x\n", z80->mem[z80->regde+33],
 	       z80->mem[z80->regde+34], z80->mem[z80->regde+35]); */
-	fseek(fp, ADDRESS, SEEK_SET);
+	ofst = ADDRESS;
+        z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
+	z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
+	z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
 	goto writeseq;
+	}
     case 35:	/* compute file size */
 	fp = getfp(z80, DE);
 	fseek(fp, 0L, SEEK_END);
 	/* fall through */
     case 36:	/* set random record */
 	fp = getfp(z80, DE);
-	{   long pos;
-	    pos = ftell(fp) >> 7;
+	{   
+	    long ofst = ftell(fp);
+	    long pos = (ofst >> 7);
 	    A = HL = 0x00;	/* dunno, if necessary */
 	    B = 0;
-	    z80->mem[DE + 33] = pos & 0xff;
-	    z80->mem[DE + 34] = pos >> 8;
-	    z80->mem[DE + 35] = pos >> 16;
+	    z80->mem[DE + FCB_R0] = pos & 0xff;
+	    z80->mem[DE + FCB_R1] = pos >> 8;
+	    z80->mem[DE + FCB_R2] = pos >> 16;
+            z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
+	    z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
+	    z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
 	}
 	break;
     case 41:

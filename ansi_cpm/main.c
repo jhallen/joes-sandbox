@@ -1030,6 +1030,10 @@ main(int argc, const char *argv[])
 				help = 1;
 			} else if (!strcmp(argv[x], "--nobdos")) {
 				nobdos = 1;
+			} else if (!strcmp(argv[x], "--trace_bdos")) {
+				trace_bdos = 1;
+			} else if (!strcmp(argv[x], "--strace")) {
+				strace = 1;
 			} else {
 				fprintf(stderr, "Unknown option %s\n", argv[x]);
 				exit(1);
@@ -1050,6 +1054,7 @@ main(int argc, const char *argv[])
 		fprintf(stderr, "    --help         Show this help\n");
 		fprintf(stderr, "    --nobdos       Do not emulate BDOS: only emulate BIOS\n");
 		fprintf(stderr, "                   Real disk images will be used.        \n");
+		fprintf(stderr, "    --trace_bdos   Trace BDOS calls\n");
 		fprintf(stderr, "\n");
 		exit(0);
 	}

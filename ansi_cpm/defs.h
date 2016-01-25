@@ -288,5 +288,10 @@ extern int disassem(z80info *z80, word start, FILE *fp);
 void check_BDOS_hook(z80info *z80);
 extern int silent_exit;
 extern char *stuff_cmd;
+extern int trace_bdos;
+extern int strace;
+char *bdos_decode(int n);
+int bdos_fcb(int n);
+void bdos_fcb_dump(z80info *z80);
 
 #endif /* __DEFS_H_ */
