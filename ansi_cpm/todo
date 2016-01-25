@@ -1,0 +1,20 @@
+missing bdos functions:
+	3 get reader input
+	4 write punch output
+	5 write listing output
+	7 get i/o byte
+	8 set i/o byte
+	27 get alloc address
+	28 write protect disk
+	30 set file attributes
+
+allow ^Z to work
+
+allow ESC alone to work
+
+provide simple key to exit simulator?
+
+mount directories as drives in bdos emulator:  ./cpm --A /foo --B /bar ...
+
+take yaze z80 simulator: it's probably more accurate (anyway it passes a CPU tester).
+
