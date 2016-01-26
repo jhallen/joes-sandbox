@@ -221,6 +221,9 @@ static void delfp(z80info *z80, unsigned where) {
 #define FCB_R1 34
 #define FCB_R2 35
 
+/* S2: only low 6 bits have extent number: upper bits are flags.. */
+/* Upper bit: means file is open? */
+
 /* Support 8MB files */
 
 #define ADDRESS  (((long)z80->mem[z80->regde+FCB_R0] + \
@@ -241,7 +244,7 @@ static void delfp(z80info *z80, unsigned where) {
  */
 
 /* Current extent number */
-#define SEQ_EXT  ((long)z80->mem[DE + FCB_EX] + 32L * (long)z80->mem[DE + FCB_S2])
+#define SEQ_EXT  ((long)z80->mem[DE + FCB_EX] + 32L * (long)(0x3F & z80->mem[DE + FCB_S2]))
 
 /* Current byte offset */
 #define SEQ_ADDRESS  (16384L * SEQ_EXT + 128L * (long)z80->mem[DE + FCB_CR])
@@ -438,6 +441,8 @@ void check_BDOS_hook(z80info *z80) {
 	break;
     case 2:     /* Console Output */
 	vt52(0x7F & E);
+	HL = 0;
+        B = H; A = L;
 	break;
     case 6:     /* direct I/O */
 	switch (E) {
@@ -456,22 +461,26 @@ void check_BDOS_hook(z80info *z80) {
 	    F = 0;
 	    break;
 	default:    vt52(0x7F & E);
+            HL = 0;
+            B = H; A = L;
 	}
 	break;
     case 9:	/* Print String */
 	s = (char *)(z80->mem + DE);
 	while (*s != '$')
 	    vt52(0x7F & *s++);
+        HL = 0;
+        B = H; A = L;
 	break;
     case 10:    /* Read Command Line */
-	s = rdcmdline(z80, *(t = (char *)(z80->mem + DE)), 1);
+	s = rdcmdline(z80, *(unsigned char *)(t = (char *)(z80->mem + DE)), 1);
 	if (PC == BIOS+3) { 	/* ctrl-C pressed */
 	    /* check_BIOS_hook(); */		/* execute WBOOT */
 	    warmboot(z80);
 	    return;
 	}
 	++t;
-	for (i = 0; i <= *s; ++i)
+	for (i = 0; i <= *(unsigned char *)s; ++i)
 	    t[i] = s[i];
         HL = 0;
         B = H; A = L;
@@ -490,8 +499,11 @@ void check_BDOS_hook(z80info *z80) {
 	if (E == 0xff) {  /* Get Code */
 	    HL = usercode;
             B = H; A = L;
-	} else
+	} else {
 	    usercode = E;
+            HL = 0; /* Or does it get usercode? */
+            B = H; A = L;
+        }
 	break;
 
 	/* dunno if these are correct */
@@ -551,6 +563,9 @@ void check_BDOS_hook(z80info *z80) {
 	/* Should we clear R0 - R2? */
 	memset(z80->mem + DE + 33, 0, 3);
 
+	/* We need to set high bit of S2: means file is open? */
+	z80->mem[DE + FCB_S2] |= 0x80;
+
 	z80->mem[DE + FCB_RC] = 0;	/* rc field of FCB */
 	if (fixrc(z80, fp)) { /* Not a real file? */
 	    HL = 0xFF;
@@ -567,6 +582,7 @@ void check_BDOS_hook(z80info *z80) {
 	/* printf("opening file %s\n", name); */
 	break;
     case 16:	/* close file */
+    	z80->mem[DE + FCB_S2] &= 0x7F; /* Clear high bit: indicates closed */
 	fp = getfp(z80, DE);
 	delfp(z80, DE);
 	fclose(fp);
@@ -655,7 +671,7 @@ void check_BDOS_hook(z80info *z80) {
 		memset(z80->mem+z80->dma+i, 0x1a, 128-i);
 	    z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
 	    z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
-	    z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
+	    z80->mem[DE + FCB_S2] = (0x80 | SEQ_S2(ofst));
 	    fixrc(z80, fp);
 	    HL = 0x00;
             B = H; A = L;
@@ -671,7 +687,7 @@ void check_BDOS_hook(z80info *z80) {
 	    long ofst = ftell(fp);
 	    z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
 	    z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
-	    z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
+	    z80->mem[DE + FCB_S2] = (0x80 | SEQ_S2(ofst));
 	    fixrc(z80, fp);
 	    HL = 0x00;
             B = H; A = L;
@@ -719,7 +735,7 @@ void check_BDOS_hook(z80info *z80) {
 	ofst = ADDRESS;
         z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
 	z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
-	z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
+	z80->mem[DE + FCB_S2] = (0x80 | SEQ_S2(ofst));
 	goto readseq;
 	}
     case 34:	/* write random record */
@@ -731,7 +747,7 @@ void check_BDOS_hook(z80info *z80) {
 	ofst = ADDRESS;
         z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
 	z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
-	z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
+	z80->mem[DE + FCB_S2] = (0x80 | SEQ_S2(ofst));
 	goto writeseq;
 	}
     case 35:	/* compute file size */
@@ -750,7 +766,7 @@ void check_BDOS_hook(z80info *z80) {
 	    z80->mem[DE + FCB_R2] = pos >> 16;
             z80->mem[DE + FCB_CR] = SEQ_CR(ofst);
 	    z80->mem[DE + FCB_EX] = SEQ_EX(ofst);
-	    z80->mem[DE + FCB_S2] = SEQ_S2(ofst);
+	    z80->mem[DE + FCB_S2] = (0x80 | SEQ_S2(ofst));
 	    fixrc(z80, fp);
 	}
 	break;
