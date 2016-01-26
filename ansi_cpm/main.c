@@ -111,6 +111,10 @@ initterm(void)
 	rawterm = oldterm;
 	rawterm.c_iflag &= ~(ICRNL | IXON | IXOFF | INLCR | ICRNL);
 	rawterm.c_lflag &= ~(ICANON | ECHO);
+	rawterm.c_cc[VSUSP] = -1;
+	rawterm.c_cc[VQUIT] = -1;
+	rawterm.c_cc[VERASE] = -1;
+	rawterm.c_cc[VKILL] = -1;
 
 	// tcsetattr(fileno(stdin), TCSADRAIN, &rawterm);
 

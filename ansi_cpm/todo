@@ -8,9 +8,9 @@ missing bdos functions:
 	28 write protect disk
 	30 set file attributes
 
-allow ^Z to work
+something wrong when winstall is run
 
-allow ESC alone to work
+something wrong when 'e' is given to ed.com
 
 provide simple key to exit simulator?
 
@@ -18,3 +18,17 @@ mount directories as drives in bdos emulator:  ./cpm --A /foo --B /bar ...
 
 take yaze z80 simulator: it's probably more accurate (anyway it passes a CPU tester).
 
+improve putunix / getunix so that you can supply just a single file name
+
+include a cpm disk manager utility: find one
+
+- - -
+
+restore terminal on bdos errors
+[fixed]
+
+allow ESC alone to work
+[fixed]
+
+allow ^Z to work
+[fixed]

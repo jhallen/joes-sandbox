@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include "vt.h"
 
-int mode = 0;
 int last = -1;
 
 int kpoll(int w)
@@ -48,17 +47,32 @@ int constat()
 		return 0;
 }
 
+/* Input FIFO */
+
+#define FIFO_SIZE 4
+int stuff[FIFO_SIZE];
+int stuff_ptr;
+
+void kpush(int c)
+{
+	if (c != -1 && stuff_ptr != FIFO_SIZE) {
+		stuff[stuff_ptr++] = c;
+	}
+}
+
 int kget(int w)
 {
         int c;
-        if (mode == 1) {
-                mode = 0;
-                return 's';
-        } else if (mode == 2) {
-                mode = 0;
-                return 'd';
+        if (stuff_ptr) {
+        	int x;
+        	c = stuff[0];
+        	for (x = 0; x != stuff_ptr - 1; ++x) {
+        		stuff[x] = stuff[x + 1];
+        	}
+        	stuff[x] = 0;
+        	return c;
         }
-        loop:
+
         c = kpoll(w);
         if (c != 27) {
                 return c;
@@ -66,7 +80,9 @@ int kget(int w)
         /* We got ESC.. see if any chars follow */
         c = kpoll(1);
 
-        if (c == '[') {
+        if (c == -1) { /* Just ESC */
+        	return 27;
+        } else if (c == '[') {
                 c = kpoll(0);
                 if (c == 'A') { /* Up arrow */
                         return 'E' - '@';
@@ -89,21 +105,24 @@ int kget(int w)
                         c = kpoll(0);
                         return 'C' - '@';
                 } else if (c == '1' || c == '7') { /* Home */
-                        mode = 1;
+                	kpush('s');
                         c = kpoll(0);
                         return 'Q' - '@';
                 } else if (c == '4' || c == '8') { /* End */
-                        mode = 2;
+                        kpush('d');
                         c = kpoll(0);
                         return 'Q' - '@';
                 } else if (c == 'H') { /* Home */
-                        mode = 1;
+                        kpush('s');
                         return 'Q' - '@';
                 } else if (c == 'F') { /* End */
-                        mode = 2;
+                        kpush('d');
                         return 'Q' - '@';
-                } else
-                        goto loop;
+                } else {
+                	kpush('[');
+                	kpush(c);
+                        return 27;
+		}
         } else if (c == 'O') {
                 c = kpoll(0);
                 if (c == 'A') { /* Up arrow */
@@ -119,15 +138,19 @@ int kget(int w)
                 } else if (c == 'c') { /* Ctrl right arrow (rxvt) */
                         return 'F' - '@';
                 } else if (c == 'H') { /* Home */
-                        mode = 1;
+                        kpush('s');
                         return 'Q' - '@';
                 } else if (c == 'F') { /* End */
-                        mode = 2;
+                        kpush('d');
                         return 'Q' - '@';
-                } else
-                        goto loop;
+                } else {
+                	kpush('O');
+                	kpush(c);
+                	return 27;
+		}
         } else {
-                goto loop;
+        	kpush(c);
+        	return 27;
         }
 }
 

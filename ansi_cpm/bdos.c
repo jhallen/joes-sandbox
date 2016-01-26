@@ -159,6 +159,7 @@ static void storefp(z80info *z80, FILE *fp, unsigned where) {
     if (ind < 0) {
 	if (++storedfps > 100) {
 	    fprintf(stderr, "out of fp stores!\n");
+            resetterm();
 	    exit(1);
 	}
 	ind = storedfps - 1;
@@ -191,6 +192,7 @@ static FILE *getfp(z80info *z80, unsigned where) {
     for (i = 0; i < storedfps; ++i)
 	if (stfps[i].where != 0xffffU)
 	    printf("%s %04x\n", stfps[i].name, stfps[i].where);
+    resetterm();
     exit(1);
 }
 
@@ -202,6 +204,7 @@ static void delfp(z80info *z80, unsigned where) {
 	    return;
 	}
     fprintf(stderr, "error: cannot del fp entry for FCB at %04x\n", where);
+    resetterm();
     exit(1);
 }
 
@@ -264,13 +267,16 @@ char *bdos_decode(int n)
 	    case  0: return "System Reset";
 	    case 1: return "Console Input";
 	    case 2: return "Console Output";
+	    case 3: return "Reader input";
+	    case 4: return "Punch output";
+	    case 5: return "List output";
 	    case 6: return "direct I/O";
+	    case 7: return "get I/O byte";
+	    case 8: return "set I/O byte";
 	    case 9: return "Print String";
 	    case 10: return "Read Command Line";
-	    case 12: return "Return Version Number";
-	    case 26: return "Set DMA Address";
-	    case 32: return "Get/Set User Code";
 	    case 11: return "Console Status";
+	    case 12: return "Return Version Number";
 	    case 13: return "reset disk system";
 	    case 14: return "select disk";
 	    case 15: return "open file";
@@ -284,8 +290,13 @@ char *bdos_decode(int n)
 	    case 23: return "rename file";
 	    case 24: return "return login vector";
 	    case 25: return "return current disk";
+	    case 26: return "Set DMA Address";
+	    case 27: return "Get alloc addr";
+	    case 28: return "Set r/o vector";
 	    case 29: return "return r/o vector";
+	    case 30: return "Set file attributes";
 	    case 31: return "get disk parameters";
+	    case 32: return "Get/Set User Code";
 	    case 33: return "read random record";
 	    case 34: return "write random record";
 	    case 35: return "compute file size";
@@ -309,6 +320,7 @@ int bdos_fcb(int n)
 	    case 21: return 1; // "write sequential";
 	    case 22: return 1; // "make file";
 	    case 23: return 1; // "rename file";
+	    case 30: return 1; // set attribute
 	    case 33: return 1; // "read random record";
 	    case 34: return 1; // "write random record";
 	    case 35: return 1; // "compute file size";
@@ -567,6 +579,7 @@ void check_BDOS_hook(z80info *z80) {
 	    closedir(dp);
 	if (!(dp = opendir("."))) {
 	    fprintf(stderr, "opendir fails\n");
+            resetterm();
 	    exit(1);
 	}
 	sfn = DE;
@@ -754,7 +767,8 @@ void check_BDOS_hook(z80info *z80) {
 	for (i = 0; i < 8; ++i)
 	    printf(" %4x", z80->mem[SP + 2*i]
 		   + 256 * z80->mem[SP + 2*i + 1]);
-	printf("\n");
+	printf("\r\n");
+	resetterm();
 	exit(1);
     }
     z80->mem[PC = DIRBUF-1] = 0xc9; /* Return instruction */
