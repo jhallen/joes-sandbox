@@ -18,7 +18,7 @@
 
 [ExorSim - A Motorola Exorciser Simulator](https://github.com/jhallen/joes-sandbox/tree/master/exorsim)
 
-[ANSI CP/M Simulator](https://github.com/jhallen/joes-sandbox/tree/master/ansi_cpm)
+[ANSI CP/M Simulator](https://bitbucket.org/jhallen/z80-cp-m-emulator/)
 
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
 
