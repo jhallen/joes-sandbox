@@ -8,6 +8,8 @@
 
 [Atari Tools](https://github.com/jhallen/atari-tools)
 
+[CP/M Emulator](https://github.com/jhallen/cpm)
+
 [OrCad Tools](https://github.com/jhallen/orcad-tools)
 
 [Reverse engineer Zon JR XL](http://jhallenworld.blogspot.com/2012/08/reverse-engineering-verifone-zon-jr-xl.html)
