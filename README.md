@@ -18,6 +18,8 @@
 
 [ExorSim - A Motorola EXORciser Simulator](https://github.com/jhallen/exorsim)
 
+[An I2C bus monitor for an Altera FPGA](https://github.com/jhallen/i2cmon)
+
 ### Some projects within joes-sandbox
 
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
@@ -66,4 +68,3 @@
 
 [A drafting program for SCO Xenix](https://github.com/jhallen/joes-sandbox/tree/master/xenix/draft)
 
-[An I2C bus monitor for an Altera FPGA](https://github.com/jhallen/joes-sandbox/tree/master/fpga/i2c_monitor)
