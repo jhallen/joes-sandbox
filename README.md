@@ -16,11 +16,9 @@
 
 [Acoustic delay line memory (on Hackaday!)](http://hackaday.com/2014/01/07/acoustic-delay-line-memory/)
 
+[ExorSim - A Motorola EXORciser Simulator](https://github.com/jhallen/exorsim)
+
 ### Some projects within joes-sandbox
-
-[ExorSim - A Motorola Exorciser Simulator](https://github.com/jhallen/joes-sandbox/tree/master/exorsim)
-
-[ANSI CP/M Simulator](https://bitbucket.org/jhallen/z80-cp-m-emulator/)
 
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
 
