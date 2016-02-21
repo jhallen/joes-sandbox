@@ -20,6 +20,8 @@
 
 [An I2C bus monitor for an Altera FPGA](https://github.com/jhallen/i2cmon)
 
+[An item tracking application for an Opticon OPH-1005 or OPH-3001 scanner](https://github.com/jhallen/cartscan)
+
 ### Some projects within joes-sandbox
 
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
