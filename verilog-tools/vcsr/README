@@ -60,7 +60,7 @@ that appear at this point will appear in the .h file.  Thus:
 
     input_reg #(.ADDR(20'h12345)) status_reg
       (
-      .inzies (inzies), .outzies(outzies),
+      .bus_in (bus_in), .bus_out(bus_out),
 
       .in ({ a, b, c })
       );
@@ -76,7 +76,7 @@ This is preferred over:
 
     input_reg #(.ADDR(20'h12345)) status_reg
       (
-      .inzies (inzies), .outzies(outzies),
+      .bus_in (bus_in), .bus_out(bus_out),
 
       .in (pins)
       );
@@ -87,7 +87,7 @@ Where only the field name 'pins' will appear in .h file.
 Note that named connections must be used.  Fields in positional connections
 will be ignored:
 
-     input_reg #(.ADDR(8'h04)) a_reg(inzies, outzies, pins);
+     input_reg #(.ADDR(8'h04)) a_reg(bus_in, bus_out, pins);
 
 'pins' not found.
 
@@ -116,7 +116,7 @@ reversed by either adding or removing a "_l" postfix from the field name.
 
     input_reg #(.ADDR(16'h0101)) stat_reg
       (
-      .inzies (inzies), .outzies (outzies),
+      .bus_in (bus_in), .bus_out (bus_out),
 
       .in ({ x, !y_l, !z })
       );
