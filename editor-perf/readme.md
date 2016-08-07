@@ -4,6 +4,8 @@ This started out as a check on some performance problems which were fixed
 for the latest version of JOE (version 4.3), but is interesting in its own
 right.
 
+[Joe's Own Editor - Mercurial Source Repository](https://sourceforge.net/p/joe-editor/mercurial/ci/default/tree/)
+ 
 ## The system
 
 Lenovo G570 laptop
@@ -92,6 +94,10 @@ RSS is amount of physical memory used in KiB.
 |vim	  |4.288|
 |atom	  |18|
 
+Older versions of JOE had trouble with JSON and XML files.  The issue was
+that the context display (the part of the status line which shows the name
+of the current code function you're in) used a bad algorithm.
+
 ## Rehighlight test
 
 Time used to load test.xml, split window, jump to end of buffer in other
@@ -130,6 +136,8 @@ with "thang"), and then exit.
 |nano  |system hangs|
 |atom  |atom crashes: atom warns "may be unresponsive loading really huge file"|
 
+JOE swaps large files to disk, so this is no problem for it.
+
 ## Time to reformat paragraph composed of two 120K long lines
 
 |Editor|Time (seconds)|
@@ -139,3 +147,6 @@ with "thang"), and then exit.
 |vim	 |29.632|
 |mg	 |35.552|
 |nano	 |54.502|
+
+This was slow in older versions of JOE.
+
