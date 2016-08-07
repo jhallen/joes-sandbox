@@ -29,6 +29,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 * Mg mg_20110905-1.1_amd64
 * Atom 1.9.6
 * Sublime Text Build 3114
+* Notepad++ 6.9.2 (running on Ubuntu in Wine)
 
 ## The files
 
@@ -45,6 +46,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |joe		|4772|
 |vim		|5336|
 |emacs -nw	|17060|
+|notepad++      |21092|
 |emacs		|34924|
 |sublime	|45800|
 |atom		|250404|
@@ -60,6 +62,7 @@ RSS is amount of physical memory used in KiB.
 |joe   |4988|
 |vim   |5180|
 |emacs -nw |15584|
+|notepad++      |20804|
 |emacs	  |33752|
 |sublime   |43444|
 
@@ -71,6 +74,7 @@ RSS is amount of physical memory used in KiB.
 |joe   |11968|
 |nano  |17336|
 |emacs -nw |23216|
+|notepad++ |34752|
 |emacs	  |42892|
 |sublime   |64608|
 
@@ -83,6 +87,7 @@ RSS is amount of physical memory used in KiB.
 |mg    |13420|
 |nano  |14172|
 |emacs -nw |21320|
+|notepad++ |34176|
 |emacs	  |39492|
 |sublime   |63800|
 |atom	  |825232|
@@ -98,6 +103,7 @@ RSS is amount of physical memory used in KiB.
 |emacs	  |.852|
 |sublime   |1|
 |vim	  |4.288|
+|notepad++|12.43|
 |atom	  |18|
 
 Older versions of JOE had trouble with JSON and XML files.  The issue was
@@ -116,6 +122,11 @@ then exit.
 |sublime |5|
 |emacs -nw |8.036|
 |vim	  |10.01|
+|notepad++|14.21|
+
+I could not figure out how to have two views on the same buffer in
+Notepad++, so instead I inserted the '\<!--' and then jumped to the end of
+the buffer.
 
 ## Simple Search and Replace
 
@@ -129,6 +140,7 @@ with "thang"), and then exit.
 |sublime| 6 |
 |emacs	| 9.354|
 |emacs -nw | 9.738|
+|notepad++ |31.30|
 |mg	| 467.989|
 |nano	| at least 10 minutes|
 |atom	| at least 10 minutes|
@@ -145,6 +157,7 @@ Time used to load test.xml, and then replace the regular expression
 |Editor|Time (seconds)|
 |------|-------|
 |joe	| .683|
+|notepad++|1.70|
 |vim    |4.647 |
 |emacs -nw|4.76 |
 |sublime|9|
@@ -159,6 +172,7 @@ query replace.
 |------|--------------|
 |joe |43|
 |sublime|75|
+|notepad++|Complains "file is too big"|
 |mg  |system hangs|
 |vim |system hangs|
 |emacs |system hangs: but emacs warns file is "really huge"|
