@@ -60,7 +60,7 @@ RSS is amount of physical memory used in KiB.
 |emacs -nw |15584|
 |emacs	  |33752|
 
-## Memory used for test.xml with highlighting enabled
+## Memory used for loading test.xml with highlighting enabled
 
 |Editor|RSS|
 |------|---|
@@ -70,7 +70,7 @@ RSS is amount of physical memory used in KiB.
 |emacs -nw |23216|
 |emacs	  |42892|
 
-## Memory used for test.xml with no highlighting
+## Memory used for loading test.xml with no highlighting
 
 |Editor|RSS|
 |------|---|
