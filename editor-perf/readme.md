@@ -2,7 +2,7 @@
 
 This started out as a check on some performance problems which were fixed
 for the latest version of JOE (version 4.3), but is interesting in its own
-right.
+right as a comparison between some open source text editors.
 
 [Joe's Own Editor - Mercurial Source Repository](https://sourceforge.net/p/joe-editor/mercurial/ci/default/tree/)
  
