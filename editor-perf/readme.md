@@ -110,7 +110,7 @@ then exit.
 |emacs -nw |8.036|
 |vim	  |10.01|
 
-## Search and Replace
+## Simple Search and Replace
 
 Time used to load test.xml, and then execute 100,000 replacements (of "thing"
 with "thang"), and then exit.
@@ -124,6 +124,25 @@ with "thang"), and then exit.
 |mg	| 467.989|
 |nano	| at least 10 minutes|
 |atom	| at least 10 minutes|
+
+In emacs, I used ESC %.
+
+mg has a memory leak in its search and replace code.
+
+## Regular Expression Search and Replace
+
+Time used to load test.xml, and then replace the regular expression
+"100|200" with "EXACT".
+
+|Editor|Time (seconds)|
+|------|-------|
+|joe	| .683|
+|vim    |4.647 |
+|emacs -nw|4.76 |
+|nano |185.6 |
+
+In emacs, I used replace-regexp.  It's interesting that this is faster than
+query replace.
 
 ## Time to load 3 GB file, insert character at start and exit
 
@@ -149,4 +168,3 @@ JOE swaps large files to disk, so this is no problem for it.
 |nano	 |54.502|
 
 This was slow in older versions of JOE.
-
