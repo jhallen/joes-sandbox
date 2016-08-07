@@ -112,9 +112,9 @@ of the current code function you're in) used a bad algorithm.
 
 ## Rehighlight test
 
-Time used to load test.xml, split window, jump to end of buffer in other
-window, insert '\<!--' at beginning (so that other window gets changed) and
-then exit.
+Time used to load test.xml, split window, jump to end of file in other
+window, insert '\<!--' at beginning (so that highlighting of the entire file
+changes and appears in the window at the end of file) and then exit.
 
 |Editor|Time (seconds)|
 |------|---|
