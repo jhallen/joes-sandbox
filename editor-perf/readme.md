@@ -34,6 +34,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 * JED 0.99.19U
 * NVI 1.81.6
 * Gnu Ed 1.9
+* Gedit 3.10.4
 
 ## The files
 
@@ -52,6 +53,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |vim		|5336|
 |emacs -nw	|17060|
 |notepad++      |21092|
+|gedit          |26368|
 |emacs		|34924|
 |sublime	|45800|
 |atom		|250404|
@@ -88,6 +90,7 @@ processes, all are included.
 |notepad++ |34752|
 |emacs	  |42892|
 |sublime   |64608|
+|gedit|132336|
 |code |391496|
 
 ## Memory used for loading test.xml with no highlighting
@@ -104,6 +107,7 @@ processes, all are included.
 |emacs -nw |21320|
 |notepad++ |34176|
 |emacs	  |39492|
+|gedit |48460|
 |sublime   |63800|
 |code |383440|
 |atom	  |825232|
@@ -123,6 +127,7 @@ processes, all are included.
 |sublime   |1||
 |vim	  |4.288||
 |notepad++|12.43||
+|gedit    |14.929||
 |atom	  |18||
 |code     |22||
 
@@ -153,10 +158,11 @@ changes and appears in the window at the end of file) and then exit.
 |emacs -nw |8.036|
 |vim	  |10.01|
 |notepad++|14.21|
+|gedit|17.431|
 |code |28|
 
 I could not figure out how to have two views on the same buffer in
-Notepad++, so instead I inserted the '\<!--' and then jumped to the end of
+Notepad++ or gedit, so instead I inserted the '\<!--' and then jumped to the end of
 the buffer.
 
 ## Simple Search and Replace
@@ -175,6 +181,7 @@ with "thang"), and then exit.
 |emacs	| 9.354|
 |emacs -nw | 9.738|
 |notepad++ |31.30|
+|gedit|44.016|
 |code |72|
 |mg	| 467.989|
 |nano	| at least 10 minutes|
@@ -198,6 +205,7 @@ Time used to load test.xml, and then replace the regular expression
 |emacs -nw|4.76 |
 |sublime|9|
 |code|24|
+|gedit|24.28|
 |nano |185.6 |
 
 In emacs, I used replace-regexp.  It's interesting that this is faster than
@@ -211,6 +219,7 @@ query replace.
 |ed|50.08|
 |nvi|53|
 |sublime|75|
+|gedit|very slow to load|
 |notepad++|Complains "file is too big"|
 |code|Complains "file is very large"|
 |mg  |system hangs|
@@ -225,6 +234,9 @@ JOE's RSS is 65756 KiB when the huge file is loaded.  NVI's is 2088!
 I'm amazed that Sublime Text is also able to load a 3 GB file.  When loaded,
 Sublime's RSS is 1384944 KiB.  Sublime is nicer than JOE in that it shows a
 progress bar while the huge file is loading.
+
+Gedit shows the beginning of the file and a progress bar while the file is
+loading.
 
 ## Time to reformat paragraph composed of two 120K long lines
 
