@@ -213,8 +213,8 @@ query replace.
 |nano  |system hangs|
 |atom  |atom crashes: atom warns "may be unresponsive loading very large files"|
 
-JOE and NVI swap large files to disk, so this is no problem for it.  JOE's RSS is
-65756 KiB when the huge file is loaded.  NVI's is 2088!
+JOE and NVI swap large files to disk, so this test is no problem for them. 
+JOE's RSS is 65756 KiB when the huge file is loaded.  NVI's is 2088!
 
 I'm amazed that Sublime Text is also able to load a 3 GB file.  When loaded,
 Sublime's RSS is 1384944 KiB.  Sublime is nicer than JOE in that it shows a
