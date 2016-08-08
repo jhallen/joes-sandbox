@@ -198,7 +198,7 @@ query replace.
 |vim |system hangs|
 |emacs |system hangs: but emacs warns file is "really huge"|
 |nano  |system hangs|
-|atom  |atom crashes: atom warns "may be unresponsive loading really huge file"|
+|atom  |atom crashes: atom warns "may be unresponsive loading very large files"|
 
 JOE swaps large files to disk, so this is no problem for it.  JOE's RSS is
 65756 KiB when the huge file is loaded.
