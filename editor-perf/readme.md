@@ -31,6 +31,8 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 * Sublime Text Build 3114
 * Notepad++ 6.9.2 (running on Ubuntu in Wine)
 * Visual Studio Code 1.4.0
+* JED 0.99.19U
+* NVI 1.81.6
 
 ## The files
 
@@ -44,6 +46,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |Editor		|RSS|
 |---------------|---|
 |nano		|2208|
+|jed		|3512|
 |joe		|4772|
 |vim		|5336|
 |emacs -nw	|17060|
@@ -61,7 +64,9 @@ processes, all are included.
 |Editor|RSS|
 |------|---|
 |mg    |932|
+|nvi            |2224|
 |nano  |1684|
+|jed   |3352|
 |joe   |4988|
 |vim   |5180|
 |emacs -nw |15584|
@@ -87,10 +92,12 @@ processes, all are included.
 
 |Editor|RSS|
 |------|---|
+|nvi   |2348|
 |joe   |11496|
 |vim   |11824|
 |mg    |13420|
 |nano  |14172|
+|jed   |14356|
 |emacs -nw |21320|
 |notepad++ |34176|
 |emacs	  |39492|
@@ -100,18 +107,20 @@ processes, all are included.
 
 ## Time used to load test.xml, jump to end of file and exit
 
-|Editor|Time (seconds)|
-|------|--------------|
-|mg	  |.088|
-|joe	  |.347|
-|emacs -nw |.437|
-|nano	  |.492|
-|emacs	  |.852|
-|sublime   |1|
-|vim	  |4.288|
-|notepad++|12.43|
-|atom	  |18|
-|code     |22|
+|Editor|Time (seconds)|Comments|
+|------|--------------|--------|
+|jed      |.048|No highlighting|
+|mg	  |.088|No highlighting|
+|nvi      |.231|No highlighting|
+|joe	  |.347||
+|emacs -nw |.437||
+|nano	  |.492||
+|emacs	  |.852||
+|sublime   |1||
+|vim	  |4.288||
+|notepad++|12.43||
+|atom	  |18||
+|code     |22||
 
 Older versions of JOE had trouble with JSON and XML files.  The issue was
 that the context display (the part of the status line which shows the name
@@ -154,6 +163,8 @@ with "thang"), and then exit.
 |Editor|Time (seconds)|
 |------|-------|
 |joe	| .683|
+|jed    |1.02 |
+|nvi    |3.44|
 |vim	| 4.613|
 |sublime| 6 |
 |emacs	| 9.354|
@@ -175,7 +186,8 @@ Time used to load test.xml, and then replace the regular expression
 
 |Editor|Time (seconds)|
 |------|-------|
-|joe	| .683|
+|joe   | .683|
+|nvi   |1.146|
 |notepad++|1.70|
 |vim    |4.647 |
 |emacs -nw|4.76 |
@@ -191,6 +203,7 @@ query replace.
 |Editor|Time (seconds)|
 |------|--------------|
 |joe |43|
+|nvi|53|
 |sublime|75|
 |notepad++|Complains "file is too big"|
 |code|Complains "file is very large"|
@@ -200,8 +213,8 @@ query replace.
 |nano  |system hangs|
 |atom  |atom crashes: atom warns "may be unresponsive loading very large files"|
 
-JOE swaps large files to disk, so this is no problem for it.  JOE's RSS is
-65756 KiB when the huge file is loaded.
+JOE and NVI swap large files to disk, so this is no problem for it.  JOE's RSS is
+65756 KiB when the huge file is loaded.  NVI's is 2088!
 
 I'm amazed that Sublime Text is also able to load a 3 GB file.  When loaded,
 Sublime's RSS is 1384944 KiB.  Sublime is nicer than JOE in that it shows a
@@ -211,6 +224,7 @@ progress bar while the huge file is loading.
 
 |Editor|Time (seconds)|
 |------|--------------|
+|jed   |.047|
 |joe	 |.142|
 |emacs -nw|1.811|
 |vim	 |29.632|
