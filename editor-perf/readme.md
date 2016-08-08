@@ -30,6 +30,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 * Atom 1.9.6
 * Sublime Text Build 3114
 * Notepad++ 6.9.2 (running on Ubuntu in Wine)
+* Visual Studio Code 1.4.0
 
 ## The files
 
@@ -50,8 +51,10 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |emacs		|34924|
 |sublime	|45800|
 |atom		|250404|
+|code		|339512|
 
-RSS is amount of physical memory used in KiB.
+RSS is amount of physical memory used in KiB.  If the editor starts multiple
+processes, all are included.
 
 ## Memory used when loading "hello.c" with no syntax highlighting
 
@@ -65,6 +68,7 @@ RSS is amount of physical memory used in KiB.
 |notepad++      |20804|
 |emacs	  |33752|
 |sublime   |43444|
+|code|341116|
 
 ## Memory used for loading test.xml with highlighting enabled
 
@@ -77,6 +81,7 @@ RSS is amount of physical memory used in KiB.
 |notepad++ |34752|
 |emacs	  |42892|
 |sublime   |64608|
+|code |391496|
 
 ## Memory used for loading test.xml with no highlighting
 
@@ -90,6 +95,7 @@ RSS is amount of physical memory used in KiB.
 |notepad++ |34176|
 |emacs	  |39492|
 |sublime   |63800|
+|code |383440|
 |atom	  |825232|
 
 ## Time used to load test.xml, jump to end of file and exit
@@ -105,10 +111,17 @@ RSS is amount of physical memory used in KiB.
 |vim	  |4.288|
 |notepad++|12.43|
 |atom	  |18|
+|code     |22|
 
 Older versions of JOE had trouble with JSON and XML files.  The issue was
 that the context display (the part of the status line which shows the name
 of the current code function you're in) used a bad algorithm.
+
+Visual Studio Code jumps to the end of the file quickly, but then takes many
+seconds for the highlighting to complete.
+
+Note that time is total accumulated CPU time of all processes started by the
+editor.
 
 ## Rehighlight test
 
@@ -123,6 +136,7 @@ changes and appears in the window at the end of file) and then exit.
 |emacs -nw |8.036|
 |vim	  |10.01|
 |notepad++|14.21|
+|code |28|
 
 I could not figure out how to have two views on the same buffer in
 Notepad++, so instead I inserted the '\<!--' and then jumped to the end of
@@ -141,6 +155,7 @@ with "thang"), and then exit.
 |emacs	| 9.354|
 |emacs -nw | 9.738|
 |notepad++ |31.30|
+|code |72|
 |mg	| 467.989|
 |nano	| at least 10 minutes|
 |atom	| at least 10 minutes|
@@ -161,6 +176,7 @@ Time used to load test.xml, and then replace the regular expression
 |vim    |4.647 |
 |emacs -nw|4.76 |
 |sublime|9|
+|code|24|
 |nano |185.6 |
 
 In emacs, I used replace-regexp.  It's interesting that this is faster than
@@ -173,6 +189,7 @@ query replace.
 |joe |43|
 |sublime|75|
 |notepad++|Complains "file is too big"|
+|code|Complains "file is very large"|
 |mg  |system hangs|
 |vim |system hangs|
 |emacs |system hangs: but emacs warns file is "really huge"|
@@ -191,10 +208,12 @@ progress bar while the huge file is loading.
 |Editor|Time (seconds)|
 |------|--------------|
 |joe	 |.142|
-|sublime |.76 |
 |emacs -nw|1.811|
 |vim	 |29.632|
 |mg	 |35.552|
 |nano	 |54.502|
 
 This was slow in older versions of JOE.
+
+I could not quickly figure out how to reformat a paragraph in the other
+editors.
