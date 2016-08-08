@@ -33,6 +33,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 * Visual Studio Code 1.4.0
 * JED 0.99.19U
 * NVI 1.81.6
+* Gnu Ed 1.9
 
 ## The files
 
@@ -63,8 +64,9 @@ processes, all are included.
 
 |Editor|RSS|
 |------|---|
+|ed    |680|
 |mg    |932|
-|nvi            |2224|
+|nvi   |2224|
 |nano  |1684|
 |jed   |3352|
 |joe   |4988|
@@ -93,6 +95,7 @@ processes, all are included.
 |Editor|RSS|
 |------|---|
 |nvi   |2348|
+|ed    |5368|
 |joe   |11496|
 |vim   |11824|
 |mg    |13420|
@@ -111,6 +114,7 @@ processes, all are included.
 |------|--------------|--------|
 |jed      |.048|No highlighting|
 |mg	  |.088|No highlighting|
+|ed       |.107|No highlighting|
 |nvi      |.231|No highlighting|
 |joe	  |.347||
 |emacs -nw |.437||
@@ -163,6 +167,7 @@ with "thang"), and then exit.
 |Editor|Time (seconds)|
 |------|-------|
 |joe	| .683|
+|ed    |.685 |
 |jed    |1.02 |
 |nvi    |3.44|
 |vim	| 4.613|
@@ -203,6 +208,7 @@ query replace.
 |Editor|Time (seconds)|
 |------|--------------|
 |joe |43|
+|ed|50.08|
 |nvi|53|
 |sublime|75|
 |notepad++|Complains "file is too big"|
@@ -213,7 +219,7 @@ query replace.
 |nano  |system hangs|
 |atom  |atom crashes: atom warns "may be unresponsive loading very large files"|
 
-JOE and NVI swap large files to disk, so this test is no problem for them. 
+JOE, ED and NVI swap large files to disk, so this test is no problem for them. 
 JOE's RSS is 65756 KiB when the huge file is loaded.  NVI's is 2088!
 
 I'm amazed that Sublime Text is also able to load a 3 GB file.  When loaded,
