@@ -121,7 +121,11 @@ Visual Studio Code jumps to the end of the file quickly, but then takes many
 seconds for the highlighting to complete.
 
 Note that time is total accumulated CPU time of all processes started by the
-editor.
+editor.  I skip the "exit the editor" part for editors which are indirectly
+launched (sublime, atom, code, notepad++).  For these the CPU time is
+determined from "ps" or "top -p" after the operation is complete, but while
+the editor is still running.  For editors which are directly launched, I
+prefix the shell command with "time".
 
 ## Rehighlight test
 
