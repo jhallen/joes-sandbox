@@ -22,19 +22,21 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 
 ## The Editors
 
-* Joe 4.3
-* VIM 7.4.52
-* gnu-emacs 24.3.1
-* Nano 2.2.6
-* Mg mg_20110905-1.1_amd64
-* Atom 1.9.6
-* Sublime Text Build 3114
-* Notepad++ 6.9.2 (running on Ubuntu in Wine)
-* Visual Studio Code 1.4.0
-* JED 0.99.19U
-* NVI 1.81.6
-* Gnu Ed 1.9
-* Gedit 3.10.4
+|Editor                                       |Screen|Highlighting|Unicode|
+|---------------------------------------------|------|------------|-------|
+|Joe 4.3                                      |Yes   |Yes         |Yes    |
+|VIM 7.4.52                                   |Yes   |Yes         |Yes    |
+|gnu-emacs 24.3.1                             |Yes   |Yes         |Yes    |
+|Nano 2.2.6                                   |Yes   |Yes         |Yes    |
+|Mg mg_20110905-1.1_amd64                     |Yes   |No          |No     |
+|Atom 1.9.6                                   |Yes   |Yes         |Yes    |
+|Sublime Text Build 3114                      |Yes   |Yes         |Yes    |
+|Notepad++ 6.9.2 (running on Ubuntu in Wine)  |Yes   |Yes         |Yes    |
+|Visual Studio Code 1.4.0                     |Yes   |Yes         |Yes    |
+|JED 0.99.19U                                 |Yes   |Yes         |No     |
+|NVI 1.81.6                                   |Yes   |No          |No     |
+|Gnu Ed 1.9                                   |No    |No          |No     |
+|Gedit 3.10.4                                 |Yes   |Yes         |Yes    |
 
 ## The files
 
