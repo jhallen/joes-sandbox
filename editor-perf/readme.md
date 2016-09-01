@@ -40,6 +40,8 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |Gedit 3.10.4                                 |Yes   |Yes         |Yes    |
 |Micro 1.01                                   |Yes   |Yes         |Yes    |
 |Jedit 5.1.0                                  |Yes   |Yes         |Yes    |
+|NEdit 5.6                                    |Yes   |Yes         |No     |
+
 
 ne uses the syntax highligher code from Joe.
 
@@ -63,6 +65,7 @@ Jedit is written in Java.
 |jed		|3512|
 |joe		|4772|
 |vim		|5336|
+|nedit          |7036|
 |micro          |8740|
 |emacs -nw	|17060|
 |notepad++      |21092|
@@ -83,11 +86,12 @@ processes, all are included.
 |ed    |680|
 |mg    |932|
 |ne    |1204|
-|nvi   |2224|
 |nano  |1684|
+|nvi   |2224|
 |jed   |3352|
 |joe   |4988|
 |vim   |5180|
+|nedit |6940|
 |micro |8792|
 |emacs -nw |15584|
 |notepad++      |20804|
@@ -105,6 +109,7 @@ processes, all are included.
 |ne    |14228|
 |nano  |17336|
 |emacs -nw |23216|
+|nedit|24332|
 |notepad++ |34752|
 |micro     |38212|
 |emacs	  |42892|
@@ -121,6 +126,7 @@ processes, all are included.
 |ed    |5368|
 |joe   |11496|
 |vim   |11824|
+|nedit|12696|
 |mg    |13420|
 |ne    |13864|
 |nano  |14172|
@@ -149,6 +155,7 @@ processes, all are included.
 |nano	  |.492||
 |emacs	  |.852||
 |sublime   |1||
+|nedit    |2.213||
 |vim	  |4.288||
 |jedit    |5.322||
 |micro    |8.6||
@@ -181,6 +188,7 @@ changes and appears in the window at the end of file) and then exit.
 |------|---|
 |ne    |.349|
 |joe   |.627|
+|nedit |3.389|
 |sublime |5|
 |emacs -nw |8.036|
 |jedit|9.114|
@@ -215,6 +223,7 @@ with "thang"), and then exit.
 |jed    |1.02 |
 |ne     |2.67 |
 |nvi    |3.44|
+|nedit  |4.228|
 |vim	| 4.613|
 |sublime| 6 |
 |jedit|9.152|
@@ -243,6 +252,7 @@ Time used to load test.xml, and then replace the regular expression
 |joe   | .683|
 |nvi   |1.146|
 |notepad++|1.70|
+|nedit  |4.638|
 |vim    |4.647 |
 |emacs -nw|4.76 |
 |jedit|6.911|
@@ -263,6 +273,7 @@ query replace.
 |ed|50.08|
 |nvi|53|
 |sublime|75|
+|nedit|Complains "file is too large to edit"|
 |notepad++|Complains "file is too big"|
 |ne    |Complains "Can't open file (file is too large)."|
 |code|Complains "file is very large"|
@@ -290,6 +301,7 @@ loading.
 |Editor|Time (seconds)|
 |------|--------------|
 |jed   |.047|
+|nedit |.110|
 |joe	 |.142|
 |emacs -nw|1.811|
 |ne      |3.025|
