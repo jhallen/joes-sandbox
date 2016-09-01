@@ -25,6 +25,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |Editor                                       |Screen|Highlighting|Unicode|
 |---------------------------------------------|------|------------|-------|
 |Joe 4.3                                      |Yes   |Yes         |Yes    |
+|ne, the nice editor 2.5                      |Yes   |Yes         |Yes    |
 |VIM 7.4.52                                   |Yes   |Yes         |Yes    |
 |gnu-emacs 24.3.1                             |Yes   |Yes         |Yes    |
 |Nano 2.2.6                                   |Yes   |Yes         |Yes    |
@@ -37,6 +38,11 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |NVI 1.81.6                                   |Yes   |No          |No     |
 |Gnu Ed 1.9                                   |No    |No          |No     |
 |Gedit 3.10.4                                 |Yes   |Yes         |Yes    |
+|Micro 1.01                                   |Yes   |Yes         |Yes    |
+
+ne uses the syntax highligher code from Joe.
+
+Micro is written in Go.
 
 ## The files
 
@@ -49,10 +55,12 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 
 |Editor		|RSS|
 |---------------|---|
+|ne             |1396|
 |nano		|2208|
 |jed		|3512|
 |joe		|4772|
 |vim		|5336|
+|micro          |8740|
 |emacs -nw	|17060|
 |notepad++      |21092|
 |gedit          |26368|
@@ -70,11 +78,13 @@ processes, all are included.
 |------|---|
 |ed    |680|
 |mg    |932|
+|ne    |1204|
 |nvi   |2224|
 |nano  |1684|
 |jed   |3352|
 |joe   |4988|
 |vim   |5180|
+|micro |8792|
 |emacs -nw |15584|
 |notepad++      |20804|
 |emacs	  |33752|
@@ -87,9 +97,11 @@ processes, all are included.
 |------|---|
 |vim   |11952|
 |joe   |11968|
+|ne    |14228|
 |nano  |17336|
 |emacs -nw |23216|
 |notepad++ |34752|
+|micro     |38212|
 |emacs	  |42892|
 |sublime   |64608|
 |gedit|132336|
@@ -104,9 +116,11 @@ processes, all are included.
 |joe   |11496|
 |vim   |11824|
 |mg    |13420|
+|ne    |13864|
 |nano  |14172|
 |jed   |14356|
 |emacs -nw |21320|
+|micro  |26192|
 |notepad++ |34176|
 |emacs	  |39492|
 |gedit |48460|
@@ -121,6 +135,7 @@ processes, all are included.
 |jed      |.048|No highlighting|
 |mg	  |.088|No highlighting|
 |ed       |.107|No highlighting|
+|ne       |.174||
 |nvi      |.231|No highlighting|
 |joe	  |.347||
 |emacs -nw |.437||
@@ -128,6 +143,7 @@ processes, all are included.
 |emacs	  |.852||
 |sublime   |1||
 |vim	  |4.288||
+|micro    |8.6||
 |notepad++|12.43||
 |gedit    |14.929||
 |atom	  |18||
@@ -155,6 +171,7 @@ changes and appears in the window at the end of file) and then exit.
 
 |Editor|Time (seconds)|
 |------|---|
+|ne    |.349|
 |joe   |.627|
 |sublime |5|
 |emacs -nw |8.036|
@@ -162,10 +179,17 @@ changes and appears in the window at the end of file) and then exit.
 |notepad++|14.21|
 |gedit|17.431|
 |code |28|
+|micro |34.9|
 
 I could not figure out how to have two views on the same buffer in
-Notepad++ or gedit, so instead I inserted the '\<!--' and then jumped to the end of
-the buffer.
+Notepad++, Micro, NE, or gedit, so instead I inserted the '\<!--' and then
+jumped to the end of the buffer.
+
+Micro did not recolor the when I inserted '\<!--'.  It wants to recolor only
+if the final '--\>' exists.  In fact Micro did not recolor when I put the
+'--\>' at the end of the file either.  Perhaps it gives up recoloring when
+the file is too large.  In any case, I notice that Micro is very slow when
+you insert characters at the end of the test.xml file.
 
 ## Simple Search and Replace
 
@@ -177,6 +201,7 @@ with "thang"), and then exit.
 |joe	| .683|
 |ed    |.685 |
 |jed    |1.02 |
+|ne     |2.67 |
 |nvi    |3.44|
 |vim	| 4.613|
 |sublime| 6 |
@@ -186,6 +211,7 @@ with "thang"), and then exit.
 |gedit|44.016|
 |code |72|
 |mg	| 467.989|
+|micro  | at least 10 minutes|
 |nano	| at least 10 minutes|
 |atom	| at least 10 minutes|
 
@@ -200,6 +226,7 @@ Time used to load test.xml, and then replace the regular expression
 
 |Editor|Time (seconds)|
 |------|-------|
+|ne    | .307|
 |joe   | .683|
 |nvi   |1.146|
 |notepad++|1.70|
@@ -208,6 +235,7 @@ Time used to load test.xml, and then replace the regular expression
 |sublime|9|
 |code|24|
 |gedit|24.28|
+|micro|176.4 |
 |nano |185.6 |
 
 In emacs, I used replace-regexp.  It's interesting that this is faster than
@@ -221,13 +249,15 @@ query replace.
 |ed|50.08|
 |nvi|53|
 |sublime|75|
-|gedit|very slow to load|
 |notepad++|Complains "file is too big"|
+|ne    |Complains "Can't open file (file is too large)."|
 |code|Complains "file is very large"|
+|gedit|very slow to load|
 |mg  |system hangs|
 |vim |system hangs|
 |emacs |system hangs: but emacs warns file is "really huge"|
 |nano  |system hangs|
+|micro |micro crashes|
 |atom  |atom crashes: atom warns "may be unresponsive loading very large files"|
 
 JOE, ED and NVI swap large files to disk, so this test is no problem for them. 
@@ -247,11 +277,16 @@ loading.
 |jed   |.047|
 |joe	 |.142|
 |emacs -nw|1.811|
+|ne      |3.025|
 |vim	 |29.632|
 |mg	 |35.552|
 |nano	 |54.502|
+|micro   |65*|
 
 This was slow in older versions of JOE.
 
 I could not quickly figure out how to reformat a paragraph in the other
 editors.
+
+(*) Micro does not have a paragraph reformat capability, but I notice that
+it takes 65 seconds to load longlines.txt.
