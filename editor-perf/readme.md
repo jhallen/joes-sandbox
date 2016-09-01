@@ -41,7 +41,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |Micro 1.01                                   |Yes   |Yes         |Yes    |
 |Jedit 5.1.0                                  |Yes   |Yes         |Yes    |
 |NEdit 5.6                                    |Yes   |Yes         |No     |
-
+|mcedit (Midnight Commander) 4.8.11           |Yes   |Yes         |Yes    |
 
 ne uses the syntax highligher code from Joe.
 
@@ -63,6 +63,7 @@ Jedit is written in Java.
 |ne             |1396|
 |nano		|2208|
 |jed		|3512|
+|mcedit         |3904|
 |joe		|4772|
 |vim		|5336|
 |nedit          |7036|
@@ -89,6 +90,7 @@ processes, all are included.
 |nano  |1684|
 |nvi   |2224|
 |jed   |3352|
+|mcedit|3880|
 |joe   |4988|
 |vim   |5180|
 |nedit |6940|
@@ -104,6 +106,7 @@ processes, all are included.
 
 |Editor|RSS|
 |------|---|
+|mcedit|9604|
 |vim   |11952|
 |joe   |11968|
 |ne    |14228|
@@ -124,6 +127,7 @@ processes, all are included.
 |------|---|
 |nvi   |2348|
 |ed    |5368|
+|mcedit|9584|
 |joe   |11496|
 |vim   |11824|
 |nedit|12696|
@@ -152,6 +156,7 @@ processes, all are included.
 |nvi      |.231|No highlighting|
 |joe	  |.347||
 |emacs -nw |.437||
+|mcedit|.460||
 |nano	  |.492||
 |emacs	  |.852||
 |sublime   |1||
@@ -186,6 +191,7 @@ changes and appears in the window at the end of file) and then exit.
 
 |Editor|Time (seconds)|
 |------|---|
+|mcedit|.343|
 |ne    |.349|
 |joe   |.627|
 |nedit |3.389|
@@ -199,8 +205,8 @@ changes and appears in the window at the end of file) and then exit.
 |micro |34.9|
 
 I could not figure out how to have two views on the same buffer in
-Notepad++, Micro, NE, or gedit, so instead I inserted the '\<!--' and then
-jumped to the end of the buffer.
+Notepad++, Micro, NE, mcedit or gedit, so instead I inserted the '\<!--' and
+then jumped to the end of the buffer.
 
 Micro did not recolor the when I inserted '\<!--'.  It wants to recolor only
 if the final '--\>' exists.  In fact Micro did not recolor when I put the
@@ -220,6 +226,7 @@ with "thang"), and then exit.
 |------|-------|
 |joe	| .683|
 |ed    |.685 |
+|mcedit|1.009 |
 |jed    |1.02 |
 |ne     |2.67 |
 |nvi    |3.44|
@@ -249,6 +256,7 @@ Time used to load test.xml, and then replace the regular expression
 |Editor|Time (seconds)|
 |------|-------|
 |ne    | .307|
+|mcedit|.565|
 |joe   | .683|
 |nvi   |1.146|
 |notepad++|1.70|
@@ -269,6 +277,7 @@ query replace.
 
 |Editor|Time (seconds)|
 |------|--------------|
+|mcedit|8.654|
 |joe |43|
 |ed|50.08|
 |nvi|53|
@@ -288,6 +297,11 @@ query replace.
 
 JOE, ED and NVI swap large files to disk, so this test is no problem for them. 
 JOE's RSS is 65756 KiB when the huge file is loaded.  NVI's is 2088!
+
+MCedit loads the file quickly into its simple gap buffer.  However, the gap
+is locked to the cursor and distant cursor motions are slow since all of the
+intervening text has to be copied.  Even so, for quick file viewing it's
+impressive.  MCedit's RSS is 3 GB when the file is loaded.
 
 I'm amazed that Sublime Text is also able to load a 3 GB file.  When loaded,
 Sublime's RSS is 1384944 KiB.  Sublime is nicer than JOE in that it shows a
@@ -310,6 +324,8 @@ loading.
 |mg	 |35.552|
 |nano	 |54.502|
 |micro   |65*|
+|mcedit|crashes|
+
 
 This was slow in older versions of JOE.
 
