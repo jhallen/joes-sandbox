@@ -29,10 +29,10 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |gnu-emacs 24.3.1                             |Yes   |Yes         |Yes    |Yes   |
 |Jedit 5.1.0                                  |Yes   |Yes         |Yes    |Yes   |
 |Sublime Text Build 3114                      |Yes   |Yes         |Yes    |Yes   |
+|Atom 1.9.6                                   |Yes   |Yes         |Yes    |Yes   |
 |Visual Studio Code 1.4.0                     |Yes   |Yes         |Yes    |Yes   |
 |ne, the nice editor 2.5                      |Yes   |Yes         |Yes    |No    |
 |mcedit (Midnight Commander) 4.8.11           |Yes   |Yes         |Yes    |No    |
-|Atom 1.9.6                                   |Yes   |Yes         |Yes    |No    |
 |Notepad++ 6.9.2 (running on Ubuntu in Wine)  |Yes   |Yes         |Yes    |No    |
 |Nano 2.2.6                                   |Yes   |Yes         |Yes    |No    |
 |Gedit 3.10.4                                 |Yes   |Yes         |Yes    |No    |
@@ -206,6 +206,7 @@ changes and appears in the window at the end of file) and then exit.
 |gedit|17.431|
 |code |28|
 |micro |34.9|
+|atom |82|
 
 I could not figure out how to have two views on the same buffer in
 Notepad++, Micro, NE, mcedit or gedit, so instead I inserted the '\<!--' and
@@ -221,6 +222,9 @@ Jedit did not recolor the other window until after I switched to it and
 moved the cursor around a little.
 
 Jed is not in this test because it can not highlight XML.
+
+Atom does not seem to highlight large XML files until you "split down" to
+open a second windows onto the file.
 
 ## Simple Search and Replace
 
