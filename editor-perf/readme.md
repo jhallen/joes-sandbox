@@ -27,13 +27,13 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |Joe 4.3                                      |Yes   |Yes         |Yes    |Yes   |
 |VIM 7.4.52                                   |Yes   |Yes         |Yes    |Yes   |
 |gnu-emacs 24.3.1                             |Yes   |Yes         |Yes    |Yes   |
+|Notepad++ 6.9.2 (running on Ubuntu in Wine)  |Yes   |Yes         |Yes    |Yes   |
 |Jedit 5.1.0                                  |Yes   |Yes         |Yes    |Yes   |
 |Sublime Text Build 3114                      |Yes   |Yes         |Yes    |Yes   |
 |Atom 1.9.6                                   |Yes   |Yes         |Yes    |Yes   |
 |Visual Studio Code 1.4.0                     |Yes   |Yes         |Yes    |Yes   |
 |ne, the nice editor 2.5                      |Yes   |Yes         |Yes    |No    |
 |mcedit (Midnight Commander) 4.8.11           |Yes   |Yes         |Yes    |No    |
-|Notepad++ 6.9.2 (running on Ubuntu in Wine)  |Yes   |Yes         |Yes    |No    |
 |Nano 2.2.6                                   |Yes   |Yes         |Yes    |No    |
 |Gedit 3.10.4                                 |Yes   |Yes         |Yes    |No    |
 |Micro 1.01                                   |Yes   |Yes         |Yes    |No    |
@@ -202,14 +202,14 @@ changes and appears in the window at the end of file) and then exit.
 |emacs -nw |8.036|
 |jedit|9.114|
 |vim	  |10.01|
-|notepad++|14.21|
 |gedit|17.431|
 |code |28|
 |micro |34.9|
 |atom |82|
+|notepad++|at least 5 minutes|
 
 I could not figure out how to have two views on the same buffer in
-Notepad++, Micro, NE, mcedit or gedit, so instead I inserted the '\<!--' and
+Micro, NE, mcedit or gedit, so instead I inserted the '\<!--' and
 then jumped to the end of the buffer.
 
 Micro did not recolor the when I inserted '\<!--'.  It wants to recolor only
@@ -225,6 +225,9 @@ Jed is not in this test because it can not highlight XML.
 
 Atom does not seem to highlight large XML files until you "split down" to
 open a second windows onto the file.
+
+Notepad++ was very slow when I had multiple views open of the same large XML
+file.
 
 ## Simple Search and Replace
 
