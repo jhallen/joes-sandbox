@@ -39,10 +39,13 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |Gnu Ed 1.9                                   |No    |No          |No     |
 |Gedit 3.10.4                                 |Yes   |Yes         |Yes    |
 |Micro 1.01                                   |Yes   |Yes         |Yes    |
+|Jedit 5.1.0                                  |Yes   |Yes         |Yes    |
 
 ne uses the syntax highligher code from Joe.
 
 Micro is written in Go.
+
+Jedit is written in Java.
 
 ## The files
 
@@ -66,6 +69,7 @@ Micro is written in Go.
 |gedit          |26368|
 |emacs		|34924|
 |sublime	|45800|
+|jedit          |86928|
 |atom		|250404|
 |code		|339512|
 
@@ -89,6 +93,7 @@ processes, all are included.
 |notepad++      |20804|
 |emacs	  |33752|
 |sublime   |43444|
+|jedit |84416|
 |code|341116|
 
 ## Memory used for loading test.xml with highlighting enabled
@@ -104,6 +109,7 @@ processes, all are included.
 |micro     |38212|
 |emacs	  |42892|
 |sublime   |64608|
+|jedit|99372|
 |gedit|132336|
 |code |391496|
 
@@ -125,6 +131,7 @@ processes, all are included.
 |emacs	  |39492|
 |gedit |48460|
 |sublime   |63800|
+|jedit|94876|
 |code |383440|
 |atom	  |825232|
 
@@ -143,6 +150,7 @@ processes, all are included.
 |emacs	  |.852||
 |sublime   |1||
 |vim	  |4.288||
+|jedit    |5.322||
 |micro    |8.6||
 |notepad++|12.43||
 |gedit    |14.929||
@@ -175,6 +183,7 @@ changes and appears in the window at the end of file) and then exit.
 |joe   |.627|
 |sublime |5|
 |emacs -nw |8.036|
+|jedit|9.114|
 |vim	  |10.01|
 |notepad++|14.21|
 |gedit|17.431|
@@ -191,6 +200,9 @@ if the final '--\>' exists.  In fact Micro did not recolor when I put the
 the file is too large.  In any case, I notice that Micro is very slow when
 you insert characters at the end of the test.xml file.
 
+Jedit did not recolor the other window until after I switched to it and
+moved the cursor around a little.
+
 ## Simple Search and Replace
 
 Time used to load test.xml, and then execute 100,000 replacements (of "thing"
@@ -205,6 +217,7 @@ with "thang"), and then exit.
 |nvi    |3.44|
 |vim	| 4.613|
 |sublime| 6 |
+|jedit|9.152|
 |emacs	| 9.354|
 |emacs -nw | 9.738|
 |notepad++ |31.30|
@@ -232,6 +245,7 @@ Time used to load test.xml, and then replace the regular expression
 |notepad++|1.70|
 |vim    |4.647 |
 |emacs -nw|4.76 |
+|jedit|6.911|
 |sublime|9|
 |code|24|
 |gedit|24.28|
@@ -252,6 +266,7 @@ query replace.
 |notepad++|Complains "file is too big"|
 |ne    |Complains "Can't open file (file is too large)."|
 |code|Complains "file is very large"|
+|jedit|Complains "can not load, negative array size exception"|
 |gedit|very slow to load|
 |mg  |system hangs|
 |vim |system hangs|
@@ -278,6 +293,7 @@ loading.
 |joe	 |.142|
 |emacs -nw|1.811|
 |ne      |3.025|
+|jedit   |6.242|
 |vim	 |29.632|
 |mg	 |35.552|
 |nano	 |54.502|
