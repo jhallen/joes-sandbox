@@ -37,7 +37,7 @@ Intel Pentium B970 2.3 GHz Two cores, 64-bit, 2 MB L3 cache
 |Nano 2.2.6                                   |Yes   |Yes         |Yes    |No    |
 |Gedit 3.10.4                                 |Yes   |Yes         |Yes    |No    |
 |Micro 1.01                                   |Yes   |Yes         |Yes    |No    |
-|nedit 5.6                                    |Yes   |Yes         |No     |No    |
+|nedit 5.6                                    |Yes   |Yes         |No     |Yes   |
 |JED 0.99.19U                                 |Yes   |Yes         |No     |Yes   |
 |Mg mg_20110905-1.1_amd64                     |Yes   |No          |No     |Yes   |
 |NVI 1.81.6                                   |Yes   |No          |No     |No    |
