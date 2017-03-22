@@ -63,22 +63,22 @@ Jedit is written in Java.
 
 |Editor		|RSS|
 |---------------|---|
-|ne             |1396|
-|nano		|2208|
-|jed		|3512|
-|mcedit         |3904|
-|joe		|4772|
-|vim		|5336|
-|nedit          |7036|
-|micro          |8740|
-|emacs -nw	|17060|
-|notepad++      |21092|
-|gedit          |26368|
-|emacs		|34924|
-|sublime	|45800|
-|jedit          |86928|
-|atom		|250404|
-|code		|339512|
+|ne             |1,396|
+|nano		|2,208|
+|jed		|3,512|
+|mcedit         |3,904|
+|joe		|4,772|
+|vim		|5,336|
+|nedit          |7,036|
+|micro          |8,740|
+|emacs -nw	|17,060|
+|notepad++      |21,092|
+|gedit          |26,368|
+|emacs		|34,924|
+|sublime	|45,800|
+|jedit          |86,928|
+|atom		|250,404|
+|code		|339,512|
 
 RSS is amount of physical memory used in KiB.  If the editor starts multiple
 processes, all are included.
@@ -89,64 +89,64 @@ processes, all are included.
 |------|---|
 |ed    |680|
 |mg    |932|
-|ne    |1204|
-|nano  |1684|
-|nvi   |2224|
-|jed   |3352|
-|mcedit|3880|
-|joe   |4988|
-|vim   |5180|
-|nedit |6940|
-|micro |8792|
-|emacs -nw |15584|
-|notepad++      |20804|
-|emacs	  |33752|
-|sublime   |43444|
-|jedit |84416|
-|code|341116|
+|ne    |1,204|
+|nano  |1,684|
+|nvi   |2,224|
+|jed   |3,352|
+|mcedit|3,880|
+|joe   |4,988|
+|vim   |5,180|
+|nedit |6,940|
+|micro |8,792|
+|emacs -nw |15,584|
+|notepad++      |20,804|
+|emacs	  |33,752|
+|sublime   |43,444|
+|jedit |84,416|
+|code|341,116|
 
 ## Memory used for loading test.xml with highlighting enabled
 
 |Editor|RSS|
 |------|---|
-|mcedit|9604|
-|vim   |11952|
-|joe   |11968|
-|ne    |14228|
-|nano  |17336|
-|emacs -nw |23216|
-|nedit|24332|
-|notepad++ |34752|
-|micro     |38212|
-|emacs	  |42892|
-|sublime   |64608|
-|jedit|99372|
-|gedit|132336|
-|code |391496|
+|mcedit|9,604|
+|vim   |11,952|
+|joe   |11,968|
+|ne    |14,228|
+|nano  |17,336|
+|emacs -nw |23,216|
+|nedit|24,332|
+|notepad++ |34,752|
+|micro     |38,212|
+|emacs	  |42,892|
+|sublime   |64,608|
+|jedit|99,372|
+|gedit|132,336|
+|code |391,496|
 
 ## Memory used for loading test.xml with no highlighting
 
 |Editor|RSS|
 |------|---|
-|nvi   |2348|
-|ed    |5368|
-|mcedit|9584|
-|joe   |11496|
-|vim   |11824|
-|nedit|12696|
-|mg    |13420|
-|ne    |13864|
-|nano  |14172|
-|jed   |14356|
-|emacs -nw |21320|
-|micro  |26192|
-|notepad++ |34176|
-|emacs	  |39492|
-|gedit |48460|
-|sublime   |63800|
-|jedit|94876|
-|code |383440|
-|atom	  |825232|
+|nvi   |2,348|
+|ed    |5,368|
+|mcedit|9,584|
+|joe   |11,496|
+|vim   |11,824|
+|nedit|12,696|
+|mg    |13,420|
+|ne    |13,864|
+|nano  |14,172|
+|jed   |14,356|
+|emacs -nw |21,320|
+|micro  |26,192|
+|notepad++ |34,176|
+|emacs	  |39,492|
+|gedit |48,460|
+|sublime   |63,800|
+|jedit|94,876|
+|code |383,440|
+|atom	  |825,232|
 
 ## Time used to load test.xml, jump to end of file and exit
 
