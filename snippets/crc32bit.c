@@ -1,6 +1,8 @@
 /* Calculate CRC32 a bit at a time */
 /* Big endian, MSB first version */
 
+/* WHen you append the calculated CRC to a file, the CRC of the result will be 0 */
+
 #include <stdio.h>
 
 unsigned int crc;
@@ -31,6 +33,6 @@ int main(int argc, char *argv[])
 			crcb(c);
 		}
 		fclose(f);
-		printf("CRC is %8.x\n", crc);
+		printf("CRC is %8.8x\n", crc);
 	}
 }

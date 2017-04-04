@@ -1,4 +1,7 @@
 /* Table driven 32-bit crc */
+/* Big endian, MSB first version */
+
+/* When you append the calculated CRC to a file, the CRC of the result will be 0 */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,6 +90,6 @@ int main(int argc, char *argv[])
 			crc = update(crc, c);
 		}
 		fclose(f);
-		printf("CRC is %8.x\n", crc);
+		printf("CRC is %8.8x\n", crc);
 	}
 }
