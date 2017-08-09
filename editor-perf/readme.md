@@ -60,7 +60,6 @@ Jedit is written in Java.
 * huge 3 GB file (3M 1K lines)
 
 ## Memory used when loading "hello.c" with syntax highlighting enabled
-
 |Editor		|RSS|
 |---------------|---|
 |ne             |1396|
@@ -78,7 +77,10 @@ Jedit is written in Java.
 |sublime	|45800|
 |jedit          |86928|
 |atom		|250404|
-|code		|339512|
+|code		|339512|  
+
+<img width="448" height="353" src="https://user-images.githubusercontent.com/15828926/29101258-32f9c716-7cdb-11e7-9947-12b84cdec646.png"> 
+
 
 RSS is amount of physical memory used in KiB.  If the editor starts multiple
 processes, all are included.
@@ -105,6 +107,8 @@ processes, all are included.
 |jedit |84416|
 |code|341116|
 
+<img width="448" height="353" src="https://user-images.githubusercontent.com/15828926/29101575-61535d6e-7cdd-11e7-9403-0e11a5c7ef4f.png"> 
+
 ## Memory used for loading test.xml with highlighting enabled
 
 |Editor|RSS|
@@ -123,6 +127,8 @@ processes, all are included.
 |jedit|99372|
 |gedit|132336|
 |code |391496|
+
+<img width="448" height="353" src="https://user-images.githubusercontent.com/15828926/29101633-c954394c-7cdd-11e7-99dd-2a278150a001.png"> 
 
 ## Memory used for loading test.xml with no highlighting
 
@@ -148,6 +154,8 @@ processes, all are included.
 |code |383440|
 |atom	  |825232|
 
+<img width="448" height="353" src="https://user-images.githubusercontent.com/15828926/29101666-fdd08cac-7cdd-11e7-8b75-ab461e9dcb86.png"> 
+
 ## Time used to load test.xml, jump to end of file and exit
 
 |Editor|Time (seconds)|Comments|
@@ -170,7 +178,9 @@ processes, all are included.
 |notepad++|12.43||
 |gedit    |14.929||
 |atom	  |18||
-|code     |22||
+|code     |22||  
+
+<img width="448" height="353" src="https://user-images.githubusercontent.com/15828926/29101692-3a349120-7cde-11e7-9cf6-3dffc78a0768.png"> 
 
 Older versions of JOE had trouble with JSON and XML files.  The issue was
 that the context display (the part of the status line which shows the name
@@ -206,7 +216,9 @@ changes and appears in the window at the end of file) and then exit.
 |code |28|
 |micro |34.9|
 |atom |82|
-|notepad++|at least 5 minutes|
+|notepad++|at least 5 minutes|  
+
+<img width="448" height="353" src="https://user-images.githubusercontent.com/15828926/29101761-a392b58e-7cde-11e7-9bc0-617115208bcc.png"> 
 
 I could not figure out how to have two views on the same buffer in
 Micro, NE, mcedit or gedit, so instead I inserted the '\<!--' and
@@ -254,7 +266,9 @@ with "thang"), and then exit.
 |mg	| 467.989|
 |micro  | at least 10 minutes|
 |nano	| at least 10 minutes|
-|atom	| at least 10 minutes|
+|atom	| at least 10 minutes|  
+
+<img width="448" height="353" src="https://user-images.githubusercontent.com/15828926/29101802-e096330c-7cde-11e7-8067-10ac27310469.png"> 
 
 In emacs, I used ESC %.
 
@@ -280,7 +294,9 @@ Time used to load test.xml, and then replace the regular expression
 |code|24|
 |gedit|24.28|
 |micro|176.4 |
-|nano |185.6 |
+|nano |185.6 |  
+
+<img width="448" height="353" src="https://user-images.githubusercontent.com/15828926/29101822-1e3b6c72-7cdf-11e7-8eca-ca55c97dfe18.png"> 
 
 In emacs, I used replace-regexp.  It's interesting that this is faster than
 query replace.
@@ -305,7 +321,9 @@ query replace.
 |emacs |system hangs: but emacs warns file is "really huge"|
 |nano  |system hangs|
 |micro |micro crashes|
-|atom  |atom crashes: atom warns "may be unresponsive loading very large files"|
+|atom  |atom crashes: atom warns "may be unresponsive loading very large files"|  
+
+![](https://user-images.githubusercontent.com/15828926/29101908-b67109e8-7cdf-11e7-8198-b99e54f66f92.png)
 
 JOE, ED and NVI swap large files to disk, so this test is no problem for them. 
 JOE's RSS is 65756 KiB when the huge file is loaded.  NVI's is 2088!
@@ -337,6 +355,8 @@ loading.
 |nano	 |54.502|
 |micro   |65*|
 |mcedit|crashes|
+
+<img width="448" height="353" src="https://user-images.githubusercontent.com/15828926/29101948-f78a7fe0-7cdf-11e7-9b70-56f36f3d275a.png"> 
 
 
 This was slow in older versions of JOE.
