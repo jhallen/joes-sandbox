@@ -4,7 +4,7 @@
 
 Ivy 2005 is the latest version of the scripting language I wrote originally
 in 1993.  This version adds an extensible syntax and is designed to be
-embedded in my text editor JOE.
+eventually embedded in my text editor JOE.
 
 ## Extensible syntax
 
@@ -17,20 +17,25 @@ For example, here is a function for a text editor which allows the body code
 to move the cursor.  When the code is complete, the cursor is automatically
 restored (akin to unwind-protect in LISP):
 
-	fn excursion(&body)
+	fn excursion(&body) {
 		var save = cursor
 		var rtn = *body
 		cursor = save
 		(rtn)
+	}
 
 The '&' prefixing the formal argument indicates that the code for that
 argument should not be evaluated immediately (as would normally be done in
 this pass-by-value language), but to instead delay its evaluation (the
 argument is packaged up as a function in its closure).  The '*' causes the
 function to be called (evaluated).  In LISP, this would all be done with
-quoting or macros.
+quoting and macros.
 
-## Other features
+As with LISP, the syntax of Ivy is such that built-in statements receive no
+special treatment by the parser.  They are indistinguishable from user
+functions.
+
+## Event driven
 
 Ivy's interpreter and parser are both event driven.  For example, when an
 Ivy program calls a C-language function, it returns from the interpreter
@@ -40,7 +45,7 @@ C-function is done, the interpreter should be called again.
 This means Ivy can be used in a co-operative multi-threaded environment:
 think of a command interpreter for a MUD.
 
-## Functions, commands statements
+## Commands
 
 In Ivy, everything is a function, but to make statements look as they do in
 other languages (and to separate statements out from the parser as in LISP),
@@ -50,9 +55,10 @@ same:
 	func(x,y,z)
 	func x y z
 
-Commands occupy a single line, but parenthetical, braced or bracketed
-expressions may cross lines.  A block of commands may be passed as an argument
-to a command by surrounding it with braces:
+Commands occupy a single line (but can be separated by semicolons), but
+parenthetical, braced or bracketed expressions may cross lines.  A block of
+commands may be passed as an argument to a command by surrounding it with
+braces:
 
 	foreach a [1 2 3] {
 		if a==2 {
