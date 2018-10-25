@@ -52,7 +52,7 @@ in UNIX.
 Expression syntax
 
 Everything in Ivy is an expression, meaning that statements and function
-calls have the same syntax.  A consequence of this is that new "statements"
+calls have the same syntax.  A consequence of this is that new statements
 can be added to the language by defining new functions:
 
 	print(square(10))	Call square function with 10 as arg, and
@@ -338,10 +338,10 @@ object.  For example:
         ( ) Function call
 
 		This operator calls the function resulting from the
-expression on the left with the (optionally comma separated) arguments
-inside of the brackets.  This operator can also be used for object member
-selection and for string character selection and substring operations. 
-Examples of each of these follow:
+expression on the left with the arguments inside of the parenthesis.  This
+operator can also be used for object member selection and for string
+character selection and substring operations.  Examples of each of these
+follow:
 
 		x.y(5)			# Call function y in object x
 
@@ -370,7 +370,7 @@ Examples of each of these follow:
 	& Address of.
 
 		This operator converts its operand into a zero argument
-	function nameless function.  The function can be called with () or *.
+	nameless function.  The function can be called with () or *.
 
 	~ Bit-wise one's complement
 

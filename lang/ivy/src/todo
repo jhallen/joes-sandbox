@@ -1,3 +1,23 @@
+More features?
+	Exceptions.
+
+	Continuations or co-routines (haven't decided yet: leaning towards
+	co-routines, but designing for continuations).
+
+	First-class regular expressions, as in perl.
+
+	All UNIX system calls and library functions, as in perl.
+
+	Object oriented Ivy (you can do it now with closures, but there
+	is no inheritance, protection or module system).
+
+	Widget library and X interface.  I'd like to use Ivy as a
+	replacement for "gnu-plot" (and when built into JOE, as a free
+	version of "mathcad").
+
+
+
+
 a=[]  automatically set mom of this object to parent:
 	a=[`mom=this]?
 	We can't really do this.. a.print will turn up in non-objects.
