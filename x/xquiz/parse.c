@@ -23,10 +23,10 @@ LST *parse(int prec)
 		return 0;
 	}
 	if (t->type == tNUM) {
-		n = t->num;
+		n = (LST *)t->num;
 		rmtok(t);
 	} else if (t->type == tSYM) {
-		n = t->sym;
+		n = (LST *)t->sym;
 		rmtok(t);
 		t = gettok();
 		if (t->type == tLPAREN) {

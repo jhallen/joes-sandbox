@@ -11,4 +11,4 @@ struct pulldown {
 	int which;		/* Line which is currently highlighted */
 };
 
-DSPOBJ *mkpulldown(DSPOBJ *in, int x, int y, char *name, int (*gtitems)(), int (*select)());
+DSPOBJ *mkpulldown(DSPOBJ *in, int x, int y, char *name, void (*gtitems)(DSPOBJ *obj, char ***items, int *nitems), void (*select)(DSPOBJ *obj, int n));

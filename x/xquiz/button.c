@@ -15,8 +15,7 @@ void buttonshow(DSPOBJ *dspobj)
 {
 	BUTTON *button = dspobj->extend;
 	XClearWindow(dsp, dspobj->win);
-	XDrawString(dsp, dspobj->win, dspobj->gc, button->x, button->y,
-		    button->name, strlen(button->name));
+	XDrawString(dsp, dspobj->win, dspobj->gc, button->x, button->y, button->name, strlen(button->name));
 }
 
 void rmbutton(DSPOBJ *dspobj)
@@ -33,7 +32,7 @@ void rmbutton(DSPOBJ *dspobj)
    func: function to call when button is pressed
 */
 
-DSPOBJ *mkbutton(DSPOBJ *in, int x, int y, char *name, int (*func)(DSPOBJ *obj, XEvent *ev))
+DSPOBJ *mkbutton(DSPOBJ *in, int x, int y, char *name, void (*func)(DSPOBJ *obj, XButtonEvent *ev))
 {
 	int width = XTextWidth(bfs, name, strlen(name)) + bwidth;
 	DSPOBJ *dspobj = dspopen(in, x, y, width, bheight + 1);

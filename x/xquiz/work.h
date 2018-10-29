@@ -19,5 +19,5 @@ struct work {
 	char *sname;
 	SYM **vars;
 	char **vnames;
-	int nvars, which;
+	I nvars, which;
 };

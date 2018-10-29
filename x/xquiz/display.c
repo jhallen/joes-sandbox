@@ -10,16 +10,18 @@
 #include "display.h"
 
 /* The top-level display objects */
-LINK dspobjs = { &dspobjs, &dspobjs };
+LINK dspobjs = { (DSPOBJ *)&dspobjs, (DSPOBJ *)&dspobjs };
 
 DSPOBJ *dofind(LINK *lst, Window win)
 {
 	DSPOBJ *dspobj, *t;
-	for (dspobj = lst->next; dspobj != lst; dspobj = dspobj->link.next)
+	for (dspobj = lst->next; dspobj != (DSPOBJ *)lst; dspobj = dspobj->link.next) {
+		DSPOBJ *t;
 		if (dspobj->win == win)
 			return dspobj;
 		else if (t = dofind(&dspobj->children, win))
 			return t;
+	}
 	return 0;
 }
 
@@ -31,7 +33,7 @@ DSPOBJ *dspfind(Window win)
 void doshw(LINK *lst)
 {
 	DSPOBJ *dspobj;
-	for (dspobj = lst->next; dspobj != lst; dspobj = dspobj->link.next) {
+	for (dspobj = lst->next; dspobj != (DSPOBJ *)lst; dspobj = dspobj->link.next) {
 		if (dspobj->show)
 			dspobj->show(dspobj);
 		doshw(&dspobj->children);
@@ -104,8 +106,8 @@ DSPOBJ *dspopen(DSPOBJ *in, int x, int y, int width, int height)
 
 void dspclose(DSPOBJ *dspobj)
 {
-	while (dspobj->children.next != &dspobj->children)
-		dspclose(dspobj->children.next);
+	while (dspobj->children.next != (DSPOBJ *)&dspobj->children)
+		dspclose((DSPOBJ *)dspobj->children.next);
 	if (dspobj->close)
 		dspobj->close(dspobj);
 	XDestroyWindow(dsp, dspobj->win);

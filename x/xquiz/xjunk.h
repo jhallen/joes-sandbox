@@ -6,3 +6,4 @@ extern XColor black, white, red, green, blue, yellow, magenta, cyan,
 extern XFontStruct *sfs, *bfs;
 extern int bwidth, bheight, bdescent, bascent;
 extern int swidth, sheight, sdescent, sascent;
+void XPos(Window win, int *x, int *y);

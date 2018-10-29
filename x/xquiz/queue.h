@@ -1,11 +1,11 @@
 /* Doubly linked list management junk */
 
 struct link {
-	LINK *next;
-	LINK *prev;
+	DSPOBJ *next;
+	DSPOBJ *prev;
 };
 
-LINK *enquefront(LINK *queue, LINK *item);
-LINK *enqueback(LINK *queue, LINK *item);
-LINK *deque(LINK *item);
-LINK *izqueue(LINK *queue);
+DSPOBJ *enquefront(LINK *queue, DSPOBJ *item);
+DSPOBJ *enqueback(LINK *queue, DSPOBJ *item);
+DSPOBJ *deque(DSPOBJ *item);
+void izqueue(LINK *queue);

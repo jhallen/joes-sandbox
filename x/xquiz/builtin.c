@@ -3,6 +3,7 @@
 #include "types.h"
 #include "box.h"
 #include "builtin.h"
+#include "sym.h"
 
 SYM *yFACT;
 SYM *yNEG;

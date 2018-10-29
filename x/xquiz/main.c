@@ -3,10 +3,12 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include "types.h"
 #include "queue.h"
 #include "xjunk.h"
 #include "display.h"
+#include "quiz.h"
 #include "main.h"
 
 int leave = 0;
@@ -19,7 +21,7 @@ char **argv;
 
 int ferr;
 
-seterr()
+void seterr(int x)
 {
 	ferr = 1;
 }
@@ -75,14 +77,14 @@ int main(int a, char *b[])
 				if (dspobj->top->trap)
 					dspobj = dspobj->top->trap;
 				if (dspobj->press)
-					dspobj->press(dspobj, &ev);
+					dspobj->press(dspobj, (XButtonPressedEvent *)&ev);
 				break;
 			case ButtonRelease:
 				if (dspobj->release)
 					dspobj->release(dspobj, &ev);
 				break;
 			case KeyPress:
-				if (XLookupString(&ev, kbuf, 1, 0, &status)) {
+				if (XLookupString((XKeyEvent *)&ev, kbuf, 1, 0, &status)) {
 					if (dspobj->top->trap) {
 						dspobj = dspobj->top->trap;
 						if (dspobj->type)

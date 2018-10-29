@@ -3,4 +3,4 @@ struct button {
 	int x, y;		/* Position to display name string */
 };
 
-DSPOBJ *mkbutton(DSPOBJ *in, int x, int y, char *name, int (*press)(DSPOBJ *obj, XEvent *ev));
+DSPOBJ *mkbutton(DSPOBJ *in, int x, int y, char *name, void (*press)(DSPOBJ *obj, XButtonEvent *ev));

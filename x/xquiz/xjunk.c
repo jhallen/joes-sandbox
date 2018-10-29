@@ -136,7 +136,10 @@ hblue.pixel=black.pixel;
 void XPos(Window win, int *x, int *y)
 {
 	XWindowAttributes attr;
-	int root, tree, ntree, xx = 0, yy = 0;
+	int xx = 0, yy = 0;
+	unsigned int ntree;
+	Window root;
+	Window *tree;
 	Window nwin = win;
 	XGetWindowAttributes(dsp, win, &attr);
 	xx = attr.x;

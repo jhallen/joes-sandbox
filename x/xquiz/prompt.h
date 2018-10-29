@@ -3,12 +3,14 @@ struct prompt {
 	char *answer;		/* Answer string */
 	int cursor;		/* Cursor offset in answer string */
 	int y;			/* Position in box to display strings */
-	int (*eachkey)(DSPOBJ *dspobj);
-	int (*lastkey)(DSPOBJ *dspobj);
+	void (*eachkey)(DSPOBJ *dspobj);
+	void (*lastkey)(DSPOBJ *dspobj);
 	DSPOBJ *keyobj;
 	DSPOBJ *key;
 };
 
-DSPOBJ *mkprompt(DSPOBJ *in, int y, char *prmpt, int (*eachkey)(DSPOBJ *dspobj), int (*lastkey)(DSPOBJ *), DSPOBJ *kk);
+DSPOBJ *mkprompt(DSPOBJ *in, int y, char *prmpt, void (*eachkey)(DSPOBJ *dspobj), void (*lastkey)(DSPOBJ *), DSPOBJ *kk);
 void promptclr(DSPOBJ *dspobj);
 DSPOBJ *mvprompt(DSPOBJ *dspobj, int y);
+void promptforce(DSPOBJ *dspobj, char *s);
+

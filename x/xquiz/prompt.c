@@ -67,7 +67,7 @@ void prompttype(DSPOBJ *dspobj, char c)
 	}
 }
 
-DSPOBJ *mkprompt(DSPOBJ *in, int y, char *prmpt, int (*eachkey)(DSPOBJ *dspobj), int (*lastkey)(DSPOBJ *dspobj), DSPOBJ *key)
+DSPOBJ *mkprompt(DSPOBJ *in, int y, char *prmpt, void (*eachkey)(DSPOBJ *dspobj), void (*lastkey)(DSPOBJ *dspobj), DSPOBJ *key)
 {
 	DSPOBJ *dspobj = dspopen(in, 0, y, in->width - 2, sheight + 1);
 	PROMPT *prompt = calloc(1, sizeof(PROMPT));

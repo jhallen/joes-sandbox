@@ -11,3 +11,6 @@ extern LST *ans;
 extern DSPOBJ *prompt;
 extern int cury;
 extern DSPOBJ *top;
+void mkhelp();
+LST *parseeqn(char *s);
+void dinit();

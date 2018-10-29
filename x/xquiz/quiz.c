@@ -21,6 +21,7 @@
 #include "prompt.h"
 #include "graph.h"
 #include "work.h"
+#include "simplify.h"
 #include "main.h"
 
 DSPOBJ *top;
@@ -207,7 +208,7 @@ void sload()
 								++y;
 							c = ibuf[y];
 							ibuf[y] = 0;
-							sscanf(ibuf + x, "%d",
+							sscanf(ibuf + x, "%ld",
 							       &rndm->from);
 							ibuf[x = y] = c;
 							while (ibuf[x]
@@ -224,7 +225,7 @@ void sload()
 								c = ibuf[y];
 								ibuf[y] = 0;
 								sscanf(ibuf + x,
-								       "%d",
+								       "%ld",
 								       &rndm->
 								       to);
 								ibuf[x = y] = c;
@@ -252,7 +253,7 @@ void sload()
 									    (ibuf
 									     +
 									     x,
-									     "%d",
+									     "%ld",
 									     &rndm->
 									     steps);
 									ibuf[x =
@@ -384,7 +385,9 @@ void showit(char *text)
 				cury += sheight;
 			} else {
 				n = parseeqn(text + xx + 1);
-				n = simplify(nn = n, 0);
+				show(n); printf("\n");
+				// n = simplify(nn = n, 0);
+				// show(n); printf("\n");
 				if (!prob)
 					prob = n;
 				unparse(top, 30,
@@ -524,12 +527,12 @@ int rcheck(double a, LST *b, double *rndms, int n, int *map, int m, SYM **vb)
 		vb[n - m]->bind = newnum();
 		vb[n - m]->bind->n = rndms[z];
 		if (rcheck(a, b, rndms, n, map, m - 1, vb)) {
-			discard(vb[n - m]->bind);
+			discardnum(vb[n - m]->bind);
 			vb[n - m]->bind = 0;
 			map[z] = 0;
 			return 1;
 		} else {
-			discard(vb[n - m]->bind);
+			discardnum(vb[n - m]->bind);
 			vb[n - m]->bind = 0;
 			map[z] = 0;
 		}
@@ -541,9 +544,9 @@ int check(LST *a, LST *b, SYM **sy, int sys)
 {
 	int x, y;
 	int trys = 0;
-	int na = 0;
+	I na = 0;
 	SYM **va = calloc(sizeof(SYM *), 20);
-	int nb = 0;
+	I nb = 0;
 	SYM **vb = calloc(sizeof(SYM *), 20);
 	double *rndms = malloc(20 * sizeof(double)), eva;
 	int *map = calloc(20, sizeof(int));
@@ -552,7 +555,7 @@ int check(LST *a, LST *b, SYM **sy, int sys)
 /* Assign random numbers to true variables */
 	for (x = 0; x != sys; x++) {
 		if (sy[x]->bind)
-			discard(sy[x]->bind);
+			discardnum(sy[x]->bind);
 		sy[x]->bind = newnum();
 		sy[x]->bind->n = (double)(random() % 100) / 20.0 + .1;
 	}
@@ -568,7 +571,7 @@ int check(LST *a, LST *b, SYM **sy, int sys)
  nope:
 			for (x = 0; x != sys; x++)
 				if (sy[x]->bind)
-					discard(sy[x]->bind), sy[x]->bind = 0;
+					discardnum(sy[x]->bind), sy[x]->bind = 0;
 			free(rndms);
 			free(va);
 			free(vb);
@@ -580,7 +583,7 @@ int check(LST *a, LST *b, SYM **sy, int sys)
 				goto loop;
 			for (x = 0; x != sys; x++)
 				if (sy[x]->bind)
-					discard(sy[x]->bind), sy[x]->bind = 0;
+					discardnum(sy[x]->bind), sy[x]->bind = 0;
 			free(rndms);
 			free(va);
 			free(vb);
@@ -597,7 +600,7 @@ int check(LST *a, LST *b, SYM **sy, int sys)
 /* Get a */
 	eva = ev(a);
 	for (x = 0; x != na; x++)
-		discard(va[x]->bind), va[x]->bind = 0;
+		discardnum(va[x]->bind), va[x]->bind = 0;
 
 /* Go through combinations with b */
 	if (!rcheck(eva, b, rndms, na, map, na, vb))
@@ -605,7 +608,9 @@ int check(LST *a, LST *b, SYM **sy, int sys)
 	goto yep;
 }
 
-void ckey()
+void newproblem();
+
+void ckey(DSPOBJ *obj, char c)
 {
 	++correct;
 	bm("");
@@ -774,7 +779,7 @@ void dopress()
 	}
 }
 
-int dinit()
+void dinit()
 {
 	DSPOBJ *t, *u, *v, *w, *x, *y;
 	{

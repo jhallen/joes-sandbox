@@ -8,8 +8,13 @@ struct graph {
 	SYM **vars;		/* List of variables */
 	double *vals;		/* Values of the variables */
 	char **vnames;		/* Variable name vector */
-	int nvars;		/* Number of variables */
+	I nvars;		/* Number of variables */
 	int line;		/* Set for line mode */
 	int nn;
 	int help;		/* Set if help is on */
 };
+
+void showgraph(DSPOBJ *dspobj);
+
+DSPOBJ *mkgraph(DSPOBJ *in, int xx, int y, int width, int height, LST *eqn);
+

@@ -37,7 +37,7 @@ void subshow(DSPOBJ *dspobj)
 	}
 }
 
-void subremove(DSPOBJ *dspobj)
+void subremove(DSPOBJ *dspobj, XEvent *ev)
 {
 	PULLDOWN *pulldown = dspobj->extend;
 	pulldown->sub = 0;
@@ -97,7 +97,7 @@ void pullmove(DSPOBJ *dspobj, XMotionEvent *ev)
 	}
 }
 
-void pullclick(DSPOBJ *dspobj)
+void pullclick(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	PULLDOWN *pulldown = dspobj->extend;
 	if (!pulldown->sub) {
@@ -138,7 +138,7 @@ void pullunclick(DSPOBJ *dspobj, XButtonPressedEvent *ev)
 			pulldown->select(dspobj,
 					 (ev->y + dspobj->y -
 					  pulldown->sub->y) / pulldown->h);
-		subremove(pulldown->sub);
+		subremove(pulldown->sub, NULL);
 	}
 }
 
@@ -152,8 +152,8 @@ DSPOBJ *mkpulldown(
     DSPOBJ *in,
     int x, int y,
     char *name,
-    int (*gtitems)(DSPOBJ *dspobj, char ***items, int *nitems),
-    int (*select)(DSPOBJ *dspobj, int n)
+    void (*gtitems)(DSPOBJ *dspobj, char ***items, int *nitems),
+    void (*select)(DSPOBJ *dspobj, int n)
 ) {
 	int width = XTextWidth(bfs, name, strlen(name)) + bwidth;
 	int ww;

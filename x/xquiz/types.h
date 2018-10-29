@@ -11,7 +11,7 @@ typedef struct link LINK;
 typedef size_t U;
 typedef size_t SZ;
 typedef ptrdiff_t I;
-typedef unsigned char C;
+typedef char C;
 typedef struct lst LST;
 typedef struct num NUM;
 typedef struct sym SYM;

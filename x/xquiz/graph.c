@@ -19,6 +19,8 @@
 #include "prompt.h"
 #include "main.h"
 #include "quiz.h"
+#include "button.h"
+#include "pulldown.h"
 #include "graph.h"
 
 void rmgraph(DSPOBJ *dspobj)
@@ -32,13 +34,13 @@ void rmgraph(DSPOBJ *dspobj)
 	free(graph);
 }
 
-void gbye(DSPOBJ *dspobj)
+void gbye(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	DSPOBJ *gd = dspobj->top;
 	dspclose(gd);
 }
 
-void goleft(DSPOBJ *dspobj)
+void goleft(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	double amnt;
 	GRAPH *graph;
@@ -50,7 +52,7 @@ void goleft(DSPOBJ *dspobj)
 	showgraph(dspobj);
 }
 
-void goright(DSPOBJ *dspobj)
+void goright(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	double amnt;
 	GRAPH *graph;
@@ -62,7 +64,7 @@ void goright(DSPOBJ *dspobj)
 	showgraph(dspobj);
 }
 
-void goup(DSPOBJ *dspobj)
+void goup(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	double amnt;
 	GRAPH *graph;
@@ -74,7 +76,7 @@ void goup(DSPOBJ *dspobj)
 	showgraph(dspobj);
 }
 
-void godown(DSPOBJ *dspobj)
+void godown(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	double amnt;
 	GRAPH *graph;
@@ -100,7 +102,7 @@ void setpoints1(DSPOBJ *dspobj)
 	showgraph(gwin);
 }
 
-void setpoints(DSPOBJ *dspobj)
+void setpoints(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	GRAPH *graph;
 	DSPOBJ *prompt;
@@ -145,7 +147,7 @@ void setconst(DSPOBJ *dspobj, int n)
 		 dspobj);
 }
 
-void goreset(DSPOBJ *dspobj)
+void goreset(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	double amnt;
 	GRAPH *graph;
@@ -196,7 +198,7 @@ void showgraph(DSPOBJ *dspobj)
 /* Bind variables */
 	for (x = 0; x != graph->nvars; x++) {
 		if (graph->vars[x]->bind)
-			discard(graph->vars[x]->bind);
+			discardnum(graph->vars[x]->bind);
 		graph->vars[x]->bind = newnum();
 		graph->vars[x]->bind->n = graph->vals[x];
 	}
@@ -280,7 +282,7 @@ void showgraph(DSPOBJ *dspobj)
 /* Unbind variables */
 	for (x = 0; x != graph->nvars; x++)
 		if (graph->vars[x]->bind)
-			discard(graph->vars[x]->bind), graph->vars[x]->bind = 0;
+			discardnum(graph->vars[x]->bind), graph->vars[x]->bind = 0;
 
 	xaxis =
 	    graph->top / (graph->top - graph->bottom) * (double)dspobj->height;
@@ -355,7 +357,7 @@ void showgraph(DSPOBJ *dspobj)
 	}
 }
 
-void gthelp(DSPOBJ *dspobj)
+void gthelp(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	int x, y;
 	dspobj = dspobj->in;
@@ -363,7 +365,7 @@ void gthelp(DSPOBJ *dspobj)
 	mkhelp(0, x + 50, y + 50, 640, 400, gtext);
 }
 
-void setline(DSPOBJ *dspobj)
+void setline(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	GRAPH *graph;
 	dspobj = dspobj->in;
@@ -398,7 +400,7 @@ void zoom(DSPOBJ *dspobj, XButtonEvent *ev)
 	}
 }
 
-void gtvars(DSPOBJ *dspobj, char **items, int *nitems)
+void gtvars(DSPOBJ *dspobj, char ***items, int *nitems)
 {
 	GRAPH *graph = dspobj->in->extend;
 	*items = graph->vnames;
@@ -413,7 +415,7 @@ DSPOBJ *mkgraph(DSPOBJ *in, int xx, int y, int width, int height, LST *eqn)
 	DSPOBJ *dspobj;
 	GRAPH *graph;
 	if (!eqn)
-		return;
+		return 0;
 	dspobj = dspopen(in, xx, y, width, height);
 	XStoreName(dsp, dspobj->win, "Graph");
 	XSetIconName(dsp, dspobj->win, "Graph");

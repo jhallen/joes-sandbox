@@ -16,14 +16,14 @@ struct dspobj
  int x,y;			/* Position of this window relative to 'in' */
 
  /* Member functions */
- int (*press)(DSPOBJ *obj, XEvent *ev);		/* Button press */
- int (*type)(DSPOBJ *obj, char c);		/* Accept a keyboard char (see 'keyobj') */
- int (*enter)(DSPOBJ *obj, XEvent *ev);		/* Mouse enter */
- int (*leave)(DSPOBJ *obj, XEvent *ev);		/* Mouse exit */
- int (*release)(DSPOBJ *obj, XEvent *ev);		/* Button release */
- int (*move)(DSPOBJ *obj, XEvent *ev);			/* Button motion */
- int (*show)(DSPOBJ *obj);			/* Display this object */
- int (*close)(DSPOBJ *obj);			/* Close this object - this handles whatever
+ void (*press)(DSPOBJ *obj, XButtonEvent *ev);		/* Button press */
+ void (*type)(DSPOBJ *obj, char c);		/* Accept a keyboard char (see 'keyobj') */
+ void (*enter)(DSPOBJ *obj, XEvent *ev);		/* Mouse enter */
+ void (*leave)(DSPOBJ *obj, XEvent *ev);		/* Mouse exit */
+ void (*release)(DSPOBJ *obj, XEvent *ev);		/* Button release */
+ void (*move)(DSPOBJ *obj, XEvent *ev);			/* Button motion */
+ void (*show)(DSPOBJ *obj);			/* Display this object */
+ void (*close)(DSPOBJ *obj);			/* Close this object - this handles whatever
                                    is in 'extend' */
 
  /* This is set if the size of the window changed.  I.E., so 'show' doesn't

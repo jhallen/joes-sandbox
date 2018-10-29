@@ -19,6 +19,10 @@
 #include "prompt.h"
 #include "main.h"
 #include "quiz.h"
+#include "button.h"
+#include "pulldown.h"
+#include "graph.h"
+#include "simplify.h"
 #include "work.h"
 
 LST **sel = 0;
@@ -51,12 +55,12 @@ void rmwork(DSPOBJ *gd)
 	free(work);
 }
 
-void wbye(DSPOBJ *dspobj)
+void wbye(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	dspclose(dspobj->top);
 }
 
-void wdone(DSPOBJ *dspobj)
+void wdone(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	WORK *work = dspobj->top->extend;
 	if (prompt) {
@@ -100,7 +104,7 @@ void showwork(DSPOBJ *dspobj)
 
 /* Undo system */
 
-void wundo(DSPOBJ *dspobj)
+void wundo(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	WORK *work = (dspobj = dspobj->top)->extend;
 	if (work->undo)
@@ -113,7 +117,7 @@ void wundo(DSPOBJ *dspobj)
 		}
 }
 
-void wredo(DSPOBJ *dspobj)
+void wredo(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	WORK *work = (dspobj = dspobj->top)->extend;
 	if (work->undo)
@@ -164,6 +168,7 @@ void wenter(DSPOBJ *prmt)
 				sheight, &n, 0, 0);
 	}
 }
+void wnew(DSPOBJ *dspobj);
 
 void wnew1(DSPOBJ *prmt)
 {
@@ -196,7 +201,7 @@ void wnew(DSPOBJ *dspobj)
 		     wnew1, dspobj);
 }
 
-void wsimp(DSPOBJ *dspobj)
+void wsimp(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	WORK *work = (dspobj = dspobj->in)->extend;
 	if (sel && work == selwork)
@@ -207,7 +212,7 @@ void wsimp(DSPOBJ *dspobj)
 	showwork(dspobj);
 }
 
-void wdist(DSPOBJ *dspobj)
+void wdist(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	WORK *work = (dspobj = dspobj->in)->extend;
 	if (sel && work == selwork)
@@ -218,7 +223,7 @@ void wdist(DSPOBJ *dspobj)
 	showwork(dspobj);
 }
 
-void wfactor(DSPOBJ *dspobj)
+void wfactor(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	WORK *work = (dspobj = dspobj->in)->extend;
 	if (sel && work == selwork)
@@ -259,7 +264,7 @@ void wsubst(DSPOBJ *dspobj, int n)
 	work->which = n;
 }
 
-void wgtvars(DSPOBJ *dspobj, char **items, int *nitems)
+void wgtvars(DSPOBJ *dspobj, char ***items, int *nitems)
 {
 	int z;
 	WORK *work = dspobj->in->extend;
@@ -288,7 +293,7 @@ void wbutton(DSPOBJ *dspobj, XButtonPressedEvent *ev)
 	showwork(dspobj);
 }
 
-void wgraph(DSPOBJ *dspobj)
+void wgraph(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	WORK *work = dspobj->in->extend;
 	if (sel && work == selwork)
@@ -324,7 +329,7 @@ Help for equation editor (click on help window to eliminate it)\n\
 \n\
 ";
 
-void whelp(DSPOBJ *dspobj)
+void whelp(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	int x, y;
 	dspobj = dspobj->in;
@@ -340,7 +345,7 @@ DSPOBJ *mkwork(DSPOBJ *in, int xx, int y, int width, int height, LST *eqn)
 	DSPOBJ *dspobj;
 	WORK *work;
 	if (!eqn)
-		return;
+		return 0;
 	dspobj = dspopen(in, xx, y, width, height);
 	XStoreName(dsp, dspobj->win, "Equation Editor");
 	XSetIconName(dsp, dspobj->win, "EqEdit");

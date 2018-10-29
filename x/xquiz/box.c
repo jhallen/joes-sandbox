@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdio.h>
 #include "types.h"
 #include "box.h"
 
@@ -14,7 +15,7 @@ static SYM *freesyms = 0;
 
 C *amalloc(U amnt)
 {
-	C *blk = malloc(amnt * 2);
+	C *blk = (C *)malloc(amnt * 2);
 	if ((U) blk % amnt)
 		return blk + amnt - ((U) blk % amnt);
 	else
@@ -74,7 +75,7 @@ SYM *newsym()
 	SYM *n;
 	if (!freesyms) {
 		n = (SYM *) amalloc(ALOCSIZE);
-		*(int *)&(n->s) = tSYM;
+		*(ptrdiff_t *)&(n->s) = tSYM;
 		freesyms = ++n;
 		while (n + 1 != freesyms + ALOCSIZE / sizeof(SYM) - 1)
 			n->r = n + 1, ++n;
@@ -113,23 +114,19 @@ void discard(LST *box)
 	if (!box)
 		return;
 	switch (typ(box)) {
-	case tSYM:
-		if (!--((SYM *) box)->cnt) {
-			;
-			/* Decrease reference count and delete if it becomes 0 */
-		}
-		return;
-	case tNUM:
-		box->r = freenums;
-		freenums = box;
-		return;
-	case tLST:
-		do {
-			discard(box->d);
-			nxt = box->r;
-			box->r = freelsts;
-			freelsts = box;
-		} while (box = nxt);
+		case tSYM:
+			discardsym((SYM *)box);
+			return;
+		case tNUM:
+			discardnum((NUM *)box);
+			return;
+		case tLST:
+			do {
+				discard(box->d);
+				nxt = box->r;
+				box->r = freelsts;
+				freelsts = box;
+			} while (box = nxt);
 /*
  down:
  prv=0, nxt=box->d;
@@ -159,6 +156,29 @@ void discard(LST *box)
 	}
 }
 
+void discardnum(NUM *num)
+{
+	if (!num)
+		return;
+	((LST *)num)->r = freenums;
+	freenums = (LST *)num;
+}
+
+void discardsym(SYM *sym)
+{
+	if (!sym)
+		return;
+	if (sym->cnt) {
+		if (!--sym->cnt) {
+			/* 
+			sym->r = freesyms;
+			freesyms = sym; */
+		}
+	} else {
+		printf("Double free of sym?\n");
+	}
+}
+
 /* Duplicate a list */
 
 LST *dup(LST *box)
@@ -167,25 +187,38 @@ LST *dup(LST *box)
 	if (!box)
 		return 0;
 	switch (typ(box)) {
-	case tSYM:
-		++((SYM *) box)->cnt;
-		return box;
-	case tNUM:
-		f = n = (LST *)newnum();
-		n->d = box->d;
-		n->r = box->r;
-		return f;
-	case tLST:
-		/* This shouldn't be recursive if d is a tLST */
-		f = n = newlst();
-		n->d = dup(box->d);
-		while (box->r) {
-			box = box->r;
-			n = n->r = newlst();
+		case tSYM:
+			return (LST *)dupsym((SYM *)box);
+		case tNUM:
+			return (LST *)dupnum((NUM *)box);
+		case tLST:
+			/* This shouldn't be recursive if d is a tLST */
+			f = n = newlst();
 			n->d = dup(box->d);
-		}
-		return f;
+			while (box->r) {
+				box = box->r;
+				n = n->r = newlst();
+				n->d = dup(box->d);
+			}
+			return f;
 	}
+	fprintf(stderr, "Unknown box type in dup?\n");
+	exit(-1);
+}
+
+NUM *dupnum(NUM *num)
+{
+	NUM *n = newnum();
+	n->n = num->n;
+	return n;
+}
+
+SYM *dupsym(SYM *sym)
+{
+	if (sym) {
+		++sym->cnt;
+	}
+	return sym;
 }
 
 /* Replace all occurences of the element 'ff' in the list 'box' with duplicates
@@ -200,27 +233,29 @@ LST *subst(LST *box, SYM *ff, LST *with)
 	if (!box)
 		return 0;
 	switch (typ(box)) {
-	case tSYM:
-		if ((SYM *)box == ff)
-			return dup(with);
-		++((SYM *)box)->cnt;
-		return box;
-	case tNUM:
-		f = n = (LST *)newnum();
-		n->d = box->d;
-		n->r = box->r;
-		return f;
-	case tLST:
-		/* This shouldn't be recursive if d is a tLST */
-		f = n = newlst();
-		n->d = subst(box->d, ff, with);
-		while (box->r) {
-			box = box->r;
-			n = n->r = newlst();
+		case tSYM:
+			if ((SYM *)box == ff)
+				return dup(with);
+			++((SYM *)box)->cnt;
+			return box;
+		case tNUM:
+			f = n = (LST *)newnum();
+			n->d = box->d;
+			n->r = box->r;
+			return f;
+		case tLST:
+			/* This shouldn't be recursive if d is a tLST */
+			f = n = newlst();
 			n->d = subst(box->d, ff, with);
-		}
-		return f;
+			while (box->r) {
+				box = box->r;
+				n = n->r = newlst();
+				n->d = subst(box->d, ff, with);
+			}
+			return f;
 	}
+	fprintf(stderr, "Unknown box type in subst?\n");
+	exit(-1);
 }
 
 /* Construct a list of n possibly empty elements */
@@ -334,7 +369,7 @@ LST *insert(LST *l, int n, int e)
 		return j;
 	}
 	--n;
-	p = &l;
+	p = (LST *)&l;
 	q = p->r;
 	while (n)
 		--n, p = p->r, q = q->r;

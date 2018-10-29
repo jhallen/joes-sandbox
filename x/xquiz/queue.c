@@ -1,35 +1,39 @@
 #include <stddef.h>
+#include <stdlib.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include "types.h"
 #include "queue.h"
+#include "xjunk.h"
+#include "display.h"
 
-LINK *enquefront(LINK *queue, LINK *item)
+DSPOBJ *enquefront(LINK *queue, DSPOBJ *item)
 {
-	item->next = queue->next;
-	item->prev = queue;
-	queue->next->prev = item;
+	item->link.next = queue->next;
+	item->link.prev = (DSPOBJ *)queue;
+	queue->next->link.prev = item;
 	queue->next = item;
 	return item;
 }
 
-LINK *enqueback(LINK *queue, LINK *item)
+DSPOBJ *enqueback(LINK *queue, DSPOBJ *item)
 {
-	item->next = queue;
-	item->prev = queue->prev;
-	queue->prev->next = item;
+	item->link.next = (DSPOBJ *)queue;
+	item->link.prev = queue->prev;
+	queue->prev->link.next = item;
 	queue->prev = item;
 	return item;
 }
 
-LINK *deque(LINK *item)
+DSPOBJ *deque(DSPOBJ *item)
 {
-	item->next->prev = item->prev;
-	item->prev->next = item->next;
+	item->link.next->link.prev = item->link.prev;
+	item->link.prev->link.next = item->link.next;
 	return item;
 }
 
-LINK *izqueue(LINK *queue)
+void izqueue(LINK *queue)
 {
-	queue->next = queue;
-	queue->prev = queue;
-	return queue;
+	queue->next = (DSPOBJ *)queue;
+	queue->prev = (DSPOBJ *)queue;
 }

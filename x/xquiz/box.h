@@ -20,7 +20,7 @@ struct sym {
 	I extra2;
 };
 
-#define ALOCSIZE ((ptrdiff_t)(1024))
+#define ALOCSIZE ((ptrdiff_t)(4096))
 
 /* Return the type of the box at the indicated address */
 
@@ -57,6 +57,8 @@ SYM *newsym();
 /* void discard(LST *box);  Recursively free boxes */
 
 void discard(LST *box);
+void discardnum(NUM *num);
+void discardsym(SYM *sym);
 
 /* LST *reverse(LST *box);  Reverse a list (the r part of it).  The new first
    box of the list is returned */
@@ -66,6 +68,8 @@ LST *reverse(LST *box);
 /* LST *dup(LST *box);  Recusively duplicate a list */
 
 LST *dup(LST *box);
+NUM *dupnum(NUM *num);
+SYM *dupsym(SYM *sym);
 
 /* LST *subst(LST *box,SYM *for,LST *with); Subtitute a symbol with with */
 
@@ -74,3 +78,5 @@ LST *subst(LST *box, SYM *fr, LST *with);
 /* LST *cons(LST *a,...); Construct a list */
 
 LST *cons(LST *a,...);
+
+LST *ncons(int sz, ...);

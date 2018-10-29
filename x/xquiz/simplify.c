@@ -6,8 +6,7 @@
 #include "box.h"
 #include "sym.h"
 #include "builtin.h"
-
-LST *simplify(LST *n, int r);
+#include "simplify.h"
 
 /* Evaluate */
 
