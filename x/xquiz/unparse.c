@@ -68,7 +68,7 @@ char *NTOS(NUM *n)
 
 int unwidth(LST *n, int prec)
 {
-	SYM *sy = n;
+	SYM *sy = (SYM *)n;
 	I w = 0;
 	C *s;
 	if (!n)
@@ -83,12 +83,12 @@ int unwidth(LST *n, int prec)
 		} else
 			return wwidth(((SYM *) n)->s);
 	case tNUM:
-		s = NTOS(n);
+		s = NTOS((NUM *)n);
 		w = wwidth(s);
 		free(s);
 		return w;
 	case tLST:
-		switch (sy = n->d, sy->type) {
+		switch (sy = (SYM *)n->d, sy->type) {
 		case tSYM:
 			if (sy == ySQRT) {
 				w = 21;
@@ -109,13 +109,13 @@ int unwidth(LST *n, int prec)
 				I b = unwidth(n->r->r->d, 0);
 				if (n->r->d)
 					if (typ(n->r->d) == tLST)
-						if (n->r->d->d == yDIV) {
+						if ((SYM *)n->r->d->d == yDIV) {
 							w += wwidth("()");
 							goto ovr;
 						}
 				if (n->r->r->d)
 					if (typ(n->r->r->d) == tLST)
-						if (n->r->r->d->d == yDIV)
+						if ((SYM *)n->r->r->d->d == yDIV)
 							w += wwidth("()");
  ovr:
 				if (a > b)
@@ -131,14 +131,14 @@ int unwidth(LST *n, int prec)
 				n = n->r;
 				if (sy == ySUB || sy == yDIV)
 					do {
-						w += unwidth(sy, sy->prec + 1);
+						w += unwidth((LST *)sy, sy->prec + 1);
 						w += unwidth(n->d,
 							     sy->prec + 1);
 						w += wwidth(" ");
 					} while (n = n->r);
 				else
 					do {
-						w += unwidth(sy, sy->prec);
+						w += unwidth((LST *)sy, sy->prec);
 						w += unwidth(n->d, sy->prec);
 						w += wwidth(" ");
 					} while (n = n->r);
@@ -152,7 +152,7 @@ int unwidth(LST *n, int prec)
 				w += 21;
 			if (sy->prec < prec)
 				w += wwidth("()");
-			w += unwidth(sy, sy->prec);
+			w += unwidth((LST *)sy, sy->prec);
 			w += unwidth(n->r->d, sy->prec);
 			return w + wwidth(" ") / 2;
 		}
@@ -171,7 +171,7 @@ int unheight(LST *n, int prec)
 	case tNUM:
 		return sheight;
 	case tLST:
-		switch (sy = n->d, sy->type) {
+		switch (sy = (SYM *)n->d, sy->type) {
 		case tSYM:
 			if (sy == ySQRT)
 				w = sheight + unheight(n->r->d, 0);
@@ -227,7 +227,7 @@ int unbase(LST *n, int prec)
 	case tNUM:
 		return 0;
 	case tLST:
-		switch (sy = n->d, sy->type) {
+		switch (sy = (SYM *)n->d, sy->type) {
 		case tSYM:
 			while (n = n->r) {
 				I z = unbase(n->d, 0);
@@ -263,7 +263,7 @@ int unbase(LST *n, int prec)
 void unparse(DSPOBJ *obj, int x, int y, LST **l, LST **sel, int prec)
 {
 	LST *n = *l;
-	SYM *sy = n;
+	SYM *sy = (SYM *)n;
 	C *s;
 	if (l == sel)
 		XSetForeground(dsp, obj->gc, magenta.pixel);
@@ -273,7 +273,7 @@ void unparse(DSPOBJ *obj, int x, int y, LST **l, LST **sel, int prec)
 	}
 	switch (typ(n)) {
 	case tSYM:
-		if (n == yNEG)
+		if ((SYM *)n == yNEG)
 			wrts(obj, x, y, "-");
 		else if (sy->bind && sy != yE && sy != yPI && sy != yI) {
 			s = NTOS(sy->bind);
@@ -283,12 +283,12 @@ void unparse(DSPOBJ *obj, int x, int y, LST **l, LST **sel, int prec)
 			wrts(obj, x, y, ((SYM *) n)->s);
 		goto done;
 	case tNUM:
-		s = NTOS(n);
+		s = NTOS((NUM *)n);
 		wrts(obj, x, y, s);
 		free(s);
 		goto done;
 	case tLST:
-		switch (sy = n->d, sy->type) {
+		switch (sy = (SYM *)n->d, sy->type) {
 		case tSYM:
 			if (sy == ySQRT) {
 				int h = unheight(n->r->d, 0);
@@ -330,13 +330,13 @@ void unparse(DSPOBJ *obj, int x, int y, LST **l, LST **sel, int prec)
 				I b = unwidth(n->r->r->d, 0);
 				if (n->r->d)
 					if (typ(n->r->d) == tLST)
-						if (n->r->d->d == yDIV) {
+						if ((SYM *)n->r->d->d == yDIV) {
 							w += wwidth("()");
 							goto ovr;
 						}
 				if (n->r->r->d)
 					if (typ(n->r->r->d) == tLST)
-						if (n->r->r->d->d == yDIV)
+						if ((SYM *)n->r->r->d->d == yDIV)
 							w += wwidth("()");
  ovr:
 				if (a > b)
@@ -373,9 +373,9 @@ void unparse(DSPOBJ *obj, int x, int y, LST **l, LST **sel, int prec)
 				if (sy == ySUB || sy == yDIV)
 					do {
 						x += wwidth(" ") / 2;
-						unparse(obj, x, y, &sy, 0,
+						unparse(obj, x, y, (LST **)&sy, 0,
 							sy->prec + 1);
-						x += unwidth(sy,
+						x += unwidth((LST *)sy,
 							     sy->prec + 1) +
 						    wwidth(" ") / 2;
 						unparse(obj, x, y, &n->d, sel,
@@ -387,9 +387,9 @@ void unparse(DSPOBJ *obj, int x, int y, LST **l, LST **sel, int prec)
 				else
 					do {
 						x += wwidth(" ") / 2;
-						unparse(obj, x, y, &sy, 0,
+						unparse(obj, x, y, (LST **)&sy, 0,
 							sy->prec);
-						x += unwidth(sy,
+						x += unwidth((LST *)sy,
 							     sy->prec) +
 						    wwidth(" ") / 2;
 						unparse(obj, x, y, &n->d, sel,
@@ -404,8 +404,8 @@ void unparse(DSPOBJ *obj, int x, int y, LST **l, LST **sel, int prec)
 		case tPREFIX:
 			if (sy->prec < prec)
 				wrt(obj, x, y, '('), x += wwidth("(");
-			unparse(obj, x, y, &sy, 0, sy->prec);
-			x += unwidth(sy, sy->prec) + wwidth(" ") / 2;
+			unparse(obj, x, y, (LST **)&sy, 0, sy->prec);
+			x += unwidth((LST *)sy, sy->prec) + wwidth(" ") / 2;
 			unparse(obj, x, y, &n->r->d, sel, sy->prec);
 			x += unwidth(n->r->d, sy->prec);
 			if (sy->prec < prec)
@@ -416,8 +416,8 @@ void unparse(DSPOBJ *obj, int x, int y, LST **l, LST **sel, int prec)
 				wrt(obj, x, y, '('), x += wwidth("(");
 			unparse(obj, x, y, &n->r->d, sel, sy->prec);
 			x += unwidth(n->r->d, sy->prec) + wwidth(" ") / 2;
-			unparse(obj, x, y, &sy, 0, sy->prec);
-			x += unwidth(sy, sy->prec);
+			unparse(obj, x, y, (LST **)&sy, 0, sy->prec);
+			x += unwidth((LST *)sy, sy->prec);
 			if (sy->prec < prec)
 				wrt(obj, x, y, ')');
 			goto done;
@@ -436,7 +436,7 @@ LST **findmouse(int x, int y, LST **lst, int prec)
 	int orgx = x, orgy = y;
 	LST **t;
 	LST *n = *lst;
-	SYM *sy = n;
+	SYM *sy = (SYM *)n;
 	C *s;
 	basex = x;
 	basey = y;
@@ -448,7 +448,7 @@ LST **findmouse(int x, int y, LST **lst, int prec)
 	}
 	switch (typ(n)) {
 	case tSYM:
-		if (n == yNEG)
+		if ((SYM *)n == yNEG)
 			if (wrtsmouse(x, y, "-"))
 				return lst;
 			else
@@ -466,7 +466,7 @@ LST **findmouse(int x, int y, LST **lst, int prec)
 		else
 			return 0;
 	case tNUM:
-		s = NTOS(n);
+		s = NTOS((NUM *)n);
 		if (wrtsmouse(x, y, s)) {
 			free(s);
 			return lst;
@@ -474,7 +474,7 @@ LST **findmouse(int x, int y, LST **lst, int prec)
 		free(s);
 		return 0;
 	case tLST:
-		switch (sy = n->d, sy->type) {
+		switch (sy = (SYM *)n->d, sy->type) {
 		case tSYM:
 			if (sy == ySQRT) {
 				int h = unheight(n->r->d, 0);
@@ -509,13 +509,13 @@ LST **findmouse(int x, int y, LST **lst, int prec)
 				I b = unwidth(n->r->r->d, 0);
 				if (n->r->d)
 					if (typ(n->r->d) == tLST)
-						if (n->r->d->d == yDIV) {
+						if ((SYM *)n->r->d->d == yDIV) {
 							w += wwidth("()");
 							goto ovr;
 						}
 				if (n->r->r->d)
 					if (typ(n->r->r->d) == tLST)
-						if (n->r->r->d->d == yDIV)
+						if ((SYM *)n->r->r->d->d == yDIV)
 							w += wwidth("()");
  ovr:
 				if (a > b)
@@ -573,13 +573,13 @@ LST **findmouse(int x, int y, LST **lst, int prec)
 					do {
 						x += wwidth(" ") / 2;
 						if (t =
-						    findmouse(x, y, &sy,
+						    findmouse(x, y, (LST **)&sy,
 							      sy->prec + 1)) {
 							basex = orgx;
 							basey = orgy;
 							return lst;
 						}
-						x += unwidth(sy,
+						x += unwidth((LST *)sy,
 							     sy->prec + 1) +
 						    wwidth(" ") / 2;
 						if (t =
@@ -594,13 +594,13 @@ LST **findmouse(int x, int y, LST **lst, int prec)
 					do {
 						x += wwidth(" ") / 2;
 						if (t =
-						    findmouse(x, y, &sy,
+						    findmouse(x, y, (LST **)&sy,
 							      sy->prec)) {
 							basex = orgx;
 							basey = orgy;
 							return lst;
 						}
-						x += unwidth(sy,
+						x += unwidth((LST *)sy,
 							     sy->prec) +
 						    wwidth(" ") / 2;
 						if (t =
@@ -620,7 +620,7 @@ LST **findmouse(int x, int y, LST **lst, int prec)
 				basey = orgy;
 				return lst;
 			}
-			x += unwidth(sy, sy->prec) + wwidth(" ") / 2;
+			x += unwidth((LST *)sy, sy->prec) + wwidth(" ") / 2;
 			return findmouse(x, y, &n->r->d, sy->prec);
 		case tPOSTFIX:
 			if (sy->prec < prec)
@@ -646,7 +646,7 @@ void apnd(C **str, C *s)
 
 void unparsetext(C **str, LST *n, int prec)
 {
-	SYM *sy = n;
+	SYM *sy = (SYM *)n;
 	C *s;
 	if (!n) {
 		*(*str)++ = '?';
@@ -654,7 +654,7 @@ void unparsetext(C **str, LST *n, int prec)
 	}
 	switch (typ(n)) {
 	case tSYM:
-		if (n == yNEG)
+		if ((SYM *)n == yNEG)
 			*(*str)++ = '-';
 		else if (sy->bind && sy != yE && sy != yPI && sy != yI) {
 			s = NTOS(sy->bind);
@@ -664,12 +664,12 @@ void unparsetext(C **str, LST *n, int prec)
 			apnd(str, ((SYM *) n)->s);
 		return;
 	case tNUM:
-		s = NTOS(n);
+		s = NTOS((NUM *)n);
 		apnd(str, s);
 		free(s);
 		return;
 	case tLST:
-		switch (sy = n->d, sy->type) {
+		switch (sy = (SYM *)n->d, sy->type) {
 		case tSYM:
 			apnd(str, sy->s);
 			*(*str)++ = '(';
@@ -688,13 +688,13 @@ void unparsetext(C **str, LST *n, int prec)
 			n = n->r;
 			if (sy == ySUB || sy == yDIV)
 				do {
-					unparsetext(str, sy, sy->prec + 1);
+					unparsetext(str, (LST *)sy, sy->prec + 1);
 					unparsetext(str, n->d, sy->prec + 1);
 				}
 				while (n = n->r);
 			else
 				do {
-					unparsetext(str, sy, sy->prec);
+					unparsetext(str, (LST *)sy, sy->prec);
 					unparsetext(str, n->d, sy->prec);
 				}
 				while (n = n->r);
@@ -704,7 +704,7 @@ void unparsetext(C **str, LST *n, int prec)
 		case tPREFIX:
 			if (sy->prec < prec)
 				*(*str)++ = '(';
-			unparsetext(str, sy, sy->prec);
+			unparsetext(str, (LST *)sy, sy->prec);
 			unparsetext(str, n->r->d, sy->prec);
 			if (sy->prec < prec)
 				*(*str)++ = ')';
@@ -713,7 +713,7 @@ void unparsetext(C **str, LST *n, int prec)
 			if (sy->prec < prec)
 				*(*str)++ = '(';
 			unparsetext(str, n->r->d, sy->prec);
-			unparsetext(str, sy, sy->prec);
+			unparsetext(str, (LST *)sy, sy->prec);
 			if (sy->prec < prec)
 				*(*str)++ = ')';
 			return;
@@ -731,7 +731,7 @@ void show(LST *n)
 			fputs(((SYM *) n)->s, stdout);
 			break;
 		case tNUM:
-			s = NTOS(n);
+			s = NTOS((NUM *)n);
 			fputs(s, stdout);
 			free(s);
 			break;

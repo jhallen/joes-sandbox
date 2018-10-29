@@ -37,7 +37,7 @@ void subshow(DSPOBJ *dspobj)
 	}
 }
 
-void subremove(DSPOBJ *dspobj, XEvent *ev)
+void subremove(DSPOBJ *dspobj, XCrossingEvent *ev)
 {
 	PULLDOWN *pulldown = dspobj->extend;
 	pulldown->sub = 0;

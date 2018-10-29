@@ -2,31 +2,33 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stddef.h>
+#include <string.h>
 #include "types.h"
 #include "box.h"
 #include "sym.h"
 #include "builtin.h"
+#include "quiz.h"
 #include "simplify.h"
 
 /* Evaluate */
 
 double ev(LST *n)
 {
-	SYM *sy = n;
+	SYM *sy = (SYM *)n;
 	if (n)
 		switch (typ(n)) {
 		case tNUM:
 			return ((NUM *) n)->n;
 		case tSYM:
-			if (n == yPI)
+			if (sy == yPI)
 				return M_PI;
-			if (n == yE)
+			if (sy == yE)
 				return M_E;
 			if (sy->bind)
 				return sy->bind->n;
 			return 0.0;
 		case tLST:
-			sy = n->d;
+			sy = (SYM *)n->d;
 			if (sy == yADD)
 				return ev(n->r->d) + ev(n->r->r->d);
 			if (sy == ySUB)
@@ -70,9 +72,9 @@ void genlist(LST *n, SYM **ll, I *nn)
 			if (((SYM *) n)->bind)
 				return;
 			for (x = 0; x != *nn; x++)
-				if (n == ll[x])
+				if ((SYM *)n == ll[x])
 					return;
-			ll[*nn] = n;
+			ll[*nn] = (SYM *)n;
 			*nn = *nn + 1;
 			return;
 		case tLST:
@@ -91,7 +93,7 @@ I isconst(LST *n)
 	if (typ(n) == tNUM)
 		return 1;
 	if (typ(n) == tSYM) {
-		SYM *sy = n;
+		SYM *sy = (SYM *)n;
 		if (sy->bind)
 			return 1;
 	}
@@ -102,7 +104,7 @@ I isfconst(LST *n)
 {
 	if (n)
 		if (typ(n) == tLST)
-			if (n->d == yDIV)
+			if ((SYM *)n->d == yDIV)
 				if (n->r->d)
 					if (typ(n->r->d) == tNUM)
 						if (n->r->r->d)
@@ -128,13 +130,13 @@ LST *extract(SYM *over0, SYM *over1, LST **tree, I *f)
 		*tree = 0;
 		return rtn;
 	}
-	if ((*tree)->d != over0 && (*tree)->d != over1) {
+	if ((SYM *)(*tree)->d != over0 && (SYM *)(*tree)->d != over1) {
 		rtn = *tree;
 		*tree = 0;
 		return rtn;
 	}
 	subtree = (*tree)->r->r->d;
-	if ((*tree)->d == over1)
+	if ((SYM *)(*tree)->d == over1)
 		(*f)++;
 	rtn = extract(over0, over1, &subtree, f);
 	if (subtree)
@@ -212,18 +214,18 @@ LST *deriv(LST *n, int flg, SYM *wrt)
 	if (!n)
 		return n;
 	if (typ(n) == tNUM)
-		return newnum();
+		return (LST *)newnum();
 
 	if (typ(n) == tSYM)
 		if (flg)
-			if (n == wrt)
-				return dup(yONE);
+			if ((SYM *)n == wrt)
+				return (LST *)dupnum(yONE);
 			else
-				return dup(yZERO);
+				return (LST *)dupnum(yZERO);
 		else
 			return ncons(2, yD, n);
 
-	sy = n->d;
+	sy = (SYM *)n->d;
 
 	if (sy == yNEG)
 		return simplify(ncons(2, yNEG, deriv(n->r->d, flg, wrt)), 0);
@@ -251,8 +253,8 @@ LST *deriv(LST *n, int flg, SYM *wrt)
 	} else if (sy == ySQRT)
 		return simplify(ncons(3, yMUL,
 				      ncons(3, yDIV,
-					    dup(yONE),
-					    ncons(3, yMUL, dup(yTWO), dup(n)
+					    dupnum(yONE),
+					    ncons(3, yMUL, dupnum(yTWO), dup(n)
 					    )
 				      ), deriv(n->r->d, flg, wrt)
 				), 0);
@@ -345,7 +347,7 @@ I match(LST *a, LST *b)
 			return 1;
 		else
 			return 0;
-	if (a->d == yADD || a->d == ySUB) {
+	if ((SYM *)a->d == yADD || (SYM *)a->d == ySUB) {
 		LST *q;
 		I f, nt = 0, x;
 		struct term {
@@ -380,7 +382,7 @@ I match(LST *a, LST *b)
 		free(terms);
 		return 0;
 	}
-	if (a->d == yMUL || a->d == yDIV) {
+	if ((SYM *)a->d == yMUL || (SYM *)a->d == yDIV) {
 		LST *q;
 		I f, nt = 0, x;
 		struct term {
@@ -435,7 +437,7 @@ LST *getconst(LST *q, double *t, double *b)
 	*b = 1.0;
 	if (q)
 		if (typ(q) == tLST) {
-			if (q->d == yMUL) {
+			if ((SYM *)q->d == yMUL) {
 				if (q->r->d && typ(q->r->d) == tNUM) {
 					LST *l;
 					*t = ((NUM *) q->r->d)->n;
@@ -444,12 +446,12 @@ LST *getconst(LST *q, double *t, double *b)
 					l->r->r->d = 0;
 					discard(l);
 				}
-			} else if (q->d == yDIV) {
+			} else if ((SYM *)q->d == yDIV) {
 				LST *qq = q->r->d;
 				if (qq && typ(qq) == tNUM)
 					*t = ((NUM *) qq)->n, ((NUM *) qq)->n =
 					    1.0;
-				else if (qq && typ(qq) == tLST && qq->d == yMUL
+				else if (qq && typ(qq) == tLST && (SYM *)qq->d == yMUL
 					 && qq->r->d && typ(qq->r->d) == tNUM) {
 					*t = ((NUM *) qq->r->d)->n;
 					q->r->d = qq->r->r->d;
@@ -464,7 +466,7 @@ LST *getconst(LST *q, double *t, double *b)
 					qq->r->d = 0;
 					discard(qq);
 				} else if (qq && typ(qq) == tLST
-					   && qq->d == yMUL && qq->r->d
+					   && (SYM *)qq->d == yMUL && qq->r->d
 					   && typ(qq->r->d) == tNUM) {
 					*b = ((NUM *) qq->r->d)->n;
 					q->r->r->d = qq->r->r->d;
@@ -483,7 +485,7 @@ LST *simplify(LST *n, int r)
 		return 0;
 	if (typ(n) != tLST)
 		return n;
-	switch (sy = n->d, sy->type) {
+	switch (sy = (SYM *)n->d, sy->type) {
 	case tINFIX:
 		n->r->d = simplify(n->r->d, r);
 		n->r->r->d = simplify(n->r->r->d, r);
@@ -501,7 +503,7 @@ LST *simplify(LST *n, int r)
 			    || ((d2 >= -1.0 && d2 <= 1.0) ? d1 >= 0.0 : 1))
 				if (d1 = pow(d1, d2), d1 == (double)(I) d1) {
 					discard(n);
-					n = newn(d1);
+					n = (LST *)newn(d1);
 				}
 			return n;
 		}
@@ -513,7 +515,7 @@ LST *simplify(LST *n, int r)
 				d = ((SYM *) n->r->r->d)->bind->n;
 			if (d == 0.0) {
 				discard(n);
-				n = newnum();
+				n = (LST *)newnum();
 				((NUM *) n)->n = 1.0;
 				return n;
 			}
@@ -527,7 +529,7 @@ LST *simplify(LST *n, int r)
 		if (sy == yEXP) {
 			if (n->r->d)
 				if (typ(n->r->d) == tLST)
-					if (n->r->d->d == yEXP) {
+					if ((SYM *)n->r->d->d == yEXP) {
 						LST *q = n->r->d;
 						q->r->r->d =
 						    simplify(ncons
@@ -582,9 +584,9 @@ LST *simplify(LST *n, int r)
 					if (f & 1)
 						t = -t;
 					if (b == 1.0)
-						new = newn(t);
+						new = (LST *)newn(t);
 					else if (t == 0.0 && b != 0.0)
-						new = newn(t);
+						new = (LST *)newn(t);
 					else
 						new =
 						    ncons(3, yDIV, newn(t),
@@ -680,7 +682,7 @@ LST *simplify(LST *n, int r)
 				t = -t, tadd = 1;
 
 			if (b == 1.0)
-				nu = newn(t);
+				nu = (LST *)newn(t);
 			else
 				nu = ncons(3, yDIV, newn(t), newn(b));
 
@@ -712,7 +714,7 @@ LST *simplify(LST *n, int r)
 			discard(nu);
 
 			if (fneg) {
-				nn->d = yNEG;
+				nn->d = (LST *)yNEG;
 				nn->r->d = nn->r->r->d;
 				nn->r->r->d = 0;
 				discard(nn->r->r);
@@ -721,33 +723,33 @@ LST *simplify(LST *n, int r)
 
 			n = tt;
  out:			;
-			if (n->d == yADD) {
+			if ((SYM *)n->d == yADD) {
 				LST *q;
 				if (n->r->r->d && typ(n->r->r->d) == tLST
-				    && n->r->r->d->d == yNEG) {
+				    && (SYM *)n->r->r->d->d == yNEG) {
  up:
 					q = n->r->r->d;
 					n->r->r->d = q->r->d;
 					q->r->d = 0;
 					discard(q);
-					n->d = ySUB;
+					n->d = (LST *)ySUB;
 				} else if (n->r->d && typ(n->r->d) == tLST
-					   && n->r->d->d == yNEG) {
+					   && (SYM *)n->r->d->d == yNEG) {
 					q = n->r->d;
 					n->r->d = n->r->r->d;
 					n->r->r->d = q;
 					goto up;
 				}
 			}
-			if (n->d == ySUB) {
+			if ((SYM *)n->d == ySUB) {
 				LST *q;
 				if (n->r->r->d && typ(n->r->r->d) == tLST
-				    && n->r->r->d->d == yNEG) {
+				    && (SYM *)n->r->r->d->d == yNEG) {
 					q = n->r->r->d;
 					n->r->r->d = q->r->d;
 					q->r->d = 0;
 					discard(q);
-					n->d = yADD;
+					n->d = (LST *)yADD;
 				}
 			}
 			return n;
@@ -806,7 +808,7 @@ LST *simplify(LST *n, int r)
 							goto ovr;
 						}
 					if (typ(q) == tLST)
-						if (q->d == yEXP) {
+						if ((SYM *)q->d == yEXP) {
 							tmp = q;
 							p = q->r->r->d;
 							q = q->r->d;
@@ -830,7 +832,7 @@ LST *simplify(LST *n, int r)
 								}
 							goto ovr1;
 						}
-					p = newn(1.0);
+					p = (LST *)newn(1.0);
  ovr1:
 					t[nt].term = q;
 					t[nt++].n =
@@ -843,8 +845,8 @@ LST *simplify(LST *n, int r)
 				for (j = 0; j != nt; ++j)
 					discard(t[j].term);
 				free(t);
-				discard(bc);
-				return tc;
+				discardnum(bc);
+				return (LST *)tc;
 			}
 
 			/* Build */
@@ -897,20 +899,20 @@ LST *simplify(LST *n, int r)
 
 			/* Multiply constants by other terms */
 			if (!tt)
-				tt = tc;
+				tt = (LST *)tc;
 			else if (tc->n == 1.0)
-				discard(tc);
+				discardnum(tc);
 			else {
 				nn = newlst();
-				nn->d = yMUL;
+				nn->d = (LST *)yMUL;
 				nn->r = newlst();
 				nn->r->r = newlst();
-				nn->r->d = tc;
+				nn->r->d = (LST *)tc;
 				nn->r->r->d = tt;
 				tt = nn;
 			}
 			if (!bb) {
-				bb = bc;
+				bb = (LST *)bc;
 				/* If only thing on bottom is 1.0 */
 				if (bc->n == 1.0) {
 					if (tadd)
@@ -918,13 +920,13 @@ LST *simplify(LST *n, int r)
 					return tt;
 				}
 			} else if (bc->n == 1.0)
-				discard(bc);
+				discardnum(bc);
 			else {
 				nn = newlst();
-				nn->d = yMUL;
+				nn->d = (LST *)yMUL;
 				nn->r = newlst();
 				nn->r->r = newlst();
-				nn->r->d = bc;
+				nn->r->d = (LST *)bc;
 				nn->r->r->d = bb;
 				bb = nn;
 			}
@@ -933,7 +935,7 @@ LST *simplify(LST *n, int r)
 			n = newlst();
 			n->r = newlst();
 			n->r->r = newlst();
-			n->d = yDIV;
+			n->d = (LST *)yDIV;
 			n->r->d = tt;
 			n->r->r->d = bb;
 			if (tadd)
@@ -955,35 +957,35 @@ LST *simplify(LST *n, int r)
 				NUM *nn = newnum();
 				nn->n = -d;
 				discard(n);
-				n = nn;
+				n = (LST *)nn;
 			} else if (sy == ySQRT && d >= 0.0) {
 				if (d == (double)((I) sqrt(d) * (I) sqrt(d))) {
 					NUM *nn = newnum();
 					nn->n = sqrt(d);
 					discard(n);
-					n = nn;
+					n = (LST *)nn;
 				}
 			} else if (sy == yLOG && d == 1.0) {
 				NUM *nn = newnum();
 				nn->n = 0.0;
 				discard(n);
-				n = nn;
+				n = (LST *)nn;
 			} else if (sy == yLOG && d == M_E) {
 				NUM *nn = newnum();
 				nn->n = 1.0;
 				discard(n);
-				n = nn;
+				n = (LST *)nn;
 			} else if (sy == yD || sy == yDERV) {
 				NUM *nn = newnum();
 				nn->n = 0.0;
 				discard(n);
-				n = nn;
+				n = (LST *)nn;
 			}
 		} else if (sy == yNEG) {
 			LST *nn;
 			if (n->r->d)
 				if (typ(n->r->d) == tLST)
-					if (n->r->d->d == yNEG) {
+					if (n->r->d->d == (LST *)yNEG) {
 						nn = n->r->d->r->d;
 						n->r->d->r->d = 0;
 						discard(n);
@@ -993,7 +995,7 @@ LST *simplify(LST *n, int r)
 			LST *nn, *q;
 			if (n->r->d)
 				if (typ(n->r->d) == tLST)
-					if (n->r->d->d == yEXP) {
+					if (n->r->d->d == (LST *)yEXP) {
 						nn = n->r->d->r->r->d;
 						q = n->r->d;
 						n->r->d = q->r->d;
@@ -1027,9 +1029,9 @@ LST *distribute(LST *n)
 		return n;
 	for (l = n->r; l; l = l->r)
 		l->d = distribute(l->d);
-	if (n->d == yMUL) {
+	if ((SYM *)n->d == yMUL) {
 		if (n->r->d && typ(n->r->d) == tLST
-		    && (n->r->d->d == yADD || n->r->d->d == ySUB)) {
+		    && ((SYM *)n->r->d->d == yADD || (SYM *)n->r->d->d == ySUB)) {
 			LST *z = n->r->d;
 			I f;
 			LST *q;
@@ -1070,8 +1072,8 @@ LST *distribute(LST *n)
 			n = nn;
 			n = distribute(n);
 		} else if (n->r->r->d && typ(n->r->r->d) == tLST
-			   && (n->r->r->d->d == yADD
-			       || n->r->r->d->d == ySUB)) {
+			   && ((SYM *)n->r->r->d->d == yADD
+			       || (SYM *)n->r->r->d->d == ySUB)) {
 			LST *z = n->r->r->d;
 			I f;
 			LST *q;
@@ -1130,31 +1132,31 @@ I isin(LST *n, LST *q)
 	return yes;
 }
 
-int rmv(LST *n, LST *q)
+LST *rmv(LST *n, LST *q)
 {
-	if (n && typ(n) == tLST && (n->d == yADD || n->d == ySUB)) {
+	if (n && typ(n) == tLST && ((SYM *)n->d == yADD || (SYM *)n->d == ySUB)) {
 		if (match(n->r->d, q)) {
 			discard(n->r->d);
-			n->r->d = newn(1.0);
+			n->r->d = (LST *)newn(1.0);
 		} else
 			n->r->d = rmv(n->r->d, q);
 		if (match(n->r->r->d, q)) {
 			discard(n->r->r->d);
-			n->r->r->d = newn(1.0);
+			n->r->r->d = (LST *)newn(1.0);
 		} else
 			n->r->r->d = rmv(n->r->r->d, q);
-	} else if (n && typ(n) == tLST && n->d == yMUL) {
+	} else if (n && typ(n) == tLST && (SYM *)n->d == yMUL) {
 		if (match(n->r->d, q)) {
 			discard(n->r->d);
-			n->r->d = newn(1.0);
+			n->r->d = (LST *)newn(1.0);
 		} else if (n->r->d && typ(n->r->d) == tLST
-			   && n->r->d->d == yMUL)
+			   && (SYM *)n->r->d->d == yMUL)
 			n->r->d = rmv(n->r->d, q);
 		if (match(n->r->r->d, q)) {
 			discard(n->r->r->d);
-			n->r->r->d = newn(1.0);
+			n->r->r->d = (LST *)newn(1.0);
 		} else if (n->r->r->d && typ(n->r->r->d) == tLST
-			   && n->r->r->d->d == yMUL)
+			   && (SYM *)n->r->r->d->d == yMUL)
 			n->r->r->d = rmv(n->r->r->d, q);
 	}
 	return n;
@@ -1179,23 +1181,23 @@ void clrmatch()
 	q = lookup("%0");
 	if (!q)
 		q = add("%0");
-	discard(q->bind), q->bind = 0;
+	discard((LST *)q->bind), q->bind = 0;
 	q = lookup("%1");
 	if (!q)
 		q = add("%1");
-	discard(q->bind), q->bind = 0;
+	discard((LST *)q->bind), q->bind = 0;
 	q = lookup("%2");
 	if (!q)
 		q = add("%2");
-	discard(q->bind), q->bind = 0;
+	discard((LST *)q->bind), q->bind = 0;
 	q = lookup("%3");
 	if (!q)
 		q = add("%3");
-	discard(q->bind), q->bind = 0;
+	discard((LST *)q->bind), q->bind = 0;
 	q = lookup("%4");
 	if (!q)
 		q = add("%4");
-	discard(q->bind), q->bind = 0;
+	discard((LST *)q->bind), q->bind = 0;
 }
 
 I patternmatch(LST *a, LST *b)
@@ -1208,10 +1210,10 @@ I patternmatch(LST *a, LST *b)
 	if (typ(a) == tSYM)
 		if (((SYM *) a)->s[0] == '%')
 			if (!((SYM *) a)->bind) {
-				((SYM *) a)->bind = dup(b);
+				((SYM *) a)->bind = (NUM *)dup(b);
 				return 1;
 			} else
-				return match(((SYM *) a)->bind, b);
+				return match((LST *)((SYM *) a)->bind, b);
 		else if (a == b)
 			return 1;
 		else
@@ -1245,7 +1247,7 @@ I shufflematch(LST *a, LST *b, LST *c)
 	if (typ(a) != tLST) {
 		return clrmatch(), patternmatch(b, c);
 	}
-	sy = a->d;
+	sy = (SYM *)a->d;
 	if (sy->type != tINFIX) {
 		return clrmatch(), patternmatch(b, c);
 	}
@@ -1295,50 +1297,50 @@ if(shufflematch(l,qp5,l)) { lookup("%1")->bind=newn(1.0); lookup("%2")->bind=new
  in:
 	discard(n);
 	return ncons(3, yMUL,
-		     ncons(3, ySUB, dup(lookup("%0")->bind),
+		     ncons(3, ySUB, dup((LST *)lookup("%0")->bind),
 			   ncons(3, yDIV,
 				 ncons(3, yADD,
-				       ncons(2, yNEG, dup(lookup("%2")->bind)),
+				       ncons(2, yNEG, dup((LST *)lookup("%2")->bind)),
 				       ncons(2, ySQRT,
 					     ncons(3, ySUB,
 						   ncons(3, yEXP,
-							 dup(lookup("%2")->
+							 dup((LST *)lookup("%2")->
 							     bind), newn(2.0)),
 						   ncons(3, yMUL, newn(4.0),
 							 ncons(3, yMUL,
-							       dup(lookup
+							       dup((LST *)lookup
 								   ("%1")->
 								   bind),
-							       dup(lookup
+							       dup((LST *)lookup
 								   ("%3")->
 								   bind))))
 				       )
 				 ),
 				 ncons(3, yMUL, newn(2.0),
-				       dup(lookup("%1")->bind))
+				       dup((LST *)lookup("%1")->bind))
 			   )
 		     ),
-		     ncons(3, ySUB, dup(lookup("%0")->bind),
+		     ncons(3, ySUB, dup((LST *)lookup("%0")->bind),
 			   ncons(3, yDIV,
 				 ncons(3, ySUB,
-				       ncons(2, yNEG, dup(lookup("%2")->bind)),
+				       ncons(2, yNEG, dup((LST *)lookup("%2")->bind)),
 				       ncons(2, ySQRT,
 					     ncons(3, ySUB,
 						   ncons(3, yEXP,
-							 dup(lookup("%2")->
+							 dup((LST *)lookup("%2")->
 							     bind), newn(2.0)),
 						   ncons(3, yMUL, newn(4.0),
 							 ncons(3, yMUL,
-							       dup(lookup
+							       dup((LST *)lookup
 								   ("%1")->
 								   bind),
-							       dup(lookup
+							       dup((LST *)lookup
 								   ("%3")->
 								   bind))))
 				       )
 				 ),
 				 ncons(3, yMUL, newn(2.0),
-				       dup(lookup("%1")->bind))
+				       dup((LST *)lookup("%1")->bind))
 			   )
 		     )
 	    );
@@ -1346,7 +1348,7 @@ if(shufflematch(l,qp5,l)) { lookup("%1")->bind=newn(1.0); lookup("%2")->bind=new
 	discard(l);
 	for (l = n->r; l; l = l->r)
 		l->d = factor(l->d);
-	if (n->d == yADD || n->d == ySUB) {
+	if ((SYM *)n->d == yADD || (SYM *)n->d == ySUB) {
 		LST *z = dup(n);
 		I f, j;
 		LST *q, *r;

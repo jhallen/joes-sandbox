@@ -7,6 +7,7 @@
 #include <X11/Xutil.h>
 #include <math.h>
 #include <stddef.h>
+#include <time.h>
 #include "types.h"
 #include "queue.h"
 #include "xjunk.h"
@@ -22,6 +23,8 @@
 #include "graph.h"
 #include "work.h"
 #include "simplify.h"
+#include "button.h"
+#include "pulldown.h"
 #include "main.h"
 
 DSPOBJ *top;
@@ -617,7 +620,7 @@ void ckey(DSPOBJ *obj, char c)
 	newproblem();
 }
 
-void ikey(int b, char c)
+void ikey(DSPOBJ *b, char c)
 {
 	++incorrect;
 	if (c == 't' || c == 'T') {
@@ -737,7 +740,7 @@ void work()
 		mkwork(0, x + 50, y + 50, 640, 200, dup(prob));
 }
 
-int gtlevels(DSPOBJ *dspobj, char **items, int *nitems)
+void gtlevels(DSPOBJ *dspobj, char ***items, int *nitems)
 {
 	*items = levels;
 	*nitems = nlevels;

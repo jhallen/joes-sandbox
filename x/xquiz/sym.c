@@ -18,7 +18,7 @@ void clrbinds()
 	for (x = 0; x != STSIZE; x++)
 		for (s = htab[x]; s; s = s->r)
 			if (s->bind && s != yE && s != yPI)
-				discard(s->bind), s->bind = 0;
+				discardnum(s->bind), s->bind = 0;
 }
 
 SYM *lookup(C *s)

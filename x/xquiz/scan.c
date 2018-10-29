@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdio.h>
 #include "types.h"
 #include "box.h"
 #include "builtin.h"
+#include "sym.h"
 #include "scan.h"
 
 C *ptr = 0;

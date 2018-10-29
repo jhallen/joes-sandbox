@@ -67,21 +67,21 @@ int main(int a, char *b[])
 			switch (ev.type) {
 			case EnterNotify:
 				if (dspobj->enter)
-					dspobj->enter(dspobj, &ev);
+					dspobj->enter(dspobj, (XCrossingEvent *)&ev);
 				break;
 			case LeaveNotify:
 				if (dspobj->leave)
-					dspobj->leave(dspobj, &ev);
+					dspobj->leave(dspobj, (XCrossingEvent *)&ev);
 				break;
 			case ButtonPress:
 				if (dspobj->top->trap)
 					dspobj = dspobj->top->trap;
 				if (dspobj->press)
-					dspobj->press(dspobj, (XButtonPressedEvent *)&ev);
+					dspobj->press(dspobj, (XButtonEvent *)&ev);
 				break;
 			case ButtonRelease:
 				if (dspobj->release)
-					dspobj->release(dspobj, &ev);
+					dspobj->release(dspobj, (XButtonEvent *)&ev);
 				break;
 			case KeyPress:
 				if (XLookupString((XKeyEvent *)&ev, kbuf, 1, 0, &status)) {
@@ -98,7 +98,7 @@ int main(int a, char *b[])
 				break;
 			case MotionNotify:
 				if (dspobj->move)
-					dspobj->move(dspobj, &ev);
+					dspobj->move(dspobj, (XMotionEvent *)&ev);
 				break;
 			}
 	}

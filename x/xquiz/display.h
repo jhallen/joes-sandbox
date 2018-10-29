@@ -18,10 +18,10 @@ struct dspobj
  /* Member functions */
  void (*press)(DSPOBJ *obj, XButtonEvent *ev);		/* Button press */
  void (*type)(DSPOBJ *obj, char c);		/* Accept a keyboard char (see 'keyobj') */
- void (*enter)(DSPOBJ *obj, XEvent *ev);		/* Mouse enter */
- void (*leave)(DSPOBJ *obj, XEvent *ev);		/* Mouse exit */
- void (*release)(DSPOBJ *obj, XEvent *ev);		/* Button release */
- void (*move)(DSPOBJ *obj, XEvent *ev);			/* Button motion */
+ void (*enter)(DSPOBJ *obj, XCrossingEvent *ev);		/* Mouse enter */
+ void (*leave)(DSPOBJ *obj, XCrossingEvent *ev);		/* Mouse exit */
+ void (*release)(DSPOBJ *obj, XButtonEvent *ev);		/* Button release */
+ void (*move)(DSPOBJ *obj, XMotionEvent *ev);			/* Button motion */
  void (*show)(DSPOBJ *obj);			/* Display this object */
  void (*close)(DSPOBJ *obj);			/* Close this object - this handles whatever
                                    is in 'extend' */

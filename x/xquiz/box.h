@@ -80,3 +80,6 @@ LST *subst(LST *box, SYM *fr, LST *with);
 LST *cons(LST *a,...);
 
 LST *ncons(int sz, ...);
+
+NUM *newn(double d);
+

@@ -6,8 +6,8 @@ struct pulldown {
 	int h;			/* Height of each item */
 	int w;			/* Width of widest item */
 	DSPOBJ *sub;		/* Set if submenu is on */
-	int (*gtitems)(DSPOBJ *dspobj, char ***items, int *nitems);	/* Get items */
-	int (*select)(DSPOBJ *dspobj, int n);	/* Function to execute when item is selected */
+	void (*gtitems)(DSPOBJ *dspobj, char ***items, int *nitems);	/* Get items */
+	void (*select)(DSPOBJ *dspobj, int n);	/* Function to execute when item is selected */
 	int which;		/* Line which is currently highlighted */
 };
 
