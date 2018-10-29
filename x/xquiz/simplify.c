@@ -8,6 +8,7 @@
 #include "sym.h"
 #include "builtin.h"
 #include "quiz.h"
+#include "unparse.h"
 #include "simplify.h"
 
 /* Evaluate */
@@ -228,7 +229,7 @@ LST *deriv(LST *n, int flg, SYM *wrt)
 	sy = (SYM *)n->d;
 
 	if (sy == yNEG)
-		return simplify(ncons(2, yNEG, deriv(n->r->d, flg, wrt)), 0);
+		return simplify(ncons(2, yNEG, deriv(n->r->d, flg, wrt)), 0, 0);
 
 	else if (sy == yEXP) {
 		return simplify(ncons(3, yADD,
@@ -249,7 +250,7 @@ LST *deriv(LST *n, int flg, SYM *wrt)
 						  ncons(2, yLOG, dup(n->r->d))
 					    ), deriv(n->r->r->d, flg, wrt)
 				      )
-				), 0);
+				), 0, 0);
 	} else if (sy == ySQRT)
 		return simplify(ncons(3, yMUL,
 				      ncons(3, yDIV,
@@ -257,7 +258,7 @@ LST *deriv(LST *n, int flg, SYM *wrt)
 					    ncons(3, yMUL, dupnum(yTWO), dup(n)
 					    )
 				      ), deriv(n->r->d, flg, wrt)
-				), 0);
+				), 0, 0);
 
 	else if (sy == yMUL)
 		return
@@ -273,7 +274,7 @@ LST *deriv(LST *n, int flg, SYM *wrt)
 									(n->r->
 									 d, flg,
 									 wrt))),
-			     0);
+			     0, 0);
 
 	else if (sy == yDIV) {
 		NUM *num = newnum();
@@ -289,20 +290,20 @@ LST *deriv(LST *n, int flg, SYM *wrt)
 						  deriv(n->r->r->d, flg, wrt)
 					    )
 				      ), ncons(3, yEXP, dup(n->r->r->d), num)
-				), 0);
+				), 0, 0);
 	}
 
 	else if (sy == yADD)
 		return
 		    simplify(ncons
 			     (3, yADD, deriv(n->r->d, flg, wrt),
-			      deriv(n->r->r->d, flg, wrt)), 0);
+			      deriv(n->r->r->d, flg, wrt)), 0, 0);
 
 	else if (sy == ySUB)
 		return
 		    simplify(ncons
 			     (3, ySUB, deriv(n->r->d, flg, wrt),
-			      deriv(n->r->r->d, flg, wrt)), 0);
+			      deriv(n->r->r->d, flg, wrt)), 0, 0);
 
 	else if (sy == yEQ)
 		return ncons(3, yEQ, deriv(n->r->d, flg, wrt),
@@ -312,14 +313,14 @@ LST *deriv(LST *n, int flg, SYM *wrt)
 		return
 		    simplify(ncons
 			     (3, yMUL, ncons(2, yCOS, dup(n->r->d)),
-			      deriv(n->r->d, flg, wrt)), 0);
+			      deriv(n->r->d, flg, wrt)), 0, 0);
 
 	else if (sy == yCOS)
 		return
 		    simplify(ncons
 			     (3, yMUL,
 			      ncons(2, yNEG, ncons(2, ySIN, dup(n->r->d))),
-			      deriv(n->r->d, flg, wrt)), 0);
+			      deriv(n->r->d, flg, wrt)), 0, 0);
 
 	if (flg)
 		return ncons(2, yDERV, dup(n));
@@ -478,17 +479,33 @@ LST *getconst(LST *q, double *t, double *b)
 	return q;
 }
 
-LST *simplify(LST *n, int r)
+void indent(int ind)
+{
+	while  (ind--)
+		printf(" ");
+}
+
+LST *simplify(LST *n, int r, int ind)
 {
 	SYM *sy;
-	if (!n)
+	indent(ind); printf("Simplify %d:", r); show(n); printf("\n");
+
+	ind += 4;
+
+	if (!n) {
+		indent(ind); printf("NULL list\n");
 		return 0;
-	if (typ(n) != tLST)
+	}
+
+	if (typ(n) != tLST) {
+		indent(ind); printf("not a list\n");
 		return n;
+	}
+
 	switch (sy = (SYM *)n->d, sy->type) {
 	case tINFIX:
-		n->r->d = simplify(n->r->d, r);
-		n->r->r->d = simplify(n->r->r->d, r);
+		n->r->d = simplify(n->r->d, r, ind);
+		n->r->r->d = simplify(n->r->r->d, r, ind);
 		if (sy == yEXP && isconst(n->r->d) && isconst(n->r->r->d)) {
 			double d1, d2;
 			if (typ(n->r->d) == tNUM)
@@ -535,7 +552,7 @@ LST *simplify(LST *n, int r)
 						    simplify(ncons
 							     (3, yMUL,
 							      q->r->r->d,
-							      n->r->r->d), r);
+							      n->r->r->d), r, ind);
 						n->r->r->d = 0;
 						n->r->d = 0;
 						discard(n);
@@ -607,7 +624,7 @@ LST *simplify(LST *n, int r)
 				}
 
 			for (x = 0; x != nt; ++x) {
-				terms[x].n = simplify(terms[x].n, r);
+				terms[x].n = simplify(terms[x].n, r, ind);
 				if (isconst(terms[x].n))
 					if (((NUM *) terms[x].n)->n < 0.0) {
 						((NUM *) terms[x].n)->n =
@@ -624,7 +641,7 @@ LST *simplify(LST *n, int r)
 									    terms
 									    [x].
 									    term),
-									   r));
+									   r, ind));
 							if (x == nt - 1)
 								fneg = 1;
 							goto or;
@@ -640,7 +657,7 @@ LST *simplify(LST *n, int r)
 									    terms
 									    [x].
 									    term),
-									   r));
+									   r, ind));
 							if (x == nt - 1)
 								fneg = 1;
 							goto or;
@@ -654,25 +671,25 @@ LST *simplify(LST *n, int r)
 								   (3, yMUL,
 								    terms[x].n,
 								    terms[x].
-								    term), r));
+								    term), r, ind));
 					else
 						nn->r->d =
 						    simplify(ncons
 							     (3, yMUL,
 							      terms[x].n,
 							      terms[x].term),
-							     r);
+							     r, ind);
 				else if (x != nt - 1)
 					tt = nn =
 					    ncons(3, yADD, 0,
 						  simplify(ncons
 							   (3, yMUL, terms[x].n,
-							    terms[x].term), r));
+							    terms[x].term), r, ind));
 				else
 					tt = nn =
 					    simplify(ncons
 						     (3, yMUL, terms[x].n,
-						      terms[x].term), r);
+						      terms[x].term), r, ind);
  or:				;
 			}
 
@@ -851,7 +868,7 @@ LST *simplify(LST *n, int r)
 
 			/* Build */
 			for (j = nt - 1; j >= 0; --j) {
-				t[j].n = simplify(t[j].n, r);
+				t[j].n = simplify(t[j].n, r, ind);
 				if (!isconst(t[j].n)) {
 					t[j].term =
 					    ncons(3, yEXP, t[j].term, t[j].n);
@@ -946,7 +963,7 @@ LST *simplify(LST *n, int r)
 	case tPREFIX:
 	case tPOSTFIX:
 	case tSYM:
-		n->r->d = simplify(n->r->d, r);
+		n->r->d = simplify(n->r->d, r, ind);
 		if (isconst(n->r->d)) {
 			double d;
 			if (typ(n->r->d) == tNUM)
@@ -1004,7 +1021,7 @@ LST *simplify(LST *n, int r)
 						discard(q);
 						n = simplify(ncons
 							     (3, yMUL, nn, n),
-							     r);
+							     r, ind);
 					}
 		} else if (sy == yD && r) {
 			LST *nn = deriv(n->r->d, 0, 0);
@@ -1381,7 +1398,7 @@ if(shufflematch(l,qp5,l)) { lookup("%1")->bind=newn(1.0); lookup("%2")->bind=new
 				discard(terms[j]);
 		}
 		if (r)
-			n = simplify(ncons(3, yMUL, r, n), 0);
+			n = simplify(ncons(3, yMUL, r, n), 0, 0);
 	}
 	return n;
 }

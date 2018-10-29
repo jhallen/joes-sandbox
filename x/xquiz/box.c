@@ -7,7 +7,7 @@
 #include "types.h"
 #include "box.h"
 
-static LST *freenums = 0;
+static NUM *freenums = 0;
 static LST *freelsts = 0;
 static SYM *freesyms = 0;
 
@@ -26,18 +26,28 @@ C *amalloc(U amnt)
 
 NUM *newnum()
 {
-	LST *n;
+#if 0
+	NUM *n = (NUM *)malloc(sizeof(NUM));
+	n->what = tNUM;
+	n->n = 0.0;
+	return n;
+#endif
+
+	NUM *n;
 	if (!freenums) {
-		n = (LST *) amalloc(ALOCSIZE);
-		*(ptrdiff_t *)(&n->d) = tNUM;
+		n = (NUM *) amalloc(ALOCSIZE);
+		printf("newnum: %p\n", n);
+		*(ptrdiff_t *)(&n->n) = tNUM;
 		freenums = ++n;
 		while (n + 1 != freenums + ALOCSIZE / sizeof(NUM) - 1)
-			n->r = n + 1, ++n;
-		n->r = 0;
+			*(NUM **)&(n->n) = n + 1, ++n;
+		*(NUM **)&(n->n) = 0;
+//		for (n = freenums; n; n = *(NUM **)&(n->n))
+//			printf("%p\n", n);
 	}
 	n = freenums;
-	freenums = n->r;
-	((NUM *) n)->n = 0.0;
+	freenums = *(NUM **)&(n->n);
+	n->n = 0.0;
 	return (NUM *)n;
 }
 
@@ -52,14 +62,25 @@ NUM *newn(double d)
 
 LST *newlst()
 {
+#if 0
+	LST *n = (LST *)malloc(sizeof(LST));
+	n->what = tLST;
+	n->r = 0;
+	n->d = 0;
+	return n;
+#endif
+
 	LST *n;
 	if (!freelsts) {
 		n = (LST *) amalloc(ALOCSIZE);
-		n->d = tLST;
+		printf("newlst: %p\n", n);
+		*(ptrdiff_t *)(&n->r) = tLST;
 		freelsts = ++n;
 		while (n + 1 != freelsts + ALOCSIZE / sizeof(LST) - 1)
 			n->r = n + 1, ++n;
 		n->r = 0;
+//		for (n = freelsts; n; n = n->r)
+//			printf("%p\n", n);
 	}
 	n = freelsts;
 	freelsts = n->r;
@@ -72,14 +93,29 @@ LST *newlst()
 
 SYM *newsym()
 {
+#if 0
+	SYM *n = (SYM *)malloc(sizeof(SYM));
+	n->what = tSYM;
+	n->r = 0;
+	n->s = 0;
+	n->cnt = 1;
+	n->prec = 0;
+	n->type = tSYM;
+	n->bind = 0;
+	return n;
+#endif
+
 	SYM *n;
 	if (!freesyms) {
 		n = (SYM *) amalloc(ALOCSIZE);
-		*(ptrdiff_t *)&(n->s) = tSYM;
+		printf("newsym: %p\n", n);
+		*(ptrdiff_t *)&(n->r) = tSYM;
 		freesyms = ++n;
 		while (n + 1 != freesyms + ALOCSIZE / sizeof(SYM) - 1)
 			n->r = n + 1, ++n;
 		n->r = 0;
+//		for (n = freesyms; n; n = n->r)
+//			printf("%p\n", n);
 	}
 	n = freesyms;
 	freesyms = n->r;
@@ -111,6 +147,7 @@ LST *reverse(LST *box)
 void discard(LST *box)
 {
 	LST *nxt, *tmp, *prv;
+//	return;
 	if (!box)
 		return;
 	switch (typ(box)) {
@@ -158,10 +195,11 @@ void discard(LST *box)
 
 void discardnum(NUM *num)
 {
+//	return;
 	if (!num)
 		return;
-	((LST *)num)->r = freenums;
-	freenums = (LST *)num;
+	*(NUM **)&(num->n) = freenums;
+	freenums = num;
 }
 
 void discardsym(SYM *sym)

@@ -205,9 +205,9 @@ void wsimp(DSPOBJ *dspobj, XButtonEvent *ev)
 {
 	WORK *work = (dspobj = dspobj->in)->extend;
 	if (sel && work == selwork)
-		*sel = simplify(*sel, 1);
+		*sel = simplify(*sel, 1, 0);
 	else
-		work->eqn = simplify(work->eqn, 1);
+		work->eqn = simplify(work->eqn, 1, 0);
 	undomark(work, work->eqn);
 	showwork(dspobj);
 }
@@ -217,8 +217,11 @@ void wdist(DSPOBJ *dspobj, XButtonEvent *ev)
 	WORK *work = (dspobj = dspobj->in)->extend;
 	if (sel && work == selwork)
 		*sel = distribute(*sel);
-	else
+	else {
 		work->eqn = distribute(work->eqn);
+		show(work->eqn);
+		printf("\n");
+	}
 	undomark(work, work->eqn);
 	showwork(dspobj);
 }

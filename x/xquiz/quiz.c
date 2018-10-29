@@ -632,7 +632,7 @@ void ikey(DSPOBJ *b, char c)
 		bm("");
 	} else if (c == 's' || c == 'S') {
 		ans = dup(curproblem->equation);
-		ans = simplify(ans, 0);
+		ans = simplify(ans, 0, 0);
 		bm("Hit any key to continue");
 		top->keyobj = top;
 		top->type = ckey;

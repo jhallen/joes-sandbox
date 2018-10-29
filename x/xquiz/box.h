@@ -1,15 +1,18 @@
 /* Box junk */
 
 struct lst {
+//	int what;
 	LST *r;
 	LST *d;
 };
 
 struct num {
+//	int what;
 	double n;
 };
 
 struct sym {
+//	int what;
 	SYM *r;			/* Next symbol with same hash value */
 	C *s;			/* Name of this symbol */
 	I cnt;			/* References to this symbol */
@@ -24,7 +27,8 @@ struct sym {
 
 /* Return the type of the box at the indicated address */
 
-#define typ(x) (*(1+(ptrdiff_t *)((ptrdiff_t)(x)&~(ALOCSIZE-1))))
+#define typ(x) (*(ptrdiff_t *)((ptrdiff_t)(x)&~(ALOCSIZE-1)))
+// #define typ(x) ((x)->what)
 
 /* BOX types */
 
