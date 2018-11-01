@@ -8,9 +8,6 @@ This is a program which gives a math quiz.
 
 Features:
 
-	* It attempts to check the answer symbolically, so that equivalent
-	  answers are accepted.
-
 	* As you type the answer in standard FORTRAN formula notation, it is
 	  displayed in standard math notation on the screen.
 
