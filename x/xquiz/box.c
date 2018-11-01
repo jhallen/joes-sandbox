@@ -26,13 +26,6 @@ C *amalloc(U amnt)
 
 NUM *newnum()
 {
-#if 0
-	NUM *n = (NUM *)malloc(sizeof(NUM));
-	n->what = tNUM;
-	n->n = 0.0;
-	return n;
-#endif
-
 	NUM *n;
 	if (!freenums) {
 		n = (NUM *) amalloc(ALOCSIZE);
@@ -42,8 +35,6 @@ NUM *newnum()
 		while (n + 1 != freenums + ALOCSIZE / sizeof(NUM) - 1)
 			*(NUM **)&(n->n) = n + 1, ++n;
 		*(NUM **)&(n->n) = 0;
-//		for (n = freenums; n; n = *(NUM **)&(n->n))
-//			printf("%p\n", n);
 	}
 	n = freenums;
 	freenums = *(NUM **)&(n->n);
@@ -62,14 +53,6 @@ NUM *newn(double d)
 
 LST *newlst()
 {
-#if 0
-	LST *n = (LST *)malloc(sizeof(LST));
-	n->what = tLST;
-	n->r = 0;
-	n->d = 0;
-	return n;
-#endif
-
 	LST *n;
 	if (!freelsts) {
 		n = (LST *) amalloc(ALOCSIZE);
@@ -79,8 +62,6 @@ LST *newlst()
 		while (n + 1 != freelsts + ALOCSIZE / sizeof(LST) - 1)
 			n->r = n + 1, ++n;
 		n->r = 0;
-//		for (n = freelsts; n; n = n->r)
-//			printf("%p\n", n);
 	}
 	n = freelsts;
 	freelsts = n->r;
@@ -93,18 +74,6 @@ LST *newlst()
 
 SYM *newsym()
 {
-#if 0
-	SYM *n = (SYM *)malloc(sizeof(SYM));
-	n->what = tSYM;
-	n->r = 0;
-	n->s = 0;
-	n->cnt = 1;
-	n->prec = 0;
-	n->type = tSYM;
-	n->bind = 0;
-	return n;
-#endif
-
 	SYM *n;
 	if (!freesyms) {
 		n = (SYM *) amalloc(ALOCSIZE);
@@ -114,8 +83,6 @@ SYM *newsym()
 		while (n + 1 != freesyms + ALOCSIZE / sizeof(SYM) - 1)
 			n->r = n + 1, ++n;
 		n->r = 0;
-//		for (n = freesyms; n; n = n->r)
-//			printf("%p\n", n);
 	}
 	n = freesyms;
 	freesyms = n->r;
@@ -147,7 +114,6 @@ LST *reverse(LST *box)
 void discard(LST *box)
 {
 	LST *nxt, *tmp, *prv;
-//	return;
 	if (!box)
 		return;
 	switch (typ(box)) {
@@ -195,7 +161,6 @@ void discard(LST *box)
 
 void discardnum(NUM *num)
 {
-//	return;
 	if (!num)
 		return;
 	*(NUM **)&(num->n) = freenums;

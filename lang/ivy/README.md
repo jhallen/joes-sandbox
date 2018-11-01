@@ -87,12 +87,12 @@ word compare.
 ## Closures
 
 Ivy has closures: you can define functions inside others, and then return
-them.  The returned function still have access to the creating function's
+them.  The returned function still has access to the creating function's
 scope at the time of creation.
 
 Ivy has lambda (nameless) functions.
 
-	print fn(x,x*x)(7)	# Prints 49
+	print fn((x),x*x)(7)	# Prints 49
 
 Ivy has named argument passing and default argument values:
 

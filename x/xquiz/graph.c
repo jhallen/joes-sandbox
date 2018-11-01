@@ -21,6 +21,7 @@
 #include "quiz.h"
 #include "button.h"
 #include "pulldown.h"
+#include "simplify.h"
 #include "graph.h"
 
 void rmgraph(DSPOBJ *dspobj)
