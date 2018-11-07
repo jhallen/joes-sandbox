@@ -48,7 +48,7 @@ LST *newlst();
 /* NUM *newnum(void);  Allocate a new NUM box.  Both r and d in the new box
    will be set to zero */
 
-NUM *newnum();
+NUM *newnum(double d);
 
 /* SYM *newsym(void);  Allocate a new SYM */
 
@@ -80,6 +80,3 @@ LST *subst(LST *box, SYM *fr, LST *with);
 LST *cons(LST *a,...);
 
 LST *ncons(int sz, ...);
-
-NUM *newn(double d);
-

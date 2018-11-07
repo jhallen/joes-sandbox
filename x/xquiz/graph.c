@@ -200,8 +200,7 @@ void showgraph(DSPOBJ *dspobj)
 	for (x = 0; x != graph->nvars; x++) {
 		if (graph->vars[x]->bind)
 			discardnum(graph->vars[x]->bind);
-		graph->vars[x]->bind = newnum();
-		graph->vars[x]->bind->n = graph->vals[x];
+		graph->vars[x]->bind = newnum(graph->vals[x]);
 	}
 
 /* Generate graph */

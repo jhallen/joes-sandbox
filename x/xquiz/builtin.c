@@ -48,11 +48,9 @@ SYM *ydot;
 
 void builtin()
 {
-	yZERO = newnum();
-	yONE = newnum();
-	yONE->n = 1.0;
-	yTWO = newnum();
-	yTWO->n = 2.0;
+	yZERO = newnum(0.0);
+	yONE = newnum(1.0);
+	yTWO = newnum(2.0);
 	yFACT = add("!");
 	yFACT->prec = 22;
 	yFACT->type = tPOSTFIX;
@@ -92,11 +90,9 @@ void builtin()
 	yI = add("%i");
 
 	yE = add("e");
-	yE->bind = newnum();
-	yE->bind->n = M_E;
+	yE->bind = newnum(M_E);
 	yPI = add("pi");
-	yPI->bind = newnum();
-	yPI->bind->n = M_PI;
+	yPI->bind = newnum(M_PI);
 
 	ySQRT = add("sqrt");
 	yABS = add("abs");

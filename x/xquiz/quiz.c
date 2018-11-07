@@ -527,8 +527,7 @@ int rcheck(double a, LST *b, double *rndms, int n, int *map, int m, SYM **vb)
 		for (y = 0; y != x; y++)
 			while (map[++z]) ;
 		map[z] = 1;
-		vb[n - m]->bind = newnum();
-		vb[n - m]->bind->n = rndms[z];
+		vb[n - m]->bind = newnum(rndms[z]);
 		if (rcheck(a, b, rndms, n, map, m - 1, vb)) {
 			discardnum(vb[n - m]->bind);
 			vb[n - m]->bind = 0;
@@ -559,8 +558,7 @@ int check(LST *a, LST *b, SYM **sy, int sys)
 	for (x = 0; x != sys; x++) {
 		if (sy[x]->bind)
 			discardnum(sy[x]->bind);
-		sy[x]->bind = newnum();
-		sy[x]->bind->n = (double)(random() % 100) / 20.0 + .1;
+		sy[x]->bind = newnum((double)(random() % 100) / 20.0 + .1);
 	}
 
 /* Determine what the remaining constants are */
@@ -599,7 +597,7 @@ int check(LST *a, LST *b, SYM **sy, int sys)
 		rndms[x] = (double)(random() % 100) / 20.0 + .1;
 /* Bind numbers */
 	for (x = 0; x != na; x++)
-		va[x]->bind = newnum(), va[x]->bind->n = rndms[x];
+		va[x]->bind = newnum(rndms[x]);
 /* Get a */
 	eva = ev(a);
 	for (x = 0; x != na; x++)
@@ -687,8 +685,7 @@ void newproblem()
 		I r = random() % ((rndm->to - rndm->from) * rndm->steps);
 		double rr =
 		    (double)r / (double)rndm->steps + (double)rndm->from;
-		rndm->sy->bind = newnum();
-		rndm->sy->bind->n = rr;
+		rndm->sy->bind = newnum(rr);
 	}
 	ans = 0;
 	showscrn(top);

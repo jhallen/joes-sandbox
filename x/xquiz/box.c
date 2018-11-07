@@ -24,7 +24,7 @@ C *amalloc(U amnt)
 
 /* Create a new number */
 
-NUM *newnum()
+NUM *newnum(double d)
 {
 	NUM *n;
 	if (!freenums) {
@@ -48,15 +48,8 @@ NUM *newnum()
 	//printf("newnum->%p\n", freenums);
 	n = freenums;
 	freenums = *(NUM **)&(n->n);
-	n->n = 0.0;
-	return (NUM *)n;
-}
-
-NUM *newn(double d)
-{
-	NUM *n = newnum();
 	n->n = d;
-	return n;
+	return (NUM *)n;
 }
 
 /* Create a new list */
@@ -223,9 +216,7 @@ LST *dup(LST *box)
 
 NUM *dupnum(NUM *num)
 {
-	NUM *n = newnum();
-	n->n = num->n;
-	return n;
+	return newnum(num->n);
 }
 
 SYM *dupsym(SYM *sym)

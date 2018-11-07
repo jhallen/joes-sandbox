@@ -150,7 +150,7 @@ TOKEN *gettok()
 	}
 	if (*ptr >= '0' && *ptr <= '9' || *ptr == '.') {
 		t->type = tNUM;
-		t->num = newnum();
+		t->num = newnum(0.0);
 		sscanf(ptr, "%lf", &t->num->n);
 		while (*ptr >= '0' && *ptr <= '9' || *ptr == '.' || *ptr == 'e'
 		       || *ptr == 'E')
