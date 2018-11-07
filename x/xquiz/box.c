@@ -1,8 +1,8 @@
 /* Basic list management functions */
 
 #include <stdarg.h>
-#include <stdlib.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include "types.h"
 #include "box.h"
@@ -29,13 +29,23 @@ NUM *newnum()
 	NUM *n;
 	if (!freenums) {
 		n = (NUM *) amalloc(ALOCSIZE);
-		printf("newnum: %p\n", n);
+		// printf("newnum: %p %d\n", n, sizeof(NUM));
 		*(ptrdiff_t *)(&n->n) = tNUM;
 		freenums = ++n;
 		while (n + 1 != freenums + ALOCSIZE / sizeof(NUM) - 1)
 			*(NUM **)&(n->n) = n + 1, ++n;
 		*(NUM **)&(n->n) = 0;
+		// for (n = freenums; n; n = *(NUM **)&(n->n)) {
+		// 	printf("%p\n", n);
+		// }
 	}
+	// printf("Freenum ");
+	// for (n = freenums; n; n = *(NUM **)&(n->n)) {
+	//	printf(" %p", n);
+	//}
+	//printf("\n");
+
+	//printf("newnum->%p\n", freenums);
 	n = freenums;
 	freenums = *(NUM **)&(n->n);
 	n->n = 0.0;
@@ -56,7 +66,7 @@ LST *newlst()
 	LST *n;
 	if (!freelsts) {
 		n = (LST *) amalloc(ALOCSIZE);
-		printf("newlst: %p\n", n);
+		//printf("newlst: %p\n", n);
 		*(ptrdiff_t *)(&n->r) = tLST;
 		freelsts = ++n;
 		while (n + 1 != freelsts + ALOCSIZE / sizeof(LST) - 1)
@@ -114,6 +124,7 @@ LST *reverse(LST *box)
 void discard(LST *box)
 {
 	LST *nxt, *tmp, *prv;
+	return;
 	if (!box)
 		return;
 	switch (typ(box)) {
@@ -161,6 +172,7 @@ void discard(LST *box)
 
 void discardnum(NUM *num)
 {
+	return;
 	if (!num)
 		return;
 	*(NUM **)&(num->n) = freenums;
@@ -239,13 +251,10 @@ LST *subst(LST *box, SYM *ff, LST *with)
 		case tSYM:
 			if ((SYM *)box == ff)
 				return dup(with);
-			++((SYM *)box)->cnt;
-			return box;
+			else
+				return dup(box);
 		case tNUM:
-			f = n = (LST *)newnum();
-			n->d = box->d;
-			n->r = box->r;
-			return f;
+			return dup(box);
 		case tLST:
 			/* This shouldn't be recursive if d is a tLST */
 			f = n = newlst();
