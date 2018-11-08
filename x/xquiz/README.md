@@ -8,7 +8,7 @@ happy with single space per-level indentation, but 50 year old me does not
 like it).
 
 This was work for my [IQP at WPI](https://www.wpi.edu/academics/undergraduate/interactive-qualifying-project). 
-The IRQ is supposed to be a project outside your major- well I was an EE
+The IQP is supposed to be a project outside your major- well I was an EE
 major and this was a CS / Math project, but still kind of close...  This was
 a two person project: I wrote the code and my partner wrote the thesis.
 
