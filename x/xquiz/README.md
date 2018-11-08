@@ -2,7 +2,7 @@
 
 This program gives a math quiz, but includes a computer algebra system.  It
 was written in 1990.  I recently cleaned up the code so that it would
-compile on Ubuntu.  This included fixing many warning, remove assumption
+compile on Ubuntu.  This included fixing many warnings, removing the assumption
 that the system is 32-bits and re-indenting the code (22 year old me was
 happy with single space per-level indentation, but 50 year old me does not
 like it).
@@ -16,9 +16,10 @@ The advisor's original idea was to use
 [Prolog](https://en.wikipedia.org/wiki/Prolog) and to try to symbolically
 prove that any variation of the answer that the student might enter matched
 the correct answer.  But I did not think Prolog was appropriate for the mundane
-tasks of an X Windowing system program, so I ended up writing it in C.  LISP
+tasks of an X Window System program, so I ended up writing it in C.  LISP
 would have been a better choice, but I don't think LISP's integration with X
-was so great at that time, and in any case I knew C and did not know LISP.
+was so great at that time, and in any case I knew C and did not know LISP. 
+Also, it checked the answer numerically not symbolically.
 
 At the time I was fascinated by
 [Macsyma](https://en.wikipedia.org/wiki/Macsyma) and wanted to learn how to
