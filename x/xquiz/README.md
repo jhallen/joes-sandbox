@@ -24,6 +24,8 @@ At the time I was fascinated by
 [Macsyma](https://en.wikipedia.org/wiki/Macsyma) and wanted to learn how to
 make one.
 
+The code was originally developed on a MIPS [DECStation 3100](https://en.wikipedia.org/wiki/DECstation).
+
 ## Features
 
 * As you type the answer in standard FORTRAN formula notation, it is typeset in standard math notation on the screen.
