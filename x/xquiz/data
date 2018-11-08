@@ -1,4 +1,4 @@
-:section main
+:section Main section
 :problem
 Perform the following derivative:
 |y=D(b*x^c)/D(x)
