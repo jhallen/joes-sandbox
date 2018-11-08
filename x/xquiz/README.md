@@ -1,7 +1,11 @@
 # Math Quiz / Computer Algebra System for X
 
 This program gives a math quiz, but includes a computer algebra system.  It
-was written in 1990.
+was written in 1990.  I recently cleaned up the code so that it would
+compile on a modern Ubuntu system.  This included fixing many warning,
+remove assumption that the system is 32-bits and re-indenting the code (22
+year old me was happy with single space per-level indentation, but 50 year
+old me does not like it).
 
 This was work for my [IQP at WPI](https://www.wpi.edu/academics/undergraduate/interactive-qualifying-project). 
 This was a two person project: I wrote the code and my partner wrote the
@@ -151,5 +155,31 @@ Wolfram Alpha provides the same answer:
 
 ![Deriv4](pics/qq.png)
 
-## Hints
+## The code
 
+The scan.c and parse.c parse entered equations into a LISP-like list.
+
+box.c defines these lists.  Lists are made up of list nodes, numbers or
+symbols.  Each of these are allocated out of a page.  The header of the page
+determines the type of the item (list node, number or symbol).  Some classic
+LISP systems used this technique.
+
+There is no garbage collection, but there should be.  Lists can be directly
+freed.
+
+Sym.c has symbol lookup functions and builtin.c has known initial symbols. 
+Symbols can be bound to values for the purpose of evaluation (for example
+when graphing).
+
+Button.c, display.c, main.c, msg.c, pulldown.c and xjunk.c provide a tiny X
+widget library (only Xlib is required to build the program).  Main.c has X
+event handler.  dspfind() is a key function: it locates the widget structure
+based on the Window number returned in the X event.  Once this is located,
+the event is delivered to a member function of the widget.
+
+Unparse.c typesets equations.  It also can find the source list node based
+on the mouse coordinate.  This how you can select a part of the equation
+with the mouse.
+
+Simplify.c has code for simplification (including differentiation),
+factoring and distributing.
