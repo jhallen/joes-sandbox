@@ -22,7 +22,11 @@ was so great at that time, and in any case I knew C and did not know LISP.
 
 At the time I was fascinated by
 [Macsyma](https://en.wikipedia.org/wiki/Macsyma) and wanted to learn how to
-make one.
+make one.  I think I wanted to write a new programming language for this
+project, but that was way too ambitious, but I know I spent time on it.  It
+was already too ambitious to try to make a Macsyma clone, I'm sure it drove
+my partner nuts.  In retrospect, the most valuable skill learned was how to
+program for the X Window System.
 
 The code was originally developed on a MIPS [DECStation 3100](https://en.wikipedia.org/wiki/DECstation).
 
