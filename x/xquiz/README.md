@@ -2,10 +2,10 @@
 
 This program gives a math quiz, but includes a computer algebra system.  It
 was written in 1990.  I recently cleaned up the code so that it would
-compile on a modern Ubuntu system.  This included fixing many warning,
-remove assumption that the system is 32-bits and re-indenting the code (22
-year old me was happy with single space per-level indentation, but 50 year
-old me does not like it).
+compile on Ubuntu.  This included fixing many warning, remove assumption
+that the system is 32-bits and re-indenting the code (22 year old me was
+happy with single space per-level indentation, but 50 year old me does not
+like it).
 
 This was work for my [IQP at WPI](https://www.wpi.edu/academics/undergraduate/interactive-qualifying-project). 
 This was a two person project: I wrote the code and my partner wrote the
