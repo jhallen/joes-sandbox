@@ -8,8 +8,9 @@ happy with single space per-level indentation, but 50 year old me does not
 like it).
 
 This was work for my [IQP at WPI](https://www.wpi.edu/academics/undergraduate/interactive-qualifying-project). 
-This was a two person project: I wrote the code and my partner wrote the
-thesis.
+The IRQ is supposed to be a project outside your major- well I was an EE
+major and this was a CS / Math project, but still kind of close...  This was
+a two person project: I wrote the code and my partner wrote the thesis.
 
 The advisor's original idea was to use
 [Prolog](https://en.wikipedia.org/wiki/Prolog) and to try to symbolically
