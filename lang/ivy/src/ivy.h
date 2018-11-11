@@ -36,7 +36,6 @@ typedef struct val Val;		/* A value */
 typedef struct str Str;		/* A string */
 typedef struct obj Obj;		/* An object */
 typedef struct var Var;		/* A variable */
-typedef struct pos Pos;		/* A string position */
 
 typedef struct entry Entry;	/* A hash table entry */
 typedef unsigned char Pseudo;	/* Byte code */
@@ -53,11 +52,9 @@ struct val {
 	union {
 		long long num;	/* An integer */
 		double fp;	/* Floating point */
-		Var *var;	/* A variable */
 		Str *str;	/* A string */
 		Fun *fun;	/* A function */
 		Obj *obj;	/* An object */
-		Pos *pos;	/* A string position */
 		struct callfunc *callfunc; /* Only in tRET_IVY */
 		void (*func)();	/* Some kind of function address */
 		char *name;	/* An atom */
@@ -74,12 +71,10 @@ enum {
 	tSTR,			/* String */
 	tNAM,			/* A name (an atom) */
 	tOBJ,			/* Object */
-	tVAR,			/* A variable */
 	tFUN,			/* A function in its context */
 	tFUNC,			/* A function */
 	tLST,			/* List count (only on stack) */
 	tNARG,			/* Named argument (only on stack) */
-	tPOS,			/* A string position (only on stack) */
 	tVOID,			/* Nothing */
 	tFP,			/* Floating point */
 	tRET_IVY,		/* Normal function return */
@@ -223,14 +218,6 @@ struct str {
 	int len;		/* Size of string */
 };
 
-/* A string position */
-
-struct pos {
-	Ref ref;		/* Reference count or mark */
-	Val var;		/* The string variable */
-	int pos;		/* Offset into string */
-};
-
 /* A function */
 
 struct func {
@@ -257,11 +244,7 @@ struct fun {
 
 struct obj {
 	Ref ref;		/* Reference count or mark */
-#ifdef ONEXT
-	Obj *next;		/* Next outer scoping level or NULL for root */
-#else
 				/* Next outer scoping level is in mom */
-#endif
 
 	Entry **tab;		/* Hash table of 'ENTRY' pointers */
 	int size;		/* No. of ENTRY pointers in 'tab' array */
@@ -372,9 +355,6 @@ void rmvar(Var *, int line);		/* Delete a variable */
 
 Str *mkstr(char *, int len, void *ref_who, int ref_type, int line);	/* Create a string */
 void rmstr(Str *);		/* Delete a string */
-
-Pos *mkpos(Val var, int, void *ref_who, int ref_type);	/* Create string position */
-void rmpos(Pos *);		/* Delete string position */
 
 Func *mkfunc(Pseudo *, int, char **, Pseudo **, char *);	/* Create a function */
 

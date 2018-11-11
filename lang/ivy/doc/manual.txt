@@ -355,15 +355,6 @@ follow:
 					# beginning with first index and
 					# end before second).
 
-		a="Hello"
-		a(0)='G
-		a(5)=" there"
-		pr a			# Prints "Gello there"
-					# Overwrites characters in the
-					# destination string and space-fills
-					# if necessary.
-
-
 
 	- Negate
 

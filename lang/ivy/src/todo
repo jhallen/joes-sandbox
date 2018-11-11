@@ -1,3 +1,7 @@
+val->var: we need this on the stack and in objects for multi-assign
+can we always get just the var?  read the actual val when we need it..  I'm worried we won't have the value when the programmer read it, but some later version
+prove that this never happens...
+
 More features?
 	Exceptions.
 
@@ -122,6 +126,8 @@ read_file "fred" fn((er, data),[
 Simplifications:
   Dump 'dynamic'.. it's intersting, but do we ever need it?
 
+a(3)="hi" used to work for the case where a is a string.  This broke when we added val->var... val->var should be a POS for this case.
+[we got rid of this feature for now]
 
 Fixed:
   valid command typed after one with error would not work

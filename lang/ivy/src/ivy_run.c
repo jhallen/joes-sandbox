@@ -78,9 +78,6 @@ Obj *mkobj(int size, void *ref_who, int ref_type, int line)
         o->objno = objno++;
         MEM_PRINTF1("mkobj %d\n", o->objno);
 	o->size = size;
-#ifdef ONEXT
-	o->next = 0;
-#endif
 	o->nitems = 0;
 	o->arysiz = 16;
 	o->ary = (Var **) calloc(o->arysiz, sizeof(Var *));
@@ -110,11 +107,6 @@ void rmobj(Obj * o)
 		        if (!dec_ref(&o->ary[x]->ref, o))
 				rmvar(o->ary[x], __LINE__);
         free(o->ary);
-#ifdef ONEXT
-	if (o->next)
-	        if (!dec_ref(&o->next->ref, o))
-			rmobj(o->next);
-#endif
 	free(o);
 }
 
@@ -216,7 +208,7 @@ void setrefn(Obj * t, int num, Var * o)
 	if (num >= t->nitems) {
 		if (num >= t->arysiz) {
 			int x;
-			t->ary = (Var **) realloc(t->ary, num + 16);
+			t->ary = (Var **) realloc(t->ary, sizeof(Var *) * (num + 16));
 			for (x = t->arysiz; x != num + 16; ++x)
 				t->ary[x] = 0;
 			t->arysiz = num + 16;
@@ -267,7 +259,7 @@ Var *setn(Obj * t, int num)
 	if (num >= t->nitems) {
 		if (num >= t->arysiz) {
 			int x;
-			t->ary = (Var **) realloc(t->ary, num + 16);
+			t->ary = (Var **) realloc(t->ary, sizeof(Var *) * (num + 16));
 			for (x = t->arysiz; x != num + 16; ++x)
 				t->ary[x] = 0;
 			t->arysiz = num + 16;
@@ -373,21 +365,6 @@ void rmstr(Str *str)
 	free(str);
 }
 
-Pos *mkpos(Val var, int offset, void *ref_who, int ref_type)
-{
-	Pos *pos = (Pos *) malloc(sizeof(Pos));
-	pos->pos = offset;
-	pos->var = var;
-	init_ref(&pos->ref, ref_who, ref_type);
-	return pos;
-}
-
-void rmpos(Pos * pos)
-{
-	rmval(&pos->var, __LINE__);
-	free(pos);
-}
-
 Var *mkvar(void *ref_who, int ref_type)
 {
 	Var *var = (Var *) malloc(sizeof(Var));
@@ -438,21 +415,9 @@ Val *rmval(Val *v, int line)
 		--v;
 		break;
 
-	case tVAR:
-	        if (!_dec_ref(&v->u.var->ref, v, line))
-			rmvar(v->u.var, __LINE__);
-		--v;
-		break;
-
 	case tFUN:
 	        if (!_dec_ref(&v->u.fun->ref, v, line))
 			rmfun(v->u.fun);
-		--v;
-		break;
-
-	case tPOS:
-	        if (!_dec_ref(&v->u.pos->ref, v, line))
-			rmpos(v->u.pos);
 		--v;
 		break;
 
@@ -500,22 +465,10 @@ Val *dupval(Val *n, Val *v)
 		inc_ref(&v->u.obj->ref, n, rVAL);
 		return v - 1;
 
-	case tVAR:
-		n->type = v->type;
-		n->u.var = v->u.var;
-		inc_ref(&v->u.var->ref, n, rVAL);
-		return v - 1;
-
 	case tFUN:
 	        n->type = v->type;
 	        n->u.fun = v->u.fun;
 		inc_ref(&v->u.fun->ref, n, rVAL);
-		return v - 1;
-
-	case tPOS: /* Error? */
-		n->type = v->type;
-		n->u.pos = v->u.pos;
-		inc_ref(&v->u.pos->ref, n, rVAL);
 		return v - 1;
 
 	case tVOID:
@@ -619,11 +572,6 @@ void addlvl(Ivy *ivy, Obj *dyn)
 	setvar(var, mkpval(tOBJ, dyn));
 	inc_ref(&dyn->ref, &var->val, rVAL);
 
-#ifdef ONEXT
-	o->next = ivy->vars;
-	inc_ref(&ivy->vars->ref, o, rOBJ);
-#endif
-
 	ivy->vars = o;
 	SCOPE_PRINTF1("addlvl, new scope is %p\n", ivy->vars);
 }
@@ -642,11 +590,7 @@ Obj *get_mom(Obj *o)
 void rmvlvl(Ivy *ivy)
 {
 	SCOPE_PRINTF1("rmvlvl, pop amount = %d\n", amnt + 1);
-#ifdef ONEXT
-	Obj *o = ivy->vars->next;
-#else
 	Obj *o = get_mom(ivy->vars);
-#endif
 	SCOPE_PRINTF2("rmvlvl, pop scope %p restored to %p\n", ivy->vars, o);
 	if (!dec_ref(&ivy->vars->ref, NULL))
 		rmobj(ivy->vars);
@@ -671,11 +615,7 @@ Var *getv(Ivy *ivy, char *name)
 	do {
 		if ((e = get(o, name)))
 			return e;
-#ifdef ONEXT
-		next = o->next;
-#else
 		next = get_mom(o);
-#endif
 	} while ((o = next));
 	return 0;
 }
@@ -689,11 +629,7 @@ Var *getv_atom(Obj *o, char *name)
 	do {
 		if ((e = get_atom(o, name)))
 			return e;
-#ifdef ONEXT
-		next = o->next;
-#else
 		next = get_mom(o);
-#endif
 	} while ((o = next));
 	return 0;
 }
@@ -1178,70 +1114,6 @@ void doSET(Ivy *ivy, Val * dest, Val * src)
 		dupval(&newv, src);
 	        setvar(dest->var, newv);
 	}
-
-	return;
-
-	if (dest->type == tVOID);
-	else if (dest->type == tOBJ)
-		if (src->type != tOBJ) {
-			error_0(ivy->errprn, "Can't assign a scaler to a list");
-			longjmp(ivy->err, 1);
-		} else {
-			Obj *to = dest->u.obj;
-			Obj *from = src->u.obj;
-			int x;
-			for (x = 0; x != to->nitems; ++x)
-				if (x == from->nitems) {
-					error_0(ivy->errprn, "Incorrect no. of args");
-					longjmp(ivy->err, 1);
-				} else
-					doSET(ivy, &to->ary[x]->val, &from->ary[x]->val);
-	} else if (dest->type == tVAR) {
-		dupval(&newv, src);
-		rmval(&dest->u.var->val, __LINE__);
-		dest->u.var->val = newv;
-	} else if (dest->type == tPOS) {
-		int pos = dest->u.pos->pos;	/* Write to this position */
-		int oldlen = dest->u.pos->var.u.var->val.u.str->len;	/* Original length */
-		if (src->type == tSTR) {	/* Writing a string to string */
-			int newlen = src->u.str->len;
-			int len;
-			char *s;
-			if (oldlen > newlen + pos)
-				len = oldlen;
-			else
-				len = newlen + pos;
-			s = (char *) malloc(len + 1);
-			s[len] = 0;
-			memcpy(s, dest->u.pos->var.u.var->val.u.str->s,
-			       oldlen);
-			if (len > oldlen)
-				memset(s + oldlen, ' ', len - oldlen);
-			memcpy(s + pos, src->u.str->s, newlen);
-			newv = mkpval(tSTR, mkstr(s, len, &dest->u.pos->var.u.var->val, rVAL, __LINE__));
-			setvar(dest->u.pos->var.u.var, newv);
-		} else if (src->type == tNUM) {	/* Writing a character to string */
-			int newlen = 1;
-			int len;
-			char *s;
-			if (oldlen > newlen + pos)
-				len = oldlen;
-			else
-				len = newlen + pos;
- 			s = (char *) malloc(len + 1);
-			s[len] = 0;
-			memcpy(s, dest->u.pos->var.u.var->val.u.str->s,
-			       oldlen);
-			if (len > oldlen)
-				memset(s + oldlen, ' ', len - oldlen);
-			s[pos] = src->u.num;
-			newv = mkpval(tSTR, mkstr(s, len, &dest->u.pos->var.u.var->val, rVAL, __LINE__));
-			setvar(dest->u.pos->var.u.var, newv);
-		} else {
-		        error_0(ivy->errprn, "Can only write character or string to string");
-			longjmp(ivy->err, 1);
-                }
-	}
 }
 
 /* Run some code...
@@ -1270,10 +1142,6 @@ void showstack(Ivy *ivy)
                                 fprintf(ivy->out, "%d:	Object = %p\n", (int)(sp - ivy->sptop), sp->u.obj);
                                 --sp;
                                 break;
-                        } case tVAR: {
-                                fprintf(ivy->out, "%d:	Variable = %p\n", (int)(sp - ivy->sptop), sp->u.var);
-                                --sp;
-                                break;
                         } case tFUN: {
                                 fprintf(ivy->out, "%d:	FUN\n", (int)(sp - ivy->sptop));
                                 --sp;
@@ -1288,10 +1156,6 @@ void showstack(Ivy *ivy)
                                 break;
                         } case tNARG: {
                                 fprintf(ivy->out, "%d:	NARG = %s\n", (int)(sp - ivy->sptop), sp->u.str->s);
-                                --sp;
-                                break;
-                        } case tPOS: {
-                                fprintf(ivy->out, "%d:	POS\n", (int)(sp - ivy->sptop));
                                 --sp;
                                 break;
                         } case tVOID: {
@@ -1826,7 +1690,7 @@ int pexe(Ivy *ivy, int trace)
                                         break;
                         } else {
                                 /* If item is not a function, string or object, just return
-                                 * it.. don't think this is needed anymore */
+                                 * it: allow you to type 'a' and see result in calculator mode */
                                 if (ivy->sp[-1].u.num) {
                                         error_0(ivy->errprn, "No args allowed");
                                         longjmp(ivy->err, 1);
@@ -2039,10 +1903,6 @@ void popall(Ivy *ivy)
                                 fprintf(ivy->out, "%d:	Object = %p\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.obj);
                                 ivy->sp = rmval(ivy->sp, __LINE__);
                                 break;
-                        } case tVAR: {
-                                fprintf(ivy->out, "%d:	Variable = %p\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.var);
-                                ivy->sp = rmval(ivy->sp, __LINE__);
-                                break;
                         } case tFUN: {
                                 fprintf(ivy->out, "%d:	FUN\n", (int)(ivy->sp - ivy->sptop));
                                 --ivy->sp;
@@ -2057,10 +1917,6 @@ void popall(Ivy *ivy)
                                 break;
                         } case tNARG: {
                                 fprintf(ivy->out, "%d:	NARG = %s\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.str->s);
-                                ivy->sp = rmval(ivy->sp, __LINE__);
-                                break;
-                        } case tPOS: {
-                                fprintf(ivy->out, "%d:	POS\n", (int)(ivy->sp - ivy->sptop));
                                 ivy->sp = rmval(ivy->sp, __LINE__);
                                 break;
                         } case tVOID: {
@@ -2113,9 +1969,6 @@ Val *pr(FILE *out, Val * v, int lvl)
         		w.type = tOBJ;
         		w.u.obj = v->u.fun->scope;
         		pr(out, &w,lvl+4);
-        		return v + 1;
-        	} case tVAR: {
-        		fprintf(out, "Variable %p", v->u.var);
         		return v + 1;
                 } case tOBJ: {
 			int x;

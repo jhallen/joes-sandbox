@@ -5,11 +5,11 @@ var fib = fn((), {
 	return fn((n), {
 		var val
 		if val=cache(n) {
-			print "Cached value for " n
+			# print "Cached value for " n
 			return val
 		}
 
-		print "Compute value for " n
+		# print "Compute value for " n
 
 		if n < 2 {
 			val = 1
@@ -23,6 +23,4 @@ var fib = fn((), {
 	})
 })()
 
-print fib(5)
-print fib(6)
-print fib(7)
+print fib(30)
