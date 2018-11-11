@@ -1713,7 +1713,9 @@ int pexe(Ivy *ivy, int trace)
                         pc = ivy->pc;
 			break;
 		} case iSTASH: { /* Pop return value */
+			//printf("sp=%p sptop=%p\n", ivy->sp, ivy->sptop);
 			ivy->stashed = popval(ivy);
+			//pr(stdout, &ivy->stashed, 0);
 			break;
 		} case iPOP: {	/* Pop something off of stack */
 			ivy->sp = rmval(ivy->sp, __LINE__);
@@ -2088,10 +2090,8 @@ Val run(Ivy *ivy, Pseudo *code, int ptop, int trace)
 		}
 		rtn = popval(ivy);
 		if (ptop) {
-		        if (rtn.type != tVOID) {
-        			pr(ivy->out, &rtn,0);
-        			fprintf(ivy->out, "\n");
-                        }
+       			pr(ivy->out, &rtn,0);
+       			fprintf(ivy->out, "\n");
 		}
 		if (ivy->sp != ivy->sptop) {
 		        fprintf(ivy->out, "Oops, stack not empty?\n");
