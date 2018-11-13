@@ -549,19 +549,10 @@ void setvar(Var *var, Val val)
 
 /* Add a new level of local variables */
 
-char *mom_atom;
-char *dynamic_atom;
-
 void addlvl(Ivy *ivy, Obj *dyn)
 {
 	Obj *o = mkobj(16, NULL, rSCOPE, __LINE__);
 	Var *var;
-
-	if (!mom_atom)
-	        mom_atom = atom_add("mom");
-
-        if (!dynamic_atom)
-                dynamic_atom = atom_add("dynamic");
 
 	var = set_atom(o, mom_atom);
 	setvar(var, mkpval(tOBJ, ivy->vars));
@@ -622,7 +613,7 @@ Var *getv(Ivy *ivy, char *name)
 
 /* Lookup a variable.  Check all scoping levels for the variable */
 
-Var *getv_atom(Obj *o, char *name)
+Var *getv_atom_obj(Obj *o, char *name)
 {
 	Obj *next;
 	Var *e;
@@ -634,13 +625,23 @@ Var *getv_atom(Obj *o, char *name)
 	return 0;
 }
 
+Var *getv_atom(Ivy *ivy, char *name)
+{
+	return getv_atom_obj(ivy->vars, name);
+}
+
 /* Lookup a variable.  Check all scoping levels for the variable.
    If none found, create it in the inner-most level. */
+
+/* FIXME: Object hash tables are index by atoms...
+   It means that when we use a string (possibly from program input) as an index
+   it is interned.  The atom table could grow indfinitely due to this.
+   We should modify objects to have three tables: by numeric index, by symbol or by string */
 
 Var *setv(Obj *o, char *name)
 {
 	char *s = atom_add(name);
-	Var *v = getv_atom(o, s);
+	Var *v = getv_atom_obj(o, s);
 	if (!v) {
 		v = set_atom(o, s);
 	}
@@ -1581,7 +1582,7 @@ int pexe(Ivy *ivy, int trace)
 			        error_0(ivy->errprn, "Incorrect argument for iGET_ATOM (supposed to be a string)");
 				longjmp(ivy->err, 1);
 			} else {
-				Var *o = getv_atom(ivy->vars, ivy->sp[0].u.name);
+				Var *o = getv_atom(ivy, ivy->sp[0].u.name);
 				if (!o) {
 	        			// error_0(ivy->errprn, "Error: Variable does not exist");
 				        // longjmp(ivy->err,1);
@@ -2041,12 +2042,25 @@ void add_cfunc(Ivy *ivy, Obj *vars, char *name, char *argstr, void (*cfunc) ())
 	setvar(p, mkpval(tFUN, mkfun(o, vars, &p->val, rVAL)));
 }
 
-/* Initialize global variables */
+/* Initialize global variables and atoms*/
+
+char *a_atom;
+char *b_atom;
+char *mom_atom;
+char *dynamic_atom;
+char *argv_atom;
 
 Obj *mk_globals(Ivy *ivy)
 {
 	Obj *o;
 	int x;
+
+	a_atom = atom_add("a");
+	b_atom = atom_add("b");
+	mom_atom = atom_add("mom");
+	dynamic_atom = atom_add("dynamic");
+	argv_atom = atom_add("argv");
+
 	o = mkobj(16, NULL, rSCOPE, __LINE__);
 	for (x = 0; builtins[x].name; ++x)
 		add_cfunc(ivy, o, builtins[x].name, builtins[x].args, builtins[x].cfunc);

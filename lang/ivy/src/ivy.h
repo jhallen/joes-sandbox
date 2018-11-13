@@ -363,6 +363,7 @@ Fun *mkfun(Func *, Obj *, void *ref_who, int ref_type);	/* Create a function in 
 /* Other functions */
 
 Var *getv(Ivy *,char *);	/* Get a variable - check all scope levels */
+Var *getv_atom(Ivy *,char *);	/* Same as above, but only with interned strings */
 
 void addlvl(Ivy *ivy, Obj *dyn);		/* Add a scope level */
 void rmvlvl(Ivy *ivy);		/* Remove a scope level */
@@ -406,5 +407,12 @@ void rthelp();
 void disasm(FILE *out, Pseudo *code, int ind, int oneline);
 int cntlst(Node *args);
 int genlst(Error_printer *err, char **argv, Pseudo ** initv, char *quote, Node * n);
+
+/* Atoms */
+extern char *a_atom;
+extern char *b_atom;
+extern char *mom_atom;
+extern char *dynamic_atom;
+extern char *argv_atom;
 
 #endif

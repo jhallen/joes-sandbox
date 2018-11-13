@@ -97,8 +97,6 @@ What what_tab[]=
 
 	{ nCALL, "(", 0, nCALL, 0, 100, 0, 66, 0, 0 },
 
-//	{ nCALL2, "[", 0, nCALL, 0, 100, 0, 130, 0, 0 },
-
 	{ nPRINC, "++", nPRINC, 0, nPOINC, 90, 0, 5, 0, nADD },
 	{ nPRDEC, "--", nPRDEC, 0, nPODEC, 90, 0, 5, 0, nSUB },
 	{ nPOINC, "++", nPRINC, 0, nPOINC, 90, 0, 13, 0, nADD },
@@ -133,9 +131,6 @@ What what_tab[]=
 
 	{ nLOR, "||", 0, nLOR, 0, 30, 0, 2, 0, 0 },
 
-	{ nCOND, "?", nCOND, nSWITCH, 0, 25, 0, 17, 0, nIF },
-	{ nSWITCH, "?", nCOND, nSWITCH, 0, 25, 0, 34, 0, nSWITCH },
-
 	{ nSET, "=", 0, nSET, 0, 20, 1, 2, iSET, 0 },
 	{ nDOTTO, ".=", 0, nDOTTO, 0, 20, 1, 6, 0, nCALL1 },
 	{ nSHLTO, "<<=", 0, nSHLTO, 0, 20, 1, 6, 0, nSHL },
@@ -166,9 +161,6 @@ What what_tab[]=
 	{ nSEMI, ";", 0, nSEMI, 0, 10, 0, 2, 0, 0 },
 
 	/* A function definition */
-//	{ nDEFUN, "FUN", 0, nDEFUN, 0, 5, 0, 2, 0, nDEFUN },
-	{ nLAMBDA, "lambda", 0, 0, 0, 0, 0, 0, 0, 0 },
-
 	{ nDEFUN, "fn", 0, 0, 0, 0, 0, 0, 0, 0 },
 
 	/* A list [...] */
@@ -194,7 +186,6 @@ What what_tab[]=
 	{ nFOR, "for", 0, 0, 0, 0, 0, 1, 0, 0 },
 	{ nWHILE, "while", 0, 0, 0, 0, 0, 1, 0, 0 },
 	{ nLOCAL, "var", 0, 0, 0, 0, 0, 1, 0, 0 },
-	{ nELSE, "else", 0, 0, 0, 0, 0, 2, 0, 0 },
 	{ nLOOP, "loop", 0, 0, 0, 0, 0, 2, 0, 0 },
 	{ nUNTIL, "until", 0, 0, 0, 0, 0, 3, 0, 0 },
 	{ nBREAK, "break", 0, 0, 0, 0, 0, 4, 0, 0 },
@@ -214,12 +205,12 @@ int opr_isinit;			/* Set if table has been initialized */
 
 int ioprtab[] =
 {
-	nCALL1, nCALL, /* nCALL2, */ nPRINC, nPRDEC, nCOM, nSUB, nNOT, nSHR, nSHL,
+	nCALL1, nCALL, nPRINC, nPRDEC, nCOM, nSUB, nNOT, nSHR, nSHL,
 	nMUL, nDIV, nMOD, nAND, nADD, nOR, nXOR, nEQ, nNE, nGE, nLE,
 	nGT, nLT, nLAND, nLOR, nSET, nDOTTO, nSHLTO, nSHRTO, nMULTO,
 	nDIVTO, nMODTO, nANDTO, nADDTO, nSUBTO, nXORTO, nORTO, nPOST,
 	nDOTPO, nSHLPO, nSHRPO, nMULPO, nDIVPO, nMODPO, nANDPO, nADDPO,
-	nSUBPO, nXORPO, nORPO, nQUOTE, nCOMMA, nCOND, -1
+	nSUBPO, nXORPO, nORPO, nQUOTE, nCOMMA, -1
 };
 
 void izoprtab(void)
@@ -370,7 +361,7 @@ int escape(Loc *loc)
 /* Keyword (statement) table */
 
 int ikwtab[] =
-    { nIF, nELSE, nFOR, nWHILE, nLOOP, nLOCAL, nUNTIL, nBREAK, nCONT, nRETURN, nFOREACH, nFORINDEX, nDEFUN, nLAMBDA, -1 };
+    { nIF, nFOR, nWHILE, nLOOP, nLOCAL, nUNTIL, nBREAK, nCONT, nRETURN, nFOREACH, nFORINDEX, nDEFUN, -1 };
 
 #define KWHTLEN 32
 What *kwhtab[KWHTLEN];

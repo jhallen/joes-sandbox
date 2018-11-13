@@ -24,6 +24,8 @@ print switch({ 4
 	"two"
 } 3 {
 	"three"
+} {
+	"default"
 })
 
 print switch({ 3

@@ -28,14 +28,14 @@ typedef struct what What;
 /* Node type codes: must be in same order as corresponding structures in what_tab */
 
 enum {
-	nNAM, nNUM, nFP, nSTR, nQUOTE, nCALL1, nCALL, /* nCALL2, */ nPRINC, nPRDEC,
+	nNAM, nNUM, nFP, nSTR, nQUOTE, nCALL1, nCALL, nPRINC, nPRDEC,
 	nPOINC, nPODEC, nCOM, nNEG, nNOT, nAT, nADDR, nSHR, nSHL, nMUL, nDIV, nMOD,
 	nAND, nADD, nSUB, nOR, nXOR, nEQ, nNE, nLT, nGT, nLE, nGE, nLAND,
-	nLOR, nCOND, nSWITCH, nSET, nDOTTO, nSHLTO, nSHRTO, nMULTO, nDIVTO, nMODTO, nANDTO,
+	nLOR, nSET, nDOTTO, nSHLTO, nSHRTO, nMULTO, nDIVTO, nMODTO, nANDTO,
 	nADDTO, nSUBTO, nXORTO, nORTO, nPOST, nDOTPO, nSHLPO, nSHRPO, nMULPO,
         nDIVPO, nMODPO, nANDPO, nADDPO, nSUBPO, nXORPO, nORPO, nCOMMA, nSEMI,
-        nLAMBDA, nDEFUN, nLIST, nPAREN, nVOID, nTHIS, nEMPTY, nLABEL, nIF, nFOR, nWHILE,
-        nLOCAL, nELSE, nLOOP, nUNTIL, nBREAK, nCONT, nRETURN, nFOREACH, nFORINDEX
+        nDEFUN, nLIST, nPAREN, nVOID, nTHIS, nEMPTY, nLABEL, nIF, nFOR, nWHILE,
+        nLOCAL, nLOOP, nUNTIL, nBREAK, nCONT, nRETURN, nFOREACH, nFORINDEX
 };
 
 /* Parse tree nodes */

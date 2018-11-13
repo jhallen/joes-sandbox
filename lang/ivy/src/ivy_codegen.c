@@ -433,11 +433,6 @@ int genlst(Error_printer *err, char **argv, Pseudo ** initv, char *quote, Node *
 		} case nSEMI: case nCOMMA: case nCALL: {
 			int x = genlst(err, argv, initv, quote, n->l);
 			return x + genlst(err, argv + x, initv + x, quote + x, n->r);
-/*		} case nCALL: {
-			if (n->l->what == nNAM && n->r->what == nEMPTY)
-				return argv[0] = strdup(n->l->s), initv[0] = 0, 1;
-			break;
-*/
 		} case nNAM: {
 			return argv[0] = strdup(n->s), initv[0] = 0, 1;
 		} case nSET: {
@@ -571,46 +566,6 @@ static int genla(Error_printer *err, Frag *frag, Node * n)
 	return 0;
 }
 
-/* Generate if..elif..elif.. with no return value */
-/* Returns list of branch offsets which should be set past final else */
-
-int genelif(Error_printer *err, Frag *frag, Node * n, int v)
-{
-	switch (n->what) {
-		case nEMPTY:
-			return 0;
-		case nIF: {
-			int els = genbra(err, frag, n->l, 1);
-			int rtval;
-			mklooplvl(frag, lvlSCOPE, 0, 0);
-			if (v)
-				gen(err, frag, n->r);
-			else
-				genn(err, frag, n->r);
-			rmlooplvl(frag, lvlSCOPE, 0, 0);
-			emitc(frag, iBRA);
-			rtval = emitn(frag, 0);
-			setlist(frag, els, frag->code);
-			return rtval;
-		} case nSEMI: {
-			if (n->r->what == nELSE && n->r->r->what == nIF) {
-				int z = genelif(err, frag, n->l, v);
-				if (!z)
-					error_2(err, "\"%s\" %d: else without if", n->r->loc->name, n->r->loc->line);
-				else
-					addlist(frag, z, genelif(err, frag, n->r->r, v));
-				return z;
-			}
-		}
-	}
-	if (v)
-		gen(err, frag, n);
-	else
-		genn(err, frag, n);
-	return 0;
-}
-
-
 /* Generate cond */
 
 void gencond(Error_printer *err, Frag *frag, Node *n, int v)
@@ -709,7 +664,6 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 			break;
 		} case nSET: {
 			gen(err, frag, n->r);
-//			gena(err, frag, n->l);  (lvalue change)
 			gen(err, frag, n->l);
 			emitc(frag, iSET);
 			rmlooplvl(frag, lvlVALUE, 0, 0);
@@ -720,7 +674,6 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 		} case nPOST: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
-//			gena(err, frag, n->l); (lvalue change)
 			gen(err, frag, n->l);
 			emitc(frag, iSET);
 			rmlooplvl(frag, lvlVALUE, 0, 0);
@@ -774,26 +727,9 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 				push_void(frag);
 			}
 			break;
-		} case nLAMBDA: {
-			genfunc(err, frag, n->r->l, n->r->r);
-			break;
 		} case nSEMI: {
-			if (n->r->what == nELSE) {
-				int done = genelif(err, frag, n->l, 1);
-				if (!done)
-					error_2(err, "\"%s\" %d: else w/o if error", n->r->loc->name, n->r->loc->line);
-				if (n->r->r->what == nIF) {
-					addlist(frag, done, genbra(err, frag, n->r->r->l, 1));
-					n = n->r;
-				}
-				mklooplvl(frag, lvlSCOPE, 0, 0);
-				gen(err, frag, n->r->r);
-				rmlooplvl(frag, lvlSCOPE, 0, 0);
-				setlist(frag, done, frag->code);
-			} else {
-				genn(err, frag, n->l);
-				gen(err, frag, n->r);
-			}
+			genn(err, frag, n->l);
+			gen(err, frag, n->r);
 			break;
 		} case nEQ: case nNE: case nGT: case nLT: case nGE: case nLE: case nLAND: case nLOR: case nNOT: {
 			int b = genbra(err, frag, n, 1);
@@ -808,27 +744,20 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 			*(int *)(frag->begcode+link)=frag->code-link;
 			break;
 		} case nCALL: {
-//			int nargs = genl(err, frag, n->r); /* By value */
 			int nargs = gencl(err, frag, n->r); /* Functionalize */
 			push_lst(frag);
 			emitn(frag, nargs);
-//			gena(err, frag, n->l); (lvalue change)
 			gen(err, frag, n->l);
 			emitc(frag, iCALL);
 			fixlooplvl(frag, nargs + 1);
 			break;
 		} case nCALL1: { /* Ends up being the same as above */
-//			if (n->r->what != nNAM)
-//				error_2(err, "\"%s\" %d: Invalid member name", n->r->loc->name, n->r->loc->line);
 			if (n->r->what == nNAM) { /* Turn it into a string .x -> ."x" */
 				n->r->what = nSTR;
 			}
 			int nargs = gencl(err, frag, n->r);
-//			push_str(frag);
-//			emits(frag, n->r->s, n->r->n);
 			push_lst(frag);
 			emitn(frag, nargs);
-//			gena(err, frag, n->l); (lvalue change)
 			gen(err, frag, n->l);
 			emitc(frag, iCALL);
 			fixlooplvl(frag, nargs + 1);
@@ -1146,26 +1075,9 @@ static void genn(Error_printer *err, Frag *frag, Node * n)
 		} case nIF: {
 			gencond(err, frag, n->r, 0);
 			break;
-		} case nELSE: {
-			error_2(err, "\"%s\" %d: else with no if", n->loc->name, n->loc->line);
-			break;
 		} case nSEMI: {
-			if (n->r->what == nELSE) {
-				int done = genelif(err, frag, n->l, 0);
-				if (!done)
-					error_2(err, "\"%s\" %d: else with no if", n->r->loc->name, n->r->loc->line);
-				if (n->r->r->what == nIF) {
-					addlist(frag, done, genbra(err, frag, n->r->r->l, 1));
-					n = n->r;
-				}
-				mklooplvl(frag, lvlSCOPE, 0, 0);
-				genn(err, frag, n->r->r);
-				rmlooplvl(frag, lvlSCOPE, 0, 0);
-				setlist(frag, done, frag->code);
-			} else {
-				genn(err, frag, n->l);
-				genn(err, frag, n->r);
-			}
+			genn(err, frag, n->l);
+			genn(err, frag, n->r);
 			break;
 		} case nEMPTY: {
 			break;
