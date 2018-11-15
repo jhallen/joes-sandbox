@@ -28,7 +28,7 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include "ivy_gc.h"
 
 int alloc_count; /* Number of times an allocation function has been called */
-#define GC_COUNT 102 /* Collect garbage after this many calls */
+#define GC_COUNT 10240 /* Collect garbage after this many calls */
 
 /* String allocation page */
 
@@ -64,7 +64,7 @@ Str *alloc_str(char *s, size_t len)
 		}
 		op->next = str_pages;
 		str_pages = op;
-		printf("New str page %p\n", op);
+		// printf("New str page %p\n", op);
 	}
 	str = free_strs;
 	free_strs = str->next_free;
@@ -129,7 +129,7 @@ Var *alloc_var()
 		}
 		op->next = var_pages;
 		var_pages = op;
-		printf("New var page\n");
+		// printf("New var page\n");
 	}
 	v = free_vars;
 	free_vars = v->next_free;
@@ -173,7 +173,7 @@ Entry *alloc_entry()
 		}
 		op->next = entry_pages;
 		entry_pages = op;
-		printf("New entry page\n");
+		// printf("New entry page\n");
 	}
 	e = free_entries;
 	free_entries = e->next;
@@ -229,7 +229,7 @@ Obj *alloc_obj(int size)
 		}
 		op->next = obj_pages;
 		obj_pages = op;
-		printf("New obj page\n");
+		// printf("New obj page\n");
 	}
 	o = free_objs;
 	free_objs = o->next_free;
@@ -295,7 +295,7 @@ Fun *alloc_fun(Func *func, Obj *scope)
 		}
 		op->next = fun_pages;
 		fun_pages = op;
-		printf("New fun page\n");
+		// printf("New fun page\n");
 	}
 	fun = free_funs;
 	free_funs = fun->next_free;
@@ -465,7 +465,7 @@ void collect()
 
 	alloc_count = 0;
 
-	printf("Mark\n");
+	// printf("Collecting garbage: Marking... "); fflush(stdout);
 
 	mark_fun_count = 0;
 	mark_str_count = 0;
@@ -481,24 +481,24 @@ void collect()
 			p = mark_val(p);
 		}
 		if (ivy->glblvars) {
-			printf("mark globals %d\n", ivy->glblvars->objno);
+			// printf("mark globals %d\n", ivy->glblvars->objno);
 			mark_obj(ivy->glblvars);
 		}
 		if (ivy->vars) {
-			printf("mark scope %d\n", ivy->vars->objno);
+			// printf("mark scope %d\n", ivy->vars->objno);
 			mark_obj(ivy->vars);
 		}
 		mark_val(&ivy->stashed);
 	}
 
-	printf("mark_fun_count = %d\n", mark_fun_count);
-	printf("mark_str_count = %d\n", mark_str_count);
-	printf("mark_var_count = %d\n", mark_var_count);
-	printf("mark_obj_count = %d\n", mark_obj_count);
+	// printf("mark_fun_count = %d\n", mark_fun_count);
+	// printf("mark_str_count = %d\n", mark_str_count);
+	// printf("mark_var_count = %d\n", mark_var_count);
+	//printf("mark_obj_count = %d\n", mark_obj_count);
 
-	printf("Sweep\n");
+	// printf("Sweeping... "); fflush(stdout);
 
-	printf("alloc_var_count=%d\n", alloc_var_count);
+	// printf("alloc_var_count=%d\n", alloc_var_count);
 
 	free_var_count = 0;
 	alloc_var_count = 0;
@@ -517,8 +517,8 @@ void collect()
 		}
 	}
 
-	printf("Found free vars = %d\n", free_var_count);
-	printf("Found allocated vars = %d\n", alloc_var_count);
+	// printf("Found free vars = %d\n", free_var_count);
+	// printf("Found allocated vars = %d\n", alloc_var_count);
 
 	/* Sweep strings */
 	struct str_page *sp;
@@ -558,7 +558,7 @@ void collect()
 				free_fun(&fp->funs[x]);
 		}
 	}
-	printf("Done.\n");
+	// printf("Done.\n");
 }
 
 void gc_protect_done()
