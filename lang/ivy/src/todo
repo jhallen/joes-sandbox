@@ -1,6 +1,38 @@
+Garbage collector:
+
+  use an allocator for the protection structures
+
+  can we eliminate the protection structures?  Mark newly created objects
+  some other way (generation number in the object or something)
+
+Interned strings:
+
+  can we use atoms (tNAMs) instead of strings for forindex for speed?
+
+  can we use atoms instead of strings for named arguments?
+
+  right now when you index an object with a string, the string is atomized.. this will pollute the interned string
+  table.  The issue is that we have only one hash table in objects, and it's indexed by atom. Maybe indexing by
+  string should get a seperate table in the object.
+
 val->var: we need this on the stack and in objects for multi-assign
 can we always get just the var?  read the actual val when we need it..  I'm worried we won't have the value when the programmer read it, but some later version
 prove that this never happens...
+
+Object oriented features:
+
+ a=[]  automatically set mom of this object to parent:
+         a=[`mom=this]?
+         We can't really do this.. a.print will turn up in non-objects.
+         On the other hand we would like it for making objects.
+
+ add something like this: z.a.call(b,...) so we can call with different mom.
+    (a is called with mom set to b instead of z)
+
+ Add modules, inheritance, etc..
+
+forindex doesn't handle changes to the object while it's running.  Make a
+ snapshot of the object indexes before running?
 
 More features?
 	Exceptions.
@@ -12,35 +44,12 @@ More features?
 
 	All UNIX system calls and library functions, as in perl.
 
-	Object oriented Ivy (you can do it now with closures, but there
-	is no inheritance, protection or module system).
-
 	Widget library and X interface.  I'd like to use Ivy as a
 	replacement for "gnu-plot" (and when built into JOE, as a free
 	version of "mathcad").
 
-
-
-
-a=[]  automatically set mom of this object to parent:
-	a=[`mom=this]?
-	We can't really do this.. a.print will turn up in non-objects.
-        On the other hand we would like it for making objects.
-
-add something like this: z.a.call(b,...) so we can call with different mom.
-   (a is called with mom set to b instead of z)
-
-
 mixing named and numbered args is weird:
   we assign left to right.  NUmber starts at first arg.
-
-forindex doesn't handle changes to the object while it's running.  Make a
- snapshot of the object indexes before running?
-
-can we use atoms (tNAMs) instead of strings for forindex for speed?
-
-check that objects get deleted..  I'm confused about rmvlvl.. we set ivy->vars
-to get_mom(ivy->vars).. but why no refcount transfer here.
 
 print source code line number when we crash, not just stack trace.
 
@@ -48,22 +57,18 @@ make switch native for speed?
 
 add tests for "continue"
 
-We track references to variables, for example if a closure goes away but a
-variable within it is still being referenced, we keep the variable..  but in
-current implementation:
+Simplifications:
+  Dump 'dynamic'.. it's intersting, but do we ever need it?
 
-  Refernece leak:
-    get var
-    get var
-    add     reduces stack by one but doesn't reference var
-
-  I think overhead for this is high.
-
-  We track references in this case:
-     a=5    We get value of a on left side, but as side effect take a reference on the variable a.
+a(3)="hi" used to work for the case where a is a string.  This broke when we added val->var... val->var should be a POS for this case.
+[we got rid of this feature for now]
 
 
-Lack of keyword problems:
+
+
+
+
+Lack of keyword problems [this is probably ok]:
 
 define and call is weird:
 
@@ -114,22 +119,39 @@ Analogy:
      var (a, b, c) x=7
      [var (a, b, c); x=7 ]
 
-how to have a chain of lambda callbacks without brackets?
 
-read_file "fred" fn((er, data),[
-	write_file "bar" fn((er),[
+
+
+How to have a chain of lambda callbacks without brackets?
+
+read_file "fred" fn((er, data),{
+	write_file "bar" fn((er),{
 		if er
-	])
-])
+	})
+})
 
 
-Simplifications:
-  Dump 'dynamic'.. it's intersting, but do we ever need it?
-
-a(3)="hi" used to work for the case where a is a string.  This broke when we added val->var... val->var should be a POS for this case.
-[we got rid of this feature for now]
 
 Fixed:
+
+check that objects get deleted..  I'm confused about rmvlvl.. we set ivy->vars
+to get_mom(ivy->vars).. but why no refcount transfer here.
+
+ We track references to variables, for example if a closure goes away but a
+ variable within it is still being referenced, we keep the variable..  but in
+ current implementation:
+
+  Refernece leak:
+    get var
+    get var
+    add     reduces stack by one but doesn't reference var
+
+  I think overhead for this is high.
+
+  We track references in this case:
+     a=5    We get value of a on left side, but as side effect take a reference on the variable a.
+[above is fixed, we now use garbage collection]
+
   valid command typed after one with error would not work
   'break fred' was crashing inside a loop with no name
 

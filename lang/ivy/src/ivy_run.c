@@ -636,15 +636,9 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
 //        free(t);
 }
 
-char *argv_atom;
-
 void callfunc(Ivy *ivy, Fun *o)
 {
 	struct callfunc *t;
-
-
-	if (!argv_atom)
-	        argv_atom = atom_add("argv");
 
 	t = calloc(1, sizeof(struct callfunc));
 	t->o = o;
@@ -828,7 +822,7 @@ void callval(Ivy *ivy, Val val)
 	SCOPE_PRINTF("call str:\n");
 	addlvl(ivy, t->ovars);	/* Make scoping level for function */
 
-	t->argv = set(ivy->vars, "argv");	/* Make argument vector */
+	t->argv = set_atom(ivy->vars, argv_atom);	/* Make argument vector */
 	setvar(t->argv, mkpval(tOBJ, alloc_obj(16)));
 
 	t->x = 0; /* Count of args we've completed */

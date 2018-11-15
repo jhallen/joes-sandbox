@@ -1,4 +1,4 @@
-/* Atom management
+/* Atom (interned string) management
 
    Copyright (C) 1993 Joseph H. Allen
 
