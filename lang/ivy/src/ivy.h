@@ -22,8 +22,6 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 
 #include "error.h"
 
-#define REF_DEBUG 0
-
 typedef struct ivy Ivy;		/* An interpreter */
 typedef struct parser Parser;	/* Parser */
 typedef struct parse_state Parse_state;
@@ -40,15 +38,27 @@ typedef struct var Var;		/* A variable */
 typedef struct entry Entry;	/* A hash table entry */
 typedef unsigned char Pseudo;	/* Byte code */
 
-#if REF_DEBUG
-typedef struct ref_list Ref;
-#else
-typedef int Ref;
-#endif
+/* Value types */
+
+enum valtype {
+	tNUM,			/* Integer */
+	tSTR,			/* String */
+	tNAM,			/* A name (an atom) */
+	tOBJ,			/* Object */
+	tFUN,			/* A function in its context */
+	tLST,			/* List count (only on stack) */
+	tNARG,			/* Named argument (only on stack) */
+	tVOID,			/* Nothing */
+	tFP,			/* Floating point */
+	tRET_IVY,		/* Normal function return */
+	tRET_NEXT_INIT,		/* Call next initializer */
+	tRET_SIMPLE
+};
 
 /* A value */
 
 struct val {
+	enum valtype type;	/* What type this thing is */
 	union {
 		long long num;	/* An integer */
 		double fp;	/* Floating point */
@@ -56,34 +66,30 @@ struct val {
 		Fun *fun;	/* A function */
 		Obj *obj;	/* An object */
 		struct callfunc *callfunc; /* Only in tRET_IVY */
-		void (*func)();	/* Some kind of function address */
+		void (*func)(Ivy *ivy, struct callfunc *t);
 		char *name;	/* An atom */
 		Entry *iter;
 	} u;
-	int type;		/* What type this thing is */
 	Var *var;		/* Variable where value came from */
 };
 
-/* Value types */
+/* Call a function closure */
 
-enum {
-	tNUM,			/* Integer */
-	tSTR,			/* String */
-	tNAM,			/* A name (an atom) */
-	tOBJ,			/* Object */
-	tFUN,			/* A function in its context */
-	tFUNC,			/* A function */
-	tLST,			/* List count (only on stack) */
-	tNARG,			/* Named argument (only on stack) */
-	tVOID,			/* Nothing */
-	tFP,			/* Floating point */
-	tRET_IVY,		/* Normal function return */
-	tRET_SIMPLE		/* Return from simple call (for initializers and quoting) */
+struct callfunc {
+	Var *argv;	/* Argument vector */
+	Var *a;		/* Where arg result goes... */
+	Val *q;		/* Arg pointer */
+	int argn;	/* Argument vector index */
+	int x;		/* Stack index */
+	Obj *ovars;	/* Save caller's scope */
+	Fun *o;		/* Function we're calling */
+	Val val;	/* String or object we're calling */
 };
 
 /* An interpreter */
 
 struct ivy {
+	Ivy *next;
 	Error_printer errprn[1];	/* Error printer */
 	Val stashed;	/* Stashed return value */
 	Val *sptop;	/* Base of stack */
@@ -170,50 +176,17 @@ void addfunc(Error_printer *err, char *name, char *argstr, void (*cfunc) ());
 
 #define ahash(s) (((unsigned long)(s)>>3) ^ ((unsigned long)(s)>>12))
 
-/* A reference list (for debugging) */
-
-struct ref_list {
-	struct ref_list *next;
-	int type;
-	void *who;
-	int line;
-};
-
-#if REF_DEBUG
-int _dec_ref(Ref *ref, void *who, int line);
-void _inc_ref(Ref *ref, void *who, int type, int line);
-void _init_ref(Ref *ref, void *who, int type, int line);
-void show_ref(Ref *ref);
-#else
-#define _dec_ref(ref, who, line) --*(ref)
-#define _inc_ref(ref, who, type, line) ++*(ref)
-#define _init_ref(ref, who, type, line) (*(ref)=1)
-#endif
-
-#define dec_ref(ref, who) _dec_ref(ref, who, __LINE__)
-#define inc_ref(ref, who, type) _inc_ref(ref, who, type, __LINE__)
-#define init_ref(ref, who, type) _init_ref(ref, who, type, __LINE__)
-
-/* Reference type */
-
-enum {
-	rOBJ,	/* Objs own variables and other OBJs */
-	rFUN,	/* Closers have a ref on the scope OBJ */
-	rVAL,	/* Value hold a ref on variable it most recently came from */
-	rSCOPE
-};
-
 /* A variable */
 
 struct var {
-	Ref ref;		/* Reference count or mark */
+	Var *next_free;
 	Val val;		/* The value of the variable */
 };
 
 /* String */
 
 struct str {
-	Ref ref;		/* Reference count or mark */
+	Str *next_free;
 	char *s;		/* Pointer to string */
 	int len;		/* Size of string */
 };
@@ -221,7 +194,6 @@ struct str {
 /* A function */
 
 struct func {
-	Ref ref;		/* Reference count or mark */
 	Pseudo *code;		/* Code address */
 	void (*cfunc)(Ivy *);	/* C function address */
 	char **args;	/* Arguments names */
@@ -233,7 +205,7 @@ struct func {
 /* A function in its context */
 
 struct fun {
-	Ref ref;		/* Reference count or mark */
+	Fun *next_free;
 	Func *f;		/* Actual function */
 	Obj *scope;		/* Context function was created in */
 	Val *init_vals;		/* Initialization values */
@@ -243,7 +215,7 @@ struct fun {
 /* An object (a hash table) */
 
 struct obj {
-	Ref ref;		/* Reference count or mark */
+	Obj *next_free;
 				/* Next outer scoping level is in mom */
 
 	Entry **tab;		/* Hash table of 'ENTRY' pointers */
@@ -263,8 +235,8 @@ Obj *get_mom(Obj *o);
 /* A hash table entry: for variables and structure members */
 
 struct entry {
-	char *name;		/* Member name (an atom) */
 	Entry *next;		/* next entry with same hash value */
+	char *name;		/* Member name (an atom) */
 	Var *var;		/* Variable containing Value assigned to this member */
 };
 
@@ -342,19 +314,11 @@ enum {
 };
 
 /* Member functions... */
-Obj *mkobj(int size, void *ref_who, int ref_type, int line);	/* Create an object */
-void rmobj(Obj *);		/* Delete an object */
 Var *get(Obj *, char *);	/* Get named member from an object */
 Var *getn(Obj *, int);		/* Get numbered member from an object */
 Var *set(Obj *, char *);	/* Set named member of an an object */
 Var *setn(Obj *, int);		/* Set numbered member of an object */
 Obj *dupobj(Obj *, void *, int, int);		/* Duplicate an object */
-
-Var *mkvar(void *ref_who, int ref_type);		/* Create a variable */
-void rmvar(Var *, int line);		/* Delete a variable */
-
-Str *mkstr(char *, int len, void *ref_who, int ref_type, int line);	/* Create a string */
-void rmstr(Str *);		/* Delete a string */
 
 Func *mkfunc(Pseudo *, int, char **, Pseudo **, char *);	/* Create a function */
 

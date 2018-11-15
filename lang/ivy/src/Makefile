@@ -8,7 +8,7 @@ CC = gcc
 LIBS = -lm -lreadline
 
 OBJS = ivy_parse.o ivy_tree.o main.o free_list.o hash.o atom.o \
-  ivy_frag.o ivy_codegen.o ivy_run.o ivy_rtlib.o ivy_help.o
+  ivy_frag.o ivy_codegen.o ivy_run.o ivy_rtlib.o ivy_help.o ivy_gc.o
 
 ivy: $(OBJS)
 	$(CC) $(CFLAGS) -pg -o ivy $(OBJS) $(LIBS)

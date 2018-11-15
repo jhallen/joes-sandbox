@@ -25,6 +25,7 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include "error.h"
 #include "ivy_tree.h"
 #include "ivy.h"
+#include "ivy_gc.h"
 
 /* Functions for reading args */
 
@@ -258,7 +259,7 @@ void rtget(Ivy *ivy)
 	if (fgets(buf, sizeof(buf), ivy->in)) {
 		int l = strlen(buf);
 		if (l) buf[--l]=0;
-		*psh(ivy) = mkpval(tSTR, mkstr(strdup(buf), l, ivy->sp + 1, rVAL, __LINE__));
+		*psh(ivy) = mkpval(tSTR, alloc_str(strdup(buf), l));
 	} else
 		mkval(psh(ivy), tVOID);
 }
@@ -283,7 +284,7 @@ void rtitoa(Ivy *ivy)
 	if (a->val.type == tNUM) {
 		char buf[30];
 		sprintf(buf, "%lld", a->val.u.num);
-		*psh(ivy) = mkpval(tSTR, mkstr(strdup(buf), strlen(buf), ivy->sp + 1, rVAL, __LINE__));
+		*psh(ivy) = mkpval(tSTR, alloc_str(strdup(buf), strlen(buf)));
 	} else
 		longjmp(ivy->err, 1);
 }
@@ -318,7 +319,7 @@ void rtdup(Ivy *ivy)
 {
 	Var *a = getv_atom(ivy, a_atom);
 	if (a->val.type == tOBJ)
-		*psh(ivy) = mkpval(tOBJ, dupobj(a->val.u.obj, ivy->sp+1, rVAL, __LINE__));
+		*psh(ivy) = mkpval(tOBJ, dupobj(a->val.u.obj, ivy->sp+1, 0, __LINE__));
 	else
 		dupval(psh(ivy), &a->val);
 }
@@ -486,7 +487,7 @@ void rtmatch(Ivy *ivy)
 				} else {
 					dest = dest->val.var;
 					rmval(&dest->val, __LINE__);
-					dest->val = mkpval(tSTR, mkstr(result[x], strlen(result[x]), &dest->val, rVAL, __LINE__));
+					dest->val = mkpval(tSTR, alloc_str(result[x], strlen(result[x])));
 				}
 				++n;
 			}
