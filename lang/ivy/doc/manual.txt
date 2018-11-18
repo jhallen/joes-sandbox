@@ -165,6 +165,24 @@ equivalent:
 
 . values
 
+	There are symbols:
+
+		`hello
+
+	Symbols can be tested for equality:
+
+		`hello==`hello		# True
+		`hello==`goodbye	# False
+
+	There is an interned string table for all symbols, so to check if
+	two symbols are identical their addresses are compared.
+
+	Symbols can be used as object indices.  Variables within a scope are
+	indexed by symbols.  These are equivalent:
+
+		a(`hello)=5
+		a.hello=5
+
 	Integers may be entered in a variety of bases:
 
 		x=0o127		# Octal
@@ -210,7 +228,6 @@ character:
 
 	Escape sequences may also be used inside of strings.
 
-
 VARIABLES
 
 	Variables set outside of functions are global variables.  They will
@@ -224,18 +241,36 @@ assigned in.
 
 OBJECTS
 
-	Objects have members which are either numbered or named or both. 
-Objects with numbered members are similar to arrays.  Objects with named
-members are similar to structures.
+	Objects are catch all data structures which may be indexed by
+number, symbol or string.  Objects indexed by number are similar to
+arrays.  Objects indexed by symbol are similar to structures.  Objects
+indexed by string are similar to hash tables.
+
+	A mixture of index types may be used on the same object, but always
+refer to different locations (symbol foo and string "foo" can have different
+values).
+
+	An automatic array is used for numbered indexing.  This array
+expands to accommodate whatever index is used.  If you store a value at
+index 0 and also at index 999, then space for 1000 values will be allocated.
+
+	Auto-expanding hash tables are used for symbol and string indexing. 
+These hash tables expand to twice their size when they reach half full. 
+Symbol indexing is faster than string indexing since, for symbols, the hash
+value does not have to be recomputed on each access.  On the other hand,
+there is a global hash table for symbols which is never compacted so symbols
+should not be used for data input.
 
 	Objects can be created either member by member:
 
 		o.a=5
 		o.b=6
+		o(1)=7
+		o("foo")=8
 
 	or all at once:
 
-		o=[`a=5, `b=6]
+		o=[`a=5, `b=6, `1=7, `"foo"=8]
 
 	Objects are assigned by reference.  This means that if you have an
 object in one variable:
@@ -315,10 +350,12 @@ lowest:
 
 	A detailed description of each operator follows:
 
-	` Named argument
+	` Symbol quoting
 
-		This operator can be used to explicitly state the argument
-or member name in a command, function call or object.  For example:
+		This operator can be used to prevent a symbol from being
+replaced by its value.  Instead the symbol is used directly as the value. 
+It is also used to explicitly state the argument or member name in a
+command, function call or object.  For example:
 
 		open `name="joe.c",  `mode="r"
 		square(`x=5, `y=6)
@@ -347,7 +384,9 @@ follow:
 
 		z(0)=1, z(1)=2		# Set numbered members of an object
 
-		z("foo")=3, z("bar")=4	# Set named member of an object
+		z("foo")=3, z("bar")=4	# Set string members of an object
+
+		z(`foo)=3, z(`bar)=4	# Set symbol members of an object
 
 		pr "Hello"(0)		# Prints 72
 
@@ -429,9 +468,9 @@ follow:
 	^ Bit-wise Exclusive OR
 
 	== Returns 1 (true) if arguments are equal or 0 (false) if arguments
-	   are not equal.  Can be used for strings, numbers and objects. 
-	   For objects, == tests if the two arguments are the same object,
-	   not if the two arguments have equivalent objects.
+	   are not equal.  Can be used for strings, numbers, symbols and
+	   objects.  For objects, == tests if the two arguments are the same
+	   object, not if the two arguments have equivalent objects.
 
 	>  Greater than
 	>= Greater than or equal to

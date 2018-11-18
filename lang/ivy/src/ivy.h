@@ -76,9 +76,16 @@ struct val {
 		struct callfunc *callfunc; /* Only in tRET_IVY */
 		void (*func)(Ivy *ivy, struct callfunc *t);
 		char *name;	/* An atom */
-		Entry *iter;
 	} u;
 	Var *var;		/* Variable where value came from */
+
+	Obj *source;		/* Value origin */
+	union {
+		Str *str;	/* String index */
+		long long num;	/* Numeric index */
+		char *name;	/* Symbol index */
+	} idx;
+	enum valtype idx_type;
 };
 
 #include "ivy_var.h"
@@ -240,7 +247,7 @@ enum {
 	/* Variable lookup */
 	iGET,			/* iGET_ATOM            Get named variable's value */
 	iGETF,			/* iGETF_ATOM           Same as above, but force current scope */
-	iAT,			/* iAT                  Get value's address */
+	iAT,
 
 	/* Assignment */
 	iSET,			/* iSET                 Assign value to variable */

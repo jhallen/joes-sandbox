@@ -227,7 +227,6 @@ void mkval(Val *v, int type)
 	v->type = type;
 	v->var = 0;
 	v->u.num = 0;
-	v->u.iter = 0;
 }
 
 Val mkival(int type, long long i)
@@ -1730,7 +1729,7 @@ void mk_ivy(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FILE 
 	ivy->in = in;
 	ivy->stashed.var = 0;
 	ivy->stashed.type = tVOID;
-	ivy->stashed.u.iter = 0;
+	ivy->stashed.u.num = 0;
 }
 
 void set_globals(Ivy *ivy, Obj *globals)

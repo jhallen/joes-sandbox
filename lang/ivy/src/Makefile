@@ -1,5 +1,5 @@
-CFLAGS = -pg -g -Wall
-#CFLAGS = -O2 -Wall
+#CFLAGS = -pg -g -Wall
+CFLAGS = -O2 -Wall
 CC = gcc
 
 # LIBS = -lm -lreadline -lcurses

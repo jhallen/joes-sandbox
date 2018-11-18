@@ -1,13 +1,32 @@
+Space in objects is allocated even if we only read it:
+
+	a=[1]
+	print a(100000)
+
+	a(0) has 1 and a(100000) has void.  Array is expanded to 100,000.
+
+	This is difficult to fix since we return an l-value on read in case there might be a write.
+
+val->var: we need this on the stack and in objects for multi-assign can we
+always get just the var?  read the actual val when we need it..  I'm worried
+we won't have the value when the programmer read it, but some later version
+prove that this never happens...
+
+
+instead of var, we should have object + index
+would remove one level of indirection..
+
+  Obj *, Num
+  Obj *, Nam
+  Obj *, Str
+
+
 Garbage collector:
 
   use an allocator for the protection structures
 
   can we eliminate the protection structures?  Mark newly created objects
   some other way (generation number in the object or something)
-
-val->var: we need this on the stack and in objects for multi-assign
-can we always get just the var?  read the actual val when we need it..  I'm worried we won't have the value when the programmer read it, but some later version
-prove that this never happens...
 
 Object oriented features:
 
