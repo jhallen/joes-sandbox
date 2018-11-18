@@ -51,11 +51,10 @@ typedef unsigned char Pseudo;	/* Byte code */
 enum valtype {
 	tNUM,			/* Integer */
 	tSTR,			/* String */
-	tNAM,			/* A name (an atom) */
+	tNAM,			/* A symbol (a name) */
 	tOBJ,			/* Object */
 	tFUN,			/* A function in its context */
 	tLST,			/* List count (only on stack) */
-	tNARG,			/* Named argument (only on stack) */
 	tVOID,			/* Nothing */
 	tFP,			/* Floating point */
 	tRET_IVY,		/* Normal function return */
@@ -254,7 +253,6 @@ enum {
 	/* Stack */
 	iPOP,			/* iPOP                 Kill 1st */
 
-	iPSH_NARG,		/* iPSH                 Push various things */
 	iPSH_VOID,
 	iPSH_THIS,
 	iPSH_NUM,

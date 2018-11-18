@@ -28,7 +28,7 @@ int alloc_count;
 Val *mark_val(Val *val)
 {
 	switch (val->type) {
-		case tNARG: case tSTR: {
+		case tSTR: {
 			mark_str(val->u.str);
 			break;
 		} case tOBJ: {

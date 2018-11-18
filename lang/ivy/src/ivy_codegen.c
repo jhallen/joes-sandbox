@@ -167,7 +167,7 @@ void push_nam(Frag *frag)
 void push_narg(Frag *frag)
 {
 	// mklooplvl(frag, lvlVALUE, 0, 0); /* It's counted with the value */
-	emitc(frag, iPSH_NARG);
+	emitc(frag, iPSH_NAM);
 }
 
 void push_pair(Frag *frag)
@@ -359,11 +359,6 @@ void disasm(FILE *out, Pseudo * c, int ind, int oneline)
 				indent(out, ind); fprintf(out, "	psh_str \"%s\"\n", c + sizeof(int));
 				c += sizeof(int) + *(int *)c + 1;
 				break;
-			} case iPSH_NARG: {
-				c += align_o(c, sizeof(char *));
-				indent(out, ind); fprintf(out, "	psh_narg %s\n", *(char **)c);
-				c += sizeof(char *);
-				break;
 			} case iPSH_NAM: {
 				c += align_o(c, sizeof(char *));
 				indent(out, ind); fprintf(out, "	psh_nam %s\n", *(char **)c);
@@ -385,6 +380,12 @@ void disasm(FILE *out, Pseudo * c, int ind, int oneline)
 				indent(out, ind); fprintf(out, "	psh_func %p\n", *(void **)c);
 				disasm(out, ((Func *)*(void **)c)->code, ind + 4, 0);
 				c += sizeof(void *);
+				break;
+			} case iPSH_PAIR: {
+				indent(out, ind); fprintf(out, "	psh_pair\n");
+				break;
+			} default: {
+				indent(out, ind); fprintf(out, "	unknown???\n");
 				break;
 			}
 		}

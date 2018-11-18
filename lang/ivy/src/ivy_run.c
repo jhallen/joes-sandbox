@@ -154,7 +154,7 @@ Val *dupval(Val *n, Val *v)
 			for (x = 0, z = 0; x != y; ++x)
 				if (v->type == tPAIR) {
 					--v;
-					if (v->type == tNARG)
+					if (v->type == tNAM)
 						v = dupval(&set_by_symbol(n->u.obj, v[0].u.name)->val, v - 1);
 					else if (v->type == tSTR)
 						v = dupval(&set_by_string(n->u.obj, v[0].u.str->s)->val, v - 1);
@@ -380,7 +380,7 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
         Var *a;
 	while (t->x != ivy->sp[0].u.num) {
 		Fun *f = 0;
-		if (t->q->type != tNARG) { /* It's not a named argument */
+		if (t->q->type != tPAIR) { /* It's not a named argument */
 			if (t->argn >= t->o->f->nargs) { /* Past end of declared arg list */
 				t->a = set_by_number(t->argv->val.u.obj, t->argn);
 				rmval(&t->a->val, __LINE__);
@@ -400,9 +400,10 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
 			}
 		} else { /* Named arg */
 			int z;
+			--t->q; /* Argument name */
 			t->a = set_by_symbol(ivy->vars, t->q->u.name);
 			for (z = 0; z != t->o->f->nargs; ++z)
-				if (!strcmp(t->o->f->args[z], t->q->u.str->s)) {
+				if (!strcmp(t->o->f->args[z], t->q->u.name)) {
 					set_by_number_ref(t->argv->val.u.obj, z, t->a);
 					break;
 				}
@@ -492,13 +493,14 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
 {
 	while (t->x != ivy->sp[0].u.num) {
 		Fun *f = 0;
-		if (t->q->type != tNARG) { /* Unnamed arg */
+		if (t->q->type != tPAIR) { /* Unnamed arg */
                         t->a = set_by_number(t->argv->val.u.obj, t->argn); /* Put in argv */
                         rmval(&t->a->val, __LINE__);
                         t->q = dupval(&t->a->val, t->q);
                         f = t->a->val.u.fun;
                         ++t->argn;
 		} else { /* Named arg */
+			--t->q;
 			t->a = set_by_symbol(ivy->vars, t->q->u.name); /* Put in scope */
 			rmval(&t->a->val, __LINE__);
 			--t->q; /* Skip arg name, get to value */
@@ -799,12 +801,12 @@ void showstack(Ivy *ivy)
                                 fprintf(ivy->out, "%d:	FUN\n", (int)(sp - ivy->sptop));
                                 --sp;
                                 break;
+			} case tPAIR: {
+                                fprintf(ivy->out, "%d:	Pair\n", (int)(sp - ivy->sptop));
+                                --sp;
+				break;
                         } case tLST: {
                                 fprintf(ivy->out, "%d:	LST = %lld\n", (int)(sp - ivy->sptop), sp->u.num);
-                                --sp;
-                                break;
-                        } case tNARG: {
-                                fprintf(ivy->out, "%d:	NARG = %s\n", (int)(sp - ivy->sptop), sp->u.name);
                                 --sp;
                                 break;
                         } case tVOID: {
@@ -1370,15 +1372,6 @@ int pexe(Ivy *ivy, int trace)
 			v = mkpval(tNAM, s);
 			*psh(ivy) = v;
 			break;
-		} case iPSH_NARG: {
-                        char *s;
-			Val v;
-			pc += align_o(pc, sizeof(char *));
-			s = *(char **)pc;
-			pc += sizeof(char *);
-			v = mkpval(tNARG, s);
-			*psh(ivy) = v;
-			break;
 		} case iPSH_FUNC: { /* A function without context: record context now */
 			Fun *fun;
 			Val v;
@@ -1536,6 +1529,10 @@ void popall(Ivy *ivy)
                                 fprintf(ivy->out, "%d:	String = \"%s\"\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.str->s);
                                 ivy->sp = rmval(ivy->sp, __LINE__);
                                 break;
+                        } case tNAM: {
+                                fprintf(ivy->out, "%d:	Symbol = %s\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.name);
+                                ivy->sp = rmval(ivy->sp, __LINE__);
+                                break;
                         } case tOBJ: {
                                 fprintf(ivy->out, "%d:	Object = %p\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.obj);
                                 ivy->sp = rmval(ivy->sp, __LINE__);
@@ -1548,8 +1545,8 @@ void popall(Ivy *ivy)
                                 fprintf(ivy->out, "%d:	LST = %lld\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.num);
                                 --ivy->sp;
                                 break;
-                        } case tNARG: {
-                                fprintf(ivy->out, "%d:	NARG = %s\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.name);
+                        } case tPAIR: {
+                                fprintf(ivy->out, "%d:	Pair\n", (int)(ivy->sp - ivy->sptop));
                                 ivy->sp = rmval(ivy->sp, __LINE__);
                                 break;
                         } case tVOID: {
