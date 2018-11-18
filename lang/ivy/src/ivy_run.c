@@ -1189,6 +1189,10 @@ int pexe(Ivy *ivy, int trace)
 					c = 1;
 				ivy->sp = rmval(ivy->sp = rmval(ivy->sp, __LINE__), __LINE__);
 				*++ivy->sp = mkival(tNUM, c);
+			} else if (ivy->sp[0].type == tNAM && ivy->sp[-1].type == tNAM) {
+				int c = !(ivy->sp[0].u.name == ivy->sp[-1].u.name);
+				ivy->sp = rmval(ivy->sp = rmval(ivy->sp, __LINE__), __LINE__);
+				*++ivy->sp = mkival(tNUM, c);
 			} else {
 			        error_0(ivy->errprn, "Improper types for compare");
 				longjmp(ivy->err, 1);

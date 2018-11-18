@@ -251,6 +251,7 @@ Obj *dupobj(Obj * o, void *ref_who, int ref_type, int line)
 			dupval(&n->nam_tab[x].var->val, &o->nam_tab[x].var->val);
 		}
 	}
+	n->nam_tab_count = o->nam_tab_count;
 
 	for (x = 0; x != o->str_tab_mask + 1; ++x) {
 		if (o->str_tab[x].name) {
@@ -261,12 +262,14 @@ Obj *dupobj(Obj * o, void *ref_who, int ref_type, int line)
 			}
 		}
 	}
+	n->str_tab_count = o->str_tab_count;
 
 	for (x = 0; x != o->ary_len; ++x)
 		if (o->ary[x]) {
 			n->ary[x] = alloc_var();
 			dupval(&n->ary[x]->val, &o->ary[x]->val);
 		}
+	n->ary_len = o->ary_len;
 
 	return n;
 }
