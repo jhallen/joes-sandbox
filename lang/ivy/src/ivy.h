@@ -78,14 +78,6 @@ struct val {
 		char *name;	/* An atom */
 	} u;
 	Var *var;		/* Variable where value came from */
-
-	Obj *source;		/* Value origin */
-	union {
-		Str *str;	/* String index */
-		long long num;	/* Numeric index */
-		char *name;	/* Symbol index */
-	} idx;
-	enum valtype idx_type;
 };
 
 #include "ivy_var.h"
