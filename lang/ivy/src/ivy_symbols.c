@@ -1,4 +1,4 @@
-/* Atom management
+/* Symbol (interned string) management
 
    Copyright (C) 1993 Joseph H. Allen
 
@@ -13,14 +13,38 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
 details.  
 
-
 IVY; see the file COPYING.  If not, write to the Free Software Foundation, 
 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _Iatom
-#define _Iatom 1
+#include <string.h>
+#include "hash.h"
+#include "ivy_symbols.h"
 
-char *atom_add(char *name);
-char *atom_noadd(char *name);
+Hash_table *symbol_table;
 
-#endif
+int symbol_count;
+
+char *symbol_add(char *name)
+{
+	char *s;
+	unsigned hval;
+	if (!symbol_table)
+		symbol_table = htmk(1024);
+	hval = hash(name);
+	s = htfindhval(symbol_table, name, hval);
+	if (!s) {
+		s = strdup(name);
+		htaddhval(symbol_table, s, hval, s);
+		++symbol_count;
+	}
+	return s;
+}
+
+char *symbol_noadd(char *name)
+{
+	unsigned hval;
+	if (!symbol_table)
+		symbol_table = htmk(1024);
+	hval = hash(name);
+	return htfindhval(symbol_table, name, hval);
+}

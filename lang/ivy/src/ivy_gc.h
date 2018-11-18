@@ -1,7 +1,6 @@
-Str *alloc_str(char *s, size_t len);
-Var *alloc_var();
-Entry *alloc_entry();
-Obj *alloc_obj(int size);
-Fun *alloc_fun(Func *func, Obj *scope);
-void gc_protect_done();
-void protect_obj(Obj *);
+void clear_protected();
+void collect();
+Val *mark_val(Val *val);
+
+extern int alloc_count; /* Number of times an allocation function has been called */
+#define GC_COUNT 10240 /* Collect garbage after this many calls */

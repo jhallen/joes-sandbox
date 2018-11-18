@@ -21,7 +21,7 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
-#include "atom.h"
+#include "ivy_symbols.h"
 #include "free_list.h"
 #include "ivy_tree.h"
 #include "ivy.h"
@@ -372,25 +372,25 @@ void izkwtab(void)
 	int x;
 	kw_isinit = 1;
 	for (x = 0; ikwtab[x] != -1; ++x) {
-		char *s = atom_add(what_tab[ikwtab[x]].name);
+		char *s = symbol_add(what_tab[ikwtab[x]].name);
 		unsigned long hval = ahash(s);
-		what_tab[ikwtab[x]].name = s; /* Replace name with atom */
+		what_tab[ikwtab[x]].name = s; /* Replace name with symbol */
 		what_tab[ikwtab[x]].next = kwhtab[hval % KWHTLEN];
 		kwhtab[hval % KWHTLEN] = &what_tab[ikwtab[x]];
 	}
 }
 
-/* Look up a keyword by atom */
+/* Look up a keyword by symbol */
 
-What *kw(char *atom)
+What *kw(char *symbol)
 {
 	What *a;
-	if (!atom)
+	if (!symbol)
 		return 0;
 	if (!kw_isinit)
 		izkwtab();
-	for (a = kwhtab[ahash(atom) % KWHTLEN]; a; a = a->next)
-		if (a->name == atom)
+	for (a = kwhtab[ahash(symbol) % KWHTLEN]; a; a = a->next)
+		if (a->name == symbol)
 			return a;
 	return 0;
 }
@@ -795,7 +795,7 @@ int parse_expr(Parser *parser)
 			else if (!strcmp(parser->str_buf, "this"))
 				parser->state.n = consthis(parser->loc);
 			else
-				parser->state.n = consnam(parser->loc, atom_add(parser->str_buf));
+				parser->state.n = consnam(parser->loc, symbol_add(parser->str_buf));
 			break;
 		} case '"': { /* String */
 			++parser->loc->ptr;

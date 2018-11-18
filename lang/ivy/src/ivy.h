@@ -38,6 +38,14 @@ typedef struct var Var;		/* A variable */
 typedef struct entry Entry;	/* A hash table entry */
 typedef unsigned char Pseudo;	/* Byte code */
 
+#include "ivy_obj.h"
+#include "ivy_str.h"
+#include "ivy_fun.h"
+#include "ivy_gc.h"
+#include "ivy_tree.h"
+#include "ivy_symbols.h"
+#include "ivy_frag.h"
+
 /* Value types */
 
 enum valtype {
@@ -52,7 +60,8 @@ enum valtype {
 	tFP,			/* Floating point */
 	tRET_IVY,		/* Normal function return */
 	tRET_NEXT_INIT,		/* Call next initializer */
-	tRET_SIMPLE
+	tRET_SIMPLE,
+	tPAIR			/* A name value pair */
 };
 
 /* A value */
@@ -72,6 +81,9 @@ struct val {
 	} u;
 	Var *var;		/* Variable where value came from */
 };
+
+#include "ivy_var.h"
+#include "ivy_gc.h"
 
 /* Call a function closure */
 
@@ -176,21 +188,6 @@ void addfunc(Error_printer *err, char *name, char *argstr, void (*cfunc) ());
 
 #define ahash(s) (((unsigned long)(s)>>3) ^ ((unsigned long)(s)>>12))
 
-/* A variable */
-
-struct var {
-	Var *next_free;
-	Val val;		/* The value of the variable */
-};
-
-/* String */
-
-struct str {
-	Str *next_free;
-	char *s;		/* Pointer to string */
-	int len;		/* Size of string */
-};
-
 /* A function */
 
 struct func {
@@ -200,44 +197,6 @@ struct func {
 	Pseudo **inits;		/* Argument initializer code */
 	char *quote;	/* Set to quote arg */
 	int nargs;		/* No. args */
-};
-
-/* A function in its context */
-
-struct fun {
-	Fun *next_free;
-	Func *f;		/* Actual function */
-	Obj *scope;		/* Context function was created in */
-	Val *init_vals;		/* Initialization values */
-	int x;			/* The init value we're up to */
-};
-
-/* An object (a hash table) */
-
-struct obj {
-	Obj *next_free;
-				/* Next outer scoping level is in mom */
-
-	Entry **tab;		/* Hash table of 'ENTRY' pointers */
-	int size;		/* No. of ENTRY pointers in 'tab' array */
-
-	Var **ary;		/* Automatic array of variables */
-	int arysiz;		/* Size of malloc block array is in */
-	int nitems;		/* One plus highest numbered member in array */
-
-	int visit;		/* Visit flag */
-
-	int objno;
-};
-
-Obj *get_mom(Obj *o);
-
-/* A hash table entry: for variables and structure members */
-
-struct entry {
-	Entry *next;		/* next entry with same hash value */
-	char *name;		/* Member name (an atom) */
-	Var *var;		/* Variable containing Value assigned to this member */
 };
 
 /* Pseudo-Instruction Set */
@@ -280,10 +239,8 @@ enum {
 	iLOC,			/* iLOC                 Create local variable */
 
 	/* Variable lookup */
-	iGET,			/* iGET                 Get named variable's value */
-	iGET_ATOM,
-	iGETF,			/* iGETF		Same as above, but force current scope */
-	iGETF_ATOM,
+	iGET,			/* iGET_ATOM            Get named variable's value */
+	iGETF,			/* iGETF_ATOM           Same as above, but force current scope */
 	iAT,			/* iAT                  Get value's address */
 
 	/* Assignment */
@@ -306,6 +263,7 @@ enum {
 	iPSH_STR,
 	iPSH_NAM,
 	iPSH_FUNC,
+	iPSH_PAIR,
 
 	iFOREACH,		/* iFOREACH             Iterate a list values */
 	iFORINDEX,		/* iFORINDEX		Iterate a list keys */
@@ -314,11 +272,6 @@ enum {
 };
 
 /* Member functions... */
-Var *get(Obj *, char *);	/* Get named member from an object */
-Var *getn(Obj *, int);		/* Get numbered member from an object */
-Var *set(Obj *, char *);	/* Set named member of an an object */
-Var *setn(Obj *, int);		/* Set numbered member of an object */
-Obj *dupobj(Obj *, void *, int, int);		/* Duplicate an object */
 
 Func *mkfunc(Pseudo *, int, char **, Pseudo **, char *);	/* Create a function */
 
@@ -326,11 +279,12 @@ Fun *mkfun(Func *, Obj *, void *ref_who, int ref_type);	/* Create a function in 
 
 /* Other functions */
 
-Var *getv(Ivy *,char *);	/* Get a variable - check all scope levels */
-Var *getv_atom(Ivy *,char *);	/* Same as above, but only with interned strings */
+Var *getv_by_string(Ivy *,char *);	/* Get a variable - check all scope levels */
+Var *getv_by_symbol(Ivy *,char *);	/* Same as above, but only with interned strings */
 
 void addlvl(Ivy *ivy, Obj *dyn);		/* Add a scope level */
 void rmvlvl(Ivy *ivy);		/* Remove a scope level */
+Obj *get_mom(Obj *o);
 
 Val mkpval(int, void *);
 void mkval(Val *,int);
@@ -373,10 +327,10 @@ int cntlst(Node *args);
 int genlst(Error_printer *err, char **argv, Pseudo ** initv, char *quote, Node * n);
 
 /* Atoms */
-extern char *a_atom;
-extern char *b_atom;
-extern char *mom_atom;
-extern char *dynamic_atom;
-extern char *argv_atom;
+extern char *a_symbol;
+extern char *b_symbol;
+extern char *mom_symbol;
+extern char *dynamic_symbol;
+extern char *argv_symbol;
 
 #endif

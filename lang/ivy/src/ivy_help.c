@@ -44,7 +44,7 @@ void rthelp(Ivy *ivy)
 	char buf[32];
 	Var *a;
 	int x;
-	a = getv_atom(ivy, a_atom);
+	a = getv_by_symbol(ivy, a_symbol);
 	if (a && a->val.type == tSTR) {
 		strncpy(buf, a->val.u.str->s, sizeof(buf) - 1);
 		buf[sizeof(buf) - 1]=0;

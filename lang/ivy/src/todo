@@ -5,16 +5,6 @@ Garbage collector:
   can we eliminate the protection structures?  Mark newly created objects
   some other way (generation number in the object or something)
 
-Interned strings:
-
-  can we use atoms (tNAMs) instead of strings for forindex for speed?
-
-  can we use atoms instead of strings for named arguments?
-
-  right now when you index an object with a string, the string is atomized.. this will pollute the interned string
-  table.  The issue is that we have only one hash table in objects, and it's indexed by atom. Maybe indexing by
-  string should get a seperate table in the object.
-
 val->var: we need this on the stack and in objects for multi-assign
 can we always get just the var?  read the actual val when we need it..  I'm worried we won't have the value when the programmer read it, but some later version
 prove that this never happens...

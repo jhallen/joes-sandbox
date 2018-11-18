@@ -32,11 +32,11 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 int getintarg(Ivy *ivy, Obj * args, int n, long long *rtn)
 {
 	Var *v;
-	if (n >= args->nitems) {
+	if (n >= args->ary_len) {
 		error_0(ivy->errprn, "Incorrect number of args");
 		return -1;
 	}
-	v = getn(args, n);
+	v = get_by_number(args, n);
 	if (v->val.type == tNUM) {
 		*rtn = v->val.u.num;
 		return 0;
@@ -49,11 +49,11 @@ int getintarg(Ivy *ivy, Obj * args, int n, long long *rtn)
 int getstringarg(Ivy *ivy, Obj * args, int n, char **rtn)
 {
 	Var *v;
-	if (n >= args->nitems) {
+	if (n >= args->ary_len) {
 		error_0(ivy->errprn, "Incorrect number of args");
 		return -1;
 	}
-	v = getn(args, n);
+	v = get_by_number(args, n);
 	if (v->val.type == tSTR) {
 		*rtn = v->val.u.str->s;
 		return 0;
@@ -66,11 +66,11 @@ int getstringarg(Ivy *ivy, Obj * args, int n, char **rtn)
 int getdoublearg(Ivy *ivy, Obj * args, int n, double *rtn)
 {
 	Var *v;
-	if (n >= args->nitems) {
+	if (n >= args->ary_len) {
 		error_0(ivy->errprn, "Incorrect number of args");
 		return -1;
 	}
-	v = getn(args, n);
+	v = get_by_number(args, n);
 	if (v->val.type == tFP) {
 		*rtn = v->val.u.fp;
 		return 0;
@@ -84,10 +84,10 @@ int getdoublearg(Ivy *ivy, Obj * args, int n, double *rtn)
 
 void rtprint(Ivy *ivy)
 {
-	Obj *a = getv_atom(ivy, argv_atom)->val.u.obj;
+	Obj *a = getv_by_symbol(ivy, argv_symbol)->val.u.obj;
 	int x;
-	for (x = 0; x != a->nitems; ++x) {
-		Var *v = getn(a, x);
+	for (x = 0; x != a->ary_len; ++x) {
+		Var *v = get_by_number(a, x);
 		switch (v->val.type) {
 			case tSTR: {
 				fprintf(ivy->out, "%s", v->val.u.str->s);
@@ -112,11 +112,11 @@ void rtprint(Ivy *ivy)
 
 void rtprintf(Ivy *ivy)
 {
-	Obj *a = getv_atom(ivy, argv_atom)->val.u.obj;
-	if (a->nitems == 0)
+	Obj *a = getv_by_symbol(ivy, argv_symbol)->val.u.obj;
+	if (a->ary_len == 0)
 		error_0(ivy->errprn, "Incorrect number of args to printf");
 	else {
-		Var *v = getn(a, 0);
+		Var *v = get_by_number(a, 0);
 		if (v->val.type == tSTR) {
 			char *s = v->val.u.str->s;
 			int x, y;
@@ -225,7 +225,7 @@ void rtprintf(Ivy *ivy)
 				}
 				s += x;
 			}
-			if (n != a->nitems) {
+			if (n != a->ary_len) {
 				error_0(ivy->errprn, "Incorrect number of args to printf");
 			}
 		} else
@@ -239,10 +239,10 @@ void rtprintf(Ivy *ivy)
 
 void rtclr(Ivy *ivy)
 {
-	Obj *a = getv_atom(ivy, argv_atom)->val.u.obj;
+	Obj *a = getv_by_symbol(ivy, argv_symbol)->val.u.obj;
 	int x;
-	for (x = 0; x != a->nitems; ++x) {
-		Var *v = getn(a, x);
+	for (x = 0; x != a->ary_len; ++x) {
+		Var *v = get_by_number(a, x);
 		if (v->val.var) {
 			rmval(&v->val.var->val, __LINE__);
 			mkval(&v->val.var->val, tVOID);
@@ -268,7 +268,7 @@ void rtget(Ivy *ivy)
 
 void rtatoi(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tSTR) {
 		long long num = atoll(a->val.u.str->s);
 		*psh(ivy) = mkival(tNUM, num);
@@ -280,7 +280,7 @@ void rtatoi(Ivy *ivy)
 
 void rtitoa(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tNUM) {
 		char buf[30];
 		sprintf(buf, "%lld", a->val.u.num);
@@ -293,12 +293,12 @@ void rtitoa(Ivy *ivy)
 
 void rtlen(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tSTR) {
 		long long num = a->val.u.str->len;
 		*psh(ivy) = mkival(tNUM, num);
 	} else if (a->val.type == tOBJ) {
-		*psh(ivy) = mkival(tNUM, a->val.u.obj->nitems);
+		*psh(ivy) = mkival(tNUM, a->val.u.obj->ary_len);
 	} else
 		longjmp(ivy->err, 1);
 }
@@ -317,7 +317,7 @@ void rtvars(Ivy *ivy)
 
 void rtdup(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tOBJ)
 		*psh(ivy) = mkpval(tOBJ, dupobj(a->val.u.obj, ivy->sp+1, 0, __LINE__));
 	else
@@ -328,7 +328,7 @@ void rtdup(Ivy *ivy)
 
 void rtinc(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tSTR) {
 		char *s = strdup(a->val.u.str->s);
 		FILE *f = fopen(s, "r");
@@ -448,24 +448,24 @@ int rmatch(char *string, char *pattern,
 void rtmatch(Ivy *ivy)
 {
 	char *result[20];
-	Obj *a = getv_atom(ivy, argv_atom)->val.u.obj;
+	Obj *a = getv_by_symbol(ivy, argv_symbol)->val.u.obj;
 	Var *v;
 	char *str;
 	char *pat;
 	int x;
-	if (a->nitems < 2) {
+	if (a->ary_len < 2) {
 		error_0(ivy->errprn, "Incorrect no. args to match");
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	v = getn(a, 0);
+	v = get_by_number(a, 0);
 	if (v->val.type != tSTR) {
 		error_1(ivy->errprn, "Incorrect arg 1 type for match %d",v->val.type);
 		mkval(psh(ivy), tVOID);
 		return;
 	}
 	str = v->val.u.str->s;
-	v = getn(a, 1);
+	v = get_by_number(a, 1);
 	if (v->val.type != tSTR) {
 		error_1(ivy->errprn, "Incorrect arg 2 type for match %d",v->val.type);
 		mkval(psh(ivy), tVOID);
@@ -477,10 +477,10 @@ void rtmatch(Ivy *ivy)
 	if (rmatch(str, pat, result)) {
 		int n = 2;
 		for (x = 0; result[x]; ++x) {
-			if (n >= a->nitems)
+			if (n >= a->ary_len)
 				free(result[x]);
 			else {
-				Var *dest = getn(a, n);
+				Var *dest = get_by_number(a, n);
 				if (!dest->val.var) {
 					error_0(ivy->errprn, "Arg to match must be a variable\n");
 					free(result[x]);
@@ -492,7 +492,7 @@ void rtmatch(Ivy *ivy)
 				++n;
 			}
 		}
-		if (a->nitems - 2 > x) {
+		if (a->ary_len - 2 > x) {
 			error_0(ivy->errprn, "Incorrect no. args for match");
 		}
 		*psh(ivy) = mkival(tNUM, 1);
@@ -507,7 +507,7 @@ void rtmatch(Ivy *ivy)
 
 void rtsin(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, sin(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -520,7 +520,7 @@ void rtsin(Ivy *ivy)
 
 void rtcos(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, cos(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -533,7 +533,7 @@ void rtcos(Ivy *ivy)
 
 void rttan(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, tan(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -546,7 +546,7 @@ void rttan(Ivy *ivy)
 
 void rtasin(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, asin(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -559,7 +559,7 @@ void rtasin(Ivy *ivy)
 
 void rtacos(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, acos(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -572,7 +572,7 @@ void rtacos(Ivy *ivy)
 
 void rtatan(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, atan(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -585,7 +585,7 @@ void rtatan(Ivy *ivy)
 
 void rtexp(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, exp(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -598,7 +598,7 @@ void rtexp(Ivy *ivy)
 
 void rtlog(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, log(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -611,7 +611,7 @@ void rtlog(Ivy *ivy)
 
 void rtlog10(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, log10(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -624,8 +624,8 @@ void rtlog10(Ivy *ivy)
 
 void rtpow(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
-	Var *b = getv_atom(ivy, b_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
+	Var *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
 	if (a->val.type == tFP)
 		l = a->val.u.fp;
@@ -650,7 +650,7 @@ void rtpow(Ivy *ivy)
 
 void rtsqrt(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, sqrt(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -663,8 +663,8 @@ void rtsqrt(Ivy *ivy)
 
 void rtatan2(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
-	Var *b = getv_atom(ivy, b_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
+	Var *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
 	if (a->val.type == tFP)
 		l = a->val.u.fp;
@@ -689,8 +689,8 @@ void rtatan2(Ivy *ivy)
 
 void rthypot(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
-	Var *b = getv_atom(ivy, b_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
+	Var *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
 	if (a->val.type == tFP)
 		l = a->val.u.fp;
@@ -715,7 +715,7 @@ void rthypot(Ivy *ivy)
 
 void rtsinh(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, sinh(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -728,7 +728,7 @@ void rtsinh(Ivy *ivy)
 
 void rtcosh(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, cosh(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -741,7 +741,7 @@ void rtcosh(Ivy *ivy)
 
 void rttanh(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, tanh(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -754,7 +754,7 @@ void rttanh(Ivy *ivy)
 
 void rtasinh(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, asinh(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -767,7 +767,7 @@ void rtasinh(Ivy *ivy)
 
 void rtacosh(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, acosh(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -780,7 +780,7 @@ void rtacosh(Ivy *ivy)
 
 void rtatanh(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, atanh(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -793,7 +793,7 @@ void rtatanh(Ivy *ivy)
 
 void rtfloor(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, floor(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -806,7 +806,7 @@ void rtfloor(Ivy *ivy)
 
 void rtceil(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, ceil(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -819,7 +819,7 @@ void rtceil(Ivy *ivy)
 
 void rtint(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkival(tNUM, (long long) (a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -830,17 +830,17 @@ void rtint(Ivy *ivy)
 	}
 }
 
-extern int atom_count;
+extern int symbol_count;
 
-void rtatomcount(Ivy *ivy)
+void rtsymbolcount(Ivy *ivy)
 {
-	printf("Atom count = %d\n", atom_count);
+	printf("Atom count = %d\n", symbol_count);
 	mkval(psh(ivy), tVOID);
 }
 
 void rtabs(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, fabs(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -856,7 +856,7 @@ void rtabs(Ivy *ivy)
 
 void rterf(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, erf(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -869,7 +869,7 @@ void rterf(Ivy *ivy)
 
 void rterfc(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, erfc(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -882,7 +882,7 @@ void rterfc(Ivy *ivy)
 
 void rtj0(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, j0(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -895,7 +895,7 @@ void rtj0(Ivy *ivy)
 
 void rtj1(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, j1(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -908,7 +908,7 @@ void rtj1(Ivy *ivy)
 
 void rty0(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, y0(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -921,7 +921,7 @@ void rty0(Ivy *ivy)
 
 void rty1(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
 	if (a->val.type == tFP)
 		*psh(ivy) = mkdval(tFP, y1(a->val.u.fp));
 	else if (a->val.type == tNUM)
@@ -934,8 +934,8 @@ void rty1(Ivy *ivy)
 
 void rtjn(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
-	Var *b = getv_atom(ivy, b_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
+	Var *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
 	if (a->val.type == tFP)
 		l = a->val.u.fp;
@@ -960,8 +960,8 @@ void rtjn(Ivy *ivy)
 
 void rtyn(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
-	Var *b = getv_atom(ivy, b_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
+	Var *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
 	if (a->val.type == tFP)
 		l = a->val.u.fp;
@@ -986,8 +986,8 @@ void rtyn(Ivy *ivy)
 
 void rtmax(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
-	Var *b = getv_atom(ivy, b_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
+	Var *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
 	if (a->val.type == tFP)
 		l = a->val.u.fp;
@@ -1015,8 +1015,8 @@ void rtmax(Ivy *ivy)
 
 void rtmin(Ivy *ivy)
 {
-	Var *a = getv_atom(ivy, a_atom);
-	Var *b = getv_atom(ivy, b_atom);
+	Var *a = getv_by_symbol(ivy, a_symbol);
+	Var *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
 	if (a->val.type == tFP)
 		l = a->val.u.fp;
@@ -1104,6 +1104,6 @@ struct builtin builtins[] = {
 	{"min", rtmin, "a;b"},
 	{"random", rtrandom, ""},
 	{"help", rthelp, "a"},
-	{"atomcount", rtatomcount, ""},
+	{"symbolcount", rtsymbolcount, ""},
 	{0, 0, 0}
 };

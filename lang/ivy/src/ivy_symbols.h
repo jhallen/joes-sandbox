@@ -1,4 +1,4 @@
-/* Atom (interned string) management
+/* Atom management
 
    Copyright (C) 1993 Joseph H. Allen
 
@@ -13,38 +13,14 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
 details.  
 
+
 IVY; see the file COPYING.  If not, write to the Free Software Foundation, 
 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <string.h>
-#include "hash.h"
-#include "atom.h"
+#ifndef _Isymbols
+#define _Isymbols 1
 
-Hash_table *atom_table;
+char *symbol_add(char *name);
+char *symbol_noadd(char *name);
 
-int atom_count;
-
-char *atom_add(char *name)
-{
-	char *s;
-	unsigned hval;
-	if (!atom_table)
-		atom_table = htmk(1024);
-	hval = hash(name);
-	s = htfindhval(atom_table, name, hval);
-	if (!s) {
-		s = strdup(name);
-		htaddhval(atom_table, s, hval, s);
-		++atom_count;
-	}
-	return s;
-}
-
-char *atom_noadd(char *name)
-{
-	unsigned hval;
-	if (!atom_table)
-		atom_table = htmk(1024);
-	hval = hash(name);
-	return htfindhval(atom_table, name, hval);
-}
+#endif

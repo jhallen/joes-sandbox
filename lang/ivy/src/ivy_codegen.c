@@ -21,8 +21,6 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
-#include "ivy_tree.h"
-#include "ivy_frag.h"
 #include "ivy.h"
 
 Func *mkfunc(Pseudo * code, int nargs, char **args, Pseudo ** inits, char *quote)
@@ -172,6 +170,11 @@ void push_narg(Frag *frag)
 	emitc(frag, iPSH_NARG);
 }
 
+void push_pair(Frag *frag)
+{
+	emitc(frag, iPSH_PAIR);
+}
+
 void push_func(Frag *frag)
 {
 	mklooplvl(frag, lvlVALUE, 0, 0);
@@ -307,14 +310,8 @@ void disasm(FILE *out, Pseudo * c, int ind, int oneline)
 			} case iGET: {
 				indent(out, ind); fprintf(out, "	get\n");
 				break;
-			} case iGET_ATOM: {
-				indent(out, ind); fprintf(out, "	get atom\n");
-				break;
 			} case iGETF: {
 				indent(out, ind); fprintf(out, "	getf\n");
-				break;
-			} case iGETF_ATOM: {
-				indent(out, ind); fprintf(out, "	getf atom\n");
 				break;
 			} case iAT: {
 				indent(out, ind); fprintf(out, "	at\n");
@@ -357,15 +354,15 @@ void disasm(FILE *out, Pseudo * c, int ind, int oneline)
 				indent(out, ind); fprintf(out, "	psh_fp %g\n", *(double *)c);
 				c += sizeof(double);
 				break;
-			} case iPSH_NARG: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	psh_narg \"%s\"\n", c + sizeof(int));
-				c += sizeof(int) + *(int *)c + 1;
-				break;
 			} case iPSH_STR: {
 				c += align_o(c, sizeof(int));
 				indent(out, ind); fprintf(out, "	psh_str \"%s\"\n", c + sizeof(int));
 				c += sizeof(int) + *(int *)c + 1;
+				break;
+			} case iPSH_NARG: {
+				c += align_o(c, sizeof(char *));
+				indent(out, ind); fprintf(out, "	psh_narg %s\n", *(char **)c);
+				c += sizeof(char *);
 				break;
 			} case iPSH_NAM: {
 				c += align_o(c, sizeof(char *));
@@ -434,13 +431,13 @@ int genlst(Error_printer *err, char **argv, Pseudo ** initv, char *quote, Node *
 			int x = genlst(err, argv, initv, quote, n->l);
 			return x + genlst(err, argv + x, initv + x, quote + x, n->r);
 		} case nNAM: {
-			return argv[0] = strdup(n->s), initv[0] = 0, 1;
+			return (argv[0] = n->s), (initv[0] = 0), 1;
 		} case nSET: {
 			if (n->l->what == nNAM)
-				return argv[0] = strdup(n->l->s), initv[0] = codegen(err, n->r), 1;
+				return (argv[0] = n->l->s), (initv[0] = codegen(err, n->r)), 1;
 			else if (n->l->what == nADDR && n->l->r->what == nNAM) {
 				quote[0] = 1;
-				return argv[0] = strdup(n->l->r->s), initv[0] = codegen(err, n->r), 1;
+				return (argv[0] = n->l->r->s), (initv[0] = codegen(err, n->r)), 1;
 			}
 			break;
 		}
@@ -461,10 +458,23 @@ static int genl(Error_printer *err, Frag *frag, Node * n)
 			result = genl(err, frag, n->r);
 			return result + genl(err, frag, n->l);
 		} case nSET: {
-			if (n->l->what == nQUOTE && (n->l->r->what == nNAM || n->l->r->what == nSTR)) {
+			if (n->l->what == nQUOTE && n->l->r->what == nNAM) {
 				gen(err, frag, n->r);
 				push_narg(frag);
+				emitp(frag, n->l->r->s);
+				push_pair(frag);
+				return 1;
+			} else if (n->l->what == nQUOTE && n->l->r->what == nSTR) {
+				gen(err, frag, n->r);
+				push_str(frag);
 				emits(frag, n->l->r->s, n->l->r->n);
+				push_pair(frag);
+				return 1;
+			} else if (n->l->what == nQUOTE && n->l->r->what == nNUM) {
+				gen(err, frag, n->r);
+				push_num(frag);
+				emitl(frag, n->l->r->n);
+				push_pair(frag);
 				return 1;
 			}
 			break;
@@ -504,10 +514,23 @@ static int gencl(Error_printer *err, Frag *frag, Node * n)
 			result = gencl(err, frag, n->r);
 			return result + gencl(err, frag, n->l);
 		} case nSET: {
-			if (n->l->what == nQUOTE && (n->l->r->what == nNAM || n->l->r->what == nSTR)) {
+			if (n->l->what == nQUOTE && n->l->r->what == nNAM) {
 				genfunc(err, frag, consempty(n->loc), n->r);
 				push_narg(frag);
+				emitp(frag, n->l->r->s);
+				push_pair(frag);
+				return 1;
+			} else if (n->l->what == nQUOTE && n->l->r->what == nSTR) {
+				genfunc(err, frag, consempty(n->loc), n->r);
+				push_str(frag);
 				emits(frag, n->l->r->s, n->l->r->n);
+				push_pair(frag);
+				return 1;
+			} else if (n->l->what == nQUOTE && n->l->r->what == nNUM) {
+				genfunc(err, frag, consempty(n->loc), n->r);
+				push_num(frag);
+				emitl(frag, n->l->r->n);
+				push_pair(frag);
 				return 1;
 			}
 			break;
@@ -660,7 +683,11 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 		} case nNAM: {
 			push_nam(frag);
 			emitp(frag, n->s);
-			emitc(frag, iGET_ATOM);
+			emitc(frag, iGET);
+			break;
+		} case nQUOTE: {
+			push_nam(frag);
+			emitp(frag, n->r->s);
 			break;
 		} case nSET: {
 			gen(err, frag, n->r);
@@ -690,21 +717,21 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 					genfunc(err, frag, n->r->l->r, n->r->r);
 					push_nam(frag);
 					emitp(frag, n->r->l->l->s);
-					emitc(frag, iGETF_ATOM);
+					emitc(frag, iGETF);
 					emitc(frag, iSET);
 					rmlooplvl(frag, lvlVALUE, 0, 0);
 				} else if (n->r->l->what==nNAM && n->r->r->what==nSEMI && n->r->r->l->what==nPAREN) { /* fn sq (x) x*x */
 					genfunc(err, frag, n->r->r->l, n->r->r->r);
 					push_nam(frag);
 					emitp(frag, n->r->l->s);
-					emitc(frag, iGETF_ATOM);
+					emitc(frag, iGETF);
 					emitc(frag, iSET);
 					rmlooplvl(frag, lvlVALUE, 0, 0);
 				} else if (n->r->l->what==nNAM && n->r->r->what==nPAREN) { /* fn sq (x) */
 					genfunc(err, frag, n->r->r, consempty(n->loc));
 					push_nam(frag);
 					emitp(frag, n->r->l->s);
-					emitc(frag, iGETF_ATOM);
+					emitc(frag, iGETF);
 					emitc(frag, iSET);
 					rmlooplvl(frag, lvlVALUE, 0, 0);
 				} else if (n->r->l->what==nPAREN) { /* fn (x) x*x */
@@ -717,7 +744,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 				genfunc(err, frag, n->r->r, consempty(n->loc));
 				push_nam(frag);
 				emitp(frag, n->r->l->s);
-				emitc(frag, iGETF_ATOM);
+				emitc(frag, iGETF);
 				emitc(frag, iSET);
 				rmlooplvl(frag, lvlVALUE, 0, 0);
 			} else if(n->r->what==nPAREN) { /* fn () */
@@ -752,8 +779,8 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 			fixlooplvl(frag, nargs + 1);
 			break;
 		} case nCALL1: { /* Ends up being the same as above */
-			if (n->r->what == nNAM) { /* Turn it into a string .x -> ."x" */
-				n->r->what = nSTR;
+			if (n->r->what == nNAM) {
+				n->r = cons1(n->loc, nQUOTE, n->r);
 			}
 			int nargs = gencl(err, frag, n->r);
 			push_lst(frag);
