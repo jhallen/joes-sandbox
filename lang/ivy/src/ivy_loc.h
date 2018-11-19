@@ -27,11 +27,11 @@ typedef struct loc Loc;		/* Input location */
 /* A location */
 
 struct loc {
-	char *ptr;
+	const char *ptr;
 	int col;
 	int lvl;
 	int line;
-	char *name;
+	const char *name;
 	int eof;
 	Free_list *free_list;
 };

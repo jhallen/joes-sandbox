@@ -21,8 +21,8 @@ typedef struct frag Frag;
 
 struct frag {
 	unsigned char *begcode;
-	int code;
-	int codesize;
+	size_t code;
+	size_t codesize;
 
 	int rtn;
 	int scopelvl;

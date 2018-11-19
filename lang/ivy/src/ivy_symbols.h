@@ -20,7 +20,7 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #ifndef _Isymbols
 #define _Isymbols 1
 
-char *symbol_add(char *name);
-char *symbol_noadd(char *name);
+char *symbol_add(const char *name);
+char *symbol_noadd(const char *name);
 
 #endif

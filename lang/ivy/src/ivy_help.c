@@ -29,9 +29,9 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 
 #include "ivy_online.h"
 
-char *choose_pager()
+const char *choose_pager()
 {
-	char *s = getenv("PAGER");
+	const char *s = getenv("PAGER");
 	struct stat stbuf;
 	if (s && !stat(s, &stbuf)) return s;
 	else if (!stat(s = "/usr/bin/more", &stbuf)) return s;
@@ -59,7 +59,7 @@ void rthelp(Ivy *ivy)
 			for (x = 0; sections[x].name; ++x)
 				if (!strcmp(sections[x].name, buf)) {
 					FILE *f;
-					char *s;
+					const char *s;
 					s = choose_pager();
 					f = 0;
 					if (s)

@@ -213,7 +213,7 @@ Val popval(Ivy *ivy)
 
 /* Make a value */
 
-void mkval(Val *v, int type)
+void mkval(Val *v, enum valtype type)
 {
 	v->type = type;
 	v->origin = 0;
@@ -222,7 +222,7 @@ void mkval(Val *v, int type)
 	v->u.num = 0;
 }
 
-Val mkival(int type, long long i)
+Val mkival(enum valtype type, long long i)
 {
 	Val v;
 	v.type = type;
@@ -233,7 +233,7 @@ Val mkival(int type, long long i)
 	return v;
 }
 
-Val mkdval(int type, double d)
+Val mkdval(enum valtype type, double d)
 {
 	Val v;
 	v.type = type;
@@ -244,14 +244,14 @@ Val mkdval(int type, double d)
 	return v;
 }
 
-Val mkpval(int type, void *u)
+Val mkpval(enum valtype type, void *u)
 {
 	Val v;
 	v.type = type;
 	v.origin = 0;
 	v.idx_type = tVOID;
 	v.idx.num = 0;
-	v.u.closure = u;
+	v.u.closure = (Closure *)u;
 	return v;
 }
 
@@ -455,7 +455,7 @@ void callfunc(Ivy *ivy, Closure *o)
 {
 	struct callfunc *t;
 
-	t = calloc(1, sizeof(struct callfunc));
+	t = (struct callfunc *)calloc(1, sizeof(struct callfunc));
 	t->o = o;
 	// printf("callfunc %p fun=%p\n", t, o);
 	mkval(&t->val, tVOID);
@@ -668,7 +668,7 @@ void callval(Ivy *ivy, Val val)
 {
 	struct callfunc *t;
 
-	t = calloc(1, sizeof(struct callfunc));
+	t = (struct callfunc *)calloc(1, sizeof(struct callfunc));
 	t->o = 0;
 	t->val = val;
 	t->ovars = ivy->vars;	/* Save caller's scope */
@@ -1133,9 +1133,9 @@ int pexe(Ivy *ivy, int trace)
 					int x;
 					Obj *t = ivy->sp[0].u.obj;
 					int a = ivy->sp[-1].u.obj->ary_len;
-					Obj *new = dupobj(ivy->sp[-1].u.obj, &ivy->sp[-1], 0, __LINE__);
+					Obj *newo = dupobj(ivy->sp[-1].u.obj, &ivy->sp[-1], 0, __LINE__);
 					rmval(&ivy->sp[-1], __LINE__);
-					ivy->sp[-1] = mkpval(tOBJ, new);
+					ivy->sp[-1] = mkpval(tOBJ, newo);
 					for (x = 0; x != t->ary_len; ++x) {	/* Append array elements */
 						*set_by_number(ivy->sp[-1].u.obj, x + a) = t->ary[x];
 					}
@@ -1411,7 +1411,7 @@ int pexe(Ivy *ivy, int trace)
 			Val v;
 			pc += align_o(pc, sizeof(void *));
 			// printf("iPSH_FUNC: ivy->vars=%p\n", ivy->vars);
-			v = mkpval(tCLOSURE, (closure = alloc_closure(*(void **)pc, ivy->vars)));
+			v = mkpval(tCLOSURE, (closure = alloc_closure(*(Func **)pc, ivy->vars)));
 			*psh(ivy) = v;
 			pc += sizeof(void *);
 			/* Call initializers */
@@ -1688,7 +1688,7 @@ Val *pr(FILE *out, Val * v, int lvl)
 
 /* Add a C function to the table */
 
-void add_cfunc(Ivy *ivy, Obj *vars, char *name, char *argstr, void (*cfunc) ())
+void add_cfunc(Ivy *ivy, Obj *vars, const char *name, const char *argstr, void (*cfunc) (Ivy *))
 {
 	char bf[1024];
 	Node *args;

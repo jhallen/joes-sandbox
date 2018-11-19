@@ -23,10 +23,10 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 
 Hash_table *htmk(int starting_size)
 {
-	Hash_table *ht = malloc(sizeof(Hash_table));
+	Hash_table *ht = (Hash_table *)malloc(sizeof(Hash_table));
 	ht->size = starting_size - 1;
 	ht->nentries = 0;
-	ht->table = calloc(starting_size, sizeof(Hash_entry *));
+	ht->table = (Hash_entry **)calloc(starting_size, sizeof(Hash_entry *));
 	mk_allocator(ht->free_entries, sizeof(Hash_entry));
 	return ht;
 }
@@ -40,7 +40,7 @@ void htrm(Hash_table *h)
 
 /* Find an entry */
 
-void *htfindhval(Hash_table *h, char *name, unsigned hval)
+void *htfindhval(Hash_table *h, const char *name, unsigned hval)
 {
 	Hash_entry *e;
 	for (e = h->table[hval & h->size]; e; e=e->next)
@@ -49,7 +49,7 @@ void *htfindhval(Hash_table *h, char *name, unsigned hval)
 	return NULL;
 }
 
-void *htfind(Hash_table *h, char *name)
+void *htfind(Hash_table *h, const char *name)
 {
 	return htfindhval(h, name, hash(name));
 }
@@ -60,7 +60,7 @@ void htexpand(Hash_table *h)
 {
 	/* Allocate new table */
 	unsigned new_size = (h->size + 1) * 2 - 1;
-	Hash_entry **new_table = calloc(h->size + 1, sizeof(Hash_entry *));
+	Hash_entry **new_table = (Hash_entry **)calloc(h->size + 1, sizeof(Hash_entry *));
 	/* Copy entries from old table to new */
 	int x;
 	for (x = 0; x != h->size + 1; ++x) {
@@ -79,10 +79,10 @@ void htexpand(Hash_table *h)
 
 /* Add an entry */
 
-void htaddhval(Hash_table *h, char *name, unsigned hval, void *val)
+void htaddhval(Hash_table *h, const char *name, unsigned hval, void *val)
 {
 	Hash_entry *e;
-	e = al_item(h->free_entries);
+	e = (Hash_entry *)al_item(h->free_entries);
 	e->name = name;
 	e->val = val;
 	e->hash_val = hval;
@@ -92,7 +92,7 @@ void htaddhval(Hash_table *h, char *name, unsigned hval, void *val)
 		htexpand(h);
 }
 
-void htadd(Hash_table *h, char *name, void *val)
+void htadd(Hash_table *h, const char *name, void *val)
 {
 	htaddhval(h, name, hash(name), val);
 }
@@ -101,7 +101,7 @@ void htadd(Hash_table *h, char *name, void *val)
 
 #define hnext(accu, c) (((accu) << 4) + ((accu) >> 28) + (c))
 
-unsigned hash(char *s)
+unsigned hash(const char *s)
 {
 	unsigned accu = 0;
 	while (*s)

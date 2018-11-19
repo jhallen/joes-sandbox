@@ -45,7 +45,7 @@ Node *cons2(Loc *loc, int what, Node *left, Node *right)
 		n->r = cons2(loc, nSEMI, n->r, right);
 		return left;
 	} else {
-		Node *n = al_item(loc->free_list);
+		Node *n = (Node *)al_item(loc->free_list);
 		n->what = what;
 		n->l = left;
 		n->r = right;
@@ -83,7 +83,7 @@ Node *cons1(Loc *loc,int what, Node *right)
 	if (!right)
 		return 0;
 	else {
-		Node *n = al_item(loc->free_list);
+		Node *n = (Node *)al_item(loc->free_list);
 		n->what = what;
 		n->l = 0;
 		n->r = right;
@@ -97,7 +97,7 @@ Node *cons1(Loc *loc,int what, Node *right)
 
 Node *consnum(Loc *loc,long long v)
 {
-	Node *n = al_item(loc->free_list);
+	Node *n = (Node *)al_item(loc->free_list);
 	n->what = nNUM;
 	n->l = 0;
 	n->r = 0;
@@ -111,7 +111,7 @@ Node *consnum(Loc *loc,long long v)
 
 Node *consfp(Loc *loc,double v)
 {
-	Node *n = al_item(loc->free_list);
+	Node *n = (Node *)al_item(loc->free_list);
 	n->what = nFP;
 	n->l = 0;
 	n->fp = v;
@@ -126,7 +126,7 @@ Node *consfp(Loc *loc,double v)
 
 Node *conss(Loc *loc,int a, char *v, int l)
 {
-	Node *n = al_item(loc->free_list);
+	Node *n = (Node *)al_item(loc->free_list);
 	n->what = a;
 	n->l = 0;
 	n->r = 0;
@@ -161,7 +161,7 @@ Node *conslabel(Loc *loc, char *v)
 
 Node *consvoid(Loc *loc)
 {
-	Node *n = al_item(loc->free_list);
+	Node *n = (Node *)al_item(loc->free_list);
 	n->what = nVOID;
 	n->l = 0;
 	n->r = 0;
@@ -173,7 +173,7 @@ Node *consvoid(Loc *loc)
 
 Node *consthis(Loc *loc)
 {
-	Node *n = al_item(loc->free_list);
+	Node *n = (Node *)al_item(loc->free_list);
 	n->what = nTHIS;
 	n->l = 0;
 	n->r = 0;
@@ -187,7 +187,7 @@ Node *consthis(Loc *loc)
 
 Node *consempty(Loc *loc)
 {
-	Node *n = al_item(loc->free_list);
+	Node *n = (Node *)al_item(loc->free_list);
 	n->what = nEMPTY;
 	n->l = 0;
 	n->r = 0;
@@ -214,7 +214,7 @@ Node *dup(Loc *loc, Node * o)
 	Node *n;
 	if (!o)
 		return 0;
-	n = al_item(loc->free_list);
+	n = (Node *)al_item(loc->free_list);
 	n->what = o->what;
 	if (o->s && o->what == nNAM) {
 		n->s = o->s;

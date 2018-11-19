@@ -55,7 +55,7 @@ struct node {
 
 struct what {
 	int what;		/* Code for this node type */
-	char *name;		/* How it's scanned/printed */
+	const char *name;	/* How it's scanned/printed */
 	int prefix;		/* Context dependent alternatives */
 	int infix;
 	int postfix;

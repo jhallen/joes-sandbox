@@ -26,7 +26,7 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 void init_frag(Frag *f)
 {
 	f->codesize = 128;
-	f->begcode = malloc(f->codesize);
+	f->begcode = (unsigned char *)malloc(f->codesize);
 	f->code = 0;
 
 	f->rtn = 0;
@@ -38,7 +38,7 @@ void init_frag(Frag *f)
 
 /* Expand code block by at least 'size' words */
 
-void expand_frag(Frag *frag, int size)
+void expand_frag(Frag *frag, size_t size)
 {
 	if ((frag->codesize >> 1) > size)
 		// Grow by 50%
@@ -47,7 +47,7 @@ void expand_frag(Frag *frag, int size)
 		// Grow by 50% plus requested size
 		frag->codesize += frag->codesize + (frag->codesize >> 1);
 
-	frag->begcode = realloc(frag->begcode, frag->codesize);
+	frag->begcode = (unsigned char *)realloc(frag->begcode, frag->codesize);
 }
 
 /* Emit a byte */

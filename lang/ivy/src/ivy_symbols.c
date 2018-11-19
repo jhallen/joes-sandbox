@@ -24,14 +24,14 @@ Hash_table *symbol_table;
 
 int symbol_count;
 
-char *symbol_add(char *name)
+char *symbol_add(const char *name)
 {
 	char *s;
 	unsigned hval;
 	if (!symbol_table)
 		symbol_table = htmk(1024);
 	hval = hash(name);
-	s = htfindhval(symbol_table, name, hval);
+	s = (char *)htfindhval(symbol_table, name, hval);
 	if (!s) {
 		s = strdup(name);
 		htaddhval(symbol_table, s, hval, s);
@@ -40,11 +40,11 @@ char *symbol_add(char *name)
 	return s;
 }
 
-char *symbol_noadd(char *name)
+char *symbol_noadd(const char *name)
 {
 	unsigned hval;
 	if (!symbol_table)
 		symbol_table = htmk(1024);
 	hval = hash(name);
-	return htfindhval(symbol_table, name, hval);
+  	return (char *)htfindhval(symbol_table, name, hval);
 }

@@ -28,7 +28,7 @@ typedef struct hash_entry Hash_entry;
 struct hash_entry {
 	struct hash_entry *next;
 	unsigned hash_val;
-	char *name;
+	const char *name;
 	void *val;
 };
 
@@ -39,16 +39,16 @@ struct hash_table {
 	int size;
 };
 
-unsigned hash(char *s);
+unsigned hash(const char *s);
 
 Hash_table *htmk(int len);
 void htrm(Hash_table *ht);
 
-void htaddhval(Hash_table *ht, char *name, unsigned hval, void *val);
-void htadd(Hash_table *ht, char *name, void *val);
+void htaddhval(Hash_table *ht, const char *name, unsigned hval, void *val);
+void htadd(Hash_table *ht, const char *name, void *val);
 
-void *htfindhval(Hash_table *ht, char *name, unsigned hval);
-void *htfind(Hash_table *ht, char *name);
+void *htfindhval(Hash_table *ht, const char *name, unsigned hval);
+void *htfind(Hash_table *ht, const char *name);
 
 void htexpand(Hash_table *ht);
 

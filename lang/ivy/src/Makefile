@@ -1,6 +1,6 @@
 #CFLAGS = -pg -g -Wall
 CFLAGS = -O2 -Wall
-CC = gcc
+CC = g++
 
 # LIBS = -lm -lreadline -lcurses
 # For Cygwin...

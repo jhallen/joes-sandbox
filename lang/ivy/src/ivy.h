@@ -58,7 +58,8 @@ enum valtype {
 	tRET_IVY,		/* Normal function return */
 	tRET_NEXT_INIT,		/* Call next initializer */
 	tRET_SIMPLE,
-	tPAIR			/* A name value pair */
+	tPAIR,			/* A name value pair */
+	tERROR = -1
 };
 
 /* A value: (4 words.. wasteful..) */
@@ -171,9 +172,9 @@ Node *compargs(Ivy *ivy, char *);
 /* Main functions */
 
 /* Interpret and execute a line immediately */
-Parser *mkparser(Ivy *ivy, char *file_name);
-void rmparser();
-Val parse(Ivy *ivy, Parser *parser, char *buf, int unasm, int ptree, int ptop, int norun, int trace);
+Parser *mkparser(Ivy *ivy, const char *file_name);
+void rmparser(Parser *parser);
+Val parse(Ivy *ivy, Parser *parser, const char *text, int unasm, int ptree, int ptop, int norun, int trace);
 void parse_done(Ivy *ivy, Parser *parser, int unasm, int ptree, int ptop, int norun, int trace);
 
 /* Convert a parse-tree into pseudo-machine code */
@@ -295,10 +296,10 @@ void addlvl(Ivy *ivy, Obj *dyn);		/* Add a scope level */
 void rmvlvl(Ivy *ivy);		/* Remove a scope level */
 Obj *get_mom(Obj *o);
 
-Val mkpval(int, void *);
-void mkval(Val *,int);
-Val mkival(int, long long);
-Val mkdval(int, double);
+Val mkpval(enum valtype, void *);
+void mkval(Val *,enum valtype);
+Val mkival(enum valtype, long long);
+Val mkdval(enum valtype, double);
 Val *rmval(Val *, int);
 Val *dupval(Val *, Val *);
 Val *pr(FILE *out,Val *,int lvl);
@@ -324,12 +325,12 @@ Val run(Ivy *, Pseudo *, int ptop, int trace);
 /* Table of built-in functions */
 
 extern struct builtin {
-	char *name; /* Function name */
-	void (*cfunc) (); /* Function address */
-	char *args; /* Argument list */
+	const char *name; /* Function name */
+	void (*cfunc) (Ivy *); /* Function address */
+	const char *args; /* Argument list */
 } builtins[];
 
-void rthelp();
+void rthelp(Ivy *);
 
 void disasm(FILE *out, Pseudo *code, int ind, int oneline);
 int cntlst(Node *args);

@@ -31,7 +31,7 @@ void mk_allocator(Free_list *free_list, int item_size)
 	free_list->size = item_size;
 	free_list->end = item_size * AL_MULT;
 	free_list->alloc = item_size;
-	free_list->page = free_list->first_page = malloc(free_list->end);
+	free_list->page = (unsigned char  *)(free_list->first_page = malloc(free_list->end));
 	*(void **)free_list->page = 0;
 }
 
@@ -62,10 +62,10 @@ void *al_item(Free_list *free_list)
 	if (free_list->alloc == free_list->end) {
 		free_list->alloc = free_list->size;
 		if (!*(void **)free_list->page) {
-			free_list->page = *(void **)free_list->page = malloc(free_list->end);
+			free_list->page = (unsigned char *)(*(void **)free_list->page = malloc(free_list->end));
 			*(void **)free_list->page = 0;
 		} else {
-			free_list->page = *(void **)free_list->page;
+			free_list->page = (unsigned char *)*(void **)free_list->page;
 		}
 	}
 
@@ -87,7 +87,7 @@ void fr_item(Free_list *free_list, void *item)
 
 void fr_all(Free_list *free_list)
 {
-	free_list->page = free_list->first_page;
+	free_list->page = (unsigned char *)free_list->first_page;
 	free_list->alloc = free_list->size;
 	free_list->list = 0;
 }

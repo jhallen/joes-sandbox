@@ -1,3 +1,6 @@
+Use ivy_ prefix for everything (simplifies inclusion) 
+
+include is broken (needs to push input I think)
 
 Thunks should not have their own scope?
 

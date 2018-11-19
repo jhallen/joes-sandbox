@@ -220,7 +220,7 @@ void izoprtab(void)
 	opr_isinit = 1;
 	for (x = 0; (t = ioprtab[x]) != -1; ++x) {
 		What *tt = &what_tab[t];
-		char *s = tt->name;
+		const char *s = tt->name;
 		unsigned long accu = 0;
 		while (*s) {
 			accu = hnext(accu, *s++);
@@ -232,7 +232,7 @@ void izoprtab(void)
 	}
 }
 
-int strcmpn(char *blk, int len, char *s)
+int strcmpn(const char *blk, int len, const char *s)
 {
 	while (len && *s && *blk == *s) {
 		++blk;
@@ -245,10 +245,10 @@ int strcmpn(char *blk, int len, char *s)
 		return 1;
 }
 
-What *doopr(Loc *loc, unsigned long accu, char *start)
+What *doopr(Loc *loc, unsigned long accu, const char *start)
 {
 	unsigned long oaccu = accu;
-	char *oops = loc->ptr;
+	const char *oops = loc->ptr;
 	int oopscol = loc->col;
 	What *t;
 	do {
@@ -434,7 +434,7 @@ What *kw(char *symbol)
 #define check_str_buf() do { \
 	if (parser->str_len == parser->str_siz) \
 		parser->str_siz *= 2; \
-		parser->str_buf = realloc(parser->str_buf,parser->str_siz); \
+		parser->str_buf = (char *)realloc(parser->str_buf,parser->str_siz); \
 } while(0)
 
 int parse_rest(Parser *);
@@ -500,7 +500,7 @@ int parse_expr(Parser *);
 
 int parse_rest(Parser *parser)
 {
-	char *oops = parser->loc->ptr;
+	const char *oops = parser->loc->ptr;
 	int oopscol = parser->loc->col;
 	int left;
 	int right;
@@ -634,7 +634,7 @@ int parse_string(Parser *parser)
 	/* Make sure there's space for the NUL */
 	check_str_buf();
 	parser->str_buf[parser->str_len] = 0;
-	parser->state.n = consstr(parser->loc,memcpy(malloc(parser->str_len+1),parser->str_buf,parser->str_len+1),parser->str_len);
+	parser->state.n = consstr(parser->loc,(char *)memcpy(malloc(parser->str_len+1),parser->str_buf,parser->str_len+1),parser->str_len);
 	pjump(parse_rest);
 	return 0;
 }
@@ -852,7 +852,7 @@ int parse_expr(Parser *parser)
 			}
 			/* Fall into operator */
 		} default: {		/* Operator? */
-			char *oops = parser->loc->ptr;
+			const char *oops = parser->loc->ptr;
 			int oopscol = parser->loc->col;
 			parser->state.op = opr(parser->loc);
 			if (parser->state.op && parser->state.op->prefix) {
@@ -1213,10 +1213,10 @@ int parse_idle_1(Parser *parser)
 
 /* Parse a line */
 
-Val parse(Ivy *ivy, Parser *parser, char *text, int unasm, int ptree, int ptop, int norun, int trace)
+Val parse(Ivy *ivy, Parser *parser, const char *text, int unasm, int ptree, int ptop, int norun, int trace)
 {
 	Val rtn_val;
-	rtn_val.type = -1;
+	rtn_val.type = tERROR;
 	parser->loc->ptr = text;
 	parser->loc->col = 0;
 	parser->loc->lvl = -1;
@@ -1277,7 +1277,7 @@ void parse_done(Ivy *ivy, Parser *parser, int unasm, int ptree, int ptop, int no
 
 /* Create a parser */
 
-Parser *mkparser(Ivy *ivy, char *file_name)
+Parser *mkparser(Ivy *ivy, const char *file_name)
 {
 	Parser *parser = (Parser *)malloc(sizeof(Parser));
 	parser->ivy = ivy;
@@ -1299,7 +1299,7 @@ Parser *mkparser(Ivy *ivy, char *file_name)
 	parser->state.state = parse_idle;
 	parser->state.next = 0;
 	parser->str_siz = 80;
-	parser->str_buf = malloc(parser->str_siz);
+	parser->str_buf = (char *)malloc(parser->str_siz);
 	return parser;
 }
 
