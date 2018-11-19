@@ -1,4 +1,14 @@
 
+Thunks should not have their own scope?
+
+  fn set(&a, b) { *a = b }
+  set x 9   # x is void after this
+  x=1
+  set x 9   # now x is 9
+  set mom.y 9  # y is 9...
+
+They probably should not.. but this is a PITA..
+
 Garbage collector:
 
   use an allocator for the protection structures
