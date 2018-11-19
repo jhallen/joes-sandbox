@@ -90,15 +90,14 @@ calling-func:
 
 void mkfun_init_next(Ivy *ivy, Fun *fun);
 
-void mkfun_init(Ivy *ivy,Fun *fun)
+void mkfun_init(Ivy *ivy, Fun *fun)
 {
 	while (fun->x != fun->f->nargs) {
 		/* Call initializer */
 		if (fun->f->inits[fun->x]) {
-			psh(ivy);
-			ivy->sp[0].u.fun = fun;
-			ivy->sp[0].var = (Var *)ivy->pc;
-			ivy->sp[0].type = tRET_NEXT_INIT;
+			mkval(psh(ivy), tRET_NEXT_INIT);
+			ivy->sp[0].idx.fun = fun;
+			ivy->sp[0].u.pc = ivy->pc;
 
 			ivy->pc = fun->f->inits[fun->x];
 			return;
@@ -118,24 +117,21 @@ void mkfun_init_next(Ivy *ivy, Fun *fun)
 Val *rmval(Val *v, int line)
 {
 	switch (v->type) {
-	case tLST:
-		{
+		case tLST: {
 			long long y = v->u.num, x;
 			--v;
 			// printf("rmval list with %d\n", y);
 			for (x = 0; x != y; ++x)
 				v = rmval(v, __LINE__);
+			break;
+		} case tPAIR: {
+			--v;
+			v = rmval(v, __LINE__);
+			v = rmval(v, __LINE__);
+			break;
+		} default: {
+			--v;
 		}
-		break;
-
-	case tPAIR:
-		--v;
-		v = rmval(v, __LINE__);
-		v = rmval(v, __LINE__);
-		break;
-
-	default:
-		--v;
 	}
 	return v;
 }
@@ -144,69 +140,64 @@ Val *rmval(Val *v, int line)
 
 Val *dupval(Val *n, Val *v)
 {
-	n->var = v->var;
+	n->idx_type = v->idx_type;
+	n->origin = v->origin;
+	n->idx = v->idx;
+
 	switch (v->type) {
-	case tLST:
-		{
+		case tLST: {
 			long long y = v->u.num, x, z;
-			*n = mkpval(tOBJ, alloc_obj(16, 4, 4));
+			Obj *obj;
+			*n = mkpval(tOBJ, obj = alloc_obj(16, 4, 4));
 			--v;
 			for (x = 0, z = 0; x != y; ++x)
 				if (v->type == tPAIR) {
 					--v;
 					if (v->type == tNAM)
-						v = dupval(&set_by_symbol(n->u.obj, v[0].u.name)->val, v - 1);
+						v = dupval(set_by_symbol(obj, v[0].u.name), v - 1);
 					else if (v->type == tSTR)
-						v = dupval(&set_by_string(n->u.obj, v[0].u.str->s)->val, v - 1);
+						v = dupval(set_by_string(obj, v[0].u.str->s), v - 1);
 					else if (v->type == tNUM)
-						v = dupval(&set_by_number(n->u.obj, v[0].u.num)->val, v - 1);
+						v = dupval(set_by_number(obj, v[0].u.num), v - 1);
 					else {
 						fprintf(stderr, "Invalid index on stack after tPAIR\n");
 						exit(-1);
 					}
 				} else
-					v = dupval(&set_by_number(n->u.obj, z++)->val, v);
+					v = dupval(set_by_number(obj, z++), v);
+			return v;
+		} case tSTR: {
+		        n->type = v->type;
+		        n->u.str = v->u.str;
+			return v - 1;
+		} case tNAM: {
+	                n->type = v->type;
+	                n->u.name = v->u.name;
+	                return v - 1;
+		} case tOBJ: {
+		        n->type = v->type;
+		        n->u.obj = v->u.obj;
+			return v - 1;
+		} case tFUN: {
+		        n->type = v->type;
+		        n->u.fun = v->u.fun;
+			return v - 1;
+		} case tVOID: {
+		        n->type = v->type;
+			return v - 1;
+		} case tNUM: {
+		        n->type = v->type;
+		        n->u.num = v->u.num;
+			return v - 1;
+		} case tFP: {
+		        n->type = v->type;
+		        n->u.fp = v->u.fp;
+			return v - 1;
+		} default: {
+			fprintf(stderr,"dupval of unknown or invalid type code %d\n",v->type);
+			exit(-1);
 			return v;
 		}
-
-	case tSTR:
-	        n->type = v->type;
-	        n->u.str = v->u.str;
-		return v - 1;
-
-        case tNAM:
-                n->type = v->type;
-                n->u.name = v->u.name;
-                return v - 1;
-
-	case tOBJ:
-	        n->type = v->type;
-	        n->u.obj = v->u.obj;
-		return v - 1;
-
-	case tFUN:
-	        n->type = v->type;
-	        n->u.fun = v->u.fun;
-		return v - 1;
-
-	case tVOID:
-	        n->type = v->type;
-		return v - 1;
-
-	case tNUM:
-	        n->type = v->type;
-	        n->u.num = v->u.num;
-		return v - 1;
-
-	case tFP:
-	        n->type = v->type;
-	        n->u.fp = v->u.fp;
-		return v - 1;
-
-	default:
-		fprintf(stderr,"dupval of unknown or invalid type code %d\n",v->type);
-		exit(-1);
-		return v;
 	}
 }
 
@@ -225,7 +216,9 @@ Val popval(Ivy *ivy)
 void mkval(Val *v, int type)
 {
 	v->type = type;
-	v->var = 0;
+	v->origin = 0;
+	v->idx_type = tVOID;
+	v->idx.num = 0;
 	v->u.num = 0;
 }
 
@@ -233,7 +226,9 @@ Val mkival(int type, long long i)
 {
 	Val v;
 	v.type = type;
-	v.var = 0;
+	v.origin = 0;
+	v.idx_type = tVOID;
+	v.idx.num = 0;
 	v.u.num = i;
 	return v;
 }
@@ -242,7 +237,9 @@ Val mkdval(int type, double d)
 {
 	Val v;
 	v.type = type;
-	v.var = 0;
+	v.origin = 0;
+	v.idx_type = tVOID;
+	v.idx.num = 0;
 	v.u.fp = d;
 	return v;
 }
@@ -251,17 +248,11 @@ Val mkpval(int type, void *u)
 {
 	Val v;
 	v.type = type;
-	v.var = 0;
+	v.origin = 0;
+	v.idx_type = tVOID;
+	v.idx.num = 0;
 	v.u.fun = u;
 	return v;
-}
-
-/* Remove variable's previous value and replace it with a new one */
-
-void setvar(Var *var, Val val)
-{
-        rmval(&var->val, __LINE__);
-        var->val = val;
 }
 
 /* Add a new level of local variables */
@@ -269,15 +260,12 @@ void setvar(Var *var, Val val)
 void addlvl(Ivy *ivy, Obj *dyn)
 {
 	Obj *o;
-	Var *var;
 
 	o = alloc_obj(16, 4, 4);
 
-	var = set_by_symbol(o, mom_symbol);
-	setvar(var, mkpval(tOBJ, ivy->vars));
+	*set_by_symbol(o, mom_symbol) = mkpval(tOBJ, ivy->vars);
 
-	var = set_by_symbol(o, dynamic_symbol);
-	setvar(var, mkpval(tOBJ, dyn));
+	*set_by_symbol(o, dynamic_symbol) = mkpval(tOBJ, dyn);
 
 	ivy->vars = o;
 	SCOPE_PRINTF1("addlvl, new scope is %p\n", ivy->vars);
@@ -295,19 +283,19 @@ void rmvlvl(Ivy *ivy)
 
 Obj *get_mom(Obj *o)
 {
-	Var *u = get_by_symbol(o, mom_symbol);
+	Val *u = get_by_symbol(o, mom_symbol);
 	Obj *rtn = 0;
-	if (u && u->val.type == tOBJ)
-		rtn = u->val.u.obj;
+	if (u && u->type == tOBJ)
+		rtn = u->u.obj;
 	return rtn;
 }
 
 /* Lookup a variable.  Check all scoping levels for the variable */
 
-Var *getv_by_symbol_obj(Obj *o, char *name)
+Val *getv_by_symbol_obj(Obj *o, char *name)
 {
 	Obj *next;
-	Var *e;
+	Val *e;
 	do {
 		if ((e = get_by_symbol(o, name)))
 			return e;
@@ -316,7 +304,7 @@ Var *getv_by_symbol_obj(Obj *o, char *name)
 	return 0;
 }
 
-Var *getv_by_symbol(Ivy *ivy, char *name)
+Val *getv_by_symbol(Ivy *ivy, char *name)
 {
 	return getv_by_symbol_obj(ivy->vars, name);
 }
@@ -324,9 +312,9 @@ Var *getv_by_symbol(Ivy *ivy, char *name)
 /* Lookup a variable.  Check all scoping levels for the variable.
    If none found, create it in the inner-most level. */
 
-Var *setv_by_symbol(Obj *o, char *name)
+Val *setv_by_symbol(Obj *o, char *name)
 {
-	Var *v = getv_by_symbol_obj(o, name);
+	Val *v = getv_by_symbol_obj(o, name);
 	if (!v) {
 		v = set_by_symbol(o, name);
 	}
@@ -347,18 +335,13 @@ void call_simple_func(Ivy *ivy, Fun * o, void (*func)(Ivy *,struct callfunc *), 
 
 	addlvl(ivy,ovars);	/* Make scoping level for function */
 
-	psh(ivy);
-	ivy->sp[0].var = 0;
-	ivy->sp[0].u.fun = o; /* Not used? */
-
-	psh(ivy);
-	ivy->sp[0].var = (Var *)t;
-	ivy->sp[0].u.func = func;
-
-	psh(ivy);
+	mkval(psh(ivy), tVOID);
+	ivy->sp[0].idx.func = func;
 	ivy->sp[0].u.obj = ovars;
-	ivy->sp[0].var = (Var *)ivy->pc;
-	ivy->sp[0].type = tRET_SIMPLE;
+
+	mkval(psh(ivy), tRET_SIMPLE);
+	ivy->sp[0].idx.callfunc = t;
+	ivy->sp[0].u.pc = ivy->pc;
 
 	/* Set new program counter value... */
 	ivy->pc = o->f->code;
@@ -368,49 +351,67 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t);
 
 void save_arg_result(Ivy *ivy,struct callfunc *t)
 {
-	/* Save result of arg evaluation */
-	t->a->val = popval(ivy);
+	Val v = popval(ivy);
+
+	if (t->scope_result) {
+		*t->scope_result = v;
+	}
+
+	if (t->argv_result) {
+		*t->argv_result = v;
+		
+	}
+
 	copy_next_arg(ivy, t);
 }
 
 void copy_next_arg(Ivy *ivy, struct callfunc *t)
 {
         int x;
-        Var *a;
+        Val *a;
 	while (t->x != ivy->sp[0].u.num) {
-		Fun *f = 0;
+		Fun *f = 0; // Set to function to call if not quoting
 		if (t->q->type != tPAIR) { /* It's not a named argument */
 			if (t->argn >= t->o->f->nargs) { /* Past end of declared arg list */
-				t->a = set_by_number(t->argv->val.u.obj, t->argn);
-				rmval(&t->a->val, __LINE__);
-				t->q = dupval(&t->a->val, t->q);
+				t->argv_result = set_by_number(t->argv, t->argn); // Create slot for argument
+				t->scope_result = 0;
+				t->q = dupval(t->argv_result, t->q); // Copy quoted argument from stack
 				/* Quote extra args if last formal arg was quoted */
 				if (!t->o->f->nargs || !t->o->f->quote[t->o->f->nargs - 1])
-					f = t->a->val.u.fun;
+					f = t->argv_result->u.fun;
 				++t->argn;
 			} else { /* Unnamed arg */
-				t->a = set_by_symbol(ivy->vars, t->o->f->args[t->argn]);
-				rmval(&t->a->val, __LINE__);
-				t->q = dupval(&t->a->val, t->q);
-				set_by_number_ref(t->argv->val.u.obj, t->argn, t->a);
+				t->scope_result = set_by_symbol(ivy->vars, t->o->f->args[t->argn]);
+				t->q = dupval(t->scope_result, t->q);
+
+				t->argv_result = set_by_number(t->argv, t->argn);
+
+				*t->argv_result = *t->scope_result; // Also save it in argv
+
 				if (!t->o->f->quote[t->argn])
-				        f = t->a->val.u.fun;
+				        f = t->argv_result->u.fun;
 				++t->argn;
 			}
 		} else { /* Named arg */
 			int z;
 			--t->q; /* Argument name */
-			t->a = set_by_symbol(ivy->vars, t->q->u.name);
+			t->scope_result = set_by_symbol(ivy->vars, t->q->u.name);
+			t->argv_result = 0;
+
+			/* Find where it should go in argv */
 			for (z = 0; z != t->o->f->nargs; ++z)
 				if (!strcmp(t->o->f->args[z], t->q->u.name)) {
-					set_by_number_ref(t->argv->val.u.obj, z, t->a);
+					t->argv_result = set_by_number(t->argv, z);
 					break;
 				}
-			rmval(&t->a->val, __LINE__);
+
 			--t->q; /* Skip over argument name, point to value */
-			t->q = dupval(&t->a->val, t->q);
+			t->q = dupval(t->scope_result, t->q); /* Copy from stack to slot */
+			if (t->argv_result)
+				*t->argv_result = *t->scope_result; /* Save in argv also */
+			
 			if (z == t->o->f->nargs || !t->o->f->quote[z])
-				f = t->a->val.u.fun;
+				f = t->scope_result->u.fun;
 		}
 		++t->x;
 		if (f) {
@@ -423,11 +424,11 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
         ivy->sp = rmval(ivy->sp, __LINE__);
 
         /* Push return address */
-        psh(ivy);
+        mkval(psh(ivy), tRET_IVY);
 //        ivy->sp[0].u.obj = t->ovars;
-        ivy->sp[0].u.callfunc = t;
-        ivy->sp[0].var = (Var *)ivy->pc;
-        ivy->sp[0].type = tRET_IVY;
+        ivy->sp[0].idx.callfunc = t;
+        ivy->sp[0].u.pc = ivy->pc;
+
         /* Set new program counter value... */
         if (t->o->f->code)
                 ivy->pc = t->o->f->code;
@@ -439,10 +440,10 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
                 a = get_by_symbol(ivy->vars, t->o->f->args[x]);
                 if (!a) { /* Nope: copy initializer */
                         a = set_by_symbol(ivy->vars, t->o->f->args[x]);
-                        /* Put missing variable in arg vector */
-                        set_by_number_ref(t->argv->val.u.obj, x, a);
                         /* Copy initializer */
-                        dupval(&a->val, &t->o->init_vals[x]);
+                        dupval(a, &t->o->init_vals[x]);
+                        /* Put missing variable in arg vector */
+                        *set_by_number(t->argv, x) = *a;
                 }
         }
         /* Ok, function is now ready to be called */
@@ -457,8 +458,7 @@ void callfunc(Ivy *ivy, Fun *o)
 	t = calloc(1, sizeof(struct callfunc));
 	t->o = o;
 	// printf("callfunc %p fun=%p\n", t, o);
-	t->val.var = 0;
-	t->val.type = tVOID;
+	mkval(&t->val, tVOID);
 	t->ovars = ivy->vars;	/* Save caller's scope */
 
 	SCOPE_PRINTF2("callfunc, switched to closure's scope %p (prev was %p)\n", o->scope, ivy->vars);
@@ -467,8 +467,7 @@ void callfunc(Ivy *ivy, Fun *o)
 
 	addlvl(ivy, t->ovars);	/* Make scoping level for function */
 
-	t->argv = set_by_symbol(ivy->vars, argv_symbol);	/* Make argument vector */
-	setvar(t->argv, mkpval(tOBJ, alloc_obj(16, 4, 4)));
+	*set_by_symbol(ivy->vars, argv_symbol) = mkpval(tOBJ, t->argv = alloc_obj(16, 4, 4));
 
 	t->x = 0; /* Count of args we've completed */
 	t->argn = 0; /* Next arg number to use for unnamed */
@@ -484,7 +483,16 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t);
 void save_str_arg_result(Ivy *ivy,struct callfunc *t)
 {
 	/* Save result of arg evaluation */
-	t->a->val = popval(ivy);
+	Val v = popval(ivy);
+
+	if (t->scope_result) {
+		*t->scope_result = v;
+	}
+
+	if (t->argv_result) {
+		*t->argv_result = v;
+		
+	}
 	copy_next_str_arg(ivy, t);
 }
 
@@ -493,18 +501,18 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
 	while (t->x != ivy->sp[0].u.num) {
 		Fun *f = 0;
 		if (t->q->type != tPAIR) { /* Unnamed arg */
-                        t->a = set_by_number(t->argv->val.u.obj, t->argn); /* Put in argv */
-                        rmval(&t->a->val, __LINE__);
-                        t->q = dupval(&t->a->val, t->q);
-                        f = t->a->val.u.fun;
+                        t->argv_result = set_by_number(t->argv, t->argn); /* Put in argv */
+                        t->scope_result = 0;
+                        t->q = dupval(t->argv_result, t->q);
+                        f = t->argv_result->u.fun;
                         ++t->argn;
 		} else { /* Named arg */
 			--t->q;
-			t->a = set_by_symbol(ivy->vars, t->q->u.name); /* Put in scope */
-			rmval(&t->a->val, __LINE__);
+			t->scope_result = set_by_symbol(ivy->vars, t->q->u.name); /* Put in scope */
+			t->argv_result = 0;
 			--t->q; /* Skip arg name, get to value */
-			t->q = dupval(&t->a->val, t->q);
-			f = t->a->val.u.fun;
+			t->q = dupval(t->scope_result, t->q);
+			f = t->scope_result->u.fun;
 		}
 		++t->x;
 		if (f) {
@@ -519,15 +527,15 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
         /* We now have the string or object arguments in argv */
         if (t->val.type == tSTR) { /* Access a string  */
                 Str *str = t->val.u.str;
-                Var *first_index = get_by_number(t->argv->val.u.obj, 0);
-                Var *second_index = get_by_number(t->argv->val.u.obj, 1);
+                Val *first_index = get_by_number(t->argv, 0);
+                Val *second_index = get_by_number(t->argv, 1);
                 if (!first_index) { /* No args, just return the string */
                         SCOPE_PRINTF("copy_next_str_arg (str0):\n");
                         rmvlvl(ivy);
-                        *psh(ivy) = t->val; t->val.var = 0; t->val.type = tVOID;
+                        *psh(ivy) = t->val;
                 } else if (first_index && !second_index) { /* Get single char from string */
-                        if (first_index->val.type == tNUM) {
-                                long long a = first_index->val.u.num;
+                        if (first_index->type == tNUM) {
+                                long long a = first_index->u.num;
                                 if (a < 0)
                                         a = str->len + a;
                                 if (a >= str->len || a < 0) {
@@ -544,10 +552,10 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
                                 longjmp(ivy->err, 1);
                         }
                 } else if (second_index) { /* Get substring from string */
-                        if (first_index->val.type == tNUM) {
-                                long long a = first_index->val.u.num;
-                                if (second_index->val.type == tNUM) { /* OK, finally we can access the string */
-                                        long long b = second_index->val.u.num;
+                        if (first_index->type == tNUM) {
+                                long long a = first_index->u.num;
+                                if (second_index->type == tNUM) { /* OK, finally we can access the string */
+                                        long long b = second_index->u.num;
                                         char *s;
                                         Val v;
                                         if (a < 0)
@@ -585,42 +593,60 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
                 }
         } else { /* Access an object */
                 Obj *obj = t->val.u.obj;
-                Var *index = get_by_number(t->argv->val.u.obj, 0);
+                Val *index = get_by_number(t->argv, 0);
                 if (!index) { /* No args, just return the object */
                         SCOPE_PRINTF("copy_next_str_arg (str0):\n");
                         rmvlvl(ivy);
-                        *psh(ivy) = t->val; t->val.var = 0; t->val.type = tVOID;
+                        *psh(ivy) = t->val;
                 } else {
-                        if (index->val.type == tNUM) {
-                                long long a = index->val.u.num;
-                                Var *o = set_by_number(obj, a);
+                        if (index->type == tNUM) {
+                                long long a = index->u.num;
+                                Val *o = get_by_number(obj, a);
                                 SCOPE_PRINTF("copy_next_str_arg (obj):\n");
                                 rmvlvl(ivy);
-                                dupval(psh(ivy), &o->val);
 
-                                ivy->sp[0].var = o;
+                                if (o)
+	                                *psh(ivy) = *o;
+				else
+					mkval(psh(ivy), tVOID);
 
-                        } else if (index->val.type == tSTR) {
-                                Str *str = index->val.u.str;
-                                Var *o = set_by_string(obj, str->s);
+                                ivy->sp[0].origin = obj;
+                                ivy->sp[0].idx_type = tNUM;
+                                ivy->sp[0].idx.num = a;
+
+                        } else if (index->type == tSTR) {
+                                Str *str = index->u.str;
+                                Val *o = get_by_string(obj, str->s);
                                 SCOPE_PRINTF("copy_next_str_arg (obj2):\n");
                                 rmvlvl(ivy);
-                                dupval(psh(ivy), &o->val);
 
-                                ivy->sp[0].var = o;
+                                if (o)
+                                	*psh(ivy) = *o;
+				else
+					mkval(psh(ivy), tVOID);
+
+                                ivy->sp[0].origin = obj;
+                                ivy->sp[0].idx_type = tSTR;
+                                ivy->sp[0].idx.str = str;
 
                                 /* If we just looked up a function, change scope to object it was found in */
                                 if (ivy->sp[0].type == tFUN) {
                                 	ivy->sp[0].u.fun->scope = obj;
                                 }
-			} else if (index->val.type == tNAM) {
-                                char *name = index->val.u.name;
-                                Var *o = set_by_symbol(obj, name);
+			} else if (index->type == tNAM) {
+                                char *name = index->u.name;
+                                Val *o = getv_by_symbol_obj(obj, name);
                                 SCOPE_PRINTF("copy_next_str_arg (obj2):\n");
                                 rmvlvl(ivy);
-                                dupval(psh(ivy), &o->val);
 
-                                ivy->sp[0].var = o;
+                                if (o)
+                                	*psh(ivy) = *o;
+				else
+					mkval(psh(ivy), tVOID);
+
+                                ivy->sp[0].origin = obj;
+                                ivy->sp[0].idx_type = tNAM;
+                                ivy->sp[0].idx.name = name;
 
                                 /* If we just looked up a function, change scope to object it was found in */
                                 if (ivy->sp[0].type == tFUN) {
@@ -650,8 +676,7 @@ void callval(Ivy *ivy, Val val)
 	SCOPE_PRINTF("call str:\n");
 	addlvl(ivy, t->ovars);	/* Make scoping level for function */
 
-	t->argv = set_by_symbol(ivy->vars, argv_symbol);	/* Make argument vector */
-	setvar(t->argv, mkpval(tOBJ, alloc_obj(16, 4, 4)));
+	*set_by_symbol(ivy->vars, argv_symbol) = mkpval(tOBJ, t->argv = alloc_obj(16, 4, 4));
 
 	t->x = 0; /* Count of args we've completed */
 	t->argn = 0; /* Next arg number to use for unnamed */
@@ -683,8 +708,8 @@ int retfunc(Ivy *ivy)
 	if (ivy->sp[0].type == tRET_NEXT_INIT) {
 		Fun *fun;
 		SCOPE_PRINTF("ret_next_init:\n");
-		ivy->pc = (Pseudo *)ivy->sp[0].var;
-		fun = ivy->sp[0].u.fun;
+		ivy->pc = ivy->sp[0].u.pc;
+		fun = ivy->sp[0].idx.fun;
 
 		ivy->sp[0] = rtn_val;
 
@@ -693,24 +718,22 @@ int retfunc(Ivy *ivy)
 		return 1;
 	} else if (ivy->sp[0].type == tRET_SIMPLE) {
 		void (*func)(Ivy *,struct callfunc *);
-		struct callfunc *obj;
+		struct callfunc *t;
 		SCOPE_PRINTF("retfunc simple:\n");
-		ivy->pc = (Pseudo *)ivy->sp[0].var;
+		ivy->pc = ivy->sp[0].u.pc;
+		t = ivy->sp[0].idx.callfunc;
+
+		--ivy->sp;
+		func = ivy->sp[0].idx.func;
 		if (ivy->sp[0].u.obj) {
                         rmvlvl(ivy);
                         SCOPE_PRINTF2("retfunc RET_SIMPLE Restore scope to %p (was %p)\n", ivy->sp[0].u.obj, ivy->vars);
 			ivy->vars = ivy->sp[0].u.obj;
                 }
 
-		--ivy->sp;
-		func = ivy->sp[0].u.func;
-		obj = (struct callfunc *)ivy->sp[0].var;
-
-		--ivy->sp;
-
 		ivy->sp[0] = rtn_val;
 
-		func(ivy,obj);
+		func(ivy, t);
 
 		return 1;
 	}
@@ -720,10 +743,8 @@ int retfunc(Ivy *ivy)
 	        struct callfunc *t;
 		SCOPE_PRINTF("retfunc ivy:\n");
                 rmvlvl(ivy);
-		restore_pc = (Pseudo *)ivy->sp[0].var;
-		t = ivy->sp[0].u.callfunc;
-		// printf("callfunc = %p fun = %p\n", t, t->o);
-//		restore_vars = ivy->sp[0].u.obj;
+		restore_pc = ivy->sp[0].u.pc;
+		t = ivy->sp[0].idx.callfunc;
                 restore_vars = t->ovars;
 
 		/* Put return value back on stack */
@@ -742,11 +763,9 @@ int retfunc(Ivy *ivy)
 	return 1;
 }
 
-void doSET(Ivy *ivy, Val * dest, Val * src)
+void doSET(Ivy *ivy, Val *dest, Val *src)
 {
-	Val newv;
-
-	if (!dest->var) {
+	if (!dest->origin) {
 		/* Maybe a multi-assignment */
 		if (dest->type == tOBJ && src->type == tOBJ) {
 			Obj *to = dest->u.obj;
@@ -757,7 +776,7 @@ void doSET(Ivy *ivy, Val * dest, Val * src)
 					error_0(ivy->errprn, "Incorrect no. of args");
 					longjmp(ivy->err, 1);
                                 } else {
-					doSET(ivy, &to->ary[x]->val, &from->ary[x]->val);
+					doSET(ivy, &to->ary[x], &from->ary[x]);
                                 }
                         }
 		} else {
@@ -765,8 +784,21 @@ void doSET(Ivy *ivy, Val * dest, Val * src)
                         longjmp(ivy->err, 1);
 		}
 	} else {
-		dupval(&newv, src);
-	        setvar(dest->var, newv);
+		switch (dest->idx_type) {
+			case tNUM: {
+				dupval(set_by_number(dest->origin, dest->idx.num), src);
+				break;
+			} case tNAM: {
+				dupval(set_by_symbol(dest->origin, dest->idx.name), src);
+				break;
+			} case tSTR: {
+				dupval(set_by_string(dest->origin, dest->idx.str->s), src);
+				break;
+			} default: {
+				error_0(ivy->errprn, "Unknown L-value type?");
+	                        longjmp(ivy->err, 1);
+			}
+		}
 	}
 }
 
@@ -790,6 +822,10 @@ void showstack(Ivy *ivy)
                                 break;
                         } case tSTR: {
                                 fprintf(ivy->out, "%d:	String = \"%s\"\n", (int)(sp - ivy->sptop), sp->u.str->s);
+                                sp--;
+                                break;
+                        } case tNAM: {
+                                fprintf(ivy->out, "%d:	Symbol = %s\n", (int)(sp - ivy->sptop), sp->u.name);
                                 sp--;
                                 break;
                         } case tOBJ: {
@@ -817,13 +853,17 @@ void showstack(Ivy *ivy)
                                 --sp;
                                 break;
                         } case tRET_IVY: {
-                                fprintf(ivy->out, "%d:	RET_IVY (pc = %p, callfunc = %p)\n", (int)(sp - ivy->sptop), sp->var, sp->u.callfunc);
+                                fprintf(ivy->out, "%d:	RET_IVY (pc = %p, callfunc = %p)\n", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.callfunc);
                                 --sp;
                                 break;
                         } case tRET_SIMPLE: {
-                                fprintf(ivy->out, "%d:	RET_SIMPLE (pc = %p, ", (int)(sp - ivy->sptop), sp->var);
+                                fprintf(ivy->out, "%d:	RET_SIMPLE (pc = %p, callfunc = %p", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.callfunc);
                                 --sp;
-                                fprintf(ivy->out, "func = %p, obj = %p)\n", sp->u.func, sp->var);
+                                fprintf(ivy->out, "func = %p, obj = %p)\n", sp->idx.func, sp->u.obj);
+                                --sp;
+                                break;
+                        } case tRET_NEXT_INIT: {
+                                fprintf(ivy->out, "%d:	RET_NEXT_INIT (pc = %p, fun = %p)\n", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.fun);
                                 --sp;
                                 break;
                         } default: {
@@ -1055,12 +1095,9 @@ int pexe(Ivy *ivy, int trace)
 				Val newv = popval(ivy);
 				if (ivy->sp[0].type == tOBJ) {
 					Obj *n = dupobj(ivy->sp[0].u.obj, ivy->sp, 0, __LINE__);
-					Var *var;
 					ivy->sp = rmval(ivy->sp, __LINE__);
 					*++ivy->sp = mkpval(tOBJ, n);
-					var = set_by_number(n, ivy->sp[0].u.obj->ary_len);
-					rmval(&var->val, __LINE__);
-					var->val = newv;
+					*set_by_number(n, ivy->sp[0].u.obj->ary_len) = newv;
 				} else {
                                         error_0(ivy->errprn, "Improper types for add");
 					longjmp(ivy->err, 1);
@@ -1100,22 +1137,15 @@ int pexe(Ivy *ivy, int trace)
 					rmval(&ivy->sp[-1], __LINE__);
 					ivy->sp[-1] = mkpval(tOBJ, new);
 					for (x = 0; x != t->ary_len; ++x) {	/* Append array elements */
-						Var *o = set_by_number(ivy->sp[-1].u.obj, x + a);
-						Var *n = get_by_number(t, x);
-						rmval(&o->val, __LINE__);
-						dupval(&o->val, &n->val);
+						*set_by_number(ivy->sp[-1].u.obj, x + a) = t->ary[x];
 					}
 					for (x = 0; x != (t->nam_tab_mask + 1); ++x)	/* Union symbols */
-						if (t->nam_tab[x].name && t->nam_tab[x].var) {
-							Var *o = set_by_symbol(ivy->sp[-1].u.obj, t->nam_tab[x].name);
-							rmval(&o->val, __LINE__);
-							dupval(&o->val, &t->nam_tab[x].var->val);
+						if (t->nam_tab[x].name) {
+							*set_by_symbol(ivy->sp[-1].u.obj, t->nam_tab[x].name) = t->nam_tab[x].val;
 						}
 					for (x = 0; x != (t->str_tab_mask + 1); ++x)	/* Union strings */
-						if (t->str_tab[x].name && t->str_tab[x].var) {
-							Var *o = set_by_string(ivy->sp[-1].u.obj, t->str_tab[x].name);
-							rmval(&o->val, __LINE__);
-							dupval(&o->val, &t->str_tab[x].var->val);
+						if (t->str_tab[x].name) {
+							*set_by_string(ivy->sp[-1].u.obj, t->str_tab[x].name) = t->str_tab[x].val;
 						}
 					ivy->sp = rmval(ivy->sp, __LINE__);
 				} else {
@@ -1220,15 +1250,27 @@ int pexe(Ivy *ivy, int trace)
 			        error_0(ivy->errprn, "Incorrect argument for iGET (supposed to be a string)");
 				longjmp(ivy->err, 1);
 			} else {
-				Var *o = getv_by_symbol(ivy, ivy->sp[0].u.name);
-				if (!o) {
-	        			// error_0(ivy->errprn, "Error: Variable does not exist");
-				        // longjmp(ivy->err,1);
-					o = set_by_symbol(ivy->vars, ivy->sp[0].u.name);
+				char *name = ivy->sp[0].u.name;
+				Obj *o = ivy->vars;
+				Obj *next;
+				Val *e;
+				do {
+					if ((e = get_by_symbol(o, name)))
+						break;
+					next = get_mom(o);
+				} while ((o = next));
+				
+                                if (e) { /* We found it */
+                                	*ivy->sp = *e;
+					ivy->sp[0].origin = o;
+					ivy->sp[0].idx_type = tNAM;
+					ivy->sp[0].idx.name = name;
+                                } else { /* It's new */
+                                	mkval(ivy->sp, tVOID);
+					ivy->sp[0].origin = ivy->vars;
+					ivy->sp[0].idx_type = tNAM;
+					ivy->sp[0].idx.name = name;
                                 }
-				ivy->sp = rmval(ivy->sp, __LINE__);
-				dupval(++ivy->sp, &o->val);
-				ivy->sp[0].var = o;
 			}
 			break;
                 } case iGETF: {	/* Replace variable's name with its value, force current scope */
@@ -1236,10 +1278,12 @@ int pexe(Ivy *ivy, int trace)
 			        error_0(ivy->errprn, "Improper argument for iGETF (supposed to be a name)");
 				longjmp(ivy->err, 1);
 			} else {
-				Var *o = set_by_symbol(ivy->vars, ivy->sp[0].u.name);
-				ivy->sp = rmval(ivy->sp, __LINE__);
-				dupval(++ivy->sp, &o->val);
-				ivy->sp[0].var = o;
+				char *name = ivy->sp[0].u.name;
+				Val *o = set_by_symbol(ivy->vars, name);
+				ivy->sp[0] = *o;
+				ivy->sp[0].origin = ivy->vars;
+				ivy->sp[0].idx_type = tNAM;
+				ivy->sp[0].idx.name = name;
 			}
 			break;
                 } case iAT: {
@@ -1264,23 +1308,16 @@ int pexe(Ivy *ivy, int trace)
 			ivy->sp = rmval(ivy->sp, __LINE__);
 			break;
 		} case iCALL: {
-                        /* What is this code? */
-                        /*
-                        Obj *t = 0;
-                        if (ivy->sp->type == tLST) {
-                                --ivy->sp;
-                                t = ivy->sp[0].u.obj;
-                                --ivy->sp;
-                        } */
-
                         /* If left side is VOID and it's from a variable,
                            create a new object */
-                        if (ivy->sp->type == tVOID && ivy->sp->var) {
-                                Var *var = ivy->sp->var;
-                                setvar(var, mkpval(tOBJ, alloc_obj(16, 4, 4)));
-                                rmval(ivy->sp, __LINE__);
-                                dupval(ivy->sp, &var->val);
+/*
+                        if (ivy->sp->type == tVOID && ivy->sp->origin) {
+                        	Val newv = mkpval(tOBJ, alloc_obj(16, 4, 4));
+                        	doSET(ivy, ivy->sp, &newv);
+                        	ivy->sp[0].type = newv.type;
+                        	ivy->sp[0].u = newv.u;
                         }
+*/
                         if (ivy->sp->type == tFUN) {
                                 ivy->pc = pc;
                                 callfunc(ivy, ivy->sp--->u.fun);
@@ -1310,9 +1347,7 @@ int pexe(Ivy *ivy, int trace)
 			break;
 		} case iRTS: {	/* Return from function */
 			*psh(ivy) = ivy->stashed;
-			ivy->stashed.var = 0;
-			ivy->stashed.u.fun = 0;
-			ivy->stashed.type = tVOID;
+			mkval(&ivy->stashed, tVOID);
 			ivy->pc = pc;
 			if (!retfunc(ivy))
 				return 0;
@@ -1397,11 +1432,7 @@ int pexe(Ivy *ivy, int trace)
 				goto next_symbol_entry;
                         else {
                         	// Next array entry
-	                        do {
-	                                if (++n == o->ary_len) {
-	                                	break;
-	                                }
-	                        } while (!o->ary[n]);
+	                        ++n;
 	                        if (n == o->ary_len) {
 	                        	which = 1;
 	                        	n = -1;
@@ -1430,14 +1461,13 @@ int pexe(Ivy *ivy, int trace)
 
                         // Foreach
                         if (which == 2)
-                        	dupval(&newv, &o->str_tab[n].var->val);
+                        	dupval(&newv, &o->str_tab[n].val);
 			else if (which == 1)
-				dupval(&newv, &o->nam_tab[n].var->val);
+				dupval(&newv, &o->nam_tab[n].val);
                         else
-	                        dupval(&newv, &o->ary[n]->val);
+	                        dupval(&newv, &o->ary[n]);
                         // FIXME add checking here: is it really a variable?
-                        rmval(&ivy->sp[-3].var->val, __LINE__);
-                        ivy->sp[-3].var->val = newv;
+                        doSET(ivy, &ivy->sp[-3], &newv);
                         ivy->sp[0].u.num = n;
                         ivy->sp[-1].u.num = which;
                         pc += *(int *)pc;
@@ -1456,11 +1486,7 @@ int pexe(Ivy *ivy, int trace)
 				goto next_symbol_entry_1;
                         else {
                         	// Next array entry
-	                        do {
-	                                if (++n == o->ary_len) {
-	                                	break;
-	                                }
-	                        } while (!o->ary[n]);
+	                        ++n;
 	                        if (n == o->ary_len) {
 	                        	which = 1;
 	                        	n = -1;
@@ -1496,8 +1522,7 @@ int pexe(Ivy *ivy, int trace)
 				newv = mkival(tNUM, n);
 			}
                         // FIXME add checking here: is it really a variable?
-                        rmval(&ivy->sp[-3].var->val, __LINE__);
-                        ivy->sp[-3].var->val = newv;
+                        doSET(ivy, &ivy->sp[-3], &newv);
                         ivy->sp[0].u.num = n;
                         ivy->sp[-1].u.num = which;
                         pc += *(int *)pc;
@@ -1557,13 +1582,17 @@ void popall(Ivy *ivy)
                                 ivy->sp = rmval(ivy->sp, __LINE__);
                                 break;
                         } case tRET_IVY: {
-                                fprintf(ivy->out, "%d:	RET_IVY (pc = %p, callfunc = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->var, ivy->sp->u.callfunc);
+                                fprintf(ivy->out, "%d:	RET_IVY (pc = %p, callfunc = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callfunc);
                                 --ivy->sp;
                                 break;
                         } case tRET_SIMPLE: {
-                                fprintf(ivy->out, "%d:	RET_SIMPLE (pc = %p, ", (int)(ivy->sp - ivy->sptop), ivy->sp->var);
+                                fprintf(ivy->out, "%d:	RET_SIMPLE (pc = %p, callfunc = %p", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callfunc);
                                 --ivy->sp;
-                                fprintf(ivy->out, "func = %p, obj = %p)\n", ivy->sp->u.func, ivy->sp->var);
+                                fprintf(ivy->out, "func = %p, obj = %p)\n", ivy->sp->idx.func, ivy->sp->u.obj);
+                                --ivy->sp;
+                                break;
+                        } case tRET_NEXT_INIT: {
+                                fprintf(ivy->out, "%d:	RET_NEXT_INIT (pc = %p, fun = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.fun);
                                 --ivy->sp;
                                 break;
                         } default: {
@@ -1605,10 +1634,10 @@ Val *pr(FILE *out, Val * v, int lvl)
                 } case tOBJ: {
 			int x;
 			if (v->u.obj->visit)
-				fprintf(out, "{ 0x%p } (previously shown)", v->u.obj);
+				fprintf(out, "{ %d at 0x%p } (previously shown)", v->u.obj->objno, v->u.obj);
 			else {
 				v->u.obj->visit = 1;
-				fprintf(out, "{ 0x%p\n", v->u.obj);
+				fprintf(out, "{ %d at 0x%p\n", v->u.obj->objno, v->u.obj);
 				for (x = 0; x != (v->u.obj->nam_tab_mask + 1); ++x)
 					if (v->u.obj->nam_tab[x].name) {
 						/* if (e->var->val.type != tFUN || !e->var->val.u.fun->f->cfunc) */ {
@@ -1618,7 +1647,7 @@ Val *pr(FILE *out, Val * v, int lvl)
 								first = 1; */
 							indent(out, lvl+4);
 							fprintf(out, "`%s=", v->u.obj->nam_tab[x].name);
-							pr(out, &v->u.obj->nam_tab[x].var->val, lvl+4);
+							pr(out, &v->u.obj->nam_tab[x].val, lvl+4);
 							fprintf(out, "\n");
 						}
 					}
@@ -1631,7 +1660,7 @@ Val *pr(FILE *out, Val * v, int lvl)
 								first = 1; */
 							indent(out, lvl+4);
 							fprintf(out, "`\"%s\"=", v->u.obj->str_tab[x].name);
-							pr(out, &v->u.obj->str_tab[x].var->val, lvl+4);
+							pr(out, &v->u.obj->str_tab[x].val, lvl+4);
 							fprintf(out, "\n");
 						}
 					}
@@ -1641,9 +1670,9 @@ Val *pr(FILE *out, Val * v, int lvl)
 						fprintf(out, " ");
 					else
 						first = 1; */
-					if (v->u.obj->ary[x])
+					//if (v->u.obj->ary[x])
 						indent(out, lvl+4), fprintf(out, "`%d=", x),
-						    pr(out, &v->u.obj->ary[x]->val,lvl+4), fprintf(out, "\n");
+						    pr(out, &v->u.obj->ary[x], lvl+4), fprintf(out, "\n");
 				}
 				indent(out, lvl);
 				fprintf(out, "}");
@@ -1664,7 +1693,6 @@ void add_cfunc(Ivy *ivy, Obj *vars, char *name, char *argstr, void (*cfunc) ())
 	char bf[1024];
 	Node *args;
 	Func *o;
-	Var *p;
 	int argc;
 	char **argv;
 	char *quote;
@@ -1679,8 +1707,7 @@ void add_cfunc(Ivy *ivy, Obj *vars, char *name, char *argstr, void (*cfunc) ())
 	o = mkfunc(NULL, argc, argv, initv, quote);
 	o->cfunc = cfunc;
 	/* Put new function in table */
-	p = set_by_symbol(vars, symbol_add(name));
-	setvar(p, mkpval(tFUN, alloc_fun(o, vars)));
+	*set_by_symbol(vars, symbol_add(name)) = mkpval(tFUN, alloc_fun(o, vars));
 }
 
 /* Initialize global variables and symbols*/
@@ -1727,9 +1754,7 @@ void mk_ivy(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FILE 
 	ivy->call_me_obj = 0;
 	ivy->out = out;
 	ivy->in = in;
-	ivy->stashed.var = 0;
-	ivy->stashed.type = tVOID;
-	ivy->stashed.u.num = 0;
+	mkval(&ivy->stashed, tVOID);
 }
 
 void set_globals(Ivy *ivy, Obj *globals)

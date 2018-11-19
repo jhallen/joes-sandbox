@@ -1,25 +1,3 @@
-Space in objects is allocated even if we only read it:
-
-	a=[1]
-	print a(100000)
-
-	a(0) has 1 and a(100000) has void.  Array is expanded to 100,000.
-
-	This is difficult to fix since we return an l-value on read in case there might be a write.
-
-val->var: we need this on the stack and in objects for multi-assign can we
-always get just the var?  read the actual val when we need it..  I'm worried
-we won't have the value when the programmer read it, but some later version
-prove that this never happens...
-
-
-instead of var, we should have object + index
-would remove one level of indirection..
-
-  Obj *, Num
-  Obj *, Nam
-  Obj *, Str
-
 
 Garbage collector:
 
@@ -27,6 +5,8 @@ Garbage collector:
 
   can we eliminate the protection structures?  Mark newly created objects
   some other way (generation number in the object or something)
+
+
 
 Object oriented features:
 
@@ -40,8 +20,7 @@ Object oriented features:
 
  Add modules, inheritance, etc..
 
-forindex doesn't handle changes to the object while it's running.  Make a
- snapshot of the object indexes before running?
+
 
 More features?
 	Exceptions.
@@ -57,8 +36,6 @@ More features?
 	replacement for "gnu-plot" (and when built into JOE, as a free
 	version of "mathcad").
 
-mixing named and numbered args is weird:
-  we assign left to right.  NUmber starts at first arg.
 
 print source code line number when we crash, not just stack trace.
 
@@ -220,4 +197,40 @@ foreach/forindex only work on arrays- it should also work on objects
 
 add forin (gets index instead of value as in foreach)
 [done: we added forindex]
+
+forindex doesn't handle changes to the object while it's running.  Make a
+ snapshot of the object indexes before running?
+[this is ok: user can dup if he wants.  We can't crash if object is modified while
+being iterated]
+
+mixing named and numbered args is weird:
+  we assign left to right.  NUmber starts at first arg.
+[don't care]
+
+Read non-existant should return void but not allocate space.
+[fixed]
+
+Space in objects is allocated even if we only read it:
+
+	a=[1]
+	print a(100000)
+
+	a(0) has 1 and a(100000) has void.  Array is expanded to 100,000.
+
+	This is difficult to fix since we return an l-value on read in case there might be a write.
+
+val->var: we need this on the stack and in objects for multi-assign can we
+always get just the var?  read the actual val when we need it..  I'm worried
+we won't have the value when the programmer read it, but some later version
+prove that this never happens...
+
+fail or return void if we access an uninitialized location?
+
+instead of var, we should have object + index
+would remove one level of indirection..
+
+  Obj *, Num
+  Obj *, Nam
+  Obj *, Str
+
 - - - -

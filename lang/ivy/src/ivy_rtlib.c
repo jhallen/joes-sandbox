@@ -31,14 +31,14 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 
 int getintarg(Ivy *ivy, Obj * args, int n, long long *rtn)
 {
-	Var *v;
+	Val *v;
 	if (n >= args->ary_len) {
 		error_0(ivy->errprn, "Incorrect number of args");
 		return -1;
 	}
 	v = get_by_number(args, n);
-	if (v->val.type == tNUM) {
-		*rtn = v->val.u.num;
+	if (v->type == tNUM) {
+		*rtn = v->u.num;
 		return 0;
 	} else {
 		error_0(ivy->errprn, "Incorrect arg type");
@@ -48,14 +48,14 @@ int getintarg(Ivy *ivy, Obj * args, int n, long long *rtn)
 
 int getstringarg(Ivy *ivy, Obj * args, int n, char **rtn)
 {
-	Var *v;
+	Val *v;
 	if (n >= args->ary_len) {
 		error_0(ivy->errprn, "Incorrect number of args");
 		return -1;
 	}
 	v = get_by_number(args, n);
-	if (v->val.type == tSTR) {
-		*rtn = v->val.u.str->s;
+	if (v->type == tSTR) {
+		*rtn = v->u.str->s;
 		return 0;
 	} else {
 		error_0(ivy->errprn, "Incorrect arg type");
@@ -65,14 +65,14 @@ int getstringarg(Ivy *ivy, Obj * args, int n, char **rtn)
 
 int getdoublearg(Ivy *ivy, Obj * args, int n, double *rtn)
 {
-	Var *v;
+	Val *v;
 	if (n >= args->ary_len) {
 		error_0(ivy->errprn, "Incorrect number of args");
 		return -1;
 	}
 	v = get_by_number(args, n);
-	if (v->val.type == tFP) {
-		*rtn = v->val.u.fp;
+	if (v->type == tFP) {
+		*rtn = v->u.fp;
 		return 0;
 	} else {
 		error_0(ivy->errprn, "Incorrect arg type");
@@ -84,22 +84,22 @@ int getdoublearg(Ivy *ivy, Obj * args, int n, double *rtn)
 
 void rtprint(Ivy *ivy)
 {
-	Obj *a = getv_by_symbol(ivy, argv_symbol)->val.u.obj;
+	Obj *a = getv_by_symbol(ivy, argv_symbol)->u.obj;
 	int x;
 	for (x = 0; x != a->ary_len; ++x) {
-		Var *v = get_by_number(a, x);
-		switch (v->val.type) {
+		Val *v = get_by_number(a, x);
+		switch (v->type) {
 			case tSTR: {
-				fprintf(ivy->out, "%s", v->val.u.str->s);
+				fprintf(ivy->out, "%s", v->u.str->s);
 				break;
 			} case tNUM: {
-				fprintf(ivy->out, "%lld", v->val.u.num);
+				fprintf(ivy->out, "%lld", v->u.num);
 				break;
 			} case tFP: {
-				fprintf(ivy->out, "%g", v->val.u.fp);
+				fprintf(ivy->out, "%g", v->u.fp);
 				break;
 			} default: {
-				pr(ivy->out, &v->val,0);
+				pr(ivy->out, v, 0);
 				break;
 			}
 		}
@@ -112,13 +112,13 @@ void rtprint(Ivy *ivy)
 
 void rtprintf(Ivy *ivy)
 {
-	Obj *a = getv_by_symbol(ivy, argv_symbol)->val.u.obj;
+	Obj *a = getv_by_symbol(ivy, argv_symbol)->u.obj;
 	if (a->ary_len == 0)
 		error_0(ivy->errprn, "Incorrect number of args to printf");
 	else {
-		Var *v = get_by_number(a, 0);
-		if (v->val.type == tSTR) {
-			char *s = v->val.u.str->s;
+		Val *v = get_by_number(a, 0);
+		if (v->type == tSTR) {
+			char *s = v->u.str->s;
 			int x, y;
 			int n = 1;
 			char buf[1024];
@@ -235,18 +235,71 @@ void rtprintf(Ivy *ivy)
 	mkval(psh(ivy), tVOID);
 }
 
+/* Get pointer to origin of a value.  Returns NULL if there is none. */
+
+Val *get_origin(Val *v)
+{
+	Val *l = 0;
+	if (!v)
+		return NULL;
+	if (v->origin) {
+		switch (v->idx_type) {
+			case tNUM: {
+				l = get_by_number(v->origin, v->idx.num);
+				break;
+			} case tNAM: {
+				l = get_by_symbol(v->origin, v->idx.name);
+				break;
+			} case tSTR: {
+				l = get_by_string(v->origin, v->idx.str->s);
+				break;
+			} default: {
+				fprintf(stderr, "Invalid origin index type??\n");
+				break;
+			}
+		}
+	}
+	return l;
+}
+
+/* Get pointer to origin of a value.  Create if it doesn't exist.
+   Return NULL if there is no origin. */
+
+Val *set_origin(Val *v)
+{
+	Val *l = 0;
+	if (!v)
+		return NULL;
+	if (v->origin) {
+		switch (v->idx_type) {
+			case tNUM: {
+				l = set_by_number(v->origin, v->idx.num);
+				break;
+			} case tNAM: {
+				l = set_by_symbol(v->origin, v->idx.name);
+				break;
+			} case tSTR: {
+				l = set_by_string(v->origin, v->idx.str->s);
+				break;
+			} default: {
+				fprintf(stderr, "Invalid origin index??\n");
+			}
+		}
+	}
+	return l;
+}
+
 /* Free variables */
 
 void rtclr(Ivy *ivy)
 {
-	Obj *a = getv_by_symbol(ivy, argv_symbol)->val.u.obj;
+	Obj *a = getv_by_symbol(ivy, argv_symbol)->u.obj;
 	int x;
 	for (x = 0; x != a->ary_len; ++x) {
-		Var *v = get_by_number(a, x);
-		if (v->val.var) {
-			rmval(&v->val.var->val, __LINE__);
-			mkval(&v->val.var->val, tVOID);
-		}
+		Val *v = get_by_number(a, x);
+		v = get_origin(v);
+		if (v)
+			mkval(v, tVOID);
 	}
 	mkval(psh(ivy), tVOID);
 }
@@ -268,9 +321,9 @@ void rtget(Ivy *ivy)
 
 void rtatoi(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tSTR) {
-		long long num = atoll(a->val.u.str->s);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tSTR) {
+		long long num = atoll(a->u.str->s);
 		*psh(ivy) = mkival(tNUM, num);
 	} else
 		longjmp(ivy->err, 1);
@@ -280,10 +333,10 @@ void rtatoi(Ivy *ivy)
 
 void rtitoa(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tNUM) {
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tNUM) {
 		char buf[30];
-		sprintf(buf, "%lld", a->val.u.num);
+		sprintf(buf, "%lld", a->u.num);
 		*psh(ivy) = mkpval(tSTR, alloc_str(strdup(buf), strlen(buf)));
 	} else
 		longjmp(ivy->err, 1);
@@ -293,12 +346,12 @@ void rtitoa(Ivy *ivy)
 
 void rtlen(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tSTR) {
-		long long num = a->val.u.str->len;
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tSTR) {
+		long long num = a->u.str->len;
 		*psh(ivy) = mkival(tNUM, num);
-	} else if (a->val.type == tOBJ) {
-		*psh(ivy) = mkival(tNUM, a->val.u.obj->ary_len);
+	} else if (a->type == tOBJ) {
+		*psh(ivy) = mkival(tNUM, a->u.obj->ary_len);
 	} else
 		longjmp(ivy->err, 1);
 }
@@ -317,27 +370,27 @@ void rtvars(Ivy *ivy)
 
 void rtdup(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tOBJ)
-		*psh(ivy) = mkpval(tOBJ, dupobj(a->val.u.obj, ivy->sp+1, 0, __LINE__));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tOBJ)
+		*psh(ivy) = mkpval(tOBJ, dupobj(a->u.obj, ivy->sp+1, 0, __LINE__));
 	else
-		dupval(psh(ivy), &a->val);
+		dupval(psh(ivy), a);
 }
 
 /* Include command */
 
 void rtinc(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tSTR) {
-		char *s = strdup(a->val.u.str->s);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tSTR) {
+		char *s = strdup(a->u.str->s);
 		FILE *f = fopen(s, "r");
 		rmvlvl(ivy);
 		if (f)
 			/* FIXME: compfile(s, f), */ fclose(f);
 		else
 			error_1(ivy->errprn, "Couldn\'t open file \'%s\'", s);
-		addlvl(ivy,ivy->vars);
+		addlvl(ivy, ivy->vars);
 		mkval(psh(ivy), tVOID);
 		free(s);
 	} else
@@ -348,7 +401,7 @@ void rtinc(Ivy *ivy)
 
 void rtend(Ivy *ivy)
 {
-	mkval(psh(ivy),tVOID);
+	mkval(psh(ivy), tVOID);
 }
 
 /* Simple (slow) regular expression parser.  Returns true if 'string'
@@ -448,8 +501,8 @@ int rmatch(char *string, char *pattern,
 void rtmatch(Ivy *ivy)
 {
 	char *result[20];
-	Obj *a = getv_by_symbol(ivy, argv_symbol)->val.u.obj;
-	Var *v;
+	Obj *a = getv_by_symbol(ivy, argv_symbol)->u.obj;
+	Val *v;
 	char *str;
 	char *pat;
 	int x;
@@ -459,19 +512,19 @@ void rtmatch(Ivy *ivy)
 		return;
 	}
 	v = get_by_number(a, 0);
-	if (v->val.type != tSTR) {
-		error_1(ivy->errprn, "Incorrect arg 1 type for match %d",v->val.type);
+	if (v->type != tSTR) {
+		error_1(ivy->errprn, "Incorrect arg 1 type for match %d",v->type);
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	str = v->val.u.str->s;
+	str = v->u.str->s;
 	v = get_by_number(a, 1);
-	if (v->val.type != tSTR) {
-		error_1(ivy->errprn, "Incorrect arg 2 type for match %d",v->val.type);
+	if (v->type != tSTR) {
+		error_1(ivy->errprn, "Incorrect arg 2 type for match %d",v->type);
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	pat = v->val.u.str->s;
+	pat = v->u.str->s;
 	printf("string=%s\n", str);
 	printf("pattern=%s\n",pat);
 	if (rmatch(str, pat, result)) {
@@ -480,14 +533,12 @@ void rtmatch(Ivy *ivy)
 			if (n >= a->ary_len)
 				free(result[x]);
 			else {
-				Var *dest = get_by_number(a, n);
-				if (!dest->val.var) {
+				Val *dest = set_origin(get_by_number(a, n));
+				if (!dest) {
 					error_0(ivy->errprn, "Arg to match must be a variable\n");
 					free(result[x]);
 				} else {
-					dest = dest->val.var;
-					rmval(&dest->val, __LINE__);
-					dest->val = mkpval(tSTR, alloc_str(result[x], strlen(result[x])));
+					*dest = mkpval(tSTR, alloc_str(result[x], strlen(result[x])));
 				}
 				++n;
 			}
@@ -507,11 +558,11 @@ void rtmatch(Ivy *ivy)
 
 void rtsin(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, sin(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, sin((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, sin(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, sin((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for sin()");
 		mkval(psh(ivy), tVOID);
@@ -520,11 +571,11 @@ void rtsin(Ivy *ivy)
 
 void rtcos(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, cos(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, cos((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, cos(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, cos((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for cos()");
 		mkval(psh(ivy), tVOID);
@@ -533,11 +584,11 @@ void rtcos(Ivy *ivy)
 
 void rttan(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, tan(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, tan((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, tan(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, tan((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for tan()");
 		mkval(psh(ivy), tVOID);
@@ -546,11 +597,11 @@ void rttan(Ivy *ivy)
 
 void rtasin(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, asin(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, asin((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, asin(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, asin((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for asin()");
 		mkval(psh(ivy), tVOID);
@@ -559,11 +610,11 @@ void rtasin(Ivy *ivy)
 
 void rtacos(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, acos(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, acos((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, acos(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, acos((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for acos()");
 		mkval(psh(ivy), tVOID);
@@ -572,11 +623,11 @@ void rtacos(Ivy *ivy)
 
 void rtatan(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, atan(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, atan((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, atan(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, atan((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for atan()");
 		mkval(psh(ivy), tVOID);
@@ -585,11 +636,11 @@ void rtatan(Ivy *ivy)
 
 void rtexp(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, exp(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, exp((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, exp(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, exp((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for exp()");
 		mkval(psh(ivy), tVOID);
@@ -598,11 +649,11 @@ void rtexp(Ivy *ivy)
 
 void rtlog(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, log(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, log((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, log(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, log((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for log()");
 		mkval(psh(ivy), tVOID);
@@ -611,11 +662,11 @@ void rtlog(Ivy *ivy)
 
 void rtlog10(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, log10(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, log10((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, log10(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, log10((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for log10()");
 		mkval(psh(ivy), tVOID);
@@ -624,22 +675,22 @@ void rtlog10(Ivy *ivy)
 
 void rtpow(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	Var *b = getv_by_symbol(ivy, b_symbol);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	Val *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
-	if (a->val.type == tFP)
-		l = a->val.u.fp;
-	else if (a->val.type == tNUM)
-		l = a->val.u.num;
+	if (a->type == tFP)
+		l = a->u.fp;
+	else if (a->type == tNUM)
+		l = a->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for pow()");
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	if (b->val.type == tFP)
-		r = b->val.u.fp;
-	else if (b->val.type == tNUM)
-		r = b->val.u.num;
+	if (b->type == tFP)
+		r = b->u.fp;
+	else if (b->type == tNUM)
+		r = b->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for pow()");
 		mkval(psh(ivy), tVOID);
@@ -650,11 +701,11 @@ void rtpow(Ivy *ivy)
 
 void rtsqrt(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, sqrt(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, sqrt((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, sqrt(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, sqrt((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for sqrt()");
 		mkval(psh(ivy), tVOID);
@@ -663,22 +714,22 @@ void rtsqrt(Ivy *ivy)
 
 void rtatan2(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	Var *b = getv_by_symbol(ivy, b_symbol);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	Val *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
-	if (a->val.type == tFP)
-		l = a->val.u.fp;
-	else if (a->val.type == tNUM)
-		l = a->val.u.num;
+	if (a->type == tFP)
+		l = a->u.fp;
+	else if (a->type == tNUM)
+		l = a->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for atan2()");
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	if (b->val.type == tFP)
-		r = b->val.u.fp;
-	else if (b->val.type == tNUM)
-		r = b->val.u.num;
+	if (b->type == tFP)
+		r = b->u.fp;
+	else if (b->type == tNUM)
+		r = b->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for atan2()");
 		mkval(psh(ivy), tVOID);
@@ -689,22 +740,22 @@ void rtatan2(Ivy *ivy)
 
 void rthypot(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	Var *b = getv_by_symbol(ivy, b_symbol);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	Val *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
-	if (a->val.type == tFP)
-		l = a->val.u.fp;
-	else if (a->val.type == tNUM)
-		l = a->val.u.num;
+	if (a->type == tFP)
+		l = a->u.fp;
+	else if (a->type == tNUM)
+		l = a->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for hypot()");
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	if (b->val.type == tFP)
-		r = b->val.u.fp;
-	else if (b->val.type == tNUM)
-		r = b->val.u.num;
+	if (b->type == tFP)
+		r = b->u.fp;
+	else if (b->type == tNUM)
+		r = b->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for hypot()");
 		mkval(psh(ivy), tVOID);
@@ -715,11 +766,11 @@ void rthypot(Ivy *ivy)
 
 void rtsinh(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, sinh(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, sinh((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, sinh(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, sinh((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for sinh()");
 		mkval(psh(ivy), tVOID);
@@ -728,11 +779,11 @@ void rtsinh(Ivy *ivy)
 
 void rtcosh(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, cosh(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, cosh((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, cosh(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, cosh((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for cosh()");
 		mkval(psh(ivy), tVOID);
@@ -741,11 +792,11 @@ void rtcosh(Ivy *ivy)
 
 void rttanh(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, tanh(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, tanh((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, tanh(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, tanh((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for tanh()");
 		mkval(psh(ivy), tVOID);
@@ -754,11 +805,11 @@ void rttanh(Ivy *ivy)
 
 void rtasinh(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, asinh(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, asinh((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, asinh(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, asinh((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for asinh()");
 		mkval(psh(ivy), tVOID);
@@ -767,11 +818,11 @@ void rtasinh(Ivy *ivy)
 
 void rtacosh(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, acosh(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, acosh((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, acosh(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, acosh((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for acosh()");
 		mkval(psh(ivy), tVOID);
@@ -780,11 +831,11 @@ void rtacosh(Ivy *ivy)
 
 void rtatanh(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, atanh(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, atanh((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, atanh(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, atanh((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for atanh()");
 		mkval(psh(ivy), tVOID);
@@ -793,11 +844,11 @@ void rtatanh(Ivy *ivy)
 
 void rtfloor(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, floor(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, floor((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, floor(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, floor((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for floor()");
 		mkval(psh(ivy), tVOID);
@@ -806,11 +857,11 @@ void rtfloor(Ivy *ivy)
 
 void rtceil(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, ceil(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, ceil((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, ceil(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, ceil((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for ceil()");
 		mkval(psh(ivy), tVOID);
@@ -819,11 +870,11 @@ void rtceil(Ivy *ivy)
 
 void rtint(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkival(tNUM, (long long) (a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkival(tNUM, a->val.u.num);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkival(tNUM, (long long) (a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkival(tNUM, a->u.num);
 	else {
 		error_0(ivy->errprn, "Incorrect type for int()");
 		mkval(psh(ivy), tVOID);
@@ -840,14 +891,14 @@ void rtsymbolcount(Ivy *ivy)
 
 void rtabs(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, fabs(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		if (a->val.u.num >= 0)
-			*psh(ivy) = mkival(tNUM, a->val.u.num);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, fabs(a->u.fp));
+	else if (a->type == tNUM)
+		if (a->u.num >= 0)
+			*psh(ivy) = mkival(tNUM, a->u.num);
 		else
-			*psh(ivy) = mkival(tNUM, -a->val.u.num);
+			*psh(ivy) = mkival(tNUM, -a->u.num);
 	else {
 		error_0(ivy->errprn, "Incorrect type for abs()");
 		mkval(psh(ivy), tVOID);
@@ -856,11 +907,11 @@ void rtabs(Ivy *ivy)
 
 void rterf(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, erf(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, erf((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, erf(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, erf((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for erf()");
 		mkval(psh(ivy), tVOID);
@@ -869,11 +920,11 @@ void rterf(Ivy *ivy)
 
 void rterfc(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, erfc(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, erfc((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, erfc(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, erfc((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for erfc()");
 		mkval(psh(ivy), tVOID);
@@ -882,11 +933,11 @@ void rterfc(Ivy *ivy)
 
 void rtj0(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, j0(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, j0((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, j0(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, j0((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for j0()");
 		mkval(psh(ivy), tVOID);
@@ -895,11 +946,11 @@ void rtj0(Ivy *ivy)
 
 void rtj1(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, j1(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, j1((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, j1(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, j1((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for j1()");
 		mkval(psh(ivy), tVOID);
@@ -908,11 +959,11 @@ void rtj1(Ivy *ivy)
 
 void rty0(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, y0(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, y0((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, y0(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, y0((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for y0()");
 		mkval(psh(ivy), tVOID);
@@ -921,11 +972,11 @@ void rty0(Ivy *ivy)
 
 void rty1(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	if (a->val.type == tFP)
-		*psh(ivy) = mkdval(tFP, y1(a->val.u.fp));
-	else if (a->val.type == tNUM)
-		*psh(ivy) = mkdval(tFP, y1((double) a->val.u.num));
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	if (a->type == tFP)
+		*psh(ivy) = mkdval(tFP, y1(a->u.fp));
+	else if (a->type == tNUM)
+		*psh(ivy) = mkdval(tFP, y1((double) a->u.num));
 	else {
 		error_0(ivy->errprn, "Incorrect type for y1()");
 		mkval(psh(ivy), tVOID);
@@ -934,22 +985,22 @@ void rty1(Ivy *ivy)
 
 void rtjn(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	Var *b = getv_by_symbol(ivy, b_symbol);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	Val *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
-	if (a->val.type == tFP)
-		l = a->val.u.fp;
-	else if (a->val.type == tNUM)
-		l = a->val.u.num;
+	if (a->type == tFP)
+		l = a->u.fp;
+	else if (a->type == tNUM)
+		l = a->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for jn()");
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	if (b->val.type == tFP)
-		r = b->val.u.fp;
-	else if (b->val.type == tNUM)
-		r = b->val.u.num;
+	if (b->type == tFP)
+		r = b->u.fp;
+	else if (b->type == tNUM)
+		r = b->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for jn()");
 		mkval(psh(ivy), tVOID);
@@ -960,22 +1011,22 @@ void rtjn(Ivy *ivy)
 
 void rtyn(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	Var *b = getv_by_symbol(ivy, b_symbol);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	Val *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
-	if (a->val.type == tFP)
-		l = a->val.u.fp;
-	else if (a->val.type == tNUM)
-		l = a->val.u.num;
+	if (a->type == tFP)
+		l = a->u.fp;
+	else if (a->type == tNUM)
+		l = a->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for yn()");
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	if (b->val.type == tFP)
-		r = b->val.u.fp;
-	else if (b->val.type == tNUM)
-		r = b->val.u.num;
+	if (b->type == tFP)
+		r = b->u.fp;
+	else if (b->type == tNUM)
+		r = b->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for yn()");
 		mkval(psh(ivy), tVOID);
@@ -986,22 +1037,22 @@ void rtyn(Ivy *ivy)
 
 void rtmax(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	Var *b = getv_by_symbol(ivy, b_symbol);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	Val *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
-	if (a->val.type == tFP)
-		l = a->val.u.fp;
-	else if (a->val.type == tNUM)
-		l = a->val.u.num;
+	if (a->type == tFP)
+		l = a->u.fp;
+	else if (a->type == tNUM)
+		l = a->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for max()");
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	if (b->val.type == tFP)
-		r = b->val.u.fp;
-	else if (b->val.type == tNUM)
-		r = b->val.u.num;
+	if (b->type == tFP)
+		r = b->u.fp;
+	else if (b->type == tNUM)
+		r = b->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for max()");
 		mkval(psh(ivy), tVOID);
@@ -1015,22 +1066,22 @@ void rtmax(Ivy *ivy)
 
 void rtmin(Ivy *ivy)
 {
-	Var *a = getv_by_symbol(ivy, a_symbol);
-	Var *b = getv_by_symbol(ivy, b_symbol);
+	Val *a = getv_by_symbol(ivy, a_symbol);
+	Val *b = getv_by_symbol(ivy, b_symbol);
 	double l, r;
-	if (a->val.type == tFP)
-		l = a->val.u.fp;
-	else if (a->val.type == tNUM)
-		l = a->val.u.num;
+	if (a->type == tFP)
+		l = a->u.fp;
+	else if (a->type == tNUM)
+		l = a->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for min()");
 		mkval(psh(ivy), tVOID);
 		return;
 	}
-	if (b->val.type == tFP)
-		r = b->val.u.fp;
-	else if (b->val.type == tNUM)
-		r = b->val.u.num;
+	if (b->type == tFP)
+		r = b->u.fp;
+	else if (b->type == tNUM)
+		r = b->u.num;
 	else {
 		error_0(ivy->errprn, "Incorrect type for min()");
 		mkval(psh(ivy), tVOID);

@@ -33,12 +33,10 @@ typedef struct val Val;		/* A value */
  
 typedef struct str Str;		/* A string */
 typedef struct obj Obj;		/* An object */
-typedef struct var Var;		/* A variable */
 
 typedef struct entry Entry;	/* A hash table entry */
 typedef unsigned char Pseudo;	/* Byte code */
 
-#include "ivy_obj.h"
 #include "ivy_str.h"
 #include "ivy_fun.h"
 #include "ivy_gc.h"
@@ -49,13 +47,13 @@ typedef unsigned char Pseudo;	/* Byte code */
 /* Value types */
 
 enum valtype {
+	tVOID,			/* Nothing */
 	tNUM,			/* Integer */
 	tSTR,			/* String */
 	tNAM,			/* A symbol (a name) */
 	tOBJ,			/* Object */
 	tFUN,			/* A function in its context */
 	tLST,			/* List count (only on stack) */
-	tVOID,			/* Nothing */
 	tFP,			/* Floating point */
 	tRET_IVY,		/* Normal function return */
 	tRET_NEXT_INIT,		/* Call next initializer */
@@ -63,34 +61,45 @@ enum valtype {
 	tPAIR			/* A name value pair */
 };
 
-/* A value */
+/* A value: (4 words.. wasteful..) */
+
+struct callfunc;
 
 struct val {
 	enum valtype type;	/* What type this thing is */
+	enum valtype idx_type;
 	union {
 		long long num;	/* An integer */
 		double fp;	/* Floating point */
 		Str *str;	/* A string */
 		Fun *fun;	/* A function */
 		Obj *obj;	/* An object */
-		struct callfunc *callfunc; /* Only in tRET_IVY */
-		void (*func)(Ivy *ivy, struct callfunc *t);
 		char *name;	/* An atom */
+		Pseudo *pc; // Return address when type is tRET_IVY
 	} u;
-	Var *var;		/* Variable where value came from */
+	Obj *origin;		/* Where value is from */
+	union {
+		long long num;
+		char *name;
+		Str *str;
+		void (*func)(Ivy *ivy, struct callfunc *t); /* Continuation function after tRET_SIMPLE */
+		struct callfunc *callfunc; /* Only in tRET_IVY */
+		Fun *fun;	/* Only in RET_NEXT_INIT */
+	} idx;			/* Index within origin */
 };
 
-#include "ivy_var.h"
+#include "ivy_obj.h"
 #include "ivy_gc.h"
 
 /* Call a function closure */
 
 struct callfunc {
-	Var *argv;	/* Argument vector */
-	Var *a;		/* Where arg result goes... */
-	Val *q;		/* Arg pointer */
+	Obj *argv;	/* Argument vector (no need to mark, it's in scoping level for function) */
+	Val *argv_result;	/* Where arg result goes in argv */
+	Val *scope_result;	/* Where arg result goes in scope */
+	Val *q;		/* Arg pointer on stack */
 	int argn;	/* Argument vector index */
-	int x;		/* Stack index */
+	int x;		/* Provided arg list counter */
 	Obj *ovars;	/* Save caller's scope */
 	Fun *o;		/* Function we're calling */
 	Val val;	/* String or object we're calling */
@@ -276,8 +285,11 @@ Fun *mkfun(Func *, Obj *, void *ref_who, int ref_type);	/* Create a function in 
 
 /* Other functions */
 
-Var *getv_by_string(Ivy *,char *);	/* Get a variable - check all scope levels */
-Var *getv_by_symbol(Ivy *,char *);	/* Same as above, but only with interned strings */
+Val *getv_by_string(Ivy *,char *);	/* Get a variable - check all scope levels */
+Val *getv_by_symbol(Ivy *,char *);	/* Same as above, but only with interned strings */
+
+Val *get_origin(Val *v);
+Val *set_origin(Val *v);
 
 void addlvl(Ivy *ivy, Obj *dyn);		/* Add a scope level */
 void rmvlvl(Ivy *ivy);		/* Remove a scope level */

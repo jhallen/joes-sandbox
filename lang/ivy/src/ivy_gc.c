@@ -38,35 +38,32 @@ Val *mark_val(Val *val)
 			mark_fun(val->u.fun);
 			break;
 		} case tRET_IVY: {
-			struct callfunc *c = val->u.callfunc;
+			struct callfunc *c = val->idx.callfunc;
 			mark_val(&c->val);
 			mark_fun(c->o);
 			mark_obj(c->ovars);
-			mark_var(c->argv);
+			mark_obj(c->argv);
 			return val - 1;
 		} case tRET_NEXT_INIT: {
-			if (val->u.fun)
-				mark_fun(val->u.fun);
+			if (val->idx.fun)
+				mark_fun(val->idx.fun);
 			return val - 1;
 		} case tRET_SIMPLE: {
-			if (val->u.obj)
-				mark_obj(val->u.obj);
-			if (val[-1].var) {
-				struct callfunc *c = (struct callfunc *)val[-1].var;
-				mark_val(&c->val);
-				mark_fun(c->o);
-				mark_obj(c->ovars);
-				mark_var(c->argv);
+			struct callfunc *c = val->idx.callfunc;
+			mark_val(&c->val);
+			mark_fun(c->o);
+			mark_obj(c->ovars);
+			mark_obj(c->argv);
+			if (val[-1].u.obj) {
+				mark_obj(val[-1].u.obj);
 			}
-			if (val[-2].u.fun)
-				mark_fun(val[-2].u.fun);
-			return val - 3;
+			return val - 2;
 		} default: {
 			break;
 		}
 	}
-	if (val->var)
-		mark_var(val->var);
+	if (val->origin)
+		mark_obj(val->origin);
 	return val - 1;
 }
 
@@ -77,7 +74,6 @@ void mark_protected()
 	mark_protected_strs();
 	mark_protected_objs();
 	mark_protected_funs();
-	mark_protected_vars();
 }
 
 /* Collect garbage */
@@ -85,10 +81,6 @@ void mark_protected()
 extern int mark_fun_count;
 extern int mark_str_count;
 extern int mark_obj_count;
-extern int mark_var_count;
-
-extern int free_var_count;
-extern int alloc_var_count;
 
 void collect()
 {
@@ -101,7 +93,6 @@ void collect()
 
 	mark_fun_count = 0;
 	mark_str_count = 0;
-	mark_var_count = 0;
 	mark_obj_count = 0;
 
 	mark_protected();
@@ -132,12 +123,6 @@ void collect()
 
 	// printf("alloc_var_count=%d\n", alloc_var_count);
 
-	free_var_count = 0;
-	alloc_var_count = 0;
-
-	/* Sweep variables */
-	sweep_vars();
-
 	// printf("Found free vars = %d\n", free_var_count);
 	// printf("Found allocated vars = %d\n", alloc_var_count);
 
@@ -156,6 +141,5 @@ void clear_protected()
 {
 	clear_protected_objs();
 	clear_protected_strs();
-	clear_protected_vars();
 	clear_protected_funs();
 }

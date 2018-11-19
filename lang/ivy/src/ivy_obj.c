@@ -22,11 +22,11 @@ static int slot_for_symbol(Obj *t, char *name)
 
 /* Get variable bound to symbol in an object.  If no variable is bound to the symbol, return NULL. */
 
-Var *get_by_symbol(Obj *t, char *name)
+Val *get_by_symbol(Obj *t, char *name)
 {
         int x = slot_for_symbol(t, name);
         if (t->nam_tab[x].name)
-        	return t->nam_tab[x].var;
+        	return &t->nam_tab[x].val;
 	else
 		return NULL;
 }
@@ -45,7 +45,7 @@ void expand_symbol_tab(Obj *t)
 		if (t->nam_tab[y].name) {
 			for (x = (ahash(t->nam_tab[y].name) & new_tab_mask); new_tab[x].name; x = ((x + 1) & new_tab_mask));
 			new_tab[x].name = t->nam_tab[y].name;
-			new_tab[x].var = t->nam_tab[y].var;
+			new_tab[x].val = t->nam_tab[y].val;
 		}
 	}
 
@@ -57,12 +57,12 @@ void expand_symbol_tab(Obj *t)
 
 /* Get variable bound to symbol in an object.  If no variable is bound to the symbol create one. */
 
-Var *set_by_symbol(Obj *t, char *name)
+Val *set_by_symbol(Obj *t, char *name)
 {
 	int x = slot_for_symbol(t, name);
 
 	if (t->nam_tab[x].name)
-		return t->nam_tab[x].var;
+		return &t->nam_tab[x].val;
 	else {
 		if (t->nam_tab_count == t->nam_tab_mask) {
 			expand_symbol_tab(t);
@@ -70,26 +70,7 @@ Var *set_by_symbol(Obj *t, char *name)
 		}
 		++t->nam_tab_count;
 		t->nam_tab[x].name = name;
-		return t->nam_tab[x].var = alloc_var();
-	}
-}
-
-/* Bind already existing variable to symbol in an object. */
-
-Var *set_by_symbol_ref(Obj *t, char *name, Var *repl_var)
-{
-	int x = slot_for_symbol(t, name);
-
-	if (t->nam_tab[x].name)
-		return t->nam_tab[x].var = repl_var;
-	else {
-		if (t->nam_tab_count == t->nam_tab_mask) {
-			expand_symbol_tab(t);
-			x = slot_for_symbol(t, name);
-		}
-		++t->nam_tab_count;
-		t->nam_tab[x].name = name;
-		return t->nam_tab[x].var = repl_var;
+		return &t->nam_tab[x].val;
 	}
 }
 
@@ -110,11 +91,11 @@ static int slot_for_string(Obj *t, char *name)
 
 /* Get variable bound to symbol in an object.  If no variable is bound to the symbol, return NULL. */
 
-Var *get_by_string(Obj *t, char *name)
+Val *get_by_string(Obj *t, char *name)
 {
         int x = slot_for_string(t, name);
         if (t->str_tab[x].name)
-        	return t->str_tab[x].var;
+        	return &t->str_tab[x].val;
 	else
 		return NULL;
 }
@@ -133,7 +114,7 @@ void expand_string_tab(Obj *t)
 		if (t->str_tab[y].name) {
 			for (x = (hash(t->str_tab[y].name) & new_tab_mask); new_tab[x].name; x = ((x + 1) & new_tab_mask));
 			new_tab[x].name = t->str_tab[y].name;
-			new_tab[x].var = t->str_tab[y].var;
+			new_tab[x].val = t->str_tab[y].val;
 		}
 	}
 
@@ -145,12 +126,12 @@ void expand_string_tab(Obj *t)
 
 /* Get variable bound to symbol in an object.  If no variable is bound to the symbol create one. */
 
-Var *set_by_string(Obj *t, char *name)
+Val *set_by_string(Obj *t, char *name)
 {
 	int x = slot_for_string(t, name);
 
 	if (t->str_tab[x].name)
-		return t->str_tab[x].var;
+		return &t->str_tab[x].val;
 	else {
 		if (t->str_tab_count == t->str_tab_mask) {
 			expand_string_tab(t);
@@ -158,82 +139,36 @@ Var *set_by_string(Obj *t, char *name)
 		}
 		++t->str_tab_count;
 		t->str_tab[x].name = strdup(name);
-		return t->str_tab[x].var = alloc_var();
-	}
-}
-
-/* Bind already existing variable to symbol in an object. */
-
-Var *set_by_string_ref(Obj *t, char *name, Var *repl_var)
-{
-	int x = slot_for_string(t, name);
-
-	if (t->str_tab[x].name)
-		return t->str_tab[x].var = repl_var;
-	else {
-		if (t->str_tab_count == t->str_tab_mask) {
-			expand_string_tab(t);
-			x = slot_for_string(t, name);
-		}
-		++t->str_tab_count;
-		t->str_tab[x].name = strdup(name);
-		return t->str_tab[x].var = repl_var;
+		return &t->str_tab[x].val;
 	}
 }
 
 /* Get variable bouond to number in an object.  If no variable bound, return NULL */
 
-Var *get_by_number(Obj * t, long long num)
+Val *get_by_number(Obj * t, long long num)
 {
 	if (num >= t->ary_len || num < 0)
 		return NULL;
 	else
-		return t->ary[num];
+		return &t->ary[num];
 }
 
-Var *set_by_number(Obj * t, long long num)
+Val *set_by_number(Obj * t, long long num)
 {
 	if (num < 0)
 		return NULL;
 
 	if (num >= t->ary_len) {
 		if (num >= t->ary_size) {
-			int x;
-			t->ary = (Var **) realloc(t->ary, sizeof(Var *) * (num + 16));
-			for (x = t->ary_size; x != num + 16; ++x)
-				t->ary[x] = 0;
+			t->ary = (Val *)realloc(t->ary, sizeof(Val) * (num + 16));
+			memset(t->ary + t->ary_size, 0, sizeof(Val) * (num + 16 - t->ary_size));
 			t->ary_size = num + 16;
 		}
 		t->ary_len = num + 1;
 	}
 
-	if (t->ary[num])
-		return t->ary[num];
-	else
-		return t->ary[num] = alloc_var();
+	return &t->ary[num];
 }
-
-/* Put variable 'o' numbered 'num' in t */
-
-Var *set_by_number_ref(Obj *t, long long num, Var *repl_var)
-{
-	if (num < 0)
-		return NULL;
-
-	if (num >= t->ary_len) {
-		if (num >= t->ary_size) {
-			int x;
-			t->ary = (Var **) realloc(t->ary, sizeof(Var *) * (num + 16));
-			for (x = t->ary_size; x != num + 16; ++x)
-				t->ary[x] = 0;
-			t->ary_size = num + 16;
-		}
-		t->ary_len = num + 1;
-	}
-
-	return t->ary[num] = repl_var;
-}
-
 
 /* Duplicate an object non-recursively, create new variables to hold any values */
 
@@ -246,29 +181,20 @@ Obj *dupobj(Obj * o, void *ref_who, int ref_type, int line)
 
 	for (x = 0; x != o->nam_tab_mask + 1; ++x) {
 		n->nam_tab[x].name = o->nam_tab[x].name;
-		if (o->nam_tab[x].var) {
-			n->nam_tab[x].var = alloc_var();
-			dupval(&n->nam_tab[x].var->val, &o->nam_tab[x].var->val);
-		}
+		n->nam_tab[x].val = o->nam_tab[x].val;
 	}
 	n->nam_tab_count = o->nam_tab_count;
 
 	for (x = 0; x != o->str_tab_mask + 1; ++x) {
 		if (o->str_tab[x].name) {
 			n->str_tab[x].name = strdup(o->str_tab[x].name);
-			if (o->str_tab[x].var) {
-				n->str_tab[x].var = alloc_var();
-				dupval(&n->str_tab[x].var->val, &o->str_tab[x].var->val);
-			}
+			n->str_tab[x].val = o->str_tab[x].val;
 		}
 	}
 	n->str_tab_count = o->str_tab_count;
 
 	for (x = 0; x != o->ary_len; ++x)
-		if (o->ary[x]) {
-			n->ary[x] = alloc_var();
-			dupval(&n->ary[x]->val, &o->ary[x]->val);
-		}
+		n->ary[x] = o->ary[x];
 	n->ary_len = o->ary_len;
 
 	return n;
@@ -322,7 +248,7 @@ Obj *alloc_obj(int nam_size, int str_size, int ary_size)
 
 	o->ary_size = ary_size;
 	o->ary_len = 0;
-	o->ary = (Var **)calloc(o->ary_size, sizeof(Var *));
+	o->ary = (Val *)calloc(o->ary_size, sizeof(Val));
 
 	o->nam_tab_mask = nam_size - 1;
 	o->nam_tab = (Entry *)calloc(nam_size, sizeof(Entry));
@@ -366,16 +292,14 @@ void mark_obj(Obj *o)
 		o->next_free = o;
 		++mark_obj_count;
 		for (x = 0; x != o->ary_len; ++x)
-			if (o->ary[x]) {
-				mark_var(o->ary[x]);
-			}
+			mark_val(&o->ary[x]);
 		for (x = 0; x != (o->nam_tab_mask + 1); ++x) {
-			if (o->nam_tab[x].var)
-				mark_var(o->nam_tab[x].var);
+			if (o->nam_tab[x].name)
+				mark_val(&o->nam_tab[x].val);
 		}
 		for (x = 0; x != (o->str_tab_mask + 1); ++x) {
-			if (o->str_tab[x].var)
-				mark_var(o->str_tab[x].var);
+			if (o->str_tab[x].name)
+				mark_val(&o->str_tab[x].val);
 		}
 	}
 }
