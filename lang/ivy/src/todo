@@ -1,3 +1,58 @@
+
+Notes from other languages:
+
+Python:
+
+      Classes:
+
+        class foo(BaseClass):
+           x=10
+           def __init__(self, iz):  # Magic special init function
+              BaseClass.__init__()
+              self.x=iz
+           def myfunc(self):
+              print self.x
+
+        instance = foo(10)  # create instance, __init__ is called.
+
+      Magic methods:
+          __str__    How it's printed
+
+      Modules:
+
+        import module
+        import module as foo
+        from module import name
+
+      Iterators:
+        it = iter(foo)   Gets iterator of class (calls __iter__())
+        next(it)         Get next value
+        for x in foo:    Nice syntax for this.
+        raise StopIteration to indicate end..
+
+Javascript:
+
+      a = new SomeFunctio()...   Calls function and returns its scope, as if last line was return this.  Also set object's
+                                prototype to function's prototype:
+
+      Functions have prototypes...
+
+      fn construct_fred()...
+      construct_fred.prototype = { }
+
+      Objects have prototypes.  If method can't be found in object, it checks the prototype.
+      are prototypes searched or copied during construction?  Book says they are searched.
+
+      somefunction.call(a,...     'a' becomes 'this' when somefunction is run.  This provides a way to call a constructor
+                                   function with a different scope than the one it would normally create when new is called.
+                                   Allows you to call base-class constructors from derived class constructors.
+
+      There is an example where for a derived class, they assign the prototype as follows:
+
+      derived_constructor.prototype = new base()  This seems weird to me,
+          since you get the instances and prototype from the base..
+
+
 Use ivy_ prefix for everything (simplifies inclusion) 
 
 include is broken (needs to push input I think)
