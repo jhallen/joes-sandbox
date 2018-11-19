@@ -34,24 +34,24 @@ Val *mark_val(Val *val)
 		} case tOBJ: {
 			mark_obj(val->u.obj);
 			break;
-		} case tFUN: {
-			mark_fun(val->u.fun);
+		} case tCLOSURE: {
+			mark_closure(val->u.closure);
 			break;
 		} case tRET_IVY: {
 			struct callfunc *c = val->idx.callfunc;
 			mark_val(&c->val);
-			mark_fun(c->o);
+			mark_closure(c->o);
 			mark_obj(c->ovars);
 			mark_obj(c->argv);
 			return val - 1;
 		} case tRET_NEXT_INIT: {
-			if (val->idx.fun)
-				mark_fun(val->idx.fun);
+			if (val->idx.closure)
+				mark_closure(val->idx.closure);
 			return val - 1;
 		} case tRET_SIMPLE: {
 			struct callfunc *c = val->idx.callfunc;
 			mark_val(&c->val);
-			mark_fun(c->o);
+			mark_closure(c->o);
 			mark_obj(c->ovars);
 			mark_obj(c->argv);
 			if (val[-1].u.obj) {
@@ -73,12 +73,12 @@ void mark_protected()
 {
 	mark_protected_strs();
 	mark_protected_objs();
-	mark_protected_funs();
+	mark_protected_closures();
 }
 
 /* Collect garbage */
 
-extern int mark_fun_count;
+extern int mark_closure_count;
 extern int mark_str_count;
 extern int mark_obj_count;
 
@@ -91,7 +91,7 @@ void collect()
 
 	// printf("Collecting garbage: Marking... "); fflush(stdout);
 
-	mark_fun_count = 0;
+	mark_closure_count = 0;
 	mark_str_count = 0;
 	mark_obj_count = 0;
 
@@ -132,8 +132,8 @@ void collect()
 	/* Sweep objects */
 	sweep_objs();
 
-	/* Sweep funs */
-	sweep_funs();
+	/* Sweep closures */
+	sweep_closures();
 	// printf("Done.\n");
 }
 
@@ -141,5 +141,5 @@ void clear_protected()
 {
 	clear_protected_objs();
 	clear_protected_strs();
-	clear_protected_funs();
+	clear_protected_closures();
 }

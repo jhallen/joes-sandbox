@@ -885,7 +885,7 @@ extern int symbol_count;
 
 void rtsymbolcount(Ivy *ivy)
 {
-	printf("Atom count = %d\n", symbol_count);
+	printf("Symbol count = %d\n", symbol_count);
 	mkval(psh(ivy), tVOID);
 }
 

@@ -28,7 +28,7 @@ typedef struct parse_state Parse_state;
 				/* Parser state stack entry */
 
 typedef struct func Func;	/* A function */
-typedef struct fun Fun;		/* A function in context (a closure) */
+typedef struct closure Closure;	/* A function in context (a closure) */
 typedef struct val Val;		/* A value */
  
 typedef struct str Str;		/* A string */
@@ -38,7 +38,7 @@ typedef struct entry Entry;	/* A hash table entry */
 typedef unsigned char Pseudo;	/* Byte code */
 
 #include "ivy_str.h"
-#include "ivy_fun.h"
+#include "ivy_closure.h"
 #include "ivy_gc.h"
 #include "ivy_tree.h"
 #include "ivy_symbols.h"
@@ -52,7 +52,7 @@ enum valtype {
 	tSTR,			/* String */
 	tNAM,			/* A symbol (a name) */
 	tOBJ,			/* Object */
-	tFUN,			/* A function in its context */
+	tCLOSURE,		/* A closure (function in its context) */
 	tLST,			/* List count (only on stack) */
 	tFP,			/* Floating point */
 	tRET_IVY,		/* Normal function return */
@@ -72,9 +72,9 @@ struct val {
 		long long num;	/* An integer */
 		double fp;	/* Floating point */
 		Str *str;	/* A string */
-		Fun *fun;	/* A function */
+		Closure *closure;	/* A function */
 		Obj *obj;	/* An object */
-		char *name;	/* An atom */
+		char *name;	/* A symbol */
 		Pseudo *pc; // Return address when type is tRET_IVY
 	} u;
 	Obj *origin;		/* Where value is from */
@@ -84,7 +84,7 @@ struct val {
 		Str *str;
 		void (*func)(Ivy *ivy, struct callfunc *t); /* Continuation function after tRET_SIMPLE */
 		struct callfunc *callfunc; /* Only in tRET_IVY */
-		Fun *fun;	/* Only in RET_NEXT_INIT */
+		Closure *closure;	/* Only in RET_NEXT_INIT */
 	} idx;			/* Index within origin */
 };
 
@@ -101,7 +101,7 @@ struct callfunc {
 	int argn;	/* Argument vector index */
 	int x;		/* Provided arg list counter */
 	Obj *ovars;	/* Save caller's scope */
-	Fun *o;		/* Function we're calling */
+	Closure *o;	/* Function we're calling */
 	Val val;	/* String or object we're calling */
 };
 
@@ -191,7 +191,7 @@ void addfunc(Error_printer *err, char *name, char *argstr, void (*cfunc) ());
 
 #define hnext(accu,c) (((accu) << 4) + ((accu) >> 28) + (c))
 
-/* Compute hash value of atom address */
+/* Compute hash value of symbol address */
 
 #define ahash(s) (((unsigned long)(s)>>3) ^ ((unsigned long)(s)>>12))
 
@@ -281,7 +281,7 @@ enum {
 
 Func *mkfunc(Pseudo *, int, char **, Pseudo **, char *);	/* Create a function */
 
-Fun *mkfun(Func *, Obj *, void *ref_who, int ref_type);	/* Create a function in context */
+Closure *mkclosure(Func *, Obj *, void *ref_who, int ref_type);	/* Create a function in context */
 
 /* Other functions */
 
@@ -307,7 +307,7 @@ Val *psh(Ivy *);
 Val popval(Ivy *);
 
 void simple_call(Ivy *, Pseudo *, void (*func)(Ivy *,void *), void *obj);
-void callfunc(Ivy *, Fun *);
+void callfunc(Ivy *, Closure *);
 
 /* Initialize an interpreter */
 void mk_ivy(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FILE *in, FILE *out);

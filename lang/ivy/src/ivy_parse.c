@@ -81,7 +81,7 @@ void skipwsc(Loc *loc)
 
 /* Table of operators and parse-tree node types */
 
-/*               NAME    PREFIX  INFIX   POSTFIX PREC    ASSOC   METH    INST    Atom */
+/*               NAME    PREFIX  INFIX   POSTFIX PREC    ASSOC   METH    INST    Symbol */
 What what_tab[]=
 {
 	/* Constants */
