@@ -1,3 +1,5 @@
+# Closure based inheritance
+
 fn CreateMyClass() {
 
 	# Construct the intance
@@ -60,7 +62,8 @@ Instance_1.Show()
 # Inheritance
 
 # Again we need the . notation here...
-MyClass.CreateDerivedClass = fn(() {
+fn CreateDerivedClass() {
+	mom=MyClass
 	fn Construct(i) {
 		mom.mom.Construct(i) # Call base class constructor: confusing number of moms
 		i.y = 20 # Add another variable to it..
@@ -78,13 +81,10 @@ MyClass.CreateDerivedClass = fn(() {
 	}
 
 	return this
-})
+}
 
-# I don't like that CreateDerivedClass has to be part of MyClass..
-# Though it's a nice record of the class hierarchy...
-
-print "Create derived class"
-MyDerivedClass = MyClass.CreateDerivedClass()
+#MyDerivedClass = CreateDerivedClass(`mom=MyClass) # This also works
+MyDerivedClass = CreateDerivedClass()
 
 print "Create instance of it"
 Instance_3 = MyDerivedClass.Instance()

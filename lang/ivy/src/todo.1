@@ -1,6 +1,6 @@
 Object oriented features:
 
-	Function declaration should have a path:
+->	Function declaration should have a path:
 		fn a.b() ...
 
 		Create member function b within object a.
@@ -10,11 +10,56 @@ Object oriented features:
 	We already have this:
 		a.x()    a will be the x's mom
 
-	Maybe add some way to explicitly set the environment during a
-	function call:
-
+	Add a way to explicitly set the environment during a function
+	call:
 		javascript has z.a.call(n,...)
 			(a is called with mom set to b instead of z)
 			(not really mom: it's self)
 
-	Using this technique, glblvars always ends up in the search path.
+		It turns out we have it:
+			a = somefunc(`mom=someobj)
+
+		Or in the function itself:
+			fn somefunc() {
+				mom=someobj
+				return this
+			}
+
+	Using this technique, glblvars always ends up in the search path. 
+	This is OK, it's like C++.
+
+->	Union of object and void should be object
+
+Loading:
+
+->	Add Lua like loadstring and loadfile... make module system out of
+	this.
+
+Debug:
+
+->	Print line number or better line when there are errors
+
+->	Also print stack trace with function name and line references
+
+C interface:
+
+	Make it as easy as possible
+
+	Store C data and pointers, like FILEs
+
+Thunks:
+
+->	Thunks should not have their own scope for speed and because
+	it's not obvious how many mom's you need for scope resolution.
+
+->	Add a way to explicitly set the environment during a function
+	call:
+
+		z = &x++
+		test = [`x=3]
+		z(`mom=test)	# <- works, but what about for '*' syntax?
+
+	For thunks, should it be setting 'this'?  They are not supposed
+	to have their own scope.
+
+	But 'this' is magic...
