@@ -1,0 +1,20 @@
+Object oriented features:
+
+	Function declaration should have a path:
+		fn a.b() ...
+
+		Create member function b within object a.
+
+		Otherwise we have to do this: a.b = fn((), { })
+
+	We already have this:
+		a.x()    a will be the x's mom
+
+	Maybe add some way to explicitly set the environment during a
+	function call:
+
+		javascript has z.a.call(n,...)
+			(a is called with mom set to b instead of z)
+			(not really mom: it's self)
+
+	Using this technique, glblvars always ends up in the search path.
