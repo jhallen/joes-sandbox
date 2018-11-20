@@ -30,28 +30,81 @@ Python:
         for x in foo:    Nice syntax for this.
         raise StopIteration to indicate end..
 
+      _ can be used to ignore in multiple assign x, _, z = 1, 2, 3;
+      names beginning with _ are ignored in "from module inport *"
+
 Javascript:
 
-      a = new SomeFunctio()...   Calls function and returns its scope, as if last line was return this.  Also set object's
-                                prototype to function's prototype:
+	a = new SomeFunctio()...   Calls function and returns its scope, as if last
+		line was return this.  Also set object's prototype to function's prototype:
 
-      Functions have prototypes...
+	Functions have prototypes...
 
-      fn construct_fred()...
-      construct_fred.prototype = { }
+	fn construct_fred()...
+	construct_fred.prototype = { }
 
-      Objects have prototypes.  If method can't be found in object, it checks the prototype.
-      are prototypes searched or copied during construction?  Book says they are searched.
+	Objects have prototypes.  If method can't be found in object, it checks the prototype.
+	are prototypes searched or copied during construction?  Book says they are searched.
 
-      somefunction.call(a,...     'a' becomes 'this' when somefunction is run.  This provides a way to call a constructor
-                                   function with a different scope than the one it would normally create when new is called.
-                                   Allows you to call base-class constructors from derived class constructors.
+	somefunction.call(a,...     'a' becomes 'this' when somefunction is run.  This provides a way to call a constructor
+	function with a different scope than the one it would normally create when new is called.
+	Allows you to call base-class constructors from derived class constructors.
 
-      There is an example where for a derived class, they assign the prototype as follows:
+	There is an example where for a derived class, they assign the prototype as follows:
 
-      derived_constructor.prototype = new base()  This seems weird to me,
-          since you get the instances and prototype from the base..
+	derived_constructor.prototype = new base()  This seems weird to me,
+	since you get the instances and prototype from the base..
 
+	Settings and getters:
+		It has getters and setters: getter is a function called when reading:
+			print a.b    b is called, returns value
+		Likewise setter:
+			a.b=5
+
+	Arrow functions:
+		a => a*a
+		(a, b) => a+b
+
+		- They are lightweight, don't have their own argv or this.
+
+	Argument initializers:
+		There is a problem with running the code at function define time.  Objects can be modified,
+		so subsequent calls ge different values.
+
+			fn foo(x=[]) { return x }
+			foo()(1)=1
+			foo() -> now returned array is [1]
+
+		There is no difference between explicitly passing in void or not providing the value.  In either case the initializer
+		is called.  So initializers could be implemented like this:
+			if a==void a=default_value_for_a
+			if b==void b=default_value_for_b
+			etc.
+
+		Note that code for "default_value_for_b" is allowed to use the initialized value of a.
+
+	NaN and Infinity are valid floating point values.
+
+	a ** b is exponentiation
+
+	It had array comprehensions, but removed.
+
+	[a, b, ...rest] = [1, 2, 3, 4, 5]  => rest becomes an array with remaining items
+	[a, b] = [1, 2, 3] => target can be shorter
+	[a, b, c=3] = [1, 2] => there can be default values
+	[a, ,c] = [1, 2, 3] => ignoring some values
+
+	It as a "pipeline" operator for chained function calls:
+
+		123 |> foo |> bar is the same as bar(foo(123))
+
+	It has spread syntax:
+
+		sum(...array)
+
+		The array is converted into a variable length argument list.
+
+	It had a way to create a circular list in one line...
 
 Use ivy_ prefix for everything (simplifies inclusion) 
 
