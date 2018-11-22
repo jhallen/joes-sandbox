@@ -302,7 +302,7 @@ Val mkival(enum valtype, long long);
 Val mkdval(enum valtype, double);
 Val *rmval(Val *, int);
 Val *dupval(Val *, Val *);
-Val *pr(FILE *out,Val *,int lvl);
+Val *pr(Ivy *ivy, FILE *out,Val *,int lvl);
 
 Val *psh(Ivy *);
 Val popval(Ivy *);

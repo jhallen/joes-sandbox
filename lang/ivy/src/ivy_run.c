@@ -24,6 +24,8 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 
 #include "ivy.h"
 
+// #define ENABLE_DYNAMIC 1
+
 /* Scope debugging */
 
 #if 0
@@ -265,7 +267,9 @@ void addlvl(Ivy *ivy, Obj *dyn)
 
 	*set_by_symbol(o, mom_symbol) = mkpval(tOBJ, ivy->vars);
 
+#ifdef ENABLE_DYNAMIC
 	*set_by_symbol(o, dynamic_symbol) = mkpval(tOBJ, dyn);
+#endif
 
 	ivy->vars = o;
 	SCOPE_PRINTF1("addlvl, new scope is %p\n", ivy->vars);
@@ -297,8 +301,9 @@ Val *getv_by_symbol_obj(Obj *o, char *name)
 	Obj *next;
 	Val *e;
 	do {
-		if ((e = get_by_symbol(o, name)))
+		if ((e = get_by_symbol(o, name))) {
 			return e;
+		}
 		next = get_mom(o);
 	} while ((o = next));
 	return 0;
@@ -306,7 +311,8 @@ Val *getv_by_symbol_obj(Obj *o, char *name)
 
 Val *getv_by_symbol(Ivy *ivy, char *name)
 {
-	return getv_by_symbol_obj(ivy->vars, name);
+	Val *e = getv_by_symbol_obj(ivy->vars, name);
+	return e;
 }
 
 /* Lookup a variable.  Check all scoping levels for the variable.
@@ -1606,7 +1612,7 @@ void popall(Ivy *ivy)
 
 /* Print a value */
 
-Val *pr(FILE *out, Val * v, int lvl)
+Val *pr(Ivy *ivy, FILE *out, Val * v, int lvl)
 {
 	switch (v->type) {
 	        case tNUM: {
@@ -1629,12 +1635,14 @@ Val *pr(FILE *out, Val * v, int lvl)
         		fprintf(out, "Closure %p f=%p scope=%p: ", v->u.closure, v->u.closure->f, v->u.closure->scope);
         		w.type = tOBJ;
         		w.u.obj = v->u.closure->scope;
-        		pr(out, &w,lvl+4);
+        		pr(ivy, out, &w,lvl+4);
         		return v + 1;
                 } case tOBJ: {
 			int x;
 			if (v->u.obj->visit)
 				fprintf(out, "{ %d at 0x%p } (previously shown)", v->u.obj->objno, v->u.obj);
+			else if (v->u.obj == ivy->glblvars && lvl != 0)
+				fprintf(out, "{ %d at 0x%p } (globals)", v->u.obj->objno, v->u.obj);
 			else {
 				v->u.obj->visit = 1;
 				fprintf(out, "{ %d at 0x%p\n", v->u.obj->objno, v->u.obj);
@@ -1647,7 +1655,7 @@ Val *pr(FILE *out, Val * v, int lvl)
 								first = 1; */
 							indent(out, lvl+4);
 							fprintf(out, "`%s=", v->u.obj->nam_tab[x].name);
-							pr(out, &v->u.obj->nam_tab[x].val, lvl+4);
+							pr(ivy, out, &v->u.obj->nam_tab[x].val, lvl+4);
 							fprintf(out, "\n");
 						}
 					}
@@ -1660,7 +1668,7 @@ Val *pr(FILE *out, Val * v, int lvl)
 								first = 1; */
 							indent(out, lvl+4);
 							fprintf(out, "`\"%s\"=", v->u.obj->str_tab[x].name);
-							pr(out, &v->u.obj->str_tab[x].val, lvl+4);
+							pr(ivy, out, &v->u.obj->str_tab[x].val, lvl+4);
 							fprintf(out, "\n");
 						}
 					}
@@ -1672,7 +1680,7 @@ Val *pr(FILE *out, Val * v, int lvl)
 						first = 1; */
 					//if (v->u.obj->ary[x])
 						indent(out, lvl+4), fprintf(out, "`%d=", x),
-						    pr(out, &v->u.obj->ary[x], lvl+4), fprintf(out, "\n");
+						    pr(ivy, out, &v->u.obj->ary[x], lvl+4), fprintf(out, "\n");
 				}
 				indent(out, lvl);
 				fprintf(out, "}");
@@ -1778,7 +1786,7 @@ Val run(Ivy *ivy, Pseudo *code, int ptop, int trace)
 		}
 		rtn = popval(ivy);
 		if (ptop) {
-       			pr(ivy->out, &rtn,0);
+       			pr(ivy, ivy->out, &rtn,0);
        			fprintf(ivy->out, "\n");
 		}
 		if (ivy->sp != ivy->sptop) {

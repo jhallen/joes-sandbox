@@ -99,7 +99,7 @@ void rtprint(Ivy *ivy)
 				fprintf(ivy->out, "%g", v->u.fp);
 				break;
 			} default: {
-				pr(ivy->out, v, 0);
+				pr(ivy, ivy->out, v, 0);
 				break;
 			}
 		}
@@ -361,7 +361,7 @@ void rtlen(Ivy *ivy)
 void rtvars(Ivy *ivy)
 {
 	Val x = mkpval(tOBJ, get_mom(ivy->vars));
-	pr(ivy->out, &x, 0);
+	pr(ivy, ivy->out, &x, 0);
 	fprintf(ivy->out, "\n");
 	mkval(psh(ivy), tVOID);
 }

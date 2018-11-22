@@ -35,15 +35,6 @@ Func *mkfunc(Pseudo * code, int nargs, char **args, Pseudo ** inits, char *quote
 	return func;
 }
 
-/* Generate a branch. If 't' is set, then the block falls through if the result
- * is true and takes the branch if the result is false.
- *
- * If 't' is clear, then the block falls through if the result is false and
- * takes the branch if the reuslt is true.
- *
- * Return the address of the value which should be set to the branch offset
- */
-
 /* Add branch list 'b' to end of branch list 'a' */
 
 static void addlist(Frag *frag, int a, int b)
@@ -645,7 +636,7 @@ void gencond(Error_printer *err, Frag *frag, Node *n, int v)
 }
 
 
-/* Generate a value */
+/* Generate a value: it's left on the stack */
 
 static void gen(Error_printer *err, Frag *frag, Node * n)
 {
@@ -714,41 +705,53 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 			break;
 		} case nDEFUN: {
 			if (n->r->what==nSEMI) {
-				if (n->r->l->what==nCALL && n->r->l->l->what==nNAM) { /* fn sq(x) x*x */
+				if (n->r->l->what==nCALL /* && n->r->l->l->what==nNAM */) { /* fn sq(x) x*x */
 					genfunc(err, frag, n->r->l->r, n->r->r);
-					push_nam(frag);
-					emitp(frag, n->r->l->l->s);
-					emitc(frag, iGETF);
+					if (n->r->l->l->what == nNAM) {
+						push_nam(frag);
+						emitp(frag, n->r->l->l->s);
+						emitc(frag, iGETF);
+					} else
+						gen(err, frag, n->r->l->l);
 					emitc(frag, iSET);
 					rmlooplvl(frag, lvlVALUE, 0, 0);
-				} else if (n->r->l->what==nNAM && n->r->r->what==nSEMI && n->r->r->l->what==nPAREN) { /* fn sq (x) x*x */
+				} else if (n->r->l->what != nPAREN && n->r->r->what==nSEMI && n->r->r->l->what==nPAREN) { /* fn sq (x) x*x */
 					genfunc(err, frag, n->r->r->l, n->r->r->r);
-					push_nam(frag);
-					emitp(frag, n->r->l->s);
-					emitc(frag, iGETF);
+					if (n->r->l->what == nNAM) {
+						push_nam(frag);
+						emitp(frag, n->r->l->s);
+						emitc(frag, iGETF);
+					} else
+						gen(err, frag, n->r->l);
 					emitc(frag, iSET);
 					rmlooplvl(frag, lvlVALUE, 0, 0);
-				} else if (n->r->l->what==nNAM && n->r->r->what==nPAREN) { /* fn sq (x) */
+				} else if (n->r->l->what != nPAREN && n->r->r->what==nPAREN) { /* fn sq (x) */
 					genfunc(err, frag, n->r->r, consempty(n->loc));
-					push_nam(frag);
-					emitp(frag, n->r->l->s);
-					emitc(frag, iGETF);
+					if (n->r->l->what == nNAM) { /* it looks like "a", use getf */
+						push_nam(frag);
+						emitp(frag, n->r->l->s);
+						emitc(frag, iGETF);
+					} else
+						gen(err, frag, n->r->l); /* it looks like "a.b" */
 					emitc(frag, iSET);
 					rmlooplvl(frag, lvlVALUE, 0, 0);
-				} else if (n->r->l->what==nPAREN) { /* fn (x) x*x */
+				} else if (n->r->l->what == nPAREN) { /* fn (x) x*x */
 					genfunc(err, frag, n->r->l, n->r->r);
 				} else {
 					error_2(err, "\"%s\" %d: ill-formed fn", n->r->loc->name, n->r->loc->line);
 					push_void(frag);
 				}
-			} else if(n->r->what==nCALL && n->r->l->what==nNAM) { /* fn sq(x) */
+			} else if(n->r->what==nCALL /* && n->r->l->what==nNAM */) { /* fn sq(x) */
 				genfunc(err, frag, n->r->r, consempty(n->loc));
-				push_nam(frag);
-				emitp(frag, n->r->l->s);
-				emitc(frag, iGETF);
+				if (n->r->l->what == nNAM) {
+					push_nam(frag);
+					emitp(frag, n->r->l->s);
+					emitc(frag, iGETF);
+				} else
+					gen(err, frag, n->r->l);
 				emitc(frag, iSET);
 				rmlooplvl(frag, lvlVALUE, 0, 0);
-			} else if(n->r->what==nPAREN) { /* fn () */
+			} else if(n->r->what == nPAREN) { /* fn () */
 				genfunc(err,frag, n->r, consempty(n->loc));
 			} else {
 				error_2(err, "\"%s\" %d: ill-formed fn", n->r->loc->name, n->r->loc->line);
@@ -780,7 +783,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 			fixlooplvl(frag, nargs + 1);
 			break;
 		} case nCALL1: { /* Ends up being the same as above */
-			if (n->r->what == nNAM) {
+			if (n->r->what == nNAM) { // In "a.b", avoid variable lookup on "b"
 				n->r = cons1(n->loc, nQUOTE, n->r);
 			}
 			int nargs = gencl(err, frag, n->r);
@@ -845,6 +848,8 @@ static Node *extract_loop_name(Node *n, Node **r)
 		return n;
 	}
 }
+
+/* Generate nothing: the code is executed but with no result left on the stack */
 
 static void genn(Error_printer *err, Frag *frag, Node * n)
 {
@@ -1117,6 +1122,15 @@ static void genn(Error_printer *err, Frag *frag, Node * n)
 		}
 	}
 }
+
+/* Generate a branch. If 't' is set, then the block falls through if the result
+ * is true and takes the branch if the result is false.
+ *
+ * If 't' is clear, then the block falls through if the result is false and
+ * takes the branch if the result is true.
+ *
+ * Return the address of the value which should be set to the branch offset
+ */
 
 static int genbra(Error_printer *err, Frag *frag, Node * n, int t)
 {
