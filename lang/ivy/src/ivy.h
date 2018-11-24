@@ -38,7 +38,6 @@ typedef struct entry Entry;	/* A hash table entry */
 typedef unsigned char Pseudo;	/* Byte code */
 
 #include "ivy_str.h"
-#include "ivy_closure.h"
 #include "ivy_gc.h"
 #include "ivy_tree.h"
 #include "ivy_symbols.h"
@@ -64,7 +63,14 @@ enum valtype {
 	tERROR = -1
 };
 
-/* A value: (4 words.. wasteful..) */
+/* A function closure */
+
+struct closure {
+	Func *func;	/* Code for function */
+	Obj *env;	/* Environment to run it in */
+};
+
+/* A value: (5 words.. wasteful..) */
 
 struct callfunc;
 
@@ -75,10 +81,10 @@ struct val {
 		long long num;	/* An integer */
 		double fp;	/* Floating point */
 		Str *str;	/* A string */
-		Closure *closure;	/* A function */
+		Closure closure;/* A function */
 		Obj *obj;	/* An object */
 		char *name;	/* A symbol */
-		Pseudo *pc; // Return address when type is tRET_IVY
+		Pseudo *pc;	/* Return address when type is tRET_IVY */
 	} u;
 	Obj *origin;		/* Where value is from */
 	union {
@@ -87,14 +93,13 @@ struct val {
 		Str *str;
 		void (*func)(Ivy *ivy, struct callfunc *t); /* Continuation function after tRET_SIMPLE */
 		struct callfunc *callfunc; /* Only in tRET_IVY */
-		Closure *closure;	/* Only in RET_NEXT_INIT */
 	} idx;			/* Index within origin */
 };
 
 #include "ivy_obj.h"
 #include "ivy_gc.h"
 
-/* Call a function closure */
+/* State of function call in progress.  This tracks argument evaluations and initializer evaluations */
 
 struct callfunc {
 	Obj *argv;	/* Argument vector (no need to mark, it's in scoping level for function) */
@@ -104,7 +109,7 @@ struct callfunc {
 	int argn;	/* Argument vector index */
 	int x;		/* Provided arg list counter */
 	Obj *ovars;	/* Save caller's scope */
-	Closure *o;	/* Function we're calling */
+	Closure o;	/* Function we're calling */
 	Val val;	/* String or object we're calling */
 };
 
@@ -311,7 +316,7 @@ Val *psh(Ivy *);
 Val popval(Ivy *);
 
 void simple_call(Ivy *, Pseudo *, void (*func)(Ivy *,void *), void *obj);
-void callfunc(Ivy *, Closure *);
+void callfunc(Ivy *, Closure);
 
 /* Initialize an interpreter */
 void mk_ivy(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FILE *in, FILE *out);

@@ -90,30 +90,6 @@ calling-func:
   The continuation function should pop the one argument off the stack.
 */
 
-void mkclosure_init_next(Ivy *ivy, Closure *closure);
-
-void mkclosure_init(Ivy *ivy, Closure *closure)
-{
-	while (closure->x != closure->f->nargs) {
-		/* Call initializer */
-		if (closure->f->inits[closure->x]) {
-			mkval(psh(ivy), tRET_NEXT_INIT);
-			ivy->sp[0].idx.closure = closure;
-			ivy->sp[0].u.pc = ivy->pc;
-
-			ivy->pc = closure->f->inits[closure->x];
-			return;
-		} else
-			mkval(&closure->init_vals[closure->x++], tVOID);
-	}
-}
-
-void mkclosure_init_next(Ivy *ivy, Closure *closure)
-{
-	closure->init_vals[closure->x++] = popval(ivy);
-	mkclosure_init(ivy, closure);
-}
-
 /* Delete a value: returns with pointer to after value deleted */
 
 Val *rmval(Val *v, int line)
@@ -253,7 +229,19 @@ Val mkpval(enum valtype type, void *u)
 	v.origin = 0;
 	v.idx_type = tVOID;
 	v.idx.num = 0;
-	v.u.closure = (Closure *)u;
+	v.u.obj = (Obj *)u;
+	return v;
+}
+
+Val mkclosureval(enum valtype type, Func *f, Obj *scope)
+{
+	Val v;
+	v.type = type;
+	v.origin = 0;
+	v.idx_type = tVOID;
+	v.idx.num = 0;
+	v.u.closure.func = f;
+	v.u.closure.env = scope;
 	return v;
 }
 
@@ -329,24 +317,24 @@ Val *setv_by_symbol(Obj *o, char *name)
 
 /* Call a function closure with no args (used for arguments) */
 
-void call_simple_func(Ivy *ivy, Closure * o, void (*func)(Ivy *,struct callfunc *), struct callfunc *t)
+void call_simple_func(Ivy *ivy, Closure o, void (*func)(Ivy *,struct callfunc *), struct callfunc *t)
 {
 	Obj *ovars = ivy->vars;	/* Save caller's scope */
 
 	// printf("call_simple_func %p\n", o);
 
-	SCOPE_PRINTF2("call_simple_fnuc Switch to closure's scope %p (prev was %p)\n", o->scope, ivy->vars);
+	SCOPE_PRINTF2("call_simple_fnuc Switch to closure's scope %p (prev was %p)\n", o.env, ivy->vars);
 	protect_obj(ivy->vars);
-	ivy->vars = o->scope;	/* Switch to closure's scope */
+	ivy->vars = o.env;	/* Switch to closure's scope */
 
-	if (!o->f->thunk)	/* This should always be a thunk */
+	if (!o.func->thunk)	/* This should always be a thunk */
 		addlvl(ivy, ovars);	/* Make scoping level for function */
 
 	mkval(psh(ivy), tVOID);
 	ivy->sp[0].idx.func = func;
 	ivy->sp[0].u.obj = ovars;
 
-	if (!o->f->thunk)
+	if (!o.func->thunk)
 		mkval(psh(ivy), tRET_SIMPLE);
 	else
 		mkval(psh(ivy), tRET_SIMPLE_THUNK);
@@ -354,7 +342,7 @@ void call_simple_func(Ivy *ivy, Closure * o, void (*func)(Ivy *,struct callfunc 
 	ivy->sp[0].u.pc = ivy->pc;
 
 	/* Set new program counter value... */
-	ivy->pc = o->f->code;
+	ivy->pc = o.func->code;
 }
 
 void copy_next_arg(Ivy *ivy, struct callfunc *t);
@@ -375,30 +363,50 @@ void save_arg_result(Ivy *ivy,struct callfunc *t)
 	copy_next_arg(ivy, t);
 }
 
+void call_next_init(Ivy *ivy, struct callfunc *t)
+{
+	while (t->x != t->o.func->nargs) {
+		Val *a = get_by_symbol(ivy->vars, t->o.func->args[t->x]);
+		if (!a) {
+			if (t->o.func->inits[t->x]) {
+				mkval(psh(ivy), tRET_NEXT_INIT);
+				ivy->sp[0].idx.callfunc = t;
+				ivy->sp[0].u.pc = ivy->pc;
+				ivy->pc = t->o.func->inits[t->x];
+				return;
+			} else {
+				// Is this necessary?
+				a = set_by_symbol(ivy->vars, t->o.func->args[t->x]);
+				mkval(a, tVOID);
+				*set_by_number(t->argv, t->x) = *a;
+			}
+		}
+		++t->x;
+	}
+}
+
 void copy_next_arg(Ivy *ivy, struct callfunc *t)
 {
-        int x;
-        Val *a;
 	while (t->x != ivy->sp[0].u.num) {
-		Closure *f = 0; // Set to function to call if not quoting
+		Closure f = { 0, 0 }; // Set to function to call if not quoting
 		if (t->q->type != tPAIR) { /* It's not a named argument */
-			if (t->argn >= t->o->f->nargs) { /* Past end of declared arg list */
+			if (t->argn >= t->o.func->nargs) { /* Past end of declared arg list */
 				t->argv_result = set_by_number(t->argv, t->argn); // Create slot for argument
 				t->scope_result = 0;
 				t->q = dupval(t->argv_result, t->q); // Copy quoted argument from stack
 				/* Quote extra args if last formal arg was quoted */
-				if (!t->o->f->nargs || !t->o->f->quote[t->o->f->nargs - 1])
+				if (!t->o.func->nargs || !t->o.func->quote[t->o.func->nargs - 1])
 					f = t->argv_result->u.closure;
 				++t->argn;
 			} else { /* Unnamed arg */
-				t->scope_result = set_by_symbol(ivy->vars, t->o->f->args[t->argn]);
+				t->scope_result = set_by_symbol(ivy->vars, t->o.func->args[t->argn]);
 				t->q = dupval(t->scope_result, t->q);
 
 				t->argv_result = set_by_number(t->argv, t->argn);
 
 				*t->argv_result = *t->scope_result; // Also save it in argv
 
-				if (!t->o->f->quote[t->argn])
+				if (!t->o.func->quote[t->argn])
 				        f = t->argv_result->u.closure;
 				++t->argn;
 			}
@@ -409,8 +417,8 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
 			t->argv_result = 0;
 
 			/* Find where it should go in argv */
-			for (z = 0; z != t->o->f->nargs; ++z)
-				if (!strcmp(t->o->f->args[z], t->q->u.name)) {
+			for (z = 0; z != t->o.func->nargs; ++z)
+				if (!strcmp(t->o.func->args[z], t->q->u.name)) {
 					t->argv_result = set_by_number(t->argv, z);
 					break;
 				}
@@ -420,11 +428,11 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
 			if (t->argv_result)
 				*t->argv_result = *t->scope_result; /* Save in argv also */
 			
-			if (z == t->o->f->nargs || !t->o->f->quote[z])
+			if (z == t->o.func->nargs || !t->o.func->quote[z])
 				f = t->scope_result->u.closure;
 		}
 		++t->x;
-		if (f) {
+		if (f.func) {
 			call_simple_func(ivy, f, save_arg_result, t);
 			return;
 		}
@@ -434,7 +442,7 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
         ivy->sp = rmval(ivy->sp, __LINE__);
 
         /* Push return address */
-        if (!t->o->f->thunk)
+        if (!t->o.func->thunk)
 	        mkval(psh(ivy), tRET_IVY);
 	else
 	        mkval(psh(ivy), tRET_IVY_THUNK);
@@ -443,28 +451,17 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
         ivy->sp[0].u.pc = ivy->pc;
 
         /* Set new program counter value... */
-        if (t->o->f->code)
-                ivy->pc = t->o->f->code;
+        if (t->o.func->code)
+                ivy->pc = t->o.func->code;
         else
-                ivy->call_me = t->o->f->cfunc;
+                ivy->call_me = t->o.func->cfunc;
+
         /* Initializers... */
-        for (x = t->o->f->nargs - 1; x >= 0; --x) {
-                /* Did caller set this arg? */
-                a = get_by_symbol(ivy->vars, t->o->f->args[x]);
-                if (!a) { /* Nope: copy initializer */
-                        a = set_by_symbol(ivy->vars, t->o->f->args[x]);
-                        /* Copy initializer */
-                        dupval(a, &t->o->init_vals[x]);
-                        /* Put missing variable in arg vector */
-                        *set_by_number(t->argv, x) = *a;
-                }
-        }
-        /* Ok, function is now ready to be called */
-// Do it on return side
-//        free(t);
+        t->x = 0;
+        call_next_init(ivy, t);
 }
 
-void callfunc(Ivy *ivy, Closure *o)
+void callfunc(Ivy *ivy, Closure o)
 {
 	struct callfunc *t;
 
@@ -474,11 +471,11 @@ void callfunc(Ivy *ivy, Closure *o)
 	mkval(&t->val, tVOID);
 	t->ovars = ivy->vars;	/* Save caller's scope */
 
-	SCOPE_PRINTF2("callfunc, switched to closure's scope %p (prev was %p)\n", o->scope, ivy->vars);
+	SCOPE_PRINTF2("callfunc, switched to closure's scope %p (prev was %p)\n", o.env, ivy->vars);
 	protect_obj(ivy->vars);
-	ivy->vars = o->scope;	/* Switch to closure's scope */
+	ivy->vars = o.env;	/* Switch to closure's scope */
 
-	if (!o->f->thunk)
+	if (!o.func->thunk)
 		addlvl(ivy, t->ovars);	/* Make scoping level for function */
 
 	*set_by_symbol(ivy->vars, argv_symbol) = mkpval(tOBJ, t->argv = alloc_obj(16, 4, 4));
@@ -513,7 +510,7 @@ void save_str_arg_result(Ivy *ivy,struct callfunc *t)
 void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
 {
 	while (t->x != ivy->sp[0].u.num) {
-		Closure *f = 0;
+		Closure f = { 0, 0 };
 		if (t->q->type != tPAIR) { /* Unnamed arg */
                         t->argv_result = set_by_number(t->argv, t->argn); /* Put in argv */
                         t->scope_result = 0;
@@ -529,7 +526,7 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
 			f = t->scope_result->u.closure;
 		}
 		++t->x;
-		if (f) {
+		if (f.func) {
 			call_simple_func(ivy, f, save_str_arg_result, t);
 			return;
 		}
@@ -645,7 +642,7 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
 
                                 /* If we just looked up a function, change scope to object it was found in */
                                 if (ivy->sp[0].type == tCLOSURE) {
-                                	ivy->sp[0].u.closure->scope = obj;
+                                	ivy->sp[0].u.closure.env = obj;
                                 }
 			} else if (index->type == tNAM) {
                                 char *name = index->u.name;
@@ -664,7 +661,7 @@ void copy_next_str_arg(Ivy *ivy, struct callfunc *t)
 
                                 /* If we just looked up a function, change scope to object it was found in */
                                 if (ivy->sp[0].type == tCLOSURE) {
-                                	ivy->sp[0].u.closure->scope = obj;
+                                	ivy->sp[0].u.closure.env = obj;
                                 }
                         } else {
                                 error_0(ivy->errprn, "Invalid object index type...");
@@ -683,7 +680,8 @@ void callval(Ivy *ivy, Val val)
 	struct callfunc *t;
 
 	t = (struct callfunc *)calloc(1, sizeof(struct callfunc));
-	t->o = 0;
+	t->o.func = 0;
+	t->o.env = 0;
 	t->val = val;
 	t->ovars = ivy->vars;	/* Save caller's scope */
 
@@ -720,14 +718,18 @@ int retfunc(Ivy *ivy)
 
 	/* Return and call a continuation function */
 	if (ivy->sp[0].type == tRET_NEXT_INIT) {
-		Closure *closure;
+		struct callfunc *t;
+		Val *a;
 		SCOPE_PRINTF("ret_next_init:\n");
 		ivy->pc = ivy->sp[0].u.pc;
-		closure = ivy->sp[0].idx.closure;
+		t = ivy->sp[0].idx.callfunc;
+		--ivy->sp;
 
-		ivy->sp[0] = rtn_val;
-
-		mkclosure_init_next(ivy, closure);
+		a = set_by_symbol(ivy->vars, t->o.func->args[t->x]);
+		*a = rtn_val;
+		*set_by_number(t->argv, t->x) = *a;
+		++t->x;
+		call_next_init(ivy, t);
 
 		return 1;
 	} else if (ivy->sp[0].type == tRET_SIMPLE_THUNK) {
@@ -922,7 +924,7 @@ void showstack(Ivy *ivy)
                                 --sp;
                                 break;
                         } case tRET_NEXT_INIT: {
-                                fprintf(ivy->out, "%d:	RET_NEXT_INIT (pc = %p, closure = %p)\n", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.closure);
+                                fprintf(ivy->out, "%d:	RET_NEXT_INIT (pc = %p, callfunc = %p)\n", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.callfunc);
                                 --sp;
                                 break;
                         } default: {
@@ -1350,7 +1352,7 @@ int pexe(Ivy *ivy, int trace)
 			        error_0(ivy->errprn, "Improper argument for *");
 				longjmp(ivy->err, 1);
 			} else {
-				Closure *f;
+				Closure f;
 				ivy->pc = pc;
 				f = ivy->sp->u.closure;
 				ivy->sp[0] = mkival(tLST, 0);
@@ -1466,15 +1468,12 @@ int pexe(Ivy *ivy, int trace)
 			*psh(ivy) = v;
 			break;
 		} case iPSH_FUNC: { /* A function without context: record context now */
-			Closure *closure;
 			Val v;
 			pc += align_o(pc, sizeof(void *));
 			// printf("iPSH_FUNC: ivy->vars=%p\n", ivy->vars);
-			v = mkpval(tCLOSURE, (closure = alloc_closure(*(Func **)pc, ivy->vars)));
+			v = mkclosureval(tCLOSURE, *(Func **)pc, ivy->vars);
 			*psh(ivy) = v;
 			pc += sizeof(void *);
-			/* Call initializers */
-			ivy->pc = pc; mkclosure_init(ivy,closure); pc = ivy->pc;
 			break;
                 } case iPSH_PAIR: {
 			mkval(psh(ivy), tPAIR);
@@ -1661,7 +1660,7 @@ void popall(Ivy *ivy)
                                 --ivy->sp;
                                 break;
                         } case tRET_NEXT_INIT: {
-                                fprintf(ivy->out, "%d:	RET_NEXT_INIT (pc = %p, closure = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.closure);
+                                fprintf(ivy->out, "%d:	RET_NEXT_INIT (pc = %p, callfunc = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callfunc);
                                 --ivy->sp;
                                 break;
                         } default: {
@@ -1695,9 +1694,9 @@ Val *pr(Ivy *ivy, FILE *out, Val * v, int lvl)
         		return v + 1;
                 } case tCLOSURE: {
         		Val w;
-        		fprintf(out, "Closure %p f=%p scope=%p: ", v->u.closure, v->u.closure->f, v->u.closure->scope);
+        		fprintf(out, "Closure f=%p scope=%p: ", v->u.closure.func, v->u.closure.env);
         		w.type = tOBJ;
-        		w.u.obj = v->u.closure->scope;
+        		w.u.obj = v->u.closure.env;
         		pr(ivy, out, &w,lvl+4);
         		return v + 1;
                 } case tOBJ: {
@@ -1778,7 +1777,7 @@ void add_cfunc(Ivy *ivy, Obj *vars, const char *name, const char *argstr, void (
 	o = mkfunc(NULL, argc, argv, initv, quote, 0);
 	o->cfunc = cfunc;
 	/* Put new function in table */
-	*set_by_symbol(vars, symbol_add(name)) = mkpval(tCLOSURE, alloc_closure(o, vars));
+	*set_by_symbol(vars, symbol_add(name)) = mkclosureval(tCLOSURE, o, vars);
 }
 
 /* Initialize global variables and symbols*/

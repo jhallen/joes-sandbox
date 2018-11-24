@@ -12,7 +12,7 @@ LIBS = -lm -lreadline
 
 OBJS = ivy_parse.o ivy_tree.o main.o free_list.o hash.o ivy_symbols.o \
   ivy_frag.o ivy_codegen.o ivy_run.o ivy_rtlib.o ivy_help.o ivy_gc.o \
-  ivy_str.o ivy_obj.o ivy_closure.o
+  ivy_str.o ivy_obj.o
 
 SUBDIR_OBJS = $(addprefix build/, $(OBJS))
 

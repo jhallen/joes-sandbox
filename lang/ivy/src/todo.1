@@ -1,28 +1,5 @@
 Things I'm not so sure about:
 
-
-	1.
-		a.x()    a will be the x's mom
-
-	When we call a closure, we set the mom to a
-
-	The closure itself is modified.. maybe we don't really need a
-	closure here since we're providing the environent.
-
-	If we return a function from within a function:
-		fn foo() {
-			var x = 10
-			return fn((), print(x))
-		}
-
-		z = foo()
-
-		z	<- now the closure actually matters.
-		q=[`mom=this, `x=20, `b=z]
-		q.b	<- prints 20
-		z	<- prints 20 because we modified the closure..  it
-			should still print 10.
-
 	2. we now allow fn a.b.c() { }
 		The problem is that we're calling the generic code generator
 for the left side of ().  So something like fn 10() { } is valid syntax (but
