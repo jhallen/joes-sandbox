@@ -23,7 +23,7 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <setjmp.h>
 #include "ivy.h"
 
-Func *mkfunc(Pseudo * code, int nargs, char **args, Pseudo ** inits, char *quote)
+Func *mkfunc(Pseudo * code, int nargs, char **args, Pseudo **inits, char *quote, int thunk)
 {
 	Func *func = (Func *) malloc(sizeof(Func));
 	func->code = code;
@@ -32,6 +32,7 @@ Func *mkfunc(Pseudo * code, int nargs, char **args, Pseudo ** inits, char *quote
 	func->inits = inits;
 	func->quote = quote;
 	func->cfunc = 0;
+	func->thunk = thunk;
 	return func;
 }
 
@@ -478,18 +479,18 @@ static int genl(Error_printer *err, Frag *frag, Node * n)
 
 /* Generate a function */
 
-void genfunc(Error_printer *err, Frag *frag, Node * args, Node * body)
+void genfunc(Error_printer *err, Frag *frag, Node *args, Node *body, int thunk)
 {
 	Pseudo *cod = codegen(err, body);
 	Func *o;
 	int argc = cntlst(args);
 	char *quote;
-	/* FIXME: argc can be zero */
-	char **argv = (char **) malloc(argc * sizeof(char *));
+	/* FIXME: argc can be zero, don't trust malloc to work with zero size */
+	char **argv = (char **)malloc(argc * sizeof(char *));
 	Pseudo **initv = (Pseudo **)malloc(argc * sizeof(Pseudo *));
 	quote = (char *)calloc(argc,1);
 	genlst(err, argv, initv, quote, args);
-	o = mkfunc(cod, argc, argv, initv, quote);
+	o = mkfunc(cod, argc, argv, initv, quote, thunk);
 	push_func(frag);
 	emitp(frag, o);
 }
@@ -507,19 +508,19 @@ static int gencl(Error_printer *err, Frag *frag, Node * n)
 			return result + gencl(err, frag, n->l);
 		} case nSET: {
 			if (n->l->what == nQUOTE && n->l->r->what == nNAM) {
-				genfunc(err, frag, consempty(n->loc), n->r);
+				genfunc(err, frag, consempty(n->loc), n->r, 1);
 				push_narg(frag);
 				emitp(frag, n->l->r->s);
 				push_pair(frag);
 				return 1;
 			} else if (n->l->what == nQUOTE && n->l->r->what == nSTR) {
-				genfunc(err, frag, consempty(n->loc), n->r);
+				genfunc(err, frag, consempty(n->loc), n->r, 1);
 				push_str(frag);
 				emits(frag, n->l->r->s, n->l->r->n);
 				push_pair(frag);
 				return 1;
 			} else if (n->l->what == nQUOTE && n->l->r->what == nNUM) {
-				genfunc(err, frag, consempty(n->loc), n->r);
+				genfunc(err, frag, consempty(n->loc), n->r, 1);
 				push_num(frag);
 				emitl(frag, n->l->r->n);
 				push_pair(frag);
@@ -528,7 +529,7 @@ static int gencl(Error_printer *err, Frag *frag, Node * n)
 			break;
 		}
 	}
-	genfunc(err, frag, consempty(n->loc), n);
+	genfunc(err, frag, consempty(n->loc), n, 1);
 	return 1;
 }
 
@@ -701,12 +702,12 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 			break;
 		} case nADDR: {
 			/* Generate a code snippet */
-			genfunc(err, frag, consempty(n->loc), n->r);
+			genfunc(err, frag, consempty(n->loc), n->r, 1);
 			break;
 		} case nDEFUN: {
 			if (n->r->what==nSEMI) {
 				if (n->r->l->what==nCALL /* && n->r->l->l->what==nNAM */) { /* fn sq(x) x*x */
-					genfunc(err, frag, n->r->l->r, n->r->r);
+					genfunc(err, frag, n->r->l->r, n->r->r, 0);
 					if (n->r->l->l->what == nNAM) {
 						push_nam(frag);
 						emitp(frag, n->r->l->l->s);
@@ -716,7 +717,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 					emitc(frag, iSET);
 					rmlooplvl(frag, lvlVALUE, 0, 0);
 				} else if (n->r->l->what != nPAREN && n->r->r->what==nSEMI && n->r->r->l->what==nPAREN) { /* fn sq (x) x*x */
-					genfunc(err, frag, n->r->r->l, n->r->r->r);
+					genfunc(err, frag, n->r->r->l, n->r->r->r, 0);
 					if (n->r->l->what == nNAM) {
 						push_nam(frag);
 						emitp(frag, n->r->l->s);
@@ -726,7 +727,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 					emitc(frag, iSET);
 					rmlooplvl(frag, lvlVALUE, 0, 0);
 				} else if (n->r->l->what != nPAREN && n->r->r->what==nPAREN) { /* fn sq (x) */
-					genfunc(err, frag, n->r->r, consempty(n->loc));
+					genfunc(err, frag, n->r->r, consempty(n->loc), 0);
 					if (n->r->l->what == nNAM) { /* it looks like "a", use getf */
 						push_nam(frag);
 						emitp(frag, n->r->l->s);
@@ -736,13 +737,13 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 					emitc(frag, iSET);
 					rmlooplvl(frag, lvlVALUE, 0, 0);
 				} else if (n->r->l->what == nPAREN) { /* fn (x) x*x */
-					genfunc(err, frag, n->r->l, n->r->r);
+					genfunc(err, frag, n->r->l, n->r->r, 0);
 				} else {
 					error_2(err, "\"%s\" %d: ill-formed fn", n->r->loc->name, n->r->loc->line);
 					push_void(frag);
 				}
 			} else if(n->r->what==nCALL /* && n->r->l->what==nNAM */) { /* fn sq(x) */
-				genfunc(err, frag, n->r->r, consempty(n->loc));
+				genfunc(err, frag, n->r->r, consempty(n->loc), 0);
 				if (n->r->l->what == nNAM) {
 					push_nam(frag);
 					emitp(frag, n->r->l->s);
@@ -752,7 +753,7 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 				emitc(frag, iSET);
 				rmlooplvl(frag, lvlVALUE, 0, 0);
 			} else if(n->r->what == nPAREN) { /* fn () */
-				genfunc(err,frag, n->r, consempty(n->loc));
+				genfunc(err,frag, n->r, consempty(n->loc), 0);
 			} else {
 				error_2(err, "\"%s\" %d: ill-formed fn", n->r->loc->name, n->r->loc->line);
 				push_void(frag);

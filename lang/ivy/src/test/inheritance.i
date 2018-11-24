@@ -12,7 +12,7 @@ fn CreateMyClass() {
 	# Allocate and construct the instance
 	fn Instance() {
 		print "Instance0"
-		Construct(this.mom)	# Need the moms due to thunks
+		Construct(this)
 		return this
 	}
 
@@ -64,13 +64,13 @@ fn CreateDerivedClass() {
 
 	fn Construct(i) {
 		print "Construct1"
-		mom.mom.Construct(i) # Call base class constructor: confusing number of moms
+		mom.mom.Construct(i) # Call base class constructor
 		i.y = 20 # Add another variable to it..
 	}
 
 	fn Instance() {
 		print "Instance1"
-		Construct(this.mom)	# mom due to thunk
+		Construct(this)
 		return this
 	}
 
@@ -106,7 +106,7 @@ fn MyClass.CreateAnotherDerived() {
 
 	fn Instance() {
 		print "Instance2"
-		Construct(this.mom)	# mom due to thunk
+		Construct(this)
 		return this
 	}
 
@@ -129,5 +129,5 @@ print "Create instance of it"
 Instance_4 = AnotherDerivedClass.Instance()
 print "Call its show"
 Instance_4.Show()
-Instance_4.Huh.bob()
+print Instance_4
 print "Done"

@@ -56,8 +56,10 @@ enum valtype {
 	tLST,			/* List count (only on stack) */
 	tFP,			/* Floating point */
 	tRET_IVY,		/* Normal function return */
+	tRET_IVY_THUNK,		/* Normal function return for a thunk */
 	tRET_NEXT_INIT,		/* Call next initializer */
-	tRET_SIMPLE,
+	tRET_SIMPLE,		/* Call argument */
+	tRET_SIMPLE_THUNK,	/* Call argument thunk */
 	tPAIR,			/* A name value pair */
 	tERROR = -1
 };
@@ -201,10 +203,11 @@ void addfunc(Error_printer *err, char *name, char *argstr, void (*cfunc) ());
 struct func {
 	Pseudo *code;		/* Code address */
 	void (*cfunc)(Ivy *);	/* C function address */
-	char **args;	/* Arguments names */
+	char **args;		/* Arguments names */
 	Pseudo **inits;		/* Argument initializer code */
-	char *quote;	/* Set to quote arg */
+	char *quote;		/* Set to quote arg */
 	int nargs;		/* No. args */
+	int thunk;		/* Set if this is a thunk, which means it does not get its own scope level */
 };
 
 /* Pseudo-Instruction Set */
@@ -280,7 +283,7 @@ enum {
 
 /* Member functions... */
 
-Func *mkfunc(Pseudo *, int, char **, Pseudo **, char *);	/* Create a function */
+Func *mkfunc(Pseudo *, int, char **, Pseudo **, char *, int thunk);	/* Create a function */
 
 Closure *mkclosure(Func *, Obj *, void *ref_who, int ref_type);	/* Create a function in context */
 

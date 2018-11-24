@@ -37,7 +37,7 @@ Val *mark_val(Val *val)
 		} case tCLOSURE: {
 			mark_closure(val->u.closure);
 			break;
-		} case tRET_IVY: {
+		} case tRET_IVY: case tRET_IVY_THUNK: {
 			struct callfunc *c = val->idx.callfunc;
 			mark_val(&c->val);
 			mark_closure(c->o);
@@ -48,7 +48,7 @@ Val *mark_val(Val *val)
 			if (val->idx.closure)
 				mark_closure(val->idx.closure);
 			return val - 1;
-		} case tRET_SIMPLE: {
+		} case tRET_SIMPLE: case tRET_SIMPLE_THUNK: {
 			struct callfunc *c = val->idx.callfunc;
 			mark_val(&c->val);
 			mark_closure(c->o);

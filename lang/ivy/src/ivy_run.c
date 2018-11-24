@@ -327,7 +327,7 @@ Val *setv_by_symbol(Obj *o, char *name)
 	return v;
 }
 
-/* Call a function closure with no args */
+/* Call a function closure with no args (used for arguments) */
 
 void call_simple_func(Ivy *ivy, Closure * o, void (*func)(Ivy *,struct callfunc *), struct callfunc *t)
 {
@@ -339,13 +339,17 @@ void call_simple_func(Ivy *ivy, Closure * o, void (*func)(Ivy *,struct callfunc 
 	protect_obj(ivy->vars);
 	ivy->vars = o->scope;	/* Switch to closure's scope */
 
-	addlvl(ivy,ovars);	/* Make scoping level for function */
+	if (!o->f->thunk)	/* This should always be a thunk */
+		addlvl(ivy, ovars);	/* Make scoping level for function */
 
 	mkval(psh(ivy), tVOID);
 	ivy->sp[0].idx.func = func;
 	ivy->sp[0].u.obj = ovars;
 
-	mkval(psh(ivy), tRET_SIMPLE);
+	if (!o->f->thunk)
+		mkval(psh(ivy), tRET_SIMPLE);
+	else
+		mkval(psh(ivy), tRET_SIMPLE_THUNK);
 	ivy->sp[0].idx.callfunc = t;
 	ivy->sp[0].u.pc = ivy->pc;
 
@@ -430,7 +434,10 @@ void copy_next_arg(Ivy *ivy, struct callfunc *t)
         ivy->sp = rmval(ivy->sp, __LINE__);
 
         /* Push return address */
-        mkval(psh(ivy), tRET_IVY);
+        if (!t->o->f->thunk)
+	        mkval(psh(ivy), tRET_IVY);
+	else
+	        mkval(psh(ivy), tRET_IVY_THUNK);
 //        ivy->sp[0].u.obj = t->ovars;
         ivy->sp[0].idx.callfunc = t;
         ivy->sp[0].u.pc = ivy->pc;
@@ -471,7 +478,8 @@ void callfunc(Ivy *ivy, Closure *o)
 	protect_obj(ivy->vars);
 	ivy->vars = o->scope;	/* Switch to closure's scope */
 
-	addlvl(ivy, t->ovars);	/* Make scoping level for function */
+	if (!o->f->thunk)
+		addlvl(ivy, t->ovars);	/* Make scoping level for function */
 
 	*set_by_symbol(ivy->vars, argv_symbol) = mkpval(tOBJ, t->argv = alloc_obj(16, 4, 4));
 
@@ -722,6 +730,25 @@ int retfunc(Ivy *ivy)
 		mkclosure_init_next(ivy, closure);
 
 		return 1;
+	} else if (ivy->sp[0].type == tRET_SIMPLE_THUNK) {
+		void (*func)(Ivy *,struct callfunc *);
+		struct callfunc *t;
+		SCOPE_PRINTF("retfunc simple:\n");
+		ivy->pc = ivy->sp[0].u.pc;
+		t = ivy->sp[0].idx.callfunc;
+
+		--ivy->sp;
+		func = ivy->sp[0].idx.func;
+		if (ivy->sp[0].u.obj) {
+                        SCOPE_PRINTF2("retfunc RET_SIMPLE_THUNK Restore scope to %p (was %p)\n", ivy->sp[0].u.obj, ivy->vars);
+			ivy->vars = ivy->sp[0].u.obj;
+                }
+
+		ivy->sp[0] = rtn_val;
+
+		func(ivy, t);
+
+		return 1;
 	} else if (ivy->sp[0].type == tRET_SIMPLE) {
 		void (*func)(Ivy *,struct callfunc *);
 		struct callfunc *t;
@@ -749,6 +776,22 @@ int retfunc(Ivy *ivy)
 	        struct callfunc *t;
 		SCOPE_PRINTF("retfunc ivy:\n");
                 rmvlvl(ivy);
+		restore_pc = ivy->sp[0].u.pc;
+		t = ivy->sp[0].idx.callfunc;
+                restore_vars = t->ovars;
+
+		/* Put return value back on stack */
+		ivy->sp[0] = rtn_val;
+
+		/* Continue... */
+		ivy->pc = restore_pc;
+		SCOPE_PRINTF2("retfunc RET_IVY, Restore scope to %p (was %p)\n", restore_vars, ivy->vars);
+		ivy->vars = restore_vars;
+
+		free(t);
+	} else if (ivy->sp[0].type == tRET_IVY_THUNK) { /* Return to Ivy code */
+	        struct callfunc *t;
+		SCOPE_PRINTF("retfunc ivy:\n");
 		restore_pc = ivy->sp[0].u.pc;
 		t = ivy->sp[0].idx.callfunc;
                 restore_vars = t->ovars;
@@ -862,8 +905,18 @@ void showstack(Ivy *ivy)
                                 fprintf(ivy->out, "%d:	RET_IVY (pc = %p, callfunc = %p)\n", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.callfunc);
                                 --sp;
                                 break;
+                        } case tRET_IVY_THUNK: {
+                                fprintf(ivy->out, "%d:	RET_IVY_THUNK (pc = %p, callfunc = %p)\n", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.callfunc);
+                                --sp;
+                                break;
                         } case tRET_SIMPLE: {
                                 fprintf(ivy->out, "%d:	RET_SIMPLE (pc = %p, callfunc = %p", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.callfunc);
+                                --sp;
+                                fprintf(ivy->out, "func = %p, obj = %p)\n", sp->idx.func, sp->u.obj);
+                                --sp;
+                                break;
+                        } case tRET_SIMPLE_THUNK: {
+                                fprintf(ivy->out, "%d:	RET_SIMPLE_THUNK (pc = %p, callfunc = %p", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.callfunc);
                                 --sp;
                                 fprintf(ivy->out, "func = %p, obj = %p)\n", sp->idx.func, sp->u.obj);
                                 --sp;
@@ -1591,8 +1644,18 @@ void popall(Ivy *ivy)
                                 fprintf(ivy->out, "%d:	RET_IVY (pc = %p, callfunc = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callfunc);
                                 --ivy->sp;
                                 break;
+                        } case tRET_IVY_THUNK: {
+                                fprintf(ivy->out, "%d:	RET_IVY_THUNK (pc = %p, callfunc = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callfunc);
+                                --ivy->sp;
+                                break;
                         } case tRET_SIMPLE: {
                                 fprintf(ivy->out, "%d:	RET_SIMPLE (pc = %p, callfunc = %p", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callfunc);
+                                --ivy->sp;
+                                fprintf(ivy->out, "func = %p, obj = %p)\n", ivy->sp->idx.func, ivy->sp->u.obj);
+                                --ivy->sp;
+                                break;
+                        } case tRET_SIMPLE_THUNK: {
+                                fprintf(ivy->out, "%d:	RET_SIMPLE_THUNK (pc = %p, callfunc = %p", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callfunc);
                                 --ivy->sp;
                                 fprintf(ivy->out, "func = %p, obj = %p)\n", ivy->sp->idx.func, ivy->sp->u.obj);
                                 --ivy->sp;
@@ -1712,7 +1775,7 @@ void add_cfunc(Ivy *ivy, Obj *vars, const char *name, const char *argstr, void (
 	argv = (char **) malloc(argc * sizeof(char *));
 	initv = (Pseudo **) malloc(argc * sizeof(Pseudo *));
 	genlst(ivy->errprn, argv, initv, quote, args);
-	o = mkfunc(NULL, argc, argv, initv, quote);
+	o = mkfunc(NULL, argc, argv, initv, quote, 0);
 	o->cfunc = cfunc;
 	/* Put new function in table */
 	*set_by_symbol(vars, symbol_add(name)) = mkpval(tCLOSURE, alloc_closure(o, vars));
