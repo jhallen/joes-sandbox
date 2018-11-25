@@ -373,9 +373,9 @@ static void rtdup(Ivy *ivy)
 {
 	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
 	if (a->type == ivy_tOBJ)
-		ivy_push_obj(ivy, ivy_dupobj(a->u.obj, ivy->sp+1, 0, __LINE__));
+		ivy_push_obj(ivy, ivy_dup_obj(a->u.obj, ivy->sp+1, 0, __LINE__));
 	else
-		ivy_dup(ivy_push(ivy), a);
+		ivy_dup_val(ivy_push(ivy), a);
 }
 
 /* Include command */

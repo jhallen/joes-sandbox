@@ -429,11 +429,11 @@ static inline void ivy_closure(Ivy_val *v, Ivy_func *f, Ivy_obj *env)
 }
 
 Ivy_val *ivy_rmval(Ivy_val *v, int line);
-Ivy_val *ivy_dup(Ivy_val *, Ivy_val *);
+Ivy_val *ivy_dup_val(Ivy_val *, Ivy_val *);
 
 static inline void ivy_pop(Ivy_val *v, Ivy *ivy)
 {
-	ivy_dup(v, ivy->sp);
+	ivy_dup_val(v, ivy->sp);
 	ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 }
 

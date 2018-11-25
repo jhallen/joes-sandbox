@@ -82,7 +82,7 @@ calling-func:
 
 /* Duplicate a value: returns with pointer before value duplicated */
 
-Ivy_val *ivy_dup(Ivy_val *n, Ivy_val *v)
+Ivy_val *ivy_dup_val(Ivy_val *n, Ivy_val *v)
 {
 	n->idx_type = v->idx_type;
 	n->origin = v->origin;
@@ -98,17 +98,17 @@ Ivy_val *ivy_dup(Ivy_val *n, Ivy_val *v)
 				if (v->type == ivy_tPAIR) {
 					--v;
 					if (v->type == ivy_tNAM)
-						v = ivy_dup(ivy_set_by_symbol(obj, v[0].u.name), v - 1);
+						v = ivy_dup_val(ivy_set_by_symbol(obj, v[0].u.name), v - 1);
 					else if (v->type == ivy_tSTR)
-						v = ivy_dup(ivy_set_by_string(obj, v[0].u.str->s), v - 1);
+						v = ivy_dup_val(ivy_set_by_string(obj, v[0].u.str->s), v - 1);
 					else if (v->type == ivy_tNUM)
-						v = ivy_dup(ivy_set_by_number(obj, v[0].u.num), v - 1);
+						v = ivy_dup_val(ivy_set_by_number(obj, v[0].u.num), v - 1);
 					else {
 						fprintf(stderr, "Invalid index on stack after tPAIR\n");
 						exit(-1);
 					}
 				} else
-					v = ivy_dup(ivy_set_by_number(obj, z++), v);
+					v = ivy_dup_val(ivy_set_by_number(obj, z++), v);
 			return v;
 		} case ivy_tSTR: {
 		        n->type = v->type;
@@ -316,14 +316,14 @@ static void copy_next_arg(Ivy *ivy, struct ivy_callstate *t)
 			if (t->argn >= t->o.func->nargs) { /* Past end of declared arg list */
 				t->argv_result = ivy_set_by_number(t->argv, t->argn); // Create slot for argument
 				t->scope_result = 0;
-				t->q = ivy_dup(t->argv_result, t->q); // Copy quoted argument from stack
+				t->q = ivy_dup_val(t->argv_result, t->q); // Copy quoted argument from stack
 				/* Quote extra args if last formal arg was quoted */
 				if (!t->o.func->nargs || !t->o.func->quote[t->o.func->nargs - 1])
 					f = t->argv_result->u.closure;
 				++t->argn;
 			} else { /* Unnamed arg */
 				t->scope_result = ivy_set_by_symbol(ivy->vars, t->o.func->args[t->argn]);
-				t->q = ivy_dup(t->scope_result, t->q);
+				t->q = ivy_dup_val(t->scope_result, t->q);
 
 				t->argv_result = ivy_set_by_number(t->argv, t->argn);
 
@@ -347,7 +347,7 @@ static void copy_next_arg(Ivy *ivy, struct ivy_callstate *t)
 				}
 
 			--t->q; /* Skip over argument name, point to value */
-			t->q = ivy_dup(t->scope_result, t->q); /* Copy from stack to slot */
+			t->q = ivy_dup_val(t->scope_result, t->q); /* Copy from stack to slot */
 			if (t->argv_result)
 				*t->argv_result = *t->scope_result; /* Save in argv also */
 			
@@ -438,7 +438,7 @@ void copy_next_str_arg(Ivy *ivy, struct ivy_callstate *t)
 		if (t->q->type != ivy_tPAIR) { /* Unnamed arg */
                         t->argv_result = ivy_set_by_number(t->argv, t->argn); /* Put in argv */
                         t->scope_result = 0;
-                        t->q = ivy_dup(t->argv_result, t->q);
+                        t->q = ivy_dup_val(t->argv_result, t->q);
                         f = t->argv_result->u.closure;
                         ++t->argn;
 		} else { /* Named arg */
@@ -446,7 +446,7 @@ void copy_next_str_arg(Ivy *ivy, struct ivy_callstate *t)
 			t->scope_result = ivy_set_by_symbol(ivy->vars, t->q->u.name); /* Put in scope */
 			t->argv_result = 0;
 			--t->q; /* Skip arg name, get to value */
-			t->q = ivy_dup(t->scope_result, t->q);
+			t->q = ivy_dup_val(t->scope_result, t->q);
 			f = t->scope_result->u.closure;
 		}
 		++t->x;
@@ -759,13 +759,13 @@ static void doSET(Ivy *ivy, Ivy_val *dest, Ivy_val *src)
 	} else {
 		switch (dest->idx_type) {
 			case ivy_tNUM: {
-				ivy_dup(ivy_set_by_number(dest->origin, dest->idx.num), src);
+				ivy_dup_val(ivy_set_by_number(dest->origin, dest->idx.num), src);
 				break;
 			} case ivy_tNAM: {
-				ivy_dup(ivy_set_by_symbol(dest->origin, dest->idx.name), src);
+				ivy_dup_val(ivy_set_by_symbol(dest->origin, dest->idx.name), src);
 				break;
 			} case ivy_tSTR: {
-				ivy_dup(ivy_set_by_string(dest->origin, dest->idx.str->s), src);
+				ivy_dup_val(ivy_set_by_string(dest->origin, dest->idx.str->s), src);
 				break;
 			} default: {
 				ivy_error_0(ivy->errprn, "Unknown L-value type?");
@@ -1077,7 +1077,7 @@ static int pexe(Ivy *ivy, int trace)
 				Ivy_val newv;
 				ivy_pop(&newv, ivy);
 				if (ivy->sp[0].type == ivy_tOBJ) {
-					Ivy_obj *n = ivy_dupobj(ivy->sp[0].u.obj, ivy->sp, 0, __LINE__);
+					Ivy_obj *n = ivy_dup_obj(ivy->sp[0].u.obj, ivy->sp, 0, __LINE__);
 					ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 					ivy_obj(++ivy->sp, n);
 					*ivy_set_by_number(n, ivy->sp[0].u.obj->ary_len) = newv;
@@ -1116,7 +1116,7 @@ static int pexe(Ivy *ivy, int trace)
 					int x;
 					Ivy_obj *t = ivy->sp[0].u.obj;
 					int a = ivy->sp[-1].u.obj->ary_len;
-					Ivy_obj *newo = ivy_dupobj(ivy->sp[-1].u.obj, &ivy->sp[-1], 0, __LINE__);
+					Ivy_obj *newo = ivy_dup_obj(ivy->sp[-1].u.obj, &ivy->sp[-1], 0, __LINE__);
 					ivy_rmval(&ivy->sp[-1], __LINE__);
 					ivy_obj(ivy->sp - 1, newo);
 					for (x = 0; x != t->ary_len; ++x) {	/* Append array elements */
@@ -1435,11 +1435,11 @@ static int pexe(Ivy *ivy, int trace)
 
                         // Foreach
                         if (which == 2)
-                        	ivy_dup(&newv, &o->str_tab[n].val);
+                        	ivy_dup_val(&newv, &o->str_tab[n].val);
 			else if (which == 1)
-				ivy_dup(&newv, &o->nam_tab[n].val);
+				ivy_dup_val(&newv, &o->nam_tab[n].val);
                         else
-	                        ivy_dup(&newv, &o->ary[n]);
+	                        ivy_dup_val(&newv, &o->ary[n]);
                         // FIXME add checking here: is it really a variable?
                         doSET(ivy, &ivy->sp[-3], &newv);
                         ivy->sp[0].u.num = n;

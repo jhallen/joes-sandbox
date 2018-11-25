@@ -172,7 +172,7 @@ Ivy_val *ivy_set_by_number(Ivy_obj * t, long long num)
 
 /* Duplicate an object non-recursively, create new variables to hold any values */
 
-Ivy_obj *ivy_dupobj(Ivy_obj * o, void *ref_who, int ref_type, int line)
+Ivy_obj *ivy_dup_obj(Ivy_obj * o, void *ref_who, int ref_type, int line)
 {
 	Ivy_obj *n;
 	int x;

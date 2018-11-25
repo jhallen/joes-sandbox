@@ -45,4 +45,4 @@ void ivy_sweep_objs();
 void ivy_clear_protected_objs();
 void ivy_protect_obj(Ivy_obj *o);
 
-Ivy_obj *ivy_dupobj(Ivy_obj *, void *, int, int);		/* Duplicate an object */
+Ivy_obj *ivy_dup_obj(Ivy_obj *, void *, int, int);		/* Duplicate an object */
