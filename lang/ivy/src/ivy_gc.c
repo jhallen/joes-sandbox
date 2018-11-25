@@ -42,7 +42,8 @@ Ivy_val *ivy_mark_val(Ivy_val *val)
 			ivy_mark_val(&c->val);
 			ivy_mark_obj(c->o.env);
 			ivy_mark_obj(c->ovars);
-			ivy_mark_obj(c->argv);
+			if (c->argv)
+				ivy_mark_obj(c->argv);
 			return val - 1;
 		} case ivy_tRET_SIMPLE: case ivy_tRET_SIMPLE_THUNK: {
 			struct ivy_callstate *c = val->idx.callstate;

@@ -23,7 +23,8 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <setjmp.h>
 #include "ivy.h"
 
-Ivy_func *ivy_create_func(Ivy_pseudo *code, int nargs, char **args, Ivy_pseudo **inits, char *quote, int thunk)
+Ivy_func *ivy_create_func(Ivy_pseudo *code, int nargs, char **args, Ivy_pseudo **inits, char *quote, int thunk,
+			char *argv, Ivy_pseudo *argv_init, char argv_quote)
 {
 	Ivy_func *func = (Ivy_func *)malloc(sizeof(Ivy_func));
 	func->code = code;
@@ -33,6 +34,9 @@ Ivy_func *ivy_create_func(Ivy_pseudo *code, int nargs, char **args, Ivy_pseudo *
 	func->quote = quote;
 	func->cfunc = 0;
 	func->thunk = thunk;
+	func->argv = argv;
+	func->argv_init = argv_init;
+	func->argv_quote = argv_quote;
 	return func;
 }
 
@@ -410,19 +414,25 @@ int ivy_cntlst(Ivy_node * n)
 
 /* Generate list of comma seperated names (for function args) */
 
-int ivy_genlst(Ivy_error_printer *err, char **argv, Ivy_pseudo ** initv, char *quote, Ivy_node * n)
+int ivy_genlst(Ivy_error_printer *err, char **argv, Ivy_pseudo ** initv, char *quote, Ivy_node *n, int *ellipsis)
 {
 	switch (n->what) {
 		case ivy_nEMPTY: {
 			return 0;
+		} case ivy_nELLIPSIS: {
+			if (*ellipsis) {
+				ivy_error_2(err, "\"%s\" %d: ellipsis already given", n->loc->name, n->loc->line);
+			}
+			*ellipsis = 1;
+			return ivy_genlst(err, argv, initv, quote, n->r, ellipsis);
 		} case ivy_nADDR: {
 			quote[0] = 1;
-			return ivy_genlst(err, argv, initv, quote, n->r);
+			return ivy_genlst(err, argv, initv, quote, n->r, ellipsis);
 		} case ivy_nPAREN: {
-			return ivy_genlst(err, argv, initv, quote, n->r);
+			return ivy_genlst(err, argv, initv, quote, n->r, ellipsis);
 		} case ivy_nSEMI: case ivy_nCOMMA: case ivy_nCALL: {
-			int x = ivy_genlst(err, argv, initv, quote, n->l);
-			return x + ivy_genlst(err, argv + x, initv + x, quote + x, n->r);
+			int x = ivy_genlst(err, argv, initv, quote, n->l, ellipsis);
+			return x + ivy_genlst(err, argv + x, initv + x, quote + x, n->r, ellipsis);
 		} case ivy_nNAM: {
 			return (argv[0] = n->s), (initv[0] = 0), 1;
 		} case ivy_nSET: {
@@ -485,12 +495,16 @@ static void genfunc(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node *args, Ivy_
 	Ivy_func *o;
 	int argc = ivy_cntlst(args);
 	char *quote;
+	int ellipsis = 0;
 	/* FIXME: argc can be zero, don't trust malloc to work with zero size */
 	char **argv = (char **)malloc(argc * sizeof(char *));
 	Ivy_pseudo **initv = (Ivy_pseudo **)malloc(argc * sizeof(Ivy_pseudo *));
 	quote = (char *)calloc(argc,1);
-	ivy_genlst(err, argv, initv, quote, args);
-	o = ivy_create_func(cod, argc, argv, initv, quote, thunk);
+	ivy_genlst(err, argv, initv, quote, args, &ellipsis);
+	if (!ellipsis)
+		o = ivy_create_func(cod, argc, argv, initv, quote, thunk, 0, 0, 0);
+	else
+		o = ivy_create_func(cod, argc - 1, argv, initv, quote, thunk, argv[argc-1], initv[argc-1], quote[argc-1]);
 	push_func(frag);
 	ivy_emitp(frag, o);
 }
@@ -803,6 +817,10 @@ static void gen(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 			ivy_emitc(frag, ivy_what_tab[n->what].i);
 			if (n->r && n->l)
 				pop_looplvl(frag, lvlVALUE, 0, 0);
+			break;
+		} case ivy_nELLIPSIS: {
+			ivy_error_2(err, "\"%s\" %d: invalid use of ...", n->loc->name, n->loc->line);
+			push_void(frag);
 			break;
 		} default: {
 			genn(err, frag, n);

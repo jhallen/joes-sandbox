@@ -1,8 +1,8 @@
 # Define a switch statement..
 
-fn switch(&val) {
-	var rtn, x, v = *val
-	x = 1
+fn switch(v, &argv...) {
+	var rtn, x
+	x = 0
 	while x < len(argv) - 1 {
 		if *argv(x) == v {
 			return *argv(x + 1)

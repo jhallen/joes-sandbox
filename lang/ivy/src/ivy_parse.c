@@ -92,6 +92,7 @@ Ivy_what ivy_what_tab[]=
 
 	/* Operators */
 	{ ivy_nQUOTE, "`", ivy_nQUOTE, 0, 0, 120, 0, 1, 0, ivy_nQUOTE },
+	{ ivy_nELLIPSIS, "...", 0, 0, ivy_nELLIPSIS, 120, 0, 1, 0, 0 },
 
 	{ ivy_nCALL1, ".", 0, ivy_nCALL1, 0, 110, 0, 2, 0, 0 },
 
@@ -210,7 +211,7 @@ static int ioprtab[] =
 	ivy_nGT, ivy_nLT, ivy_nLAND, ivy_nLOR, ivy_nSET, ivy_nDOTTO, ivy_nSHLTO, ivy_nSHRTO, ivy_nMULTO,
 	ivy_nDIVTO, ivy_nMODTO, ivy_nANDTO, ivy_nADDTO, ivy_nSUBTO, ivy_nXORTO, ivy_nORTO, ivy_nPOST,
 	ivy_nDOTPO, ivy_nSHLPO, ivy_nSHRPO, ivy_nMULPO, ivy_nDIVPO, ivy_nMODPO, ivy_nANDPO, ivy_nADDPO,
-	ivy_nSUBPO, ivy_nXORPO, ivy_nORPO, ivy_nQUOTE, ivy_nCOMMA, -1
+	ivy_nSUBPO, ivy_nXORPO, ivy_nORPO, ivy_nQUOTE, ivy_nELLIPSIS, ivy_nCOMMA, -1
 };
 
 static void izoprtab(void)

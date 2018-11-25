@@ -271,18 +271,7 @@ static void copy_next_arg(Ivy *ivy, struct ivy_callstate *t);
 
 static void save_arg_result(Ivy *ivy,struct ivy_callstate *t)
 {
-	Ivy_val v;
-	ivy_pop(&v, ivy);
-
-	if (t->scope_result) {
-		*t->scope_result = v;
-	}
-
-	if (t->argv_result) {
-		*t->argv_result = v;
-		
-	}
-
+	ivy_pop(t->result, ivy);
 	copy_next_arg(ivy, t);
 }
 
@@ -298,10 +287,12 @@ static void call_next_init(Ivy *ivy, struct ivy_callstate *t)
 				ivy->pc = t->o.func->inits[t->x];
 				return;
 			} else {
+				ivy_error_0(ivy->errprn, "Missing arguments");
+				longjmp(ivy->err, 1);
 				// Is this necessary?
-				a = ivy_set_by_symbol(ivy->vars, t->o.func->args[t->x]);
-				ivy_void(a);
-				*ivy_set_by_number(t->argv, t->x) = *a;
+				//a = ivy_set_by_symbol(ivy->vars, t->o.func->args[t->x]);
+				//ivy_void(a);
+				//*ivy_set_by_number(t->argv, t->x) = *a;
 			}
 		}
 		++t->x;
@@ -314,45 +305,58 @@ static void copy_next_arg(Ivy *ivy, struct ivy_callstate *t)
 		Ivy_closure f = { 0, 0 }; // Set to function to call if not quoting
 		if (t->q->type != ivy_tPAIR) { /* It's not a named argument */
 			if (t->argn >= t->o.func->nargs) { /* Past end of declared arg list */
-				t->argv_result = ivy_set_by_number(t->argv, t->argn); // Create slot for argument
-				t->scope_result = 0;
-				t->q = ivy_dup_val(t->argv_result, t->q); // Copy quoted argument from stack
-				/* Quote extra args if last formal arg was quoted */
-				if (!t->o.func->nargs || !t->o.func->quote[t->o.func->nargs - 1])
-					f = t->argv_result->u.closure;
-				++t->argn;
+				if (t->argv) {
+					t->result = ivy_set_by_number(t->argv, t->argn - t->o.func->nargs); // Create slot for argument
+					t->q = ivy_dup_val(t->result, t->q); // Copy quoted argument from stack
+					if (!t->o.func->argv_quote)
+						f = t->result->u.closure;
+					++t->argn;
+				} else {
+					// Error
+                                        ivy_error_0(ivy->errprn, "Too many arguments for function");
+                                        longjmp(ivy->err, 1);
+				}
 			} else { /* Unnamed arg */
-				t->scope_result = ivy_set_by_symbol(ivy->vars, t->o.func->args[t->argn]);
-				t->q = ivy_dup_val(t->scope_result, t->q);
+				t->result = ivy_set_by_symbol(ivy->vars, t->o.func->args[t->argn]);
+				t->q = ivy_dup_val(t->result, t->q);
 
-				t->argv_result = ivy_set_by_number(t->argv, t->argn);
-
-				*t->argv_result = *t->scope_result; // Also save it in argv
+				// nope: format args not in argv
+				// t->argv_result = ivy_set_by_number(t->argv, t->argn);
+				// *t->argv_result = *t->scope_result; // Also save it in argv
 
 				if (!t->o.func->quote[t->argn])
-				        f = t->argv_result->u.closure;
+				        f = t->result->u.closure;
 				++t->argn;
 			}
 		} else { /* Named arg */
 			int z;
 			--t->q; /* Argument name */
-			t->scope_result = ivy_set_by_symbol(ivy->vars, t->q->u.name);
-			t->argv_result = 0;
+			t->result = ivy_set_by_symbol(ivy->vars, t->q->u.name);
 
 			/* Find where it should go in argv */
+			// It doesn't go in argv
+			//for (z = 0; z != t->o.func->nargs; ++z)
+			//	if (!strcmp(t->o.func->args[z], t->q->u.name)) {
+			//		t->argv_result = ivy_set_by_number(t->argv, z);
+			//		break;
+			//	}
 			for (z = 0; z != t->o.func->nargs; ++z)
-				if (!strcmp(t->o.func->args[z], t->q->u.name)) {
-					t->argv_result = ivy_set_by_number(t->argv, z);
+				if (t->o.func->args[z] == t->q->u.name) {
 					break;
 				}
+			// It's fun to not have this...
+			//if (z == t->o.func->nargs) {
+			//	ivy_error_0(ivy->errprn, "Unknown argument");
+			//	longjmp(ivy->err, 1);
+			//}
 
 			--t->q; /* Skip over argument name, point to value */
-			t->q = ivy_dup_val(t->scope_result, t->q); /* Copy from stack to slot */
-			if (t->argv_result)
-				*t->argv_result = *t->scope_result; /* Save in argv also */
+			t->q = ivy_dup_val(t->result, t->q); /* Copy from stack to slot */
+			//if (t->argv_result)
+			//	*t->argv_result = *t->scope_result; /* Save in argv also */
 			
 			if (z == t->o.func->nargs || !t->o.func->quote[z])
-				f = t->scope_result->u.closure;
+				f = t->result->u.closure;
 		}
 		++t->x;
 		if (f.func) {
@@ -401,7 +405,8 @@ static void callfunc(Ivy *ivy, Ivy_closure o)
 	if (!o.func->thunk)
 		ivy_scope_push(ivy, t->ovars);	/* Make scoping level for function */
 
-	ivy_obj(ivy_set_by_symbol(ivy->vars, ivy_argv_symbol), t->argv = ivy_alloc_obj(16, 4, 4));
+	if (o.func->argv)
+		ivy_obj(ivy_set_by_symbol(ivy->vars, o.func->argv), t->argv = ivy_alloc_obj(16, 4, 4));
 
 	t->x = 0; /* Count of args we've completed */
 	t->argn = 0; /* Next arg number to use for unnamed */
@@ -417,17 +422,7 @@ static void copy_next_str_arg(Ivy *ivy, struct ivy_callstate *t);
 static void save_str_arg_result(Ivy *ivy,struct ivy_callstate *t)
 {
 	/* Save result of arg evaluation */
-	Ivy_val v;
-	ivy_pop(&v, ivy);
-
-	if (t->scope_result) {
-		*t->scope_result = v;
-	}
-
-	if (t->argv_result) {
-		*t->argv_result = v;
-		
-	}
+	ivy_pop(t->result, ivy);
 	copy_next_str_arg(ivy, t);
 }
 
@@ -436,18 +431,16 @@ void copy_next_str_arg(Ivy *ivy, struct ivy_callstate *t)
 	while (t->x != ivy->sp[0].u.num) {
 		Ivy_closure f = { 0, 0 };
 		if (t->q->type != ivy_tPAIR) { /* Unnamed arg */
-                        t->argv_result = ivy_set_by_number(t->argv, t->argn); /* Put in argv */
-                        t->scope_result = 0;
-                        t->q = ivy_dup_val(t->argv_result, t->q);
-                        f = t->argv_result->u.closure;
+                        t->result = ivy_set_by_number(t->argv, t->argn); /* Put in argv */
+                        t->q = ivy_dup_val(t->result, t->q);
+                        f = t->result->u.closure;
                         ++t->argn;
 		} else { /* Named arg */
 			--t->q;
-			t->scope_result = ivy_set_by_symbol(ivy->vars, t->q->u.name); /* Put in scope */
-			t->argv_result = 0;
+			t->result = ivy_set_by_symbol(ivy->vars, t->q->u.name); /* Put in scope */
 			--t->q; /* Skip arg name, get to value */
-			t->q = ivy_dup_val(t->scope_result, t->q);
-			f = t->scope_result->u.closure;
+			t->q = ivy_dup_val(t->result, t->q);
+			f = t->result->u.closure;
 		}
 		++t->x;
 		if (f.func) {
@@ -649,7 +642,7 @@ static int retfunc(Ivy *ivy)
 
 		a = ivy_set_by_symbol(ivy->vars, t->o.func->args[t->x]);
 		*a = rtn_val;
-		*ivy_set_by_number(t->argv, t->x) = *a;
+		// *ivy_set_by_number(t->argv, t->x) = *a;
 		++t->x;
 		call_next_init(ivy, t);
 
@@ -1683,6 +1676,7 @@ void ivy_add_cfunc(Ivy *ivy, Ivy_obj *vars, const char *name, const char *argstr
 	int argc;
 	char **argv;
 	char *quote;
+	int ellipsis = 0;
 	Ivy_pseudo **initv;
 	strcpy(bf, argstr);
 	args = ivy_compargs(ivy, bf);
@@ -1690,8 +1684,11 @@ void ivy_add_cfunc(Ivy *ivy, Ivy_obj *vars, const char *name, const char *argstr
 	quote = (char *) calloc(argc, 1);
 	argv = (char **) malloc(argc * sizeof(char *));
 	initv = (Ivy_pseudo **) malloc(argc * sizeof(Ivy_pseudo *));
-	ivy_genlst(ivy->errprn, argv, initv, quote, args);
-	o = ivy_create_func(NULL, argc, argv, initv, quote, 0);
+	ivy_genlst(ivy->errprn, argv, initv, quote, args, &ellipsis);
+	if (!ellipsis)
+		o = ivy_create_func(NULL, argc, argv, initv, quote, 0, 0, 0, 0);
+	else
+		o = ivy_create_func(NULL, argc - 1, argv, initv, quote, 0, argv[argc-1], initv[argc-1], quote[argc-1]);
 	o->cfunc = cfunc;
 	/* Put new function in table */
 	ivy_closure(ivy_set_by_symbol(vars, ivy_symbol_add(name)), o, vars);

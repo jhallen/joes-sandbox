@@ -2,8 +2,7 @@
 
 MyClass = [ `mom=this ]
 
-fn MyClass.construct(i) {
-	if !i i=[]
+fn MyClass.construct(i=[]) {
         i.x = 10
 	i.mom = MyClass
 # Fix OR so we can do this...
@@ -38,7 +37,7 @@ a.show()
 
 DerivedClass = [ `mom=MyClass ]
 
-fn DerivedClass.construct(i) {
+fn DerivedClass.construct(i=[]) {
 	i = MyClass.construct(i)
         i.y = 20
 	i.mom = DerivedClass

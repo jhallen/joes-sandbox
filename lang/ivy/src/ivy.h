@@ -103,8 +103,7 @@ struct ivy_val {
 
 struct ivy_callstate {
 	Ivy_obj *argv;	/* Argument vector (no need to mark, it's in scoping level for function) */
-	Ivy_val *argv_result;	/* Where arg result goes in argv */
-	Ivy_val *scope_result;	/* Where arg result goes in scope */
+	Ivy_val *result;	/* Where arg result should go */
 	Ivy_val *q;		/* Arg pointer on stack */
 	int argn;	/* Argument vector index */
 	int x;		/* Provided arg list counter */
@@ -213,6 +212,9 @@ struct ivy_func {
 	char *quote;		/* Set to quote arg */
 	int nargs;		/* No. args */
 	int thunk;		/* Set if this is a thunk, which means it does not get its own scope level */
+	char *argv;		/* extra args name */
+	Ivy_pseudo *argv_init;	/* initializer for argv */
+	char argv_quote;	/* Set to quote argv */
 };
 
 /* Pseudo-Instruction Set */
@@ -288,7 +290,7 @@ enum {
 
 /* Member functions... */
 
-Ivy_func *ivy_create_func(Ivy_pseudo *, int, char **, Ivy_pseudo **, char *, int thunk);	/* Create a function */
+Ivy_func *ivy_create_func(Ivy_pseudo *code, int nargs, char **args, Ivy_pseudo **inits, char *quote, int thunk, char *argv, Ivy_pseudo *argv_init, char argv_quote);	/* Create a function */
 
 /* Other functions */
 
@@ -463,7 +465,7 @@ void ivy_rthelp(Ivy *);
 
 void ivy_disasm(FILE *out, Ivy_pseudo *code, int ind, int oneline);
 int ivy_cntlst(Ivy_node *args);
-int ivy_genlst(Ivy_error_printer *err, char **argv, Ivy_pseudo ** initv, char *quote, Ivy_node * n);
+int ivy_genlst(Ivy_error_printer *err, char **argv, Ivy_pseudo ** initv, char *quote, Ivy_node *n, int *ellipsis);
 
 /* Atoms */
 extern char *ivy_a_symbol;
