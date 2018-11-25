@@ -23,35 +23,35 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <setjmp.h>
 #include "ivy.h"
 
-int alloc_count;
+int ivy_alloc_count;
 
-Val *mark_val(Val *val)
+Ivy_val *ivy_mark_val(Ivy_val *val)
 {
 	switch (val->type) {
-		case tSTR: {
-			mark_str(val->u.str);
+		case ivy_tSTR: {
+			ivy_mark_str(val->u.str);
 			break;
-		} case tOBJ: {
-			mark_obj(val->u.obj);
+		} case ivy_tOBJ: {
+			ivy_mark_obj(val->u.obj);
 			break;
-		} case tCLOSURE: {
-			mark_obj(val->u.closure.env);
+		} case ivy_tCLOSURE: {
+			ivy_mark_obj(val->u.closure.env);
 			break;
-		} case tRET_IVY: case tRET_IVY_THUNK: case tRET_NEXT_INIT: {
-			struct callfunc *c = val->idx.callfunc;
-			mark_val(&c->val);
-			mark_obj(c->o.env);
-			mark_obj(c->ovars);
-			mark_obj(c->argv);
+		} case ivy_tRET_IVY: case ivy_tRET_IVY_THUNK: case ivy_tRET_NEXT_INIT: {
+			struct ivy_callstate *c = val->idx.callstate;
+			ivy_mark_val(&c->val);
+			ivy_mark_obj(c->o.env);
+			ivy_mark_obj(c->ovars);
+			ivy_mark_obj(c->argv);
 			return val - 1;
-		} case tRET_SIMPLE: case tRET_SIMPLE_THUNK: {
-			struct callfunc *c = val->idx.callfunc;
-			mark_val(&c->val);
-			mark_obj(c->o.env);
-			mark_obj(c->ovars);
-			mark_obj(c->argv);
+		} case ivy_tRET_SIMPLE: case ivy_tRET_SIMPLE_THUNK: {
+			struct ivy_callstate *c = val->idx.callstate;
+			ivy_mark_val(&c->val);
+			ivy_mark_obj(c->o.env);
+			ivy_mark_obj(c->ovars);
+			ivy_mark_obj(c->argv);
 			if (val[-1].u.obj) {
-				mark_obj(val[-1].u.obj);
+				ivy_mark_obj(val[-1].u.obj);
 			}
 			return val - 2;
 		} default: {
@@ -59,52 +59,52 @@ Val *mark_val(Val *val)
 		}
 	}
 	if (val->origin)
-		mark_obj(val->origin);
+		ivy_mark_obj(val->origin);
 	return val - 1;
 }
 
 extern Ivy *ivys;
 
-void mark_protected()
+void ivy_mark_protected()
 {
-	mark_protected_strs();
-	mark_protected_objs();
+	ivy_mark_protected_strs();
+	ivy_mark_protected_objs();
 }
 
 /* Collect garbage */
 
-extern int mark_str_count;
-extern int mark_obj_count;
+extern int ivy_mark_str_count;
+extern int ivy_mark_obj_count;
 
-void collect()
+void ivy_collect()
 {
-	Val *p;
+	Ivy_val *p;
 	Ivy *ivy;
 
-	alloc_count = 0;
+	ivy_alloc_count = 0;
 
 	// printf("Collecting garbage: Marking... "); fflush(stdout);
 
-	mark_str_count = 0;
-	mark_obj_count = 0;
+	ivy_mark_str_count = 0;
+	ivy_mark_obj_count = 0;
 
-	mark_protected();
+	ivy_mark_protected();
 
 	for (ivy = ivys; ivy; ivy = ivy->next) {
 		/* Mark */
 		p = ivy->sp;
 		while (p != ivy->sptop) {
-			p = mark_val(p);
+			p = ivy_mark_val(p);
 		}
 		if (ivy->glblvars) {
 			// printf("mark globals %d\n", ivy->glblvars->objno);
-			mark_obj(ivy->glblvars);
+			ivy_mark_obj(ivy->glblvars);
 		}
 		if (ivy->vars) {
 			// printf("mark scope %d\n", ivy->vars->objno);
-			mark_obj(ivy->vars);
+			ivy_mark_obj(ivy->vars);
 		}
-		mark_val(&ivy->stashed);
+		ivy_mark_val(&ivy->stashed);
 	}
 
 	// printf("mark_fun_count = %d\n", mark_fun_count);
@@ -120,16 +120,16 @@ void collect()
 	// printf("Found allocated vars = %d\n", alloc_var_count);
 
 	/* Sweep strings */
-	sweep_strs();
+	ivy_sweep_strs();
 
 	/* Sweep objects */
-	sweep_objs();
+	ivy_sweep_objs();
 
 	// printf("Done.\n");
 }
 
-void clear_protected()
+void ivy_clear_protected()
 {
-	clear_protected_objs();
-	clear_protected_strs();
+	ivy_clear_protected_objs();
+	ivy_clear_protected_strs();
 }

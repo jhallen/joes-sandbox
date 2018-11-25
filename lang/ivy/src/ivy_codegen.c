@@ -23,9 +23,9 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <setjmp.h>
 #include "ivy.h"
 
-Func *mkfunc(Pseudo * code, int nargs, char **args, Pseudo **inits, char *quote, int thunk)
+Ivy_func *ivy_create_func(Ivy_pseudo *code, int nargs, char **args, Ivy_pseudo **inits, char *quote, int thunk)
 {
-	Func *func = (Func *) malloc(sizeof(Func));
+	Ivy_func *func = (Ivy_func *)malloc(sizeof(Ivy_func));
 	func->code = code;
 	func->nargs = nargs;
 	func->args = args;
@@ -38,20 +38,20 @@ Func *mkfunc(Pseudo * code, int nargs, char **args, Pseudo **inits, char *quote,
 
 /* Add branch list 'b' to end of branch list 'a' */
 
-static void addlist(Frag *frag, int a, int b)
+static void addlist(Ivy_frag *frag, int a, int b)
 {
-	while (fragn(frag, a))
-		a = fragn(frag, a);
-	fragn(frag, a) = b;
+	while (ivy_fragn(frag, a))
+		a = ivy_fragn(frag, a);
+	ivy_fragn(frag, a) = b;
 }
 
 /* Set each value in branch list 'a' to destination 'b' */
 
-static void setlist(Frag *frag, int a, int b)
+static void setlist(Ivy_frag *frag, int a, int b)
 {
 	while (a) {
-		int c = fragn(frag, a);
-		fragn(frag, a) = b - a;
+		int c = ivy_fragn(frag, a);
+		ivy_fragn(frag, a) = b - a;
 		a = c;
 	}
 }
@@ -62,18 +62,18 @@ static void setlist(Frag *frag, int a, int b)
 #define lvlLOOP 1
 #define lvlVALUE 2
 
-struct looplvl {
-	struct looplvl *next;	/* Next level */
+struct ivy_looplvl {
+	struct ivy_looplvl *next;	/* Next level */
 	int what;		/* 2 = value, 1 = loop, 0 = scope */
 	int cont;		/* List of continue destinations */
 	int brk;		/* List of brk destinations */
 	char *name;		/* Named level */
 };
 
-void mklooplvl(Frag *frag, int what, int cont, int brk)
+static void push_looplvl(Ivy_frag *frag, int what, int cont, int brk)
 {
-	struct looplvl *ll =
-	    (struct looplvl *) malloc(sizeof(struct looplvl));
+	struct ivy_looplvl *ll =
+	    (struct ivy_looplvl *) malloc(sizeof(struct ivy_looplvl));
 	ll->what = what;
 	ll->cont = cont;
 	ll->brk = brk;
@@ -81,12 +81,12 @@ void mklooplvl(Frag *frag, int what, int cont, int brk)
 	ll->name = 0;
 	frag->looplvls = ll;
 	if (ll->what == lvlSCOPE)
-		emitc(frag, iBEG);
+		ivy_emitc(frag, ivy_iBEG);
 }
 
-void rmlooplvl(Frag *frag, int what, int cont, int brk)
+static void pop_looplvl(Ivy_frag *frag, int what, int cont, int brk)
 {
-	struct looplvl *ll = frag->looplvls;
+	struct ivy_looplvl *ll = frag->looplvls;
 	frag->looplvls = ll->next;
 	if (what != ll->what) {
 		printf("Expected level of type %d\n", what);
@@ -102,7 +102,7 @@ void rmlooplvl(Frag *frag, int what, int cont, int brk)
 		setlist(frag, ll->brk, brk);
 	}
 	if (ll->what == lvlSCOPE)
-		emitc(frag, iEND);
+		ivy_emitc(frag, ivy_iEND);
 	if (ll->name)
 		free(ll->name);
 	free(ll);
@@ -110,9 +110,9 @@ void rmlooplvl(Frag *frag, int what, int cont, int brk)
 
 /* Find named loop, or with NULL, find innermost loop */
 
-struct looplvl *findlvl(Frag *frag, char *name)
+static struct ivy_looplvl *findlvl(Ivy_frag *frag, char *name)
 {
-	struct looplvl *ll;
+	struct ivy_looplvl *ll;
 	if (name)
 		for (ll = frag->looplvls; ll && (!ll->name || strcmp(ll->name, name)); ll = ll->next);
 	else
@@ -122,262 +122,262 @@ struct looplvl *findlvl(Frag *frag, char *name)
 
 /* Convert stack list to object */
 
-void fixlooplvl(Frag *frag, int amnt)
+static void fixlooplvl(Ivy_frag *frag, int amnt)
 {
 	int x;
 	for (x = 0; x != amnt; ++x)
-		rmlooplvl(frag, lvlVALUE, 0, 0);
+		pop_looplvl(frag, lvlVALUE, 0, 0);
 }
 
 /* Pop for premature exit */
 
-void poploops(Frag *frag, struct looplvl *target)
+static void poploops(Ivy_frag *frag, struct ivy_looplvl *target)
 {
-	struct looplvl *ll;
+	struct ivy_looplvl *ll;
 	for (ll = frag->looplvls; ll && ll != target; ll = ll->next) {
 		if (ll->what == lvlSCOPE)
-			emitc(frag, iEND);
+			ivy_emitc(frag, ivy_iEND);
 		else if (ll->what == lvlVALUE)
-			emitc(frag, iPOP);
+			ivy_emitc(frag, ivy_iPOP);
 	}
 }
 
 /* Push something */
 
-void push_str(Frag *frag)
+static void push_str(Ivy_frag *frag)
 {
-	mklooplvl(frag, lvlVALUE, 0, 0);
-	emitc(frag, iPSH_STR);
+	push_looplvl(frag, lvlVALUE, 0, 0);
+	ivy_emitc(frag, ivy_iPSH_STR);
 }
 
-void push_nam(Frag *frag)
+static void push_nam(Ivy_frag *frag)
 {
-	mklooplvl(frag, lvlVALUE, 0, 0);
-	emitc(frag, iPSH_NAM);
+	push_looplvl(frag, lvlVALUE, 0, 0);
+	ivy_emitc(frag, ivy_iPSH_NAM);
 }
 
-void push_narg(Frag *frag)
+static void push_narg(Ivy_frag *frag)
 {
-	// mklooplvl(frag, lvlVALUE, 0, 0); /* It's counted with the value */
-	emitc(frag, iPSH_NAM);
+	// push_looplvl(frag, lvlVALUE, 0, 0); /* It's counted with the value */
+	ivy_emitc(frag, ivy_iPSH_NAM);
 }
 
-void push_pair(Frag *frag)
+static void push_pair(Ivy_frag *frag)
 {
-	emitc(frag, iPSH_PAIR);
+	ivy_emitc(frag, ivy_iPSH_PAIR);
 }
 
-void push_func(Frag *frag)
+static void push_func(Ivy_frag *frag)
 {
-	mklooplvl(frag, lvlVALUE, 0, 0);
-	emitc(frag, iPSH_FUNC);
+	push_looplvl(frag, lvlVALUE, 0, 0);
+	ivy_emitc(frag, ivy_iPSH_FUNC);
 }
 
-void push_lst(Frag *frag)
+static void push_lst(Ivy_frag *frag)
 {
-	mklooplvl(frag, lvlVALUE, 0, 0);
-	emitc(frag, iPSH_LST);
+	push_looplvl(frag, lvlVALUE, 0, 0);
+	ivy_emitc(frag, ivy_iPSH_LST);
 }
 
-void push_void(Frag *frag)
+static void push_void(Ivy_frag *frag)
 {
-	mklooplvl(frag, lvlVALUE, 0, 0);
-	emitc(frag, iPSH_VOID);
+	push_looplvl(frag, lvlVALUE, 0, 0);
+	ivy_emitc(frag, ivy_iPSH_VOID);
 }
 
-void push_this(Frag *frag)
+static void push_this(Ivy_frag *frag)
 {
-	mklooplvl(frag, lvlVALUE, 0, 0);
-	emitc(frag, iPSH_THIS);
+	push_looplvl(frag, lvlVALUE, 0, 0);
+	ivy_emitc(frag, ivy_iPSH_THIS);
 }
 
-void push_num(Frag *frag)
+static void push_num(Ivy_frag *frag)
 {
-	mklooplvl(frag, lvlVALUE, 0, 0);
-	emitc(frag, iPSH_NUM);
+	push_looplvl(frag, lvlVALUE, 0, 0);
+	ivy_emitc(frag, ivy_iPSH_NUM);
 }
 
-void push_fp(Frag *frag)
+static void push_fp(Ivy_frag *frag)
 {
-	mklooplvl(frag, lvlVALUE, 0, 0);
-	emitc(frag, iPSH_FP);
+	push_looplvl(frag, lvlVALUE, 0, 0);
+	ivy_emitc(frag, ivy_iPSH_FP);
 }
 
 /* Disassembler */
 
-void disasm(FILE *out, Pseudo * c, int ind, int oneline)
+void ivy_disasm(FILE *out, Ivy_pseudo * c, int ind, int oneline)
 {
-	Pseudo *start = c;
+	Ivy_pseudo *start = c;
 	if (ind < 0) {
 		fprintf(out, "Bad indent value\n");
 		return;
 	}
-	indent(out, ind); fprintf(out, "%p:\n", start);
+	ivy_indent(out, ind); fprintf(out, "%p:\n", start);
 	for (;;) {
-		indent(out, ind); fprintf(out, "%d ", (int)(c - start));
+		ivy_indent(out, ind); fprintf(out, "%d ", (int)(c - start));
 		switch (*c++) {
-			case iBRA: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	bra %d\n", *(int *)c + (int)(c - start));
+			case ivy_iBRA: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	bra %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
-			} case iBEQ: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	beq %d\n", *(int *)c + (int)(c - start));
+			} case ivy_iBEQ: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	beq %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
-			} case iBNE: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	bne %d\n", *(int *)c + (int)(c - start));
+			} case ivy_iBNE: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	bne %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
-			} case iBGT: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	bgt %d\n", *(int *)c + (int)(c - start));
+			} case ivy_iBGT: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	bgt %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
-			} case iBLT: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	blt %d\n", *(int *)c + (int)(c - start));
+			} case ivy_iBLT: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	blt %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
-			} case iBGE: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	bge %d\n", *(int *)c + (int)(c - start));
+			} case ivy_iBGE: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	bge %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
-			} case iBLE: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	ble %d\n", *(int *)c + (int)(c - start));
+			} case ivy_iBLE: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	ble %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
-			} case iCOM: {
-				indent(out, ind); fprintf(out, "	com\n");
+			} case ivy_iCOM: {
+				ivy_indent(out, ind); fprintf(out, "	com\n");
 				break;
-			} case iNEG: {
-				indent(out, ind); fprintf(out, "	neg\n");
+			} case ivy_iNEG: {
+				ivy_indent(out, ind); fprintf(out, "	neg\n");
 				break;
-			} case iSHL: {
-				indent(out, ind); fprintf(out, "	shl\n");
+			} case ivy_iSHL: {
+				ivy_indent(out, ind); fprintf(out, "	shl\n");
 				break;
-			} case iSHR: {
-				indent(out, ind); fprintf(out, "	shr\n");
+			} case ivy_iSHR: {
+				ivy_indent(out, ind); fprintf(out, "	shr\n");
 				break;
-			} case iMUL: {
-				indent(out, ind); fprintf(out, "	mul\n");
+			} case ivy_iMUL: {
+				ivy_indent(out, ind); fprintf(out, "	mul\n");
 				break;
-			} case iDIV: {
-				indent(out, ind); fprintf(out, "	div\n");
+			} case ivy_iDIV: {
+				ivy_indent(out, ind); fprintf(out, "	div\n");
 				break;
-			} case iMOD: {
-				indent(out, ind); fprintf(out, "	mod\n");
+			} case ivy_iMOD: {
+				ivy_indent(out, ind); fprintf(out, "	mod\n");
 				break;
-			} case iAND: {
-				indent(out, ind); fprintf(out, "	and\n");
+			} case ivy_iAND: {
+				ivy_indent(out, ind); fprintf(out, "	and\n");
 				break;
-			} case iADD: {
-				indent(out, ind); fprintf(out, "	add\n");
+			} case ivy_iADD: {
+				ivy_indent(out, ind); fprintf(out, "	add\n");
 				break;
-			} case iSUB: {
-				indent(out, ind); fprintf(out, "	sub\n");
+			} case ivy_iSUB: {
+				ivy_indent(out, ind); fprintf(out, "	sub\n");
 				break;
-			} case iOR: {
-				indent(out, ind); fprintf(out, "	or\n");
+			} case ivy_iOR: {
+				ivy_indent(out, ind); fprintf(out, "	or\n");
 				break;
-			} case iXOR: {
-				indent(out, ind); fprintf(out, "	xor\n");
+			} case ivy_iXOR: {
+				ivy_indent(out, ind); fprintf(out, "	xor\n");
 				break;
-			} case iCMP: {
-				indent(out, ind); fprintf(out, "	cmp\n");
+			} case ivy_iCMP: {
+				ivy_indent(out, ind); fprintf(out, "	cmp\n");
 				break;
-			} case iBEG: {
-				indent(out, ind); fprintf(out, "	beg\n");
+			} case ivy_iBEG: {
+				ivy_indent(out, ind); fprintf(out, "	beg\n");
 				break;
-			} case iEND: {
-				indent(out, ind); fprintf(out, "	end\n");
+			} case ivy_iEND: {
+				ivy_indent(out, ind); fprintf(out, "	end\n");
 				break;
-			} case iLOC: {
-				indent(out, ind); fprintf(out, "	loc\n");
+			} case ivy_iLOC: {
+				ivy_indent(out, ind); fprintf(out, "	loc\n");
 				break;
-			} case iGET: {
-				indent(out, ind); fprintf(out, "	get\n");
+			} case ivy_iGET: {
+				ivy_indent(out, ind); fprintf(out, "	get\n");
 				break;
-			} case iGETF: {
-				indent(out, ind); fprintf(out, "	getf\n");
+			} case ivy_iGETF: {
+				ivy_indent(out, ind); fprintf(out, "	getf\n");
 				break;
-			} case iAT: {
-				indent(out, ind); fprintf(out, "	at\n");
+			} case ivy_iAT: {
+				ivy_indent(out, ind); fprintf(out, "	at\n");
 				break;
-			} case iSET: {
-				indent(out, ind); fprintf(out, "	set\n");
+			} case ivy_iSET: {
+				ivy_indent(out, ind); fprintf(out, "	set\n");
 				break;
-			} case iCALL: {
-				indent(out, ind); fprintf(out, "	call\n");
+			} case ivy_iCALL: {
+				ivy_indent(out, ind); fprintf(out, "	call\n");
 				break;
-			} case iRTS: {
-				indent(out, ind); fprintf(out, "	rts\n");
+			} case ivy_iRTS: {
+				ivy_indent(out, ind); fprintf(out, "	rts\n");
 				return;
-			} case iSTASH: {
-				indent(out, ind); fprintf(out, "	stash\n");
+			} case ivy_iSTASH: {
+				ivy_indent(out, ind); fprintf(out, "	stash\n");
 				break;
-			} case iPOP: {
-				indent(out, ind); fprintf(out, "	pop\n");
+			} case ivy_iPOP: {
+				ivy_indent(out, ind); fprintf(out, "	pop\n");
 				break;
-			} case iFOREACH: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	foreach %d\n", *(int *)c + (int)(c - start));
+			} case ivy_iFOREACH: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	foreach %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
-			} case iFORINDEX: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	forindex %d\n", *(int *)c + (int)(c - start));
+			} case ivy_iFORINDEX: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	forindex %d\n", *(int *)c + (int)(c - start));
 				c += sizeof(int);
 				break;
-			} case iFIX: {
-				indent(out, ind); fprintf(out, "	fix\n");
+			} case ivy_iFIX: {
+				ivy_indent(out, ind); fprintf(out, "	fix\n");
 				break;
-			} case iPSH_NUM: {
-				c += align_o(c, sizeof(long long));
-				indent(out, ind); fprintf(out, "	psh_num %lld\n", *(long long *)c);
+			} case ivy_iPSH_NUM: {
+				c += ivy_align_o(c, sizeof(long long));
+				ivy_indent(out, ind); fprintf(out, "	psh_num %lld\n", *(long long *)c);
 				c += sizeof(long long);
 				break;
-			} case iPSH_FP: {
-				c += align_o(c, sizeof(double));
-				indent(out, ind); fprintf(out, "	psh_fp %g\n", *(double *)c);
+			} case ivy_iPSH_FP: {
+				c += ivy_align_o(c, sizeof(double));
+				ivy_indent(out, ind); fprintf(out, "	psh_fp %g\n", *(double *)c);
 				c += sizeof(double);
 				break;
-			} case iPSH_STR: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	psh_str \"%s\"\n", c + sizeof(int));
+			} case ivy_iPSH_STR: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	psh_str \"%s\"\n", c + sizeof(int));
 				c += sizeof(int) + *(int *)c + 1;
 				break;
-			} case iPSH_NAM: {
-				c += align_o(c, sizeof(char *));
-				indent(out, ind); fprintf(out, "	psh_nam %s\n", *(char **)c);
+			} case ivy_iPSH_NAM: {
+				c += ivy_align_o(c, sizeof(char *));
+				ivy_indent(out, ind); fprintf(out, "	psh_nam %s\n", *(char **)c);
 				c += sizeof(char *);
 				break;
-			} case iPSH_VOID: {
-				indent(out, ind); fprintf(out, "	psh_void\n");
+			} case ivy_iPSH_VOID: {
+				ivy_indent(out, ind); fprintf(out, "	psh_void\n");
 				break;
-			} case iPSH_THIS: {
-				indent(out, ind); fprintf(out, "	psh_this\n");
+			} case ivy_iPSH_THIS: {
+				ivy_indent(out, ind); fprintf(out, "	psh_this\n");
 				break;
-			} case iPSH_LST: {
-				c += align_o(c, sizeof(int));
-				indent(out, ind); fprintf(out, "	psh_lst %d\n", *(int *)c);
+			} case ivy_iPSH_LST: {
+				c += ivy_align_o(c, sizeof(int));
+				ivy_indent(out, ind); fprintf(out, "	psh_lst %d\n", *(int *)c);
 				c += sizeof(int);
 				break;
-			} case iPSH_FUNC: {
-				c += align_o(c, sizeof(void *));
-				indent(out, ind); fprintf(out, "	psh_func %p\n", *(void **)c);
-				disasm(out, ((Func *)*(void **)c)->code, ind + 4, 0);
+			} case ivy_iPSH_FUNC: {
+				c += ivy_align_o(c, sizeof(void *));
+				ivy_indent(out, ind); fprintf(out, "	psh_func %p\n", *(void **)c);
+				ivy_disasm(out, ((Ivy_func *)*(void **)c)->code, ind + 4, 0);
 				c += sizeof(void *);
 				break;
-			} case iPSH_PAIR: {
-				indent(out, ind); fprintf(out, "	psh_pair\n");
+			} case ivy_iPSH_PAIR: {
+				ivy_indent(out, ind); fprintf(out, "	psh_pair\n");
 				break;
 			} default: {
-				indent(out, ind); fprintf(out, "	unknown???\n");
+				ivy_indent(out, ind); fprintf(out, "	unknown???\n");
 				break;
 			}
 		}
@@ -386,22 +386,22 @@ void disasm(FILE *out, Pseudo * c, int ind, int oneline)
 	}
 }
 
-static int genl(Error_printer *, Frag *, Node *);
-static int genbra(Error_printer *, Frag *, Node *, int);
-static void gen(Error_printer *, Frag *, Node *);
-static void genn(Error_printer *, Frag *, Node *);
+static int genl(Ivy_error_printer *, Ivy_frag *, Ivy_node *);
+static int genbra(Ivy_error_printer *, Ivy_frag *, Ivy_node *, int);
+static void gen(Ivy_error_printer *, Ivy_frag *, Ivy_node *);
+static void genn(Ivy_error_printer *, Ivy_frag *, Ivy_node *);
 
 /* Count no. of comma seperated elements.  Use for args and 1st expr of FOR */
 
-int cntlst(Node * n)
+int ivy_cntlst(Ivy_node * n)
 {
 	switch(n->what) {
-		case nEMPTY: {
+		case ivy_nEMPTY: {
 			return 0;
-		} case nCALL: case nCOMMA: case nSEMI: {
-			return cntlst(n->l) + cntlst(n->r);
-		} case nPAREN: {
-			return cntlst(n->r);
+		} case ivy_nCALL: case ivy_nCOMMA: case ivy_nSEMI: {
+			return ivy_cntlst(n->l) + ivy_cntlst(n->r);
+		} case ivy_nPAREN: {
+			return ivy_cntlst(n->r);
 		} default: {
 			return 1;
 		}
@@ -410,63 +410,63 @@ int cntlst(Node * n)
 
 /* Generate list of comma seperated names (for function args) */
 
-int genlst(Error_printer *err, char **argv, Pseudo ** initv, char *quote, Node * n)
+int ivy_genlst(Ivy_error_printer *err, char **argv, Ivy_pseudo ** initv, char *quote, Ivy_node * n)
 {
 	switch (n->what) {
-		case nEMPTY: {
+		case ivy_nEMPTY: {
 			return 0;
-		} case nADDR: {
+		} case ivy_nADDR: {
 			quote[0] = 1;
-			return genlst(err, argv, initv, quote, n->r);
-		} case nPAREN: {
-			return genlst(err, argv, initv, quote, n->r);
-		} case nSEMI: case nCOMMA: case nCALL: {
-			int x = genlst(err, argv, initv, quote, n->l);
-			return x + genlst(err, argv + x, initv + x, quote + x, n->r);
-		} case nNAM: {
+			return ivy_genlst(err, argv, initv, quote, n->r);
+		} case ivy_nPAREN: {
+			return ivy_genlst(err, argv, initv, quote, n->r);
+		} case ivy_nSEMI: case ivy_nCOMMA: case ivy_nCALL: {
+			int x = ivy_genlst(err, argv, initv, quote, n->l);
+			return x + ivy_genlst(err, argv + x, initv + x, quote + x, n->r);
+		} case ivy_nNAM: {
 			return (argv[0] = n->s), (initv[0] = 0), 1;
-		} case nSET: {
-			if (n->l->what == nNAM)
-				return (argv[0] = n->l->s), (initv[0] = codegen(err, n->r)), 1;
-			else if (n->l->what == nADDR && n->l->r->what == nNAM) {
+		} case ivy_nSET: {
+			if (n->l->what == ivy_nNAM)
+				return (argv[0] = n->l->s), (initv[0] = ivy_codegen(err, n->r)), 1;
+			else if (n->l->what == ivy_nADDR && n->l->r->what == ivy_nNAM) {
 				quote[0] = 1;
-				return (argv[0] = n->l->r->s), (initv[0] = codegen(err, n->r)), 1;
+				return (argv[0] = n->l->r->s), (initv[0] = ivy_codegen(err, n->r)), 1;
 			}
 			break;
 		}
 	}
-	error_3(err, "\"%s\" %d: incorrect argument list %s", n->loc->name, n->loc->line, what_tab[n->what].name);
+	ivy_error_3(err, "\"%s\" %d: incorrect argument list %s", n->loc->name, n->loc->line, ivy_what_tab[n->what].name);
 	return 0;
 }
 
 /* Generate and count list (used to generate arg lists) */
 
-static int genl(Error_printer *err, Frag *frag, Node * n)
+static int genl(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {
 	int result;
 	switch (n->what) {
-		case nEMPTY: {
+		case ivy_nEMPTY: {
 			return 0;
-		} case nSEMI: {
+		} case ivy_nSEMI: {
 			result = genl(err, frag, n->r);
 			return result + genl(err, frag, n->l);
-		} case nSET: {
-			if (n->l->what == nQUOTE && n->l->r->what == nNAM) {
+		} case ivy_nSET: {
+			if (n->l->what == ivy_nQUOTE && n->l->r->what == ivy_nNAM) {
 				gen(err, frag, n->r);
 				push_narg(frag);
-				emitp(frag, n->l->r->s);
+				ivy_emitp(frag, n->l->r->s);
 				push_pair(frag);
 				return 1;
-			} else if (n->l->what == nQUOTE && n->l->r->what == nSTR) {
+			} else if (n->l->what == ivy_nQUOTE && n->l->r->what == ivy_nSTR) {
 				gen(err, frag, n->r);
 				push_str(frag);
-				emits(frag, n->l->r->s, n->l->r->n);
+				ivy_emits(frag, n->l->r->s, n->l->r->n);
 				push_pair(frag);
 				return 1;
-			} else if (n->l->what == nQUOTE && n->l->r->what == nNUM) {
+			} else if (n->l->what == ivy_nQUOTE && n->l->r->what == ivy_nNUM) {
 				gen(err, frag, n->r);
 				push_num(frag);
-				emitl(frag, n->l->r->n);
+				ivy_emitl(frag, n->l->r->n);
 				push_pair(frag);
 				return 1;
 			}
@@ -479,151 +479,151 @@ static int genl(Error_printer *err, Frag *frag, Node * n)
 
 /* Generate a function */
 
-void genfunc(Error_printer *err, Frag *frag, Node *args, Node *body, int thunk)
+static void genfunc(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node *args, Ivy_node *body, int thunk)
 {
-	Pseudo *cod = codegen(err, body);
-	Func *o;
-	int argc = cntlst(args);
+	Ivy_pseudo *cod = ivy_codegen(err, body);
+	Ivy_func *o;
+	int argc = ivy_cntlst(args);
 	char *quote;
 	/* FIXME: argc can be zero, don't trust malloc to work with zero size */
 	char **argv = (char **)malloc(argc * sizeof(char *));
-	Pseudo **initv = (Pseudo **)malloc(argc * sizeof(Pseudo *));
+	Ivy_pseudo **initv = (Ivy_pseudo **)malloc(argc * sizeof(Ivy_pseudo *));
 	quote = (char *)calloc(argc,1);
-	genlst(err, argv, initv, quote, args);
-	o = mkfunc(cod, argc, argv, initv, quote, thunk);
+	ivy_genlst(err, argv, initv, quote, args);
+	o = ivy_create_func(cod, argc, argv, initv, quote, thunk);
 	push_func(frag);
-	emitp(frag, o);
+	ivy_emitp(frag, o);
 }
 
 /* Generate and count list (used to generate arg lists) */
 
-static int gencl(Error_printer *err, Frag *frag, Node * n)
+static int gencl(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {
 	int result;
 	switch (n->what) {
-		case nEMPTY: {
+		case ivy_nEMPTY: {
 			return 0;
-		} case nSEMI: {
+		} case ivy_nSEMI: {
 			result = gencl(err, frag, n->r);
 			return result + gencl(err, frag, n->l);
-		} case nSET: {
-			if (n->l->what == nQUOTE && n->l->r->what == nNAM) {
-				genfunc(err, frag, consempty(n->loc), n->r, 1);
+		} case ivy_nSET: {
+			if (n->l->what == ivy_nQUOTE && n->l->r->what == ivy_nNAM) {
+				genfunc(err, frag, ivy_consempty(n->loc), n->r, 1);
 				push_narg(frag);
-				emitp(frag, n->l->r->s);
+				ivy_emitp(frag, n->l->r->s);
 				push_pair(frag);
 				return 1;
-			} else if (n->l->what == nQUOTE && n->l->r->what == nSTR) {
-				genfunc(err, frag, consempty(n->loc), n->r, 1);
+			} else if (n->l->what == ivy_nQUOTE && n->l->r->what == ivy_nSTR) {
+				genfunc(err, frag, ivy_consempty(n->loc), n->r, 1);
 				push_str(frag);
-				emits(frag, n->l->r->s, n->l->r->n);
+				ivy_emits(frag, n->l->r->s, n->l->r->n);
 				push_pair(frag);
 				return 1;
-			} else if (n->l->what == nQUOTE && n->l->r->what == nNUM) {
-				genfunc(err, frag, consempty(n->loc), n->r, 1);
+			} else if (n->l->what == ivy_nQUOTE && n->l->r->what == ivy_nNUM) {
+				genfunc(err, frag, ivy_consempty(n->loc), n->r, 1);
 				push_num(frag);
-				emitl(frag, n->l->r->n);
+				ivy_emitl(frag, n->l->r->n);
 				push_pair(frag);
 				return 1;
 			}
 			break;
 		}
 	}
-	genfunc(err, frag, consempty(n->loc), n, 1);
+	genfunc(err, frag, ivy_consempty(n->loc), n, 1);
 	return 1;
 }
 
 /* Generate and count local command, don't emit initializers */
 
-static int genll(Error_printer *err, Frag *frag, Node * n)
+static int genll(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {
 	switch (n->what) {
-		case nEMPTY: {
+		case ivy_nEMPTY: {
 			return 0;
-		} case nSEMI: {
+		} case ivy_nSEMI: {
 			int result = genll(err, frag, n->r);
 			return result + genll(err, frag, n->l);
-		} case nNAM: {
+		} case ivy_nNAM: {
 			push_str(frag);
-			emits(frag, n->s, n->n);
+			ivy_emits(frag, n->s, n->n);
 			return 1;
-		} case nSET: {
-			if (n->l->what == nNAM) {
+		} case ivy_nSET: {
+			if (n->l->what == ivy_nNAM) {
 				push_str(frag);
-				emits(frag, n->l->s, n->l->n);
+				ivy_emits(frag, n->l->s, n->l->n);
 				return 1;
 			}
 		}
 	}
-	error_2(err, "\"%s\" %d: incorrect local list", n->loc->name, n->loc->line);
+	ivy_error_2(err, "\"%s\" %d: incorrect local list", n->loc->name, n->loc->line);
 	return 0;
 }
 
 /* Generate initializers for local list */
 
-static int genla(Error_printer *err, Frag *frag, Node * n)
+static int genla(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {
 	switch (n->what) {
-		case nEMPTY: {
+		case ivy_nEMPTY: {
 			return 0;
-		} case nSEMI: {
+		} case ivy_nSEMI: {
 			int result = genla(err, frag, n->r);
 			return result + genla(err, frag, n->l);
-		} case nNAM: {
+		} case ivy_nNAM: {
 			return 1;
-		} case nSET: {
-			if (n->l->what == nNAM) {
+		} case ivy_nSET: {
+			if (n->l->what == ivy_nNAM) {
 				genn(err, frag, n);
 				return 1;
 			}
 		}
 	}
-	error_2(err, "\"%s\" %d: incorrect local list", n->loc->name, n->loc->line);
+	ivy_error_2(err, "\"%s\" %d: incorrect local list", n->loc->name, n->loc->line);
 	return 0;
 }
 
 /* Generate cond */
 
-void gencond(Error_printer *err, Frag *frag, Node *n, int v)
+static void gencond(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node *n, int v)
 {
-	Node *f, *r;
+	Ivy_node *f, *r;
 	int end = 0;
 
 	loop:	
 
-	f = first(n);
-	r = first(rest(n));
-	n = rest(rest(n));
+	f = ivy_first(n);
+	r = ivy_first(ivy_rest(n));
+	n = ivy_rest(ivy_rest(n));
 
 	if (f && r) { /* elif */
 		int els = genbra(err, frag, f, 1); /* Branch if false */
-		mklooplvl(frag, lvlSCOPE, 0, 0);
+		push_looplvl(frag, lvlSCOPE, 0, 0);
 		if (v) {
 			gen(err, frag, r);
 			/* Value is still here, but we need to pop the lvlSCOPE */
 			/* Value is put back at the branch target point: XXX */
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 		} else
 			genn(err, frag, r);
-		rmlooplvl(frag, lvlSCOPE, 0, 0);
-		emitc(frag, iBRA);
+		pop_looplvl(frag, lvlSCOPE, 0, 0);
+		ivy_emitc(frag, ivy_iBRA);
 		if (end)
-			addlist(frag, end, emitn(frag, 0));
+			addlist(frag, end, ivy_emitn(frag, 0));
 		else
-			end = emitn(frag, 0);
+			end = ivy_emitn(frag, 0);
 		/* Value is gone after the branch */
 		setlist(frag, els, frag->code);
 		goto loop;
 	} else if (f) { /* else */
-		mklooplvl(frag, lvlSCOPE, 0, 0);
+		push_looplvl(frag, lvlSCOPE, 0, 0);
 		if (v) {
 			gen(err, frag, f);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 		} else
 			genn(err, frag, f);
-		rmlooplvl(frag, lvlSCOPE, 0, 0);
+		pop_looplvl(frag, lvlSCOPE, 0, 0);
 		if (v) {
-			mklooplvl(frag, lvlVALUE, 0, 0); /* here XXX */
+			push_looplvl(frag, lvlVALUE, 0, 0); /* here XXX */
 		}
 		setlist(frag, end, frag->code);
 		return;
@@ -639,170 +639,170 @@ void gencond(Error_printer *err, Frag *frag, Node *n, int v)
 
 /* Generate a value: it's left on the stack */
 
-static void gen(Error_printer *err, Frag *frag, Node * n)
+static void gen(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {
 	switch(n->what) {
-		case nCOMMA: {
+		case ivy_nCOMMA: {
 			genn(err, frag, n->l), gen(err, frag, n->r);
 			break;
-		} case nPAREN: {
+		} case ivy_nPAREN: {
 			gen(err, frag, n->r);
 			break;
-		} case nLIST: {
+		} case ivy_nLIST: {
 			int amnt = genl(err, frag, n->r);
 			push_lst(frag);
-			emitn(frag, amnt);
-			emitc(frag, iFIX);
+			ivy_emitn(frag, amnt);
+			ivy_emitc(frag, ivy_iFIX);
 			fixlooplvl(frag, amnt);
 			break;
-		} case nVOID: {
+		} case ivy_nVOID: {
 			push_void(frag);
 			break;
-		} case nTHIS: {
+		} case ivy_nTHIS: {
 			push_this(frag);
 			break;
-		} case nNUM: {
+		} case ivy_nNUM: {
 			push_num(frag);
-			emitl(frag, n->n);
+			ivy_emitl(frag, n->n);
 			break;
-		} case nFP: {
+		} case ivy_nFP: {
 			push_fp(frag);
-			emitd(frag, n->fp);
+			ivy_emitd(frag, n->fp);
 			break;
-		} case nSTR: {
+		} case ivy_nSTR: {
 			push_str(frag);
-			emits(frag, n->s, n->n);
+			ivy_emits(frag, n->s, n->n);
 			break;
-		} case nNAM: {
+		} case ivy_nNAM: {
 			push_nam(frag);
-			emitp(frag, n->s);
-			emitc(frag, iGET);
+			ivy_emitp(frag, n->s);
+			ivy_emitc(frag, ivy_iGET);
 			break;
-		} case nQUOTE: {
+		} case ivy_nQUOTE: {
 			push_nam(frag);
-			emitp(frag, n->r->s);
+			ivy_emitp(frag, n->r->s);
 			break;
-		} case nSET: {
+		} case ivy_nSET: {
 			gen(err, frag, n->r);
 			gen(err, frag, n->l);
-			emitc(frag, iSET);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iSET);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			break;
-		} case nIF: {
+		} case ivy_nIF: {
 			gencond(err, frag, n->r, 1);
 			break;
-		} case nPOST: {
+		} case ivy_nPOST: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
 			gen(err, frag, n->l);
-			emitc(frag, iSET);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
-			emitc(frag, iPOP);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iSET);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iPOP);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			break;
-		} case nADDR: {
+		} case ivy_nADDR: {
 			/* Generate a code snippet */
-			genfunc(err, frag, consempty(n->loc), n->r, 1);
+			genfunc(err, frag, ivy_consempty(n->loc), n->r, 1);
 			break;
-		} case nDEFUN: {
-			if (n->r->what==nSEMI) {
-				if (n->r->l->what==nCALL /* && n->r->l->l->what==nNAM */) { /* fn sq(x) x*x */
+		} case ivy_nDEFUN: {
+			if (n->r->what==ivy_nSEMI) {
+				if (n->r->l->what==ivy_nCALL /* && n->r->l->l->what==nNAM */) { /* fn sq(x) x*x */
 					genfunc(err, frag, n->r->l->r, n->r->r, 0);
-					if (n->r->l->l->what == nNAM) {
+					if (n->r->l->l->what == ivy_nNAM) {
 						push_nam(frag);
-						emitp(frag, n->r->l->l->s);
-						emitc(frag, iGETF);
+						ivy_emitp(frag, n->r->l->l->s);
+						ivy_emitc(frag, ivy_iGETF);
 					} else
 						gen(err, frag, n->r->l->l);
-					emitc(frag, iSET);
-					rmlooplvl(frag, lvlVALUE, 0, 0);
-				} else if (n->r->l->what != nPAREN && n->r->r->what==nSEMI && n->r->r->l->what==nPAREN) { /* fn sq (x) x*x */
+					ivy_emitc(frag, ivy_iSET);
+					pop_looplvl(frag, lvlVALUE, 0, 0);
+				} else if (n->r->l->what != ivy_nPAREN && n->r->r->what==ivy_nSEMI && n->r->r->l->what==ivy_nPAREN) { /* fn sq (x) x*x */
 					genfunc(err, frag, n->r->r->l, n->r->r->r, 0);
-					if (n->r->l->what == nNAM) {
+					if (n->r->l->what == ivy_nNAM) {
 						push_nam(frag);
-						emitp(frag, n->r->l->s);
-						emitc(frag, iGETF);
+						ivy_emitp(frag, n->r->l->s);
+						ivy_emitc(frag, ivy_iGETF);
 					} else
 						gen(err, frag, n->r->l);
-					emitc(frag, iSET);
-					rmlooplvl(frag, lvlVALUE, 0, 0);
-				} else if (n->r->l->what != nPAREN && n->r->r->what==nPAREN) { /* fn sq (x) */
-					genfunc(err, frag, n->r->r, consempty(n->loc), 0);
-					if (n->r->l->what == nNAM) { /* it looks like "a", use getf */
+					ivy_emitc(frag, ivy_iSET);
+					pop_looplvl(frag, lvlVALUE, 0, 0);
+				} else if (n->r->l->what != ivy_nPAREN && n->r->r->what==ivy_nPAREN) { /* fn sq (x) */
+					genfunc(err, frag, n->r->r, ivy_consempty(n->loc), 0);
+					if (n->r->l->what == ivy_nNAM) { /* it looks like "a", use getf */
 						push_nam(frag);
-						emitp(frag, n->r->l->s);
-						emitc(frag, iGETF);
+						ivy_emitp(frag, n->r->l->s);
+						ivy_emitc(frag, ivy_iGETF);
 					} else
 						gen(err, frag, n->r->l); /* it looks like "a.b" */
-					emitc(frag, iSET);
-					rmlooplvl(frag, lvlVALUE, 0, 0);
-				} else if (n->r->l->what == nPAREN) { /* fn (x) x*x */
+					ivy_emitc(frag, ivy_iSET);
+					pop_looplvl(frag, lvlVALUE, 0, 0);
+				} else if (n->r->l->what == ivy_nPAREN) { /* fn (x) x*x */
 					genfunc(err, frag, n->r->l, n->r->r, 0);
 				} else {
-					error_2(err, "\"%s\" %d: ill-formed fn", n->r->loc->name, n->r->loc->line);
+					ivy_error_2(err, "\"%s\" %d: ill-formed fn", n->r->loc->name, n->r->loc->line);
 					push_void(frag);
 				}
-			} else if(n->r->what==nCALL /* && n->r->l->what==nNAM */) { /* fn sq(x) */
-				genfunc(err, frag, n->r->r, consempty(n->loc), 0);
-				if (n->r->l->what == nNAM) {
+			} else if(n->r->what==ivy_nCALL /* && n->r->l->what==nNAM */) { /* fn sq(x) */
+				genfunc(err, frag, n->r->r, ivy_consempty(n->loc), 0);
+				if (n->r->l->what == ivy_nNAM) {
 					push_nam(frag);
-					emitp(frag, n->r->l->s);
-					emitc(frag, iGETF);
+					ivy_emitp(frag, n->r->l->s);
+					ivy_emitc(frag, ivy_iGETF);
 				} else
 					gen(err, frag, n->r->l);
-				emitc(frag, iSET);
-				rmlooplvl(frag, lvlVALUE, 0, 0);
-			} else if(n->r->what == nPAREN) { /* fn () */
-				genfunc(err,frag, n->r, consempty(n->loc), 0);
+				ivy_emitc(frag, ivy_iSET);
+				pop_looplvl(frag, lvlVALUE, 0, 0);
+			} else if(n->r->what == ivy_nPAREN) { /* fn () */
+				genfunc(err,frag, n->r, ivy_consempty(n->loc), 0);
 			} else {
-				error_2(err, "\"%s\" %d: ill-formed fn", n->r->loc->name, n->r->loc->line);
+				ivy_error_2(err, "\"%s\" %d: ill-formed fn", n->r->loc->name, n->r->loc->line);
 				push_void(frag);
 			}
 			break;
-		} case nSEMI: {
+		} case ivy_nSEMI: {
 			genn(err, frag, n->l);
 			gen(err, frag, n->r);
 			break;
-		} case nEQ: case nNE: case nGT: case nLT: case nGE: case nLE: case nLAND: case nLOR: case nNOT: {
+		} case ivy_nEQ: case ivy_nNE: case ivy_nGT: case ivy_nLT: case ivy_nGE: case ivy_nLE: case ivy_nLAND: case ivy_nLOR: case ivy_nNOT: {
 			int b = genbra(err, frag, n, 1);
 			int link;
 			push_num(frag);
-			emitl(frag, 1);
-			emitc(frag, iBRA);
-			link=emitn(frag, 0);
+			ivy_emitl(frag, 1);
+			ivy_emitc(frag, ivy_iBRA);
+			link=ivy_emitn(frag, 0);
 			setlist(frag, b, frag->code);
 			push_num(frag);
-			emitl(frag, 0);
+			ivy_emitl(frag, 0);
 			*(int *)(frag->begcode+link)=frag->code-link;
 			break;
-		} case nCALL: {
-			int nargs = gencl(err, frag, n->r); /* Functionalize */
+		} case ivy_nCALL: {
+			int nargs = gencl(err, frag, n->r); /* Ivy_functionalize */
 			push_lst(frag);
-			emitn(frag, nargs);
+			ivy_emitn(frag, nargs);
 			gen(err, frag, n->l);
-			emitc(frag, iCALL);
+			ivy_emitc(frag, ivy_iCALL);
 			fixlooplvl(frag, nargs + 1);
 			break;
-		} case nCALL1: { /* Ends up being the same as above */
-			if (n->r->what == nNAM) { // In "a.b", avoid variable lookup on "b"
-				n->r = cons1(n->loc, nQUOTE, n->r);
+		} case ivy_nCALL1: { /* Ends up being the same as above */
+			if (n->r->what == ivy_nNAM) { // In "a.b", avoid variable lookup on "b"
+				n->r = ivy_cons1(n->loc, ivy_nQUOTE, n->r);
 			}
 			int nargs = gencl(err, frag, n->r);
 			push_lst(frag);
-			emitn(frag, nargs);
+			ivy_emitn(frag, nargs);
 			gen(err, frag, n->l);
-			emitc(frag, iCALL);
+			ivy_emitc(frag, ivy_iCALL);
 			fixlooplvl(frag, nargs + 1);
 			break;
-		} case nCOM: case nNEG: case nSHL: case nSHR: case nMUL: case nDIV: case nMOD: case nAND:
-		  case nADD: case nSUB: case nOR: case nXOR: case nAT: {
+		} case ivy_nCOM: case ivy_nNEG: case ivy_nSHL: case ivy_nSHR: case ivy_nMUL: case ivy_nDIV: case ivy_nMOD: case ivy_nAND:
+		  case ivy_nADD: case ivy_nSUB: case ivy_nOR: case ivy_nXOR: case ivy_nAT: {
 			if (n->l)
 				gen(err, frag, n->l);
 			if (n->r)
 				gen(err, frag, n->r);
-			emitc(frag, what_tab[n->what].i);
+			ivy_emitc(frag, ivy_what_tab[n->what].i);
 			if (n->r && n->l)
-				rmlooplvl(frag, lvlVALUE, 0, 0);
+				pop_looplvl(frag, lvlVALUE, 0, 0);
 			break;
 		} default: {
 			genn(err, frag, n);
@@ -813,22 +813,22 @@ static void gen(Error_printer *err, Frag *frag, Node * n)
 
 /* Generate nothing (returns true if guarenteed to branch) */
 
-static int last_is_paren(Node *n)
+static int last_is_paren(Ivy_node *n)
 {
-	if (n->what == nPAREN)
+	if (n->what == ivy_nPAREN)
 		return 1;
-	else if (n->what == nSEMI)
+	else if (n->what == ivy_nSEMI)
 		return last_is_paren(n->r);
 	else
 		return 0;
 }
 
-static Node *extract_last_is_paren(Node *n, Node **r)
+static Ivy_node *extract_last_is_paren(Ivy_node *n, Ivy_node **r)
 {
-	if (n->what == nPAREN) {
+	if (n->what == ivy_nPAREN) {
 		*r = n;
-		return consempty(n->loc);
-	} else if (n->what == nSEMI) {
+		return ivy_consempty(n->loc);
+	} else if (n->what == ivy_nSEMI) {
 		n->r = extract_last_is_paren(n->r, r);
 		return n;
 	} else {
@@ -836,14 +836,14 @@ static Node *extract_last_is_paren(Node *n, Node **r)
 	}
 }
 
-static Node *extract_loop_name(Node *n, Node **r)
+static Ivy_node *extract_loop_name(Ivy_node *n, Ivy_node **r)
 {
-	if (n->what == nSEMI && n->l->what == nQUOTE && n->l->r->what == nNAM) {
+	if (n->what == ivy_nSEMI && n->l->what == ivy_nQUOTE && n->l->r->what == ivy_nNAM) {
 		*r = n->l;
 		return n->r;
-	} else if (n->what == nQUOTE) {
+	} else if (n->what == ivy_nQUOTE) {
 		*r = n;
-		return consempty(n->loc);
+		return ivy_consempty(n->loc);
 	} else {
 		*r = NULL;
 		return n;
@@ -852,273 +852,273 @@ static Node *extract_loop_name(Node *n, Node **r)
 
 /* Generate nothing: the code is executed but with no result left on the stack */
 
-static void genn(Error_printer *err, Frag *frag, Node * n)
+static void genn(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {
 	switch(n->what) {
-		case nPAREN: {
+		case ivy_nPAREN: {
 			genn(err, frag, n->r);
 			break;
-		} case nQUOTE: {
-			error_2(err, "\"%s\" %d: `used incorrectly", n->loc->name, n->loc->line);
+		} case ivy_nQUOTE: {
+			ivy_error_2(err, "\"%s\" %d: `used incorrectly", n->loc->name, n->loc->line);
 			break;
-		} case nLABEL: {
+		} case ivy_nLABEL: {
 			frag->looplvls->name = strdup(n->s);
 			break;
-		} case nLOCAL: {
-			if (n->r->what == nSEMI && n->r->l->what == nPAREN) {
+		} case ivy_nLOCAL: {
+			if (n->r->what == ivy_nSEMI && n->r->l->what == ivy_nPAREN) {
 				int amnt;
-				mklooplvl(frag, lvlSCOPE, 0, 0);
+				push_looplvl(frag, lvlSCOPE, 0, 0);
 				amnt = genll(err, frag, n->r->l->r);
 				push_lst(frag);
-				emitn(frag, amnt);
-				emitc(frag, iLOC);
+				ivy_emitn(frag, amnt);
+				ivy_emitc(frag, ivy_iLOC);
 				fixlooplvl(frag, amnt + 1);
 				genla(err, frag, n->r->l->r);
 				genn(err, frag, n->r->r);
-				rmlooplvl(frag, lvlSCOPE, 0, 0);
-			} else if (n->r->what == nSEMI && last_is_paren(n->r)) {
+				pop_looplvl(frag, lvlSCOPE, 0, 0);
+			} else if (n->r->what == ivy_nSEMI && last_is_paren(n->r)) {
 				// Handles with a b [f]
-				Node *r;
+				Ivy_node *r;
 				int amnt;
 				n->r = extract_last_is_paren(n->r, &r);
-				mklooplvl(frag, lvlSCOPE, 0, 0);
+				push_looplvl(frag, lvlSCOPE, 0, 0);
 				amnt = genll(err, frag, n->r);
 				push_lst(frag);
-				emitn(frag, amnt);
-				emitc(frag, iLOC);
+				ivy_emitn(frag, amnt);
+				ivy_emitc(frag, ivy_iLOC);
 				fixlooplvl(frag, amnt + 1);
 				genla(err, frag, n->r);
 				genn(err, frag, r);
-				rmlooplvl(frag, lvlSCOPE, 0, 0);
+				pop_looplvl(frag, lvlSCOPE, 0, 0);
 			} else {
 				int amnt = genll(err, frag, n->r); /* Create variables */
 				push_lst(frag);
-				emitn(frag, amnt);
-				emitc(frag, iLOC);
+				ivy_emitn(frag, amnt);
+				ivy_emitc(frag, ivy_iLOC);
 				fixlooplvl(frag, amnt + 1);
 				genla(err, frag, n->r); /* Initialize them */
 			}
 			break;
-		} case nFOR: {
+		} case ivy_nFOR: {
 			int top, cont;
-			Node *name;
-			Node *args = extract_loop_name(n->r, &name);
-			if (args->what != nSEMI) { /* One arg */
+			Ivy_node *name;
+			Ivy_node *args = extract_loop_name(n->r, &name);
+			if (args->what != ivy_nSEMI) { /* One arg */
 				genn(err, frag, args); /* Initializer */
-			} else if (args->r->what != nSEMI) { /* Two args */
+			} else if (args->r->what != ivy_nSEMI) { /* Two args */
 				genn(err, frag, args->l); /* Initializer */
-				emitc(frag, iBRA);
-				emitn(frag, 0);
-				mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
+				ivy_emitc(frag, ivy_iBRA);
+				ivy_emitn(frag, 0);
+				push_looplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
 				cont = frag->code;
 				setlist(frag,genbra(err, frag, args->r, 0), top); /* Test */
-				rmlooplvl(frag, lvlLOOP, cont, frag->code);
-			} else if (args->r->r->what != nSEMI) { /* Three args */
+				pop_looplvl(frag, lvlLOOP, cont, frag->code);
+			} else if (args->r->r->what != ivy_nSEMI) { /* Three args */
 				genn(err, frag, args->l); /* Initializer */
-				emitc(frag, iBRA);
-				emitn(frag, 0);
-				mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
+				ivy_emitc(frag, ivy_iBRA);
+				ivy_emitn(frag, 0);
+				push_looplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
 				genn(err, frag, args->r->r); /* Increment */
 				cont = frag->code;
 				setlist(frag,genbra(err, frag, args->r->l, 0), top); /* Test */
-				rmlooplvl(frag, lvlLOOP, cont, frag->code);
+				pop_looplvl(frag, lvlLOOP, cont, frag->code);
 			} else { /* Four args */
 				genn(err, frag, args->l); /* Initializer */
-				emitc(frag, iBRA);
-				emitn(frag, 0);
-				mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
+				ivy_emitc(frag, ivy_iBRA);
+				ivy_emitn(frag, 0);
+				push_looplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
-				mklooplvl(frag, lvlSCOPE, 0, 0);
+				push_looplvl(frag, lvlSCOPE, 0, 0);
 				genn(err, frag, args->r->r->r); /* Body */
-				rmlooplvl(frag, lvlSCOPE, 0, 0);
+				pop_looplvl(frag, lvlSCOPE, 0, 0);
 				genn(err, frag, args->r->r->l); /* Increment */
 				cont = frag->code;
 				setlist(frag,genbra(err, frag, args->r->l, 0), top); /* Test */
-				rmlooplvl(frag, lvlLOOP, cont, frag->code);
+				pop_looplvl(frag, lvlLOOP, cont, frag->code);
 			}
 			break;
-		} case nFOREACH: case nFORINDEX: {
+		} case ivy_nFOREACH: case ivy_nFORINDEX: {
 			int top, cont;
-			Node *name;
-			Node *args = extract_loop_name(n->r, &name);
-			if (args->what != nSEMI) { /* One arg */
-				error_2(err,"\"%s\" %d: No args for foreach?", n->loc->name, n->loc->line);
-			} else if (args->r->what != nSEMI) { /* Two args */
-				error_2(err,"\"%s\" %d: Only two args for foreach?", n->loc->name, n->loc->line);
+			Ivy_node *name;
+			Ivy_node *args = extract_loop_name(n->r, &name);
+			if (args->what != ivy_nSEMI) { /* One arg */
+				ivy_error_2(err,"\"%s\" %d: No args for foreach?", n->loc->name, n->loc->line);
+			} else if (args->r->what != ivy_nSEMI) { /* Two args */
+				ivy_error_2(err,"\"%s\" %d: Only two args for foreach?", n->loc->name, n->loc->line);
 			} else { /* Three args */
-				if (args->l->what != nNAM) {
-					error_2(err, "\"%s\" %d: First arg to foreach must be a variable", n->loc->name, n->loc->line);
+				if (args->l->what != ivy_nNAM) {
+					ivy_error_2(err, "\"%s\" %d: First arg to foreach must be a variable", n->loc->name, n->loc->line);
 				}
-				mklooplvl(frag, lvlSCOPE, 0, 0); /* Scope for args */
+				push_looplvl(frag, lvlSCOPE, 0, 0); /* Scope for args */
 				gen(err, frag, args->l);	/* Variable (check that it really is at runtime) */
 				gen(err, frag, args->r->l);	/* Array/object */
 				push_num(frag);
-				emitl(frag, 0);	/* Temp vars for iFOREACH */
+				ivy_emitl(frag, 0);	/* Temp vars for iFOREACH */
 				push_num(frag);
-				emitl(frag, -1);
-				emitc(frag, iBRA);
-				emitn(frag, 0);
-				mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0); /* Start loop */
+				ivy_emitl(frag, -1);
+				ivy_emitc(frag, ivy_iBRA);
+				ivy_emitn(frag, 0);
+				push_looplvl(frag, lvlLOOP, frag->code-sizeof(int), 0); /* Start loop */
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
-				mklooplvl(frag, lvlSCOPE, 0, 0); /* Scope for body */
+				push_looplvl(frag, lvlSCOPE, 0, 0); /* Scope for body */
 				genn(err, frag, args->r->r);
-				rmlooplvl(frag, lvlSCOPE, 0, 0); /* Body scope done */
+				pop_looplvl(frag, lvlSCOPE, 0, 0); /* Body scope done */
 				cont = frag->code;
-				if (n->what == nFOREACH)
-					emitc(frag, iFOREACH);
+				if (n->what == ivy_nFOREACH)
+					ivy_emitc(frag, ivy_iFOREACH);
 				else
-					emitc(frag, iFORINDEX);
-				align_frag(frag, sizeof(int));
-				emitn(frag, top - (frag->code));
-				rmlooplvl(frag, lvlLOOP, cont, frag->code); /* Complete loop */
-				emitc(frag, iPOP);
-				emitc(frag, iPOP);
-				emitc(frag, iPOP);
-				emitc(frag, iPOP);
+					ivy_emitc(frag, ivy_iFORINDEX);
+				ivy_align_frag(frag, sizeof(int));
+				ivy_emitn(frag, top - (frag->code));
+				pop_looplvl(frag, lvlLOOP, cont, frag->code); /* Complete loop */
+				ivy_emitc(frag, ivy_iPOP);
+				ivy_emitc(frag, ivy_iPOP);
+				ivy_emitc(frag, ivy_iPOP);
+				ivy_emitc(frag, ivy_iPOP);
 				fixlooplvl(frag, 4); /* POP temp vars */
-				rmlooplvl(frag, lvlSCOPE, 0, 0); /* POP args scope */
+				pop_looplvl(frag, lvlSCOPE, 0, 0); /* POP args scope */
 			}
 			break;
-		} case nWHILE: {
+		} case ivy_nWHILE: {
 			int top, cont;
-			Node *name;
-			Node *args = extract_loop_name(n->r, &name);
-			if (args->what==nEMPTY) {
-				error_2(err,"\"%s\" %d: No args for while", n->loc->name, n->loc->line);
+			Ivy_node *name;
+			Ivy_node *args = extract_loop_name(n->r, &name);
+			if (args->what==ivy_nEMPTY) {
+				ivy_error_2(err,"\"%s\" %d: No args for while", n->loc->name, n->loc->line);
 				break;
 			}
-			emitc(frag, iBRA);
-			emitn(frag, 0);
-			mklooplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
+			ivy_emitc(frag, ivy_iBRA);
+			ivy_emitn(frag, 0);
+			push_looplvl(frag, lvlLOOP, frag->code-sizeof(int), 0);
 			if (name)
 				frag->looplvls->name = strdup(name->r->s);
 			top = frag->code;
-			mklooplvl(frag, lvlSCOPE, 0, 0);
-			if (args->what==nSEMI)
+			push_looplvl(frag, lvlSCOPE, 0, 0);
+			if (args->what==ivy_nSEMI)
 				genn(err, frag, args->r);
-			rmlooplvl(frag, lvlSCOPE, 0, 0);
+			pop_looplvl(frag, lvlSCOPE, 0, 0);
 			cont = frag->code;
-			if (args->what==nSEMI)
+			if (args->what==ivy_nSEMI)
 				setlist(frag, genbra(err, frag, args->l, 0), top);
 			else
 				setlist(frag, genbra(err, frag, args, 0), top);
-			rmlooplvl(frag, lvlLOOP, cont, frag->code);
+			pop_looplvl(frag, lvlLOOP, cont, frag->code);
 			break;
-		} case nRETURN: {
+		} case ivy_nRETURN: {
 			int z;
 			if (n->r)
 				gen(err, frag, n->r);
 			else
 				push_void(frag);
-			emitc(frag, iSTASH);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iSTASH);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			poploops(frag, NULL);
-			emitc(frag, iBRA);
-			z = emitn(frag, 0);
+			ivy_emitc(frag, ivy_iBRA);
+			z = ivy_emitn(frag, 0);
 			if (frag->rtn)
 				addlist(frag, frag->rtn, z);
 			else
 				frag->rtn = z;
 			break;
-		} case nLOOP: {
+		} case ivy_nLOOP: {
 			int cont;
-			Node *name;
-			Node *args = extract_loop_name(n->r, &name);
+			Ivy_node *name;
+			Ivy_node *args = extract_loop_name(n->r, &name);
 			cont = frag->code;
-			mklooplvl(frag, lvlLOOP, 0, 0);
+			push_looplvl(frag, lvlLOOP, 0, 0);
 			if (name)
 				frag->looplvls->name = strdup(name->r->s);
-			mklooplvl(frag, lvlSCOPE, 0, 0);
+			push_looplvl(frag, lvlSCOPE, 0, 0);
 			genn(err, frag, args);
-			rmlooplvl(frag, lvlSCOPE, 0, 0);
-			emitc(frag, iBRA);
-			align_frag(frag, sizeof(int));
-			emitn(frag, cont - (frag->code));
-			rmlooplvl(frag, lvlLOOP, cont, frag->code);
+			pop_looplvl(frag, lvlSCOPE, 0, 0);
+			ivy_emitc(frag, ivy_iBRA);
+			ivy_align_frag(frag, sizeof(int));
+			ivy_emitn(frag, cont - (frag->code));
+			pop_looplvl(frag, lvlLOOP, cont, frag->code);
 			break;
-		} case nBREAK: {
-			struct looplvl *ll = findlvl(frag, NULL);
+		} case ivy_nBREAK: {
+			struct ivy_looplvl *ll = findlvl(frag, NULL);
 			if (n->r) {
 				// printf("looking... %s %p %p\n",n->r->s,frag,ll);
-				if (n->r->what == nNAM)
+				if (n->r->what == ivy_nNAM)
 					ll = findlvl(frag, n->r->s);
-				else if (n->r->what != nEMPTY)
-					error_2(err, "\"%s\" %d: Invalid argument to break", n->r->loc->name, n->r->loc->line);
+				else if (n->r->what != ivy_nEMPTY)
+					ivy_error_2(err, "\"%s\" %d: Invalid argument to break", n->r->loc->name, n->r->loc->line);
 			}
 			if (ll) {
 				int z;
 				// printf("break %d %d\n", ll->scopelvl, frag->scopelvl);
 				poploops(frag, ll);
-				emitc(frag, iBRA);
-				z = emitn(frag, 0);
+				ivy_emitc(frag, ivy_iBRA);
+				z = ivy_emitn(frag, 0);
 				if (ll->brk)
 					addlist(frag, ll->brk, z);
 				else
 					ll->brk = z;
 			} else
-				error_2(err, "\"%s\" %d: break with no loop", n->loc->name, n->loc->line);
+				ivy_error_2(err, "\"%s\" %d: break with no loop", n->loc->name, n->loc->line);
 			break;
-		} case nCONT: {
-			struct looplvl *ll = findlvl(frag, NULL);
+		} case ivy_nCONT: {
+			struct ivy_looplvl *ll = findlvl(frag, NULL);
 			if (n->r) {
-				if (n->r->what == nNAM)
+				if (n->r->what == ivy_nNAM)
 					ll = findlvl(frag, n->r->s);
-				else if (n->r->what != nEMPTY)
-					error_2(err, "\"%s\" %d: Invalid argument to continue", n->r->loc->name, n->r->loc->line);
+				else if (n->r->what != ivy_nEMPTY)
+					ivy_error_2(err, "\"%s\" %d: Invalid argument to continue", n->r->loc->name, n->r->loc->line);
 			}
 			if (ll) {
 				int z;
 				poploops(frag, ll);
-				emitc(frag, iBRA);
-				z = emitn(frag, 0);
+				ivy_emitc(frag, ivy_iBRA);
+				z = ivy_emitn(frag, 0);
 				if (ll->cont)
 					addlist(frag, ll->cont, z);
 				else
 					ll->cont = z;
 			} else
-				error_2(err, "\"%s\" %d: continue with no loop", n->loc->name, n->loc->line);
+				ivy_error_2(err, "\"%s\" %d: continue with no loop", n->loc->name, n->loc->line);
 			break;
-		} case nUNTIL: {
+		} case ivy_nUNTIL: {
 			int els = genbra(err, frag, n->r, 1);
-			struct looplvl *ll = findlvl(frag, NULL);
+			struct ivy_looplvl *ll = findlvl(frag, NULL);
 			if (ll) {
 				int z;
 				// printf("break %d %d\n", ll->scopelvl, frag->scopelvl);
 				poploops(frag, ll);
-				emitc(frag, iBRA);
-				z = emitn(frag, 0);
+				ivy_emitc(frag, ivy_iBRA);
+				z = ivy_emitn(frag, 0);
 				if (ll->brk)
 					addlist(frag, ll->brk, z);
 				else
 					ll->brk = z;
 			} else {
-				error_2(err, "\"%s\" %d: until with no loop", n->loc->name, n->loc->line);
+				ivy_error_2(err, "\"%s\" %d: until with no loop", n->loc->name, n->loc->line);
 			}
 			setlist(frag, els, frag->code);
 			break;
-		} case nIF: {
+		} case ivy_nIF: {
 			gencond(err, frag, n->r, 0);
 			break;
-		} case nSEMI: {
+		} case ivy_nSEMI: {
 			genn(err, frag, n->l);
 			genn(err, frag, n->r);
 			break;
-		} case nEMPTY: {
+		} case ivy_nEMPTY: {
 			break;
 		} default: {
 			gen(err, frag, n);
-			emitc(frag, iPOP);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iPOP);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			break;
 		}
 	}
@@ -1133,78 +1133,78 @@ static void genn(Error_printer *err, Frag *frag, Node * n)
  * Return the address of the value which should be set to the branch offset
  */
 
-static int genbra(Error_printer *err, Frag *frag, Node * n, int t)
+static int genbra(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n, int t)
 {
 	switch(n->what) {
-		case nEQ: {
+		case ivy_nEQ: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
-			emitc(frag, iCMP);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iCMP);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			if (t)
-				emitc(frag, iBNE);
+				ivy_emitc(frag, ivy_iBNE);
 			else
-				emitc(frag, iBEQ);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
-			return emitn(frag, 0);
-		} case nNE: {
+				ivy_emitc(frag, ivy_iBEQ);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
+			return ivy_emitn(frag, 0);
+		} case ivy_nNE: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
-			emitc(frag, iCMP);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iCMP);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			if (t)
-				emitc(frag, iBEQ);
+				ivy_emitc(frag, ivy_iBEQ);
 			else
-				emitc(frag, iBNE);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
-			return emitn(frag, 0);
-		} case nGT: {
+				ivy_emitc(frag, ivy_iBNE);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
+			return ivy_emitn(frag, 0);
+		} case ivy_nGT: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
-			emitc(frag, iCMP);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iCMP);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			if (t)
-				emitc(frag, iBLE);
+				ivy_emitc(frag, ivy_iBLE);
 			else
-				emitc(frag, iBGT);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
-			return emitn(frag, 0);
-		} case nGE: {
+				ivy_emitc(frag, ivy_iBGT);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
+			return ivy_emitn(frag, 0);
+		} case ivy_nGE: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
-			emitc(frag, iCMP);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iCMP);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			if (t)
-				emitc(frag, iBLT);
+				ivy_emitc(frag, ivy_iBLT);
 			else
-				emitc(frag, iBGE);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
-			return emitn(frag, 0);
-		} case nLT: {
+				ivy_emitc(frag, ivy_iBGE);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
+			return ivy_emitn(frag, 0);
+		} case ivy_nLT: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
-			emitc(frag, iCMP);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iCMP);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			if (t)
-				emitc(frag, iBGE);
+				ivy_emitc(frag, ivy_iBGE);
 			else
-				emitc(frag, iBLT);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
-			return emitn(frag, 0);
-		} case nLE: {
+				ivy_emitc(frag, ivy_iBLT);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
+			return ivy_emitn(frag, 0);
+		} case ivy_nLE: {
 			gen(err, frag, n->l);
 			gen(err, frag, n->r);
-			emitc(frag, iCMP);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
+			ivy_emitc(frag, ivy_iCMP);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
 			if (t)
-				emitc(frag, iBGT);
+				ivy_emitc(frag, ivy_iBGT);
 			else
-				emitc(frag, iBLE);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
-			return emitn(frag, 0);
-		} case nNOT: {
+				ivy_emitc(frag, ivy_iBLE);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
+			return ivy_emitn(frag, 0);
+		} case ivy_nNOT: {
 			return genbra(err, frag, n->r, !t);
-		} case nLAND: {
+		} case ivy_nLAND: {
 			int b1 = genbra(err, frag, n->l, 1);
 			int b2;
 			if (t)
@@ -1212,7 +1212,7 @@ static int genbra(Error_printer *err, Frag *frag, Node * n, int t)
 			else
 				b2 = genbra(err, frag, n->r, 0), setlist(frag, b1, frag->code);
 			return b2;
-		} case nLOR: {
+		} case ivy_nLOR: {
 			int b1 = genbra(err, frag, n->l, 0);
 			int b2;
 			if (t)
@@ -1223,31 +1223,31 @@ static int genbra(Error_printer *err, Frag *frag, Node * n, int t)
 		} default: {
 			gen(err, frag, n);
 			if (t)
-				emitc(frag, iBEQ);
+				ivy_emitc(frag, ivy_iBEQ);
 			else
-				emitc(frag, iBNE);
-			rmlooplvl(frag, lvlVALUE, 0, 0);
-			return emitn(frag, 0);
+				ivy_emitc(frag, ivy_iBNE);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
+			return ivy_emitn(frag, 0);
 		}
 	}
 }
 
 /* Code generator: convert a parse-tree into pseudo-machine code */
 
-Pseudo *codegen(Error_printer *err, Node *n)
+Ivy_pseudo *ivy_codegen(Ivy_error_printer *err, Ivy_node *n)
 {
-	Frag frag[1];
+	Ivy_frag frag[1];
 
-	init_frag(frag);
+	ivy_setup_frag(frag);
 
 	gen(err, frag, n);
 
-	emitc(frag, iSTASH);
+	ivy_emitc(frag, ivy_iSTASH);
 
 	if (frag->rtn)
 		setlist(frag, frag->rtn, frag->code);
 
-	emitc(frag, iRTS);
+	ivy_emitc(frag, ivy_iRTS);
 
 	return frag->begcode;
 }

@@ -1,8 +1,8 @@
 all: build ivy
 
-#CFLAGS = -pg -g -Wall
-CFLAGS = -O2 -Wall
-CC = g++
+CFLAGS = -pg -g -Wall
+#CFLAGS = -O2 -Wall
+CC = gcc
 
 # LIBS = -lm -lreadline -lcurses
 # For Cygwin...
@@ -10,7 +10,7 @@ CC = g++
 LIBS = -lm -lreadline
 
 
-OBJS = ivy_parse.o ivy_tree.o main.o free_list.o hash.o ivy_symbols.o \
+OBJS = ivy_parse.o ivy_tree.o main.o ivy_free_list.o ivy_hash.o ivy_symbols.o \
   ivy_frag.o ivy_codegen.o ivy_run.o ivy_rtlib.o ivy_help.o ivy_gc.o \
   ivy_str.o ivy_obj.o
 

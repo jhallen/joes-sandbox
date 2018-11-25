@@ -22,13 +22,13 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <string.h>
 #include <setjmp.h>
 #include "ivy_symbols.h"
-#include "free_list.h"
+#include "ivy_free_list.h"
 #include "ivy_tree.h"
 #include "ivy.h"
 
 /* Skip over whitespace */
 
-void skipws(Loc *loc)
+static void skipws(Ivy_loc *loc)
 {
 	for (;;) switch (*loc->ptr) {
 		case ' ': {
@@ -51,7 +51,7 @@ void skipws(Loc *loc)
 
 /* Skip whitespace including ; */
 
-void skipwss(Loc *loc)
+static void skipwss(Ivy_loc *loc)
 {
 	while(skipws(loc), (*loc->ptr == ';')) {
 		++loc->ptr;
@@ -61,7 +61,7 @@ void skipwss(Loc *loc)
 
 /* Skip whitespace including ; and , */
 
-void skipwssc(Loc *loc)
+static void skipwssc(Ivy_loc *loc)
 {
 	while(skipws(loc), (*loc->ptr == ';' || *loc->ptr == ',')) {
 		++loc->ptr;
@@ -71,7 +71,7 @@ void skipwssc(Loc *loc)
 
 /* Skip whitespace including , */
 
-void skipwsc(Loc *loc)
+static void skipwsc(Ivy_loc *loc)
 {
 	while(skipws(loc), (*loc->ptr == ',')) {
 		++loc->ptr;
@@ -82,148 +82,148 @@ void skipwsc(Loc *loc)
 /* Table of operators and parse-tree node types */
 
 /*               NAME    PREFIX  INFIX   POSTFIX PREC    ASSOC   METH    INST    Symbol */
-What what_tab[]=
+Ivy_what ivy_what_tab[]=
 {
 	/* Constants */
-	{ nNAM, "nam", 0, 0, 0, 120, 0, 0, 0, 0 },
-	{ nNUM, "num", 0, 0, 0, 120, 0, 0, 0, 0 },
-	{ nFP, "fp", 0, 0, 0, 120, 0, 0, 0, 0 },
-	{ nSTR, "str", 0, 0, 0, 120, 0, 0, 0, 0 },
+	{ ivy_nNAM, "nam", 0, 0, 0, 120, 0, 0, 0, 0 },
+	{ ivy_nNUM, "num", 0, 0, 0, 120, 0, 0, 0, 0 },
+	{ ivy_nFP, "fp", 0, 0, 0, 120, 0, 0, 0, 0 },
+	{ ivy_nSTR, "str", 0, 0, 0, 120, 0, 0, 0, 0 },
 
 	/* Operators */
-	{ nQUOTE, "`", nQUOTE, 0, 0, 120, 0, 1, 0, nQUOTE },
+	{ ivy_nQUOTE, "`", ivy_nQUOTE, 0, 0, 120, 0, 1, 0, ivy_nQUOTE },
 
-	{ nCALL1, ".", 0, nCALL1, 0, 110, 0, 2, 0, 0 },
+	{ ivy_nCALL1, ".", 0, ivy_nCALL1, 0, 110, 0, 2, 0, 0 },
 
-	{ nCALL, "(", 0, nCALL, 0, 100, 0, 66, 0, 0 },
+	{ ivy_nCALL, "(", 0, ivy_nCALL, 0, 100, 0, 66, 0, 0 },
 
-	{ nPRINC, "++", nPRINC, 0, nPOINC, 90, 0, 5, 0, nADD },
-	{ nPRDEC, "--", nPRDEC, 0, nPODEC, 90, 0, 5, 0, nSUB },
-	{ nPOINC, "++", nPRINC, 0, nPOINC, 90, 0, 13, 0, nADD },
-	{ nPODEC, "--", nPRDEC, 0, nPODEC, 90, 0, 13, 0, nSUB },
-	{ nCOM, "~", nCOM, 0, 0, 90, 0, 1, iCOM, 0 },
-	{ nNEG, "neg", nNEG, nSUB, 0, 90, 0, 1, iNEG, 0 },
-	{ nNOT, "!", nNOT, 0, 0, 90, 0, 1, 0, 0 },
-	{ nAT, "*", nAT, nMUL, 0, 90, 0, 1, iAT, 0 },
-	{ nADDR, "&", nADDR, nAND, 0, 90, 0, 1, 0, 0 },
+	{ ivy_nPRINC, "++", ivy_nPRINC, 0, ivy_nPOINC, 90, 0, 5, 0, ivy_nADD },
+	{ ivy_nPRDEC, "--", ivy_nPRDEC, 0, ivy_nPODEC, 90, 0, 5, 0, ivy_nSUB },
+	{ ivy_nPOINC, "++", ivy_nPRINC, 0, ivy_nPOINC, 90, 0, 13, 0, ivy_nADD },
+	{ ivy_nPODEC, "--", ivy_nPRDEC, 0, ivy_nPODEC, 90, 0, 13, 0, ivy_nSUB },
+	{ ivy_nCOM, "~", ivy_nCOM, 0, 0, 90, 0, 1, ivy_iCOM, 0 },
+	{ ivy_nNEG, "neg", ivy_nNEG, ivy_nSUB, 0, 90, 0, 1, ivy_iNEG, 0 },
+	{ ivy_nNOT, "!", ivy_nNOT, 0, 0, 90, 0, 1, 0, 0 },
+	{ ivy_nAT, "*", ivy_nAT, ivy_nMUL, 0, 90, 0, 1, ivy_iAT, 0 },
+	{ ivy_nADDR, "&", ivy_nADDR, ivy_nAND, 0, 90, 0, 1, 0, 0 },
 
-	{ nSHR, ">>", 0, nSHR, 0, 80, 0, 2, iSHR, 0 },
-	{ nSHL, "<<", 0, nSHL, 0, 80, 0, 2, iSHL, 0 },
+	{ ivy_nSHR, ">>", 0, ivy_nSHR, 0, 80, 0, 2, ivy_iSHR, 0 },
+	{ ivy_nSHL, "<<", 0, ivy_nSHL, 0, 80, 0, 2, ivy_iSHL, 0 },
 
-	{ nMUL, "*", nAT, nMUL, 0, 70, 0, 2, iMUL, 0 },
-	{ nDIV, "/", 0, nDIV, 0, 70, 0, 2, iDIV, 0 },
-	{ nMOD, "%", nMOD, nMOD, 0, 70, 0, 2, iMOD, 0 },
-	{ nAND, "&", nADDR, nAND, 0, 70, 0, 2, iAND, 0 },
+	{ ivy_nMUL, "*", ivy_nAT, ivy_nMUL, 0, 70, 0, 2, ivy_iMUL, 0 },
+	{ ivy_nDIV, "/", 0, ivy_nDIV, 0, 70, 0, 2, ivy_iDIV, 0 },
+	{ ivy_nMOD, "%", ivy_nMOD, ivy_nMOD, 0, 70, 0, 2, ivy_iMOD, 0 },
+	{ ivy_nAND, "&", ivy_nADDR, ivy_nAND, 0, 70, 0, 2, ivy_iAND, 0 },
 
-	{ nADD, "+", 0, nADD, 0, 60, 0, 2, iADD, 0 },
-	{ nSUB, "-", nNEG, nSUB, 0, 60, 0, 2, iSUB, 0 },
-	{ nOR, "|", 0, nOR, 0, 60, 0, 2, iOR, 0 },
-	{ nXOR, "^", 0, nXOR, 0, 60, 0, 2, iXOR, 0 },
+	{ ivy_nADD, "+", 0, ivy_nADD, 0, 60, 0, 2, ivy_iADD, 0 },
+	{ ivy_nSUB, "-", ivy_nNEG, ivy_nSUB, 0, 60, 0, 2, ivy_iSUB, 0 },
+	{ ivy_nOR, "|", 0, ivy_nOR, 0, 60, 0, 2, ivy_iOR, 0 },
+	{ ivy_nXOR, "^", 0, ivy_nXOR, 0, 60, 0, 2, ivy_iXOR, 0 },
 
-	{ nEQ, "==", 0, nEQ, 0, 50, 0, 2, iBEQ, 0 },
-	{ nNE, "!=", 0, nNE, 0, 50, 0, 2, iBNE, 0 },
-	{ nLT, "<", 0, nLT, 0, 50, 0, 2, iBLT, 0 },
-	{ nGT, ">", 0, nGT, 0, 50, 0, 2, iBGT, 0 },
-	{ nLE, "<=", 0, nLE, 0, 50, 0, 2, iBLE, 0 },
-	{ nGE, ">=", 0, nGE, 0, 50, 0, 2, iBGE, 0 },
+	{ ivy_nEQ, "==", 0, ivy_nEQ, 0, 50, 0, 2, ivy_iBEQ, 0 },
+	{ ivy_nNE, "!=", 0, ivy_nNE, 0, 50, 0, 2, ivy_iBNE, 0 },
+	{ ivy_nLT, "<", 0, ivy_nLT, 0, 50, 0, 2, ivy_iBLT, 0 },
+	{ ivy_nGT, ">", 0, ivy_nGT, 0, 50, 0, 2, ivy_iBGT, 0 },
+	{ ivy_nLE, "<=", 0, ivy_nLE, 0, 50, 0, 2, ivy_iBLE, 0 },
+	{ ivy_nGE, ">=", 0, ivy_nGE, 0, 50, 0, 2, ivy_iBGE, 0 },
 
-	{ nLAND, "&&", 0, nLAND, 0, 40, 0, 2, 0, 0 },
+	{ ivy_nLAND, "&&", 0, ivy_nLAND, 0, 40, 0, 2, 0, 0 },
 
-	{ nLOR, "||", 0, nLOR, 0, 30, 0, 2, 0, 0 },
+	{ ivy_nLOR, "||", 0, ivy_nLOR, 0, 30, 0, 2, 0, 0 },
 
-	{ nSET, "=", 0, nSET, 0, 20, 1, 2, iSET, 0 },
-	{ nDOTTO, ".=", 0, nDOTTO, 0, 20, 1, 6, 0, nCALL1 },
-	{ nSHLTO, "<<=", 0, nSHLTO, 0, 20, 1, 6, 0, nSHL },
-	{ nSHRTO, ">>=", 0, nSHRTO, 0, 20, 1, 6, 0, nSHR },
-	{ nMULTO, "*=", 0, nMULTO, 0, 20, 1, 6, 0, nMUL },
-	{ nDIVTO, "/=", 0, nDIVTO, 0, 20, 1, 6, 0, nDIV },
-	{ nMODTO, "%=", 0, nMODTO, 0, 20, 1, 6, 0, nMOD },
-	{ nANDTO, "&=", 0, nANDTO, 0, 20, 1, 6, 0, nAND },
-	{ nADDTO, "+=", 0, nADDTO, 0, 20, 1, 6, 0, nADD },
-	{ nSUBTO, "-=", 0, nSUBTO, 0, 20, 1, 6, 0, nSUB },
-	{ nXORTO, "^=", 0, nXORTO, 0, 20, 1, 6, 0, nXOR },
-	{ nORTO, "|=", 0, nORTO, 0, 20, 1, 6, 0, nOR },
-	{ nPOST, ":", 0, nPOST, 0, 20, 1, 10, 0, 0 },
-	{ nDOTPO, ".:", 0, nDOTPO, 0, 20, 1, 14, 0, nCALL1 },
-	{ nSHLPO, "<<:", 0, nSHLPO, 0, 20, 1, 14, 0, nSHL },
-	{ nSHRPO, ">>:", 0, nSHRPO, 0, 20, 1, 14, 0, nSHR },
-	{ nMULPO, "*:", 0, nMULPO, 0, 20, 1, 14, 0, nMUL },
-	{ nDIVPO, "/:", 0, nDIVPO, 0, 20, 1, 14, 0, nDIV },
-	{ nMODPO, "%:", 0, nMODPO, 0, 20, 1, 14, 0, nMOD },
-	{ nANDPO, "&:", 0, nANDPO, 0, 20, 1, 14, 0, nAND },
-	{ nADDPO, "+:", 0, nADDPO, 0, 20, 1, 14, 0, nADD },
-	{ nSUBPO, "-:", 0, nSUBPO, 0, 20, 1, 14, 0, nSUB },
-	{ nXORPO, "^:", 0, nXORPO, 0, 20, 1, 14, 0, nXOR },
-	{ nORPO, "|:", 0, nORPO, 0, 20, 1, 14, 0, nOR },
+	{ ivy_nSET, "=", 0, ivy_nSET, 0, 20, 1, 2, ivy_iSET, 0 },
+	{ ivy_nDOTTO, ".=", 0, ivy_nDOTTO, 0, 20, 1, 6, 0, ivy_nCALL1 },
+	{ ivy_nSHLTO, "<<=", 0, ivy_nSHLTO, 0, 20, 1, 6, 0, ivy_nSHL },
+	{ ivy_nSHRTO, ">>=", 0, ivy_nSHRTO, 0, 20, 1, 6, 0, ivy_nSHR },
+	{ ivy_nMULTO, "*=", 0, ivy_nMULTO, 0, 20, 1, 6, 0, ivy_nMUL },
+	{ ivy_nDIVTO, "/=", 0, ivy_nDIVTO, 0, 20, 1, 6, 0, ivy_nDIV },
+	{ ivy_nMODTO, "%=", 0, ivy_nMODTO, 0, 20, 1, 6, 0, ivy_nMOD },
+	{ ivy_nANDTO, "&=", 0, ivy_nANDTO, 0, 20, 1, 6, 0, ivy_nAND },
+	{ ivy_nADDTO, "+=", 0, ivy_nADDTO, 0, 20, 1, 6, 0, ivy_nADD },
+	{ ivy_nSUBTO, "-=", 0, ivy_nSUBTO, 0, 20, 1, 6, 0, ivy_nSUB },
+	{ ivy_nXORTO, "^=", 0, ivy_nXORTO, 0, 20, 1, 6, 0, ivy_nXOR },
+	{ ivy_nORTO, "|=", 0, ivy_nORTO, 0, 20, 1, 6, 0, ivy_nOR },
+	{ ivy_nPOST, ":", 0, ivy_nPOST, 0, 20, 1, 10, 0, 0 },
+	{ ivy_nDOTPO, ".:", 0, ivy_nDOTPO, 0, 20, 1, 14, 0, ivy_nCALL1 },
+	{ ivy_nSHLPO, "<<:", 0, ivy_nSHLPO, 0, 20, 1, 14, 0, ivy_nSHL },
+	{ ivy_nSHRPO, ">>:", 0, ivy_nSHRPO, 0, 20, 1, 14, 0, ivy_nSHR },
+	{ ivy_nMULPO, "*:", 0, ivy_nMULPO, 0, 20, 1, 14, 0, ivy_nMUL },
+	{ ivy_nDIVPO, "/:", 0, ivy_nDIVPO, 0, 20, 1, 14, 0, ivy_nDIV },
+	{ ivy_nMODPO, "%:", 0, ivy_nMODPO, 0, 20, 1, 14, 0, ivy_nMOD },
+	{ ivy_nANDPO, "&:", 0, ivy_nANDPO, 0, 20, 1, 14, 0, ivy_nAND },
+	{ ivy_nADDPO, "+:", 0, ivy_nADDPO, 0, 20, 1, 14, 0, ivy_nADD },
+	{ ivy_nSUBPO, "-:", 0, ivy_nSUBPO, 0, 20, 1, 14, 0, ivy_nSUB },
+	{ ivy_nXORPO, "^:", 0, ivy_nXORPO, 0, 20, 1, 14, 0, ivy_nXOR },
+	{ ivy_nORPO, "|:", 0, ivy_nORPO, 0, 20, 1, 14, 0, ivy_nOR },
 
-	{ nCOMMA, "\\", 0, nCOMMA, 0, 15, 0, 2, 0, 0 },
+	{ ivy_nCOMMA, "\\", 0, ivy_nCOMMA, 0, 15, 0, 2, 0, 0 },
 
-	{ nSEMI, ";", 0, nSEMI, 0, 10, 0, 2, 0, 0 },
+	{ ivy_nSEMI, ";", 0, ivy_nSEMI, 0, 10, 0, 2, 0, 0 },
 
 	/* A function definition */
-	{ nDEFUN, "fn", 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ ivy_nDEFUN, "fn", 0, 0, 0, 0, 0, 0, 0, 0 },
 
 	/* A list [...] */
-	{ nLIST, "LST", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nLIST, "LST", 0, 0, 0, 0, 0, 1, 0, 0 },
 
 	/* Parenthasis */
-	{ nPAREN, "paren", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nPAREN, "paren", 0, 0, 0, 0, 0, 1, 0, 0 },
 
 	/* Nothing */
-	{ nVOID, "void", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nVOID, "void", 0, 0, 0, 0, 0, 1, 0, 0 },
 
 	/* Current scope */
-	{ nTHIS, "this", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nTHIS, "this", 0, 0, 0, 0, 0, 1, 0, 0 },
 
 	/* Empty list */
-	{ nEMPTY, "empty", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nEMPTY, "empty", 0, 0, 0, 0, 0, 1, 0, 0 },
 
 	/* A label */
-	{ nLABEL, "label", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nLABEL, "label", 0, 0, 0, 0, 0, 1, 0, 0 },
 
 	/* Statements */
-	{ nIF, "if", 0, 0, 0, 0, 0, 1, 0, 0 },
-	{ nFOR, "for", 0, 0, 0, 0, 0, 1, 0, 0 },
-	{ nWHILE, "while", 0, 0, 0, 0, 0, 1, 0, 0 },
-	{ nLOCAL, "var", 0, 0, 0, 0, 0, 1, 0, 0 },
-	{ nLOOP, "loop", 0, 0, 0, 0, 0, 2, 0, 0 },
-	{ nUNTIL, "until", 0, 0, 0, 0, 0, 3, 0, 0 },
-	{ nBREAK, "break", 0, 0, 0, 0, 0, 4, 0, 0 },
-	{ nCONT, "continue", 0, 0, 0, 0, 0, 4, 0, 0 },
-	{ nRETURN, "return", 0, 0, 0, 0, 0, 4, 0, 0 },
-	{ nFOREACH, "foreach", 0, 0, 0, 0, 0, 5, 0, 0 },
-	{ nFORINDEX, "forindex", 0, 0, 0, 0, 0, 5, 0, 0 }
+	{ ivy_nIF, "if", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nFOR, "for", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nWHILE, "while", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nLOCAL, "var", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nLOOP, "loop", 0, 0, 0, 0, 0, 2, 0, 0 },
+	{ ivy_nUNTIL, "until", 0, 0, 0, 0, 0, 3, 0, 0 },
+	{ ivy_nBREAK, "break", 0, 0, 0, 0, 0, 4, 0, 0 },
+	{ ivy_nCONT, "continue", 0, 0, 0, 0, 0, 4, 0, 0 },
+	{ ivy_nRETURN, "return", 0, 0, 0, 0, 0, 4, 0, 0 },
+	{ ivy_nFOREACH, "foreach", 0, 0, 0, 0, 0, 5, 0, 0 },
+	{ ivy_nFORINDEX, "forindex", 0, 0, 0, 0, 0, 5, 0, 0 }
 };
 
 /* Operator scanner */
 
 #define OPRTLEN 64
 #define OPRLTLEN 128
-char oprltab[OPRLTLEN];		/* Hash table of operator left-substrings */
-What *oprtab[OPRTLEN];		/* Hash table of operators */
-int opr_isinit;			/* Set if table has been initialized */
+static char oprltab[OPRLTLEN];		/* Hash table of operator left-substrings */
+static Ivy_what *oprtab[OPRTLEN];		/* Hash table of operators */
+static int opr_isinit;			/* Set if table has been initialized */
 
-int ioprtab[] =
+static int ioprtab[] =
 {
-	nCALL1, nCALL, nPRINC, nPRDEC, nCOM, nSUB, nNOT, nSHR, nSHL,
-	nMUL, nDIV, nMOD, nAND, nADD, nOR, nXOR, nEQ, nNE, nGE, nLE,
-	nGT, nLT, nLAND, nLOR, nSET, nDOTTO, nSHLTO, nSHRTO, nMULTO,
-	nDIVTO, nMODTO, nANDTO, nADDTO, nSUBTO, nXORTO, nORTO, nPOST,
-	nDOTPO, nSHLPO, nSHRPO, nMULPO, nDIVPO, nMODPO, nANDPO, nADDPO,
-	nSUBPO, nXORPO, nORPO, nQUOTE, nCOMMA, -1
+	ivy_nCALL1, ivy_nCALL, ivy_nPRINC, ivy_nPRDEC, ivy_nCOM, ivy_nSUB, ivy_nNOT, ivy_nSHR, ivy_nSHL,
+	ivy_nMUL, ivy_nDIV, ivy_nMOD, ivy_nAND, ivy_nADD, ivy_nOR, ivy_nXOR, ivy_nEQ, ivy_nNE, ivy_nGE, ivy_nLE,
+	ivy_nGT, ivy_nLT, ivy_nLAND, ivy_nLOR, ivy_nSET, ivy_nDOTTO, ivy_nSHLTO, ivy_nSHRTO, ivy_nMULTO,
+	ivy_nDIVTO, ivy_nMODTO, ivy_nANDTO, ivy_nADDTO, ivy_nSUBTO, ivy_nXORTO, ivy_nORTO, ivy_nPOST,
+	ivy_nDOTPO, ivy_nSHLPO, ivy_nSHRPO, ivy_nMULPO, ivy_nDIVPO, ivy_nMODPO, ivy_nANDPO, ivy_nADDPO,
+	ivy_nSUBPO, ivy_nXORPO, ivy_nORPO, ivy_nQUOTE, ivy_nCOMMA, -1
 };
 
-void izoprtab(void)
+static void izoprtab(void)
 {
 	int x;
 	int t;
 	opr_isinit = 1;
 	for (x = 0; (t = ioprtab[x]) != -1; ++x) {
-		What *tt = &what_tab[t];
+		Ivy_what *tt = &ivy_what_tab[t];
 		const char *s = tt->name;
 		unsigned long accu = 0;
 		while (*s) {
-			accu = hnext(accu, *s++);
+			accu = ivy_hnext(accu, *s++);
 			if (*s)
 				++oprltab[accu % OPRLTLEN];
 		}
@@ -232,7 +232,7 @@ void izoprtab(void)
 	}
 }
 
-int strcmpn(const char *blk, int len, const char *s)
+static int strcmpn(const char *blk, int len, const char *s)
 {
 	while (len && *s && *blk == *s) {
 		++blk;
@@ -245,19 +245,19 @@ int strcmpn(const char *blk, int len, const char *s)
 		return 1;
 }
 
-What *doopr(Loc *loc, unsigned long accu, const char *start)
+static Ivy_what *doopr(Ivy_loc *loc, unsigned long accu, const char *start)
 {
 	unsigned long oaccu = accu;
 	const char *oops = loc->ptr;
 	int oopscol = loc->col;
-	What *t;
+	Ivy_what *t;
 	do {
 		if (!*loc->ptr)
 			break;
-		accu = hnext(accu, *loc->ptr++);
+		accu = ivy_hnext(accu, *loc->ptr++);
 		for (t = oprtab[accu % OPRTLEN]; t; t = t->next)
 			if (!strcmpn(start, loc->ptr - start, t->name)) {
-				What *u;
+				Ivy_what *u;
 				if ((u = doopr(loc, accu, start)))
 					return u;
 				else
@@ -272,7 +272,7 @@ What *doopr(Loc *loc, unsigned long accu, const char *start)
 
 /* Look up an operator */
 
-What *opr(Loc *loc)
+static Ivy_what *opr(Ivy_loc *loc)
 {
 	if (!opr_isinit)
 		izoprtab();
@@ -281,7 +281,7 @@ What *opr(Loc *loc)
 
 /* Get a character which might be an escape sequence */
 
-int escape(Loc *loc)
+static int escape(Ivy_loc *loc)
 {
 	if (*loc->ptr == '\\') {
 		++loc->ptr;
@@ -360,36 +360,36 @@ int escape(Loc *loc)
 
 /* Keyword (statement) table */
 
-int ikwtab[] =
-    { nIF, nFOR, nWHILE, nLOOP, nLOCAL, nUNTIL, nBREAK, nCONT, nRETURN, nFOREACH, nFORINDEX, nDEFUN, -1 };
+static int ikwtab[] =
+    { ivy_nIF, ivy_nFOR, ivy_nWHILE, ivy_nLOOP, ivy_nLOCAL, ivy_nUNTIL, ivy_nBREAK, ivy_nCONT, ivy_nRETURN, ivy_nFOREACH, ivy_nFORINDEX, ivy_nDEFUN, -1 };
 
 #define KWHTLEN 32
-What *kwhtab[KWHTLEN];
-int kw_isinit = 0;
+static Ivy_what *kwhtab[KWHTLEN];
+static int kw_isinit = 0;
 
-void izkwtab(void)
+static void izkwtab(void)
 {
 	int x;
 	kw_isinit = 1;
 	for (x = 0; ikwtab[x] != -1; ++x) {
-		char *s = symbol_add(what_tab[ikwtab[x]].name);
-		unsigned long hval = ahash(s);
-		what_tab[ikwtab[x]].name = s; /* Replace name with symbol */
-		what_tab[ikwtab[x]].next = kwhtab[hval % KWHTLEN];
-		kwhtab[hval % KWHTLEN] = &what_tab[ikwtab[x]];
+		char *s = ivy_symbol_add(ivy_what_tab[ikwtab[x]].name);
+		unsigned long hval = ivy_ahash(s);
+		ivy_what_tab[ikwtab[x]].name = s; /* Replace name with symbol */
+		ivy_what_tab[ikwtab[x]].next = kwhtab[hval % KWHTLEN];
+		kwhtab[hval % KWHTLEN] = &ivy_what_tab[ikwtab[x]];
 	}
 }
 
 /* Look up a keyword by symbol */
 
-What *kw(char *symbol)
+static Ivy_what *kw(char *symbol)
 {
-	What *a;
+	Ivy_what *a;
 	if (!symbol)
 		return 0;
 	if (!kw_isinit)
 		izkwtab();
-	for (a = kwhtab[ahash(symbol) % KWHTLEN]; a; a = a->next)
+	for (a = kwhtab[ivy_ahash(symbol) % KWHTLEN]; a; a = a->next)
 		if (a->name == symbol)
 			return a;
 	return 0;
@@ -405,8 +405,8 @@ What *kw(char *symbol)
 */
 
 #define pcall(subr,retn,nprec) do { \
-	Parse_state *stk; \
-	stk = (Parse_state *)malloc(sizeof(Parse_state)); \
+	Ivy_parse_state *stk; \
+	stk = (Ivy_parse_state *)malloc(sizeof(Ivy_parse_state)); \
 	parser->state.state = (retn); \
 	*stk = parser->state; \
 	parser->state.next = stk; \
@@ -417,7 +417,7 @@ What *kw(char *symbol)
 /* Return with a node */
 
 #define pret(n) do { \
-	Parse_state *stk = parser->state.next; \
+	Ivy_parse_state *stk = parser->state.next; \
 	parser->rtn = (n); \
         parser->state = *stk; \
         free(stk); \
@@ -437,57 +437,57 @@ What *kw(char *symbol)
 		parser->str_buf = (char *)realloc(parser->str_buf,parser->str_siz); \
 } while(0)
 
-int parse_rest(Parser *);
+static int parse_rest(Ivy_parser *);
 
-int parse_rest_done_infix(Parser *parser)
+static int parse_rest_done_infix(Ivy_parser *parser)
 {
 	PTRACE("parse_rest_done_infix");
-	parser->state.n = cons2(parser->loc,parser->state.op->what, parser->state.n, parser->rtn);
+	parser->state.n = ivy_cons2(parser->loc,parser->state.op->what, parser->state.n, parser->rtn);
 	pjump(parse_rest);
 	return 0;
 }
 
 /* Make op= or op: assignment */
 
-int parse_rest_done_infix1(Parser *parser)
+static int parse_rest_done_infix1(Ivy_parser *parser)
 {
 	PTRACE("parse_rest_done_infix1");
-	parser->state.n = cons2(parser->loc,(parser->state.op->meth & 8 ? nPOST : nSET), parser->state.n, cons2(parser->loc,parser->state.op->inst, dup(parser->loc, parser->state.n), parser->rtn));
+	parser->state.n = ivy_cons2(parser->loc,(parser->state.op->meth & 8 ? ivy_nPOST : ivy_nSET), parser->state.n, ivy_cons2(parser->loc,parser->state.op->inst, ivy_dup_tree(parser->loc, parser->state.n), parser->rtn));
 	pjump(parse_rest);
 	return 0;
 }
 
-int parse_rest_done_call(Parser *parser)
+static int parse_rest_done_call(Ivy_parser *parser)
 {
-	What *k;
+	Ivy_what *k;
 	PTRACE("parse_rest_done_call");
-	if (parser->state.op->what == nCALL && parser->state.n->what == nNAM && (k = kw(parser->state.n->s))) {
+	if (parser->state.op->what == ivy_nCALL && parser->state.n->what == ivy_nNAM && (k = kw(parser->state.n->s))) {
 		/* rm(parser->state.n); */
-		parser->state.n = cons1(parser->loc, k->what, opt(parser->loc, parser->rtn));
+		parser->state.n = ivy_cons1(parser->loc, k->what, ivy_opt(parser->loc, parser->rtn));
 	} else
-		parser->state.n = cons2(parser->loc, parser->state.op->what, parser->state.n, opt(parser->loc,parser->rtn));
+		parser->state.n = ivy_cons2(parser->loc, parser->state.op->what, parser->state.n, ivy_opt(parser->loc,parser->rtn));
 	if (*parser->loc->ptr == '}')
 		++parser->loc->ptr, ++parser->loc->col;
 	else
-		error_2(parser->err,"\"%s\" %d: Error: missing ]",parser->loc->name,parser->loc->line);
+		ivy_error_2(parser->err,"\"%s\" %d: Error: missing ]",parser->loc->name,parser->loc->line);
 	--parser->paren_level;
 	pjump(parse_rest);
 	return 0;
 }
 
-int parse_rest_done_call1(Parser *parser)
+static int parse_rest_done_call1(Ivy_parser *parser)
 {
-	What *k;
+	Ivy_what *k;
 	PTRACE("parse_rest_done_call1");
-	if (parser->state.op->what == nCALL && parser->state.n->what == nNAM && (k = kw(parser->state.n->s))) {
+	if (parser->state.op->what == ivy_nCALL && parser->state.n->what == ivy_nNAM && (k = kw(parser->state.n->s))) {
 		/* rm(parser->state.n); */
-		parser->state.n = cons1(parser->loc, k->what, opt(parser->loc, parser->rtn));
+		parser->state.n = ivy_cons1(parser->loc, k->what, ivy_opt(parser->loc, parser->rtn));
 	} else
-		parser->state.n = cons2(parser->loc, parser->state.op->what, parser->state.n, opt(parser->loc,parser->rtn));
+		parser->state.n = ivy_cons2(parser->loc, parser->state.op->what, parser->state.n, ivy_opt(parser->loc,parser->rtn));
 	if (*parser->loc->ptr == ')')
 		++parser->loc->ptr, ++parser->loc->col;
 	else
-		error_2(parser->err,"\"%s\" %d: Error: missing )",parser->loc->name,parser->loc->line);
+		ivy_error_2(parser->err,"\"%s\" %d: Error: missing )",parser->loc->name,parser->loc->line);
 	--parser->paren_level;
 	pjump(parse_rest);
 	return 0;
@@ -495,10 +495,10 @@ int parse_rest_done_call1(Parser *parser)
 
 /* Try to parse an infix or postfix operator */
 
-int parse_lst(Parser *);
-int parse_expr(Parser *);
+static int parse_lst(Ivy_parser *);
+static int parse_expr(Ivy_parser *);
 
-int parse_rest(Parser *parser)
+static int parse_rest(Ivy_parser *parser)
 {
 	const char *oops = parser->loc->ptr;
 	int oopscol = parser->loc->col;
@@ -535,22 +535,22 @@ int parse_rest(Parser *parser)
 		right = 32767;
 
 	if (parser->state.op && parser->state.op->infix && left <= right &&
-	    (what_tab[parser->state.op->infix].prec > parser->state.prec ||
-	     (what_tab[parser->state.op->infix].prec == parser->state.prec && what_tab[parser->state.op->infix].assoc))) {
+	    (ivy_what_tab[parser->state.op->infix].prec > parser->state.prec ||
+	     (ivy_what_tab[parser->state.op->infix].prec == parser->state.prec && ivy_what_tab[parser->state.op->infix].assoc))) {
 		if (parser->state.op->meth & 128) {	/* Function call? */
-			parser->state.op = &what_tab[parser->state.op->infix];
+			parser->state.op = &ivy_what_tab[parser->state.op->infix];
 			++parser->paren_level;
 			PTRACE("parse_rest pcall parse_lst");
 			pcall(parse_lst,parse_rest_done_call,0);
 			return 0;
 		} else if (parser->state.op->meth & 64) {	/* Function call? */
-			parser->state.op = &what_tab[parser->state.op->infix];
+			parser->state.op = &ivy_what_tab[parser->state.op->infix];
 			++parser->paren_level;
 			PTRACE("parse_rest pcall parse_lst1");
 			pcall(parse_lst,parse_rest_done_call1,0);
 			return 0;
 		} else {
-			parser->state.op = &what_tab[parser->state.op->infix];
+			parser->state.op = &ivy_what_tab[parser->state.op->infix];
 			if (parser->state.op->meth & 4) {	/* Make into assignment? */
 				PTRACE("parse_rest pcall parse_expr");
 				pcall(parse_expr,parse_rest_done_infix1,parser->state.op->prec);
@@ -562,14 +562,14 @@ int parse_rest(Parser *parser)
 			}
 		}
 	} else if (parser->state.op && parser->state.op->postfix && (!parser->state.op->prefix || left <= right) &&
-	           (what_tab[parser->state.op->postfix].prec > parser->state.prec ||
-	            (what_tab[parser->state.op->postfix].prec == parser->state.prec && what_tab[parser->state.op->postfix].assoc))) {
-		parser->state.op = &what_tab[parser->state.op->postfix];
+	           (ivy_what_tab[parser->state.op->postfix].prec > parser->state.prec ||
+	            (ivy_what_tab[parser->state.op->postfix].prec == parser->state.prec && ivy_what_tab[parser->state.op->postfix].assoc))) {
+		parser->state.op = &ivy_what_tab[parser->state.op->postfix];
 		if (parser->state.op->meth & 4)	/* Make into an assignment? */
-			parser->state.n = cons2(parser->loc,nPOST, parser->state.n,
-			              cons2(parser->loc,parser->state.op->inst, dup(parser->loc, parser->state.n), consnum(parser->loc,1)));
+			parser->state.n = ivy_cons2(parser->loc, ivy_nPOST, parser->state.n,
+			              ivy_cons2(parser->loc,parser->state.op->inst, ivy_dup_tree(parser->loc, parser->state.n), ivy_consnum(parser->loc,1)));
 		else
-			parser->state.n = cons1(parser->loc,parser->state.op->what, parser->state.n);	/* Normal case */
+			parser->state.n = ivy_cons1(parser->loc,parser->state.op->what, parser->state.n);	/* Normal case */
 		if (right == 32767) {
 			PTRACE("parse_rest pret parse_rest");
 			pret(parser->state.n);
@@ -587,23 +587,23 @@ int parse_rest(Parser *parser)
 	return 0;
 }
 
-int parse_expr_done_prefix(Parser *parser)
+static int parse_expr_done_prefix(Ivy_parser *parser)
 {
 	PTRACE("parse_expr_done_prefix");
-	parser->state.n = cons1(parser->loc,parser->state.op->what, parser->rtn);
+	parser->state.n = ivy_cons1(parser->loc,parser->state.op->what, parser->rtn);
 	pjump(parse_rest);
 	return 0;
 }
 
-int parse_expr_done_prefix1(Parser *parser)
+static int parse_expr_done_prefix1(Ivy_parser *parser)
 {
 	PTRACE("parse_expr_done_prefix1");
-	parser->state.n = cons2(parser->loc,nSET, parser->rtn, cons2(parser->loc,parser->state.op->inst, dup(parser->loc, parser->rtn), consnum(parser->loc,1)));
+	parser->state.n = ivy_cons2(parser->loc,ivy_nSET, parser->rtn, ivy_cons2(parser->loc,parser->state.op->inst, ivy_dup_tree(parser->loc, parser->rtn), ivy_consnum(parser->loc,1)));
 	pjump(parse_rest);
 	return 0;
 }
 
-int parse_string(Parser *parser)
+static int parse_string(Ivy_parser *parser)
 {
 	PTRACE("parse_string");
 	/* Copy character into str_buf */
@@ -621,7 +621,7 @@ int parse_string(Parser *parser)
 			parser->str_buf[parser->str_len++] = '\n';
 		}
 		if (parser->loc->eof) {
-			error_2(parser->err,"\"%s\" %d: Missing closing \"",parser->loc->name,parser->loc->line);
+			ivy_error_2(parser->err,"\"%s\" %d: Missing closing \"",parser->loc->name,parser->loc->line);
 		} else {
 			/* Get more input */
 			return 3;
@@ -634,17 +634,17 @@ int parse_string(Parser *parser)
 	/* Make sure there's space for the NUL */
 	check_str_buf();
 	parser->str_buf[parser->str_len] = 0;
-	parser->state.n = consstr(parser->loc,(char *)memcpy(malloc(parser->str_len+1),parser->str_buf,parser->str_len+1),parser->str_len);
+	parser->state.n = ivy_consstr(parser->loc,(char *)memcpy(malloc(parser->str_len+1),parser->str_buf,parser->str_len+1),parser->str_len);
 	pjump(parse_rest);
 	return 0;
 }
 
-int parse_expr_done_paren(Parser *parser)
+static int parse_expr_done_paren(Ivy_parser *parser)
 {
 	PTRACE("parse_expr_done_paren");
-	parser->state.n = cons1(parser->loc,nPAREN, opt(parser->loc, parser->rtn));
+	parser->state.n = ivy_cons1(parser->loc,ivy_nPAREN, ivy_opt(parser->loc, parser->rtn));
 	if (*parser->loc->ptr != ')')
-		error_2(parser->err,"\"%s\" %d: Error: missing )",parser->loc->name,parser->loc->line);
+		ivy_error_2(parser->err,"\"%s\" %d: Error: missing )",parser->loc->name,parser->loc->line);
 	else
 		++parser->loc->ptr, ++parser->loc->col;
 	--parser->paren_level;
@@ -652,12 +652,12 @@ int parse_expr_done_paren(Parser *parser)
 	return 0;
 }
 
-int parse_expr_done_square(Parser *parser)
+static int parse_expr_done_square(Ivy_parser *parser)
 {
 	PTRACE("parse_expr_done_square");
-	parser->state.n = cons1(parser->loc,nPAREN, parser->rtn);
+	parser->state.n = ivy_cons1(parser->loc,ivy_nPAREN, parser->rtn);
 	if (*parser->loc->ptr != '}')
-		error_2(parser->err,"\"%s\" %d: Error: missing }",parser->loc->name,parser->loc->line);
+		ivy_error_2(parser->err,"\"%s\" %d: Error: missing }",parser->loc->name,parser->loc->line);
 	else
 		++parser->loc->ptr, ++parser->loc->col;
 	--parser->paren_level;
@@ -665,12 +665,12 @@ int parse_expr_done_square(Parser *parser)
 	return 0;
 }
 
-int parse_expr_done_list(Parser *parser)
+static int parse_expr_done_list(Ivy_parser *parser)
 {
 	PTRACE("parse_expr_done_list");
-	parser->state.n = cons1(parser->loc,nLIST, opt(parser->loc,parser->rtn));
+	parser->state.n = ivy_cons1(parser->loc,ivy_nLIST, ivy_opt(parser->loc,parser->rtn));
 	if (*parser->loc->ptr != ']')
-		error_2(parser->err,"\"%s\" %d: Error: missing ]",parser->loc->name,parser->loc->line);
+		ivy_error_2(parser->err,"\"%s\" %d: Error: missing ]",parser->loc->name,parser->loc->line);
 	else
 		++parser->loc->ptr, ++parser->loc->col;
 	--parser->paren_level;
@@ -687,9 +687,9 @@ int parse_expr_done_list(Parser *parser)
    {} returns an empty nLIST.
 */
 
-int parse_paren(Parser *parser);
+static int parse_paren(Ivy_parser *parser);
 
-int parse_expr(Parser *parser)
+static int parse_expr(Ivy_parser *parser)
 {
 	PTRACE("parse_expr");
 	/* Skip leading whitespace */
@@ -718,7 +718,7 @@ int parse_expr(Parser *parser)
 						num = num * 16 + *parser->loc->ptr++ - 'A' + 10, ++parser->loc->col;
 					else if (*parser->loc->ptr == '_')
 						parser->loc->ptr++, parser->loc->col++;
-				parser->state.n = consnum(parser->loc,num);
+				parser->state.n = ivy_consnum(parser->loc,num);
 				break;
 			} else if (*parser->loc->ptr == 'b' || *parser->loc->ptr == 'B') { /* Binary */
 				long long num = 0;
@@ -730,7 +730,7 @@ int parse_expr(Parser *parser)
 					++parser->loc->ptr;
 					++parser->loc->col;
 				}
-				parser->state.n = consnum(parser->loc,num);
+				parser->state.n = ivy_consnum(parser->loc,num);
 				break;
 			} else if (*parser->loc->ptr == 'o' || *parser->loc->ptr == 'O') { /* Octal */
 				long long num = 0;
@@ -742,7 +742,7 @@ int parse_expr(Parser *parser)
 					++parser->loc->ptr;
 					++parser->loc->col;
 				}
-				parser->state.n = consnum(parser->loc,num);
+				parser->state.n = ivy_consnum(parser->loc,num);
 				break;
 			} else if (*parser->loc->ptr == '.' || *parser->loc->ptr == 'e' || *parser->loc->ptr == 'E')
 				goto parsefloat;
@@ -757,7 +757,7 @@ int parse_expr(Parser *parser)
 			else {
 				parser->loc->ptr += x;
 				parser->loc->col += x;
-				parser->state.n = consnum(parser->loc,num);
+				parser->state.n = ivy_consnum(parser->loc,num);
 			}
 			break;
 		} case '\'': { /* Character */
@@ -767,8 +767,8 @@ int parse_expr(Parser *parser)
 			if (*parser->loc->ptr == '\'')
 				++parser->loc->ptr, ++parser->loc->col;
 			else
-				error_2(parser->err,"\"%s\" %d: Error missing '",parser->loc->name,parser->loc->line);
-			parser->state.n = consnum(parser->loc,num);
+				ivy_error_2(parser->err,"\"%s\" %d: Error missing '",parser->loc->name,parser->loc->line);
+			parser->state.n = ivy_consnum(parser->loc,num);
 			break;
 		} case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':		/* Name */
 		case 'g': case 'h': case 'i': case 'j': case 'k': case 'l':
@@ -791,11 +791,11 @@ int parse_expr(Parser *parser)
 			check_str_buf();
 			parser->str_buf[parser->str_len] = 0;
 			if (!strcmp(parser->str_buf, "void"))
-				parser->state.n = consvoid(parser->loc);
+				parser->state.n = ivy_consvoid(parser->loc);
 			else if (!strcmp(parser->str_buf, "this"))
-				parser->state.n = consthis(parser->loc);
+				parser->state.n = ivy_consthis(parser->loc);
 			else
-				parser->state.n = consnam(parser->loc, symbol_add(parser->str_buf));
+				parser->state.n = ivy_consnam(parser->loc, ivy_symbol_add(parser->str_buf));
 			break;
 		} case '"': { /* String */
 			++parser->loc->ptr;
@@ -847,7 +847,7 @@ int parse_expr(Parser *parser)
 				fp = strtod(buf,NULL);
 				parser->loc->ptr += x;
 				parser->loc->col += x;
-				parser->state.n = consfp(parser->loc,fp);
+				parser->state.n = ivy_consfp(parser->loc,fp);
 				break;
 			}
 			/* Fall into operator */
@@ -856,7 +856,7 @@ int parse_expr(Parser *parser)
 			int oopscol = parser->loc->col;
 			parser->state.op = opr(parser->loc);
 			if (parser->state.op && parser->state.op->prefix) {
-				parser->state.op = &what_tab[parser->state.op->prefix];
+				parser->state.op = &ivy_what_tab[parser->state.op->prefix];
 				if (parser->state.op->meth & 4)	{ /* Make operator into an assignment (++ --) */
 					pcall(parse_expr,parse_expr_done_prefix1,parser->state.op->prec);
 					return 2;
@@ -880,37 +880,37 @@ int parse_expr(Parser *parser)
 
 /* Construct command and return */
 
-int is_simple(Node *n)
+static int is_simple(Ivy_node *n)
 {
-	if (n->what == nNAM)
+	if (n->what == ivy_nNAM)
 		return 1;
-	else if (n->what == nCALL1)
+	else if (n->what == ivy_nCALL1)
 		return is_simple(n->l) && is_simple(n->r);
 	else
 		return 0;
 }
 
-int parse_cmd_done(Parser *parser)
+static int parse_cmd_done(Ivy_parser *parser)
 {
-	What *k;
+	Ivy_what *k;
 	PTRACE("parse_cmd_done");
 	// Add block arg to arg
 	if (parser->state.blk) {
-		parser->state.blk = cons1(parser->loc,nPAREN, parser->state.blk);
+		parser->state.blk = ivy_cons1(parser->loc,ivy_nPAREN, parser->state.blk);
 		if (parser->state.args)
-			parser->state.args = cons2(parser->loc,nSEMI, parser->state.args, parser->state.blk);
+			parser->state.args = ivy_cons2(parser->loc,ivy_nSEMI, parser->state.args, parser->state.blk);
 		else
 			parser->state.args = parser->state.blk;
 	}
 	// Construct command: construct statement node if we're calling a keyword
-	if (parser->state.cmd->what == nNAM && (k = kw(parser->state.cmd->s))) {
-		parser->rtn = cons1(parser->loc, k->what, opt(parser->loc, parser->state.args));
+	if (parser->state.cmd->what == ivy_nNAM && (k = kw(parser->state.cmd->s))) {
+		parser->rtn = ivy_cons1(parser->loc, k->what, ivy_opt(parser->loc, parser->state.args));
 		/* rm(parser->state.cmd); */
 	} else if (is_simple(parser->state.cmd))
 		/* Only treat simple names as commands */
-		parser->rtn = cons2(parser->loc, nCALL, parser->state.cmd, opt(parser->loc, parser->state.args));
+		parser->rtn = ivy_cons2(parser->loc, ivy_nCALL, parser->state.cmd, ivy_opt(parser->loc, parser->state.args));
 	else if (parser->state.args)
-		parser->rtn = cons2(parser->loc, nSEMI, parser->state.cmd, parser->state.args);
+		parser->rtn = ivy_cons2(parser->loc, ivy_nSEMI, parser->state.cmd, parser->state.args);
 	else
 		parser->rtn = parser->state.cmd;
 	// We're done!
@@ -920,14 +920,14 @@ int parse_cmd_done(Parser *parser)
 
 /* Add parsed command to block */
 
-int parse_cmd_4(Parser *);
+static int parse_cmd_4(Ivy_parser *);
 
-int parse_cmd_5(Parser *parser)
+static int parse_cmd_5(Ivy_parser *parser)
 {
 	PTRACE("parse_cmd_5");
 	if (parser->rtn) {
 		if (parser->state.blk)
-			parser->state.blk = cons2(parser->loc,nSEMI, parser->state.blk, parser->rtn);
+			parser->state.blk = ivy_cons2(parser->loc,ivy_nSEMI, parser->state.blk, parser->rtn);
 		else
 			parser->state.blk = parser->rtn;
 		pjump(parse_cmd_4);
@@ -943,11 +943,11 @@ int parse_cmd_5(Parser *parser)
 
 /* Parse next command in block */
 
-int parse_cmd(Parser *parser);
+static int parse_cmd(Ivy_parser *parser);
 
-int parse_cmd_2(Parser *);
+static int parse_cmd_2(Ivy_parser *);
 
-int parse_cmd_4(Parser *parser)
+static int parse_cmd_4(Ivy_parser *parser)
 {
 	PTRACE("parse_cmd_4");
 	skipws(parser->loc);
@@ -967,7 +967,7 @@ int parse_cmd_4(Parser *parser)
 
 /* If we parsed an expression, add it to argument list and look for another. */
 
-int parse_cmd_3(Parser *parser)
+static int parse_cmd_3(Ivy_parser *parser)
 {
 	PTRACE("parse_cmd_3");
 	if (parser->rtn) {
@@ -981,7 +981,7 @@ int parse_cmd_3(Parser *parser)
 			parser->state.line = parser->loc->line;
 		}
 		if (parser->state.args)
-			parser->state.args = cons2(parser->loc,nSEMI, parser->state.args, parser->rtn);
+			parser->state.args = ivy_cons2(parser->loc,ivy_nSEMI, parser->state.args, parser->rtn);
 		else
 			parser->state.args = parser->rtn;
 		pjump(parse_cmd_2);
@@ -995,7 +995,7 @@ int parse_cmd_3(Parser *parser)
 
 /* Parse next argument.  If line empty, jump into parse block loop. */
 
-int parse_cmd_2(Parser *parser)
+static int parse_cmd_2(Ivy_parser *parser)
 {
 	PTRACE("parse_cmd_2");
 	skipwsc(parser->loc);
@@ -1019,7 +1019,7 @@ int parse_cmd_2(Parser *parser)
 /* If we parsed an expression, jump into parse arguments loop.  Otherwise
    return 0 */
 
-int parse_cmd_1(Parser *parser)
+static int parse_cmd_1(Ivy_parser *parser)
 {
 	PTRACE("parse_cmd_1");
 	if (parser->rtn) {
@@ -1045,7 +1045,7 @@ int parse_cmd_1(Parser *parser)
 
 /* Skip whitespace and ;s.  Record indentation level.  Parse an expression. */
 
-int parse_cmd(Parser *parser)
+static int parse_cmd(Ivy_parser *parser)
 {
 	PTRACE("parse_cmd");
 	skipwss(parser->loc);
@@ -1059,9 +1059,9 @@ int parse_cmd(Parser *parser)
 	return 0;
 }
 
-int parse_paren_2(Parser *);
+static int parse_paren_2(Ivy_parser *);
 
-int parse_paren_1(Parser *parser)
+static int parse_paren_1(Ivy_parser *parser)
 {
 	PTRACE("parse_paren_1");
 	skipwss(parser->loc);
@@ -1074,12 +1074,12 @@ int parse_paren_1(Parser *parser)
 	return 0;
 }
 
-int parse_paren_2(Parser *parser)
+static int parse_paren_2(Ivy_parser *parser)
 {
 	PTRACE("parse_paren_2");
 	if (parser->rtn) {
 		if (parser->state.n)
-			parser->state.n = cons2(parser->loc,nSEMI, parser->state.n, parser->rtn);
+			parser->state.n = ivy_cons2(parser->loc,ivy_nSEMI, parser->state.n, parser->rtn);
 		else
 			parser->state.n = parser->rtn;
 		pjump(parse_paren_1);
@@ -1095,7 +1095,7 @@ int parse_paren_2(Parser *parser)
  * - including the argument list in 'fn (commands) body'
  */
 
-int parse_paren(Parser *parser)
+static int parse_paren(Ivy_parser *parser)
 {
 	PTRACE("parse_paren");
 	parser->state.n = 0;
@@ -1103,9 +1103,9 @@ int parse_paren(Parser *parser)
 	return 0;
 }
 
-int parse_lst_2(Parser *);
+static int parse_lst_2(Ivy_parser *);
 
-int parse_lst_1(Parser *parser)
+static int parse_lst_1(Ivy_parser *parser)
 {
 	PTRACE("parse_lst_1");
 
@@ -1120,12 +1120,12 @@ int parse_lst_1(Parser *parser)
 	return 0;
 }
 
-int parse_lst_2(Parser *parser)
+static int parse_lst_2(Ivy_parser *parser)
 {
 	PTRACE("parse_lst_2");
 	if (parser->rtn) {
 		if (parser->state.n)
-			parser->state.n = cons2(parser->loc, nSEMI, parser->state.n, parser->rtn);
+			parser->state.n = ivy_cons2(parser->loc, ivy_nSEMI, parser->state.n, parser->rtn);
 		else
 			parser->state.n = parser->rtn;
 		pjump(parse_lst_1);
@@ -1140,7 +1140,7 @@ int parse_lst_2(Parser *parser)
  * This is used in func(list), func[list], and { list }
  */
 
-int parse_lst(Parser *parser)
+static int parse_lst(Ivy_parser *parser)
 {
 	PTRACE("parse_lst");
 	parser->state.n = 0;
@@ -1150,23 +1150,23 @@ int parse_lst(Parser *parser)
 
 /* Parse list idle */
 
-int parse_lst_idle_1(Parser *parser);
+static int parse_lst_idle_1(Ivy_parser *parser);
 
-int parse_lst_idle(Parser *parser)
+static int parse_lst_idle(Ivy_parser *parser)
 {
 	PTRACE("parse_lst_idle");
 	pcall(parse_lst,parse_lst_idle_1,0);
 	return 0;
 }
 
-int parse_lst_idle_1(Parser *parser)
+static int parse_lst_idle_1(Ivy_parser *parser)
 {
 	PTRACE("parse_lst_idle_1");
 	if (parser->rtn) {
 		pjump(parse_lst_idle);
 		return 1;
 	} else if (*parser->loc->ptr) {
-		error_3(parser->err,"\"%s\" %d: Unexpected character '%c'",parser->loc->name,parser->loc->line,*parser->loc->ptr);
+		ivy_error_3(parser->err,"\"%s\" %d: Unexpected character '%c'",parser->loc->name,parser->loc->line,*parser->loc->ptr);
 		++parser->loc->ptr;
 		++parser->loc->col;
 		pjump(parse_lst_idle);
@@ -1179,9 +1179,9 @@ int parse_lst_idle_1(Parser *parser)
 
 /* Idle state */
 
-int parse_idle_1(Parser *);
+static int parse_idle_1(Ivy_parser *);
 
-int parse_idle(Parser *parser)
+static int parse_idle(Ivy_parser *parser)
 {
 	PTRACE("parse_idle");
 	skipws(parser->loc);
@@ -1190,7 +1190,7 @@ int parse_idle(Parser *parser)
 	return 0;
 }
 
-int parse_idle_1(Parser *parser)
+static int parse_idle_1(Ivy_parser *parser)
 {
 	PTRACE("parse_idle_1");
 	if (parser->rtn) {
@@ -1198,7 +1198,7 @@ int parse_idle_1(Parser *parser)
 		return 1; /* Top level should take return value */
 	} else {
 		if (*parser->loc->ptr) {
-			error_3(parser->err,"\"%s\" %d: Unexpected character '%c'",parser->loc->name,parser->loc->line,*parser->loc->ptr);
+			ivy_error_3(parser->err,"\"%s\" %d: Unexpected character '%c'",parser->loc->name,parser->loc->line,*parser->loc->ptr);
 			++parser->loc->ptr;
 			++parser->loc->col;
 			pjump(parse_idle);
@@ -1213,10 +1213,10 @@ int parse_idle_1(Parser *parser)
 
 /* Parse a line */
 
-Val parse(Ivy *ivy, Parser *parser, const char *text, int unasm, int ptree, int ptop, int norun, int trace)
+Ivy_val ivy_parse(Ivy *ivy, Ivy_parser *parser, const char *text, int unasm, int ptree, int ptop, int norun, int trace)
 {
-	Val rtn_val;
-	rtn_val.type = tERROR;
+	Ivy_val rtn_val;
+	rtn_val.type = ivy_tERROR;
 	parser->loc->ptr = text;
 	parser->loc->col = 0;
 	parser->loc->lvl = -1;
@@ -1233,25 +1233,25 @@ Val parse(Ivy *ivy, Parser *parser, const char *text, int unasm, int ptree, int 
 	while (*parser->loc->ptr || (parser->loc->eof && parser->state.state != parse_idle)) {
 		int sts = parser->state.state(parser);
 		if (sts == 1) { /* We completed parsing something */
-			Pseudo *code;
-			if (ptree && parser->rtn) prtree(ivy->out, parser->rtn, 0);
+			Ivy_pseudo *code;
+			if (ptree && parser->rtn) ivy_prtree(ivy->out, parser->rtn, 0);
 			if (!parser->err->error_flag) {
-				code = codegen(parser->err, parser->rtn);
-				if (unasm) disasm(ivy->out, code, 0, 0);
+				code = ivy_codegen(parser->err, parser->rtn);
+				if (unasm) ivy_disasm(ivy->out, code, 0, 0);
 				if (!parser->err->error_flag) {
-					if (!norun) run(ivy, code, ptop, trace);
+					if (!norun) ivy_run(ivy, code, ptop, trace);
 				} else {
-					error_0(parser->err, "There were code generator errors- not executing");
+					ivy_error_0(parser->err, "There were code generator errors- not executing");
 					parser->err->error_flag = 0;
 				}
 			} else {
 				// printf("Syntax errors...\n");
-				error_0(parser->err, "There were syntax errors- not executing");
+				ivy_error_0(parser->err, "There were syntax errors- not executing");
 				parser->err->error_flag = 0;
 			}
 			/* rm(parser->loc, parser->rtn); */
 			/* Fast free: */
-			fr_all(parser->free_list);
+			ivy_free_all(parser->free_list);
 		} else if (sts == 2 || sts == 3) { /* Get more input if nothing else is on the line */
 			skipws(parser->loc);
 			if (!*parser->loc->ptr) {
@@ -1264,11 +1264,11 @@ Val parse(Ivy *ivy, Parser *parser, const char *text, int unasm, int ptree, int 
 	return rtn_val;
 }
 
-void parse_done(Ivy *ivy, Parser *parser, int unasm, int ptree, int ptop, int norun, int trace)
+void ivy_parse_done(Ivy *ivy, Ivy_parser *parser, int unasm, int ptree, int ptop, int norun, int trace)
 {
 	if (!parser->need_more) {
 		parser->loc->eof = 1;
-		parse(ivy, parser, "", unasm, ptree, ptop, norun, trace);
+		ivy_parse(ivy, parser, "", unasm, ptree, ptop, norun, trace);
 		parser->loc->eof = 0;
 		parser->loc->line = 0;
 		parser->err->error_flag = 0; /* All errors printed at this point */
@@ -1277,13 +1277,13 @@ void parse_done(Ivy *ivy, Parser *parser, int unasm, int ptree, int ptop, int no
 
 /* Create a parser */
 
-Parser *mkparser(Ivy *ivy, const char *file_name)
+Ivy_parser *ivy_create_parser(Ivy *ivy, const char *file_name)
 {
-	Parser *parser = (Parser *)malloc(sizeof(Parser));
+	Ivy_parser *parser = (Ivy_parser *)malloc(sizeof(Ivy_parser));
 	parser->ivy = ivy;
 	parser->err = ivy->errprn;
 
-	mk_allocator(parser->free_list, sizeof(Node));
+	ivy_create_allocator(parser->free_list, sizeof(Ivy_node));
 
 	parser->loc->ptr = "";
 	parser->loc->col = 0;
@@ -1305,19 +1305,19 @@ Parser *mkparser(Ivy *ivy, const char *file_name)
 
 /* Delete a parser */
 
-void rmparser(Parser *parser)
+void ivy_free_parser(Ivy_parser *parser)
 {
-	rm_allocator(parser->free_list);
+	ivy_free_allocator(parser->free_list);
 	free(parser->str_buf);
 	free(parser);
 }
 
 /* Compile argument string into a tree */
 
-Node *compargs(Ivy *ivy, char *buf)
+Ivy_node *ivy_compargs(Ivy *ivy, char *buf)
 {
-	Node *rtn = 0;
-	Parser *parser = mkparser(ivy, "builtins");
+	Ivy_node *rtn = 0;
+	Ivy_parser *parser = ivy_create_parser(ivy, "builtins");
 	parser->loc->ptr = buf;
 	parser->loc->col = 0;
 	parser->loc->lvl = -1;
@@ -1332,7 +1332,7 @@ Node *compargs(Ivy *ivy, char *buf)
 		}
 	}
 	
-	rtn = opt(parser->loc,rtn);
-	rmparser(parser);
+	rtn = ivy_opt(parser->loc,rtn);
+	ivy_free_parser(parser);
 	return rtn;
 }

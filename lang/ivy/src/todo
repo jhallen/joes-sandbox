@@ -1,59 +1,154 @@
 
 Notes from other languages:
 
+Lua:
+	x == (a || b)
+		x set to a if it's true, b otherwise
+
+	x == (a && b)
+		x set to a if it's false, b otherwise
+
+	foo = require "mymodule"
+	foo.bar()     ...Call method bar from foo
+
+	It calls mymodule file as a function.  This must return a table which becomes foo above.  "require" remembers if a module was already loaded.
+
+		local mymodule = {}
+		function mymodule.bar()
+			print "foo"
+		end
+		return mymodule
+
+	mymodule is not a scope: you can't mymodule.print from it... so only the module's items are included in it.
+
+	In Lua you can add modules to tables using '.':
+		function fred.x()...
+		(same as js fred.x = function...)
+
+	x is added to fred..
+
+	Calling member functions looks like this:
+
+		a:fred(10)     ':' means first argument will be a, as in:
+		a.fred(a, 10)
+
+	Also 'self' will be added in definitions:
+
+		function Example:fred(x) same as
+
+		function Example.fred(self,x)
+
+	Inheritance:
+
+	First create a prototype:
+
+		Account = { balance = 0 }	# Prototype for Account
+
+		Account:new(o)	# Self will be Account here- it's called Account:new()
+			o = o or {}
+			#o.balance = 0		<- instance variable
+			# above is not needed.. on read it will use balance from the prototype..
+			setmetatable(o, self)   <- Objects have a metatable...
+			self.__index = self	<- The __index is where it does scope-like lookup
+			return o
+
+		Account:deposit(n)		# Self will be o here.  o:deposit(10)
+			self.balance += n
+
+		SpecialAccount = Account:new()	# Create a derived type prototype here (no different from create instance)
+			# SpecialAccount's metatable will be Account
+
+		i = SpecialAccount:new{limit=100}	# New gets SpecialAccount here..
+							# i's metatable will be SpecialAccount..
+
+	It has syntax for passing a single argument table to a function: foo{x=0,y=0,z=0}
+	(it otherwise has no named argument call)
+
+	It has syntax for variable number of arguments foo(...) -> they end up in a table called arg
+
+	It has very nice iterators:
+		Create a function f that returns a function to call to retreive the next item.
+		Use generic for to use it: for i in f(t) do ... end
+
+	It has f = loadstring("i = i + 1") or f = loadfile(filename)
+	F is function that executes the compiled code.  Modules are built on top of this for sure.
+
+	It has coroutines.
+
 Python:
 
-      Classes:
+	Classes:
 
-        class foo(BaseClass):
-           x=10
-           def __init__(self, iz):  # Magic special init function
-              BaseClass.__init__()
-              self.x=iz
-           def myfunc(self):
-              print self.x
+		class foo(BaseClass):
+			x=10
+			def __init__(self, iz):  # Magic special init function
+				BaseClass.__init__(self)
+				self.x=iz
+			def myfunc(self):
+				print self.x
 
-        instance = foo(10)  # create instance, __init__ is called.
+		instance = foo(10)  # create instance, __init__ is called.
 
-      Magic methods:
-          __str__    How it's printed
+	class.member   self not automatically inserted
+        instance.member   self is automatically inserted
 
-      Modules:
+	Magic methods:
+		__str__    How it's printed
 
-        import module
-        import module as foo
-        from module import name
+	Modules:
 
-      Iterators:
-        it = iter(foo)   Gets iterator of class (calls __iter__())
-        next(it)         Get next value
-        for x in foo:    Nice syntax for this.
-        raise StopIteration to indicate end..
+		import module
+		import module as foo
+		from module import name
 
-      _ can be used to ignore in multiple assign x, _, z = 1, 2, 3;
-      names beginning with _ are ignored in "from module inport *"
+	Iterators:
+		it = iter(foo)   Gets iterator of class (calls __iter__())
+		next(it)         Get next value
+		for x in foo:    Nice syntax for this.
+		raise StopIteration to indicate end..
+
+	_ can be used to ignore in multiple assign x, _, z = 1, 2, 3;
+	names beginning with _ are ignored in "from module inport *"
+
+	List comprehensions:
+
+		[i for i in range(10)] -> [1,2,3,4,5,6,7,8,9]
 
 Javascript:
 
-	a = new SomeFunctio()...   Calls function and returns its scope, as if last
-		line was return this.  Also set object's prototype to function's prototype:
+	a = new SomeFunction()...   Calls function and returns its scope, as if its last
+		line was "return this".  I think it reparents the scope to the construction
+		function's prototype.
 
-	Functions have prototypes...
+	'this' is interesting.  It's not the current scope.  Instead it's the obj the function is running in.  For example,
+	you can do this: { name: "fred", mymethod: function() { print this.name } }
+	[it's like self in python]
 
-	fn construct_fred()...
-	construct_fred.prototype = { }
+	So when you call a member function, the object is passed as an argument called this.
 
-	Objects have prototypes.  If method can't be found in object, it checks the prototype.
-	are prototypes searched or copied during construction?  Book says they are searched.
+	Construction functions have properties.  One is the prototype objects which should get the methods:
+
+	SomeFunction.prototype.mymethod = function()...
 
 	somefunction.call(a,...     'a' becomes 'this' when somefunction is run.  This provides a way to call a constructor
 	function with a different scope than the one it would normally create when new is called.
 	Allows you to call base-class constructors from derived class constructors.
 
-	There is an example where for a derived class, they assign the prototype as follows:
+	function Derived(a,y,z)
+             Base.call(this, z,y,z)
+             this.fred = 7
 
-	derived_constructor.prototype = new base()  This seems weird to me,
-	since you get the instances and prototype from the base..
+	To inherit you do this:
+
+	I think correct way is: Derived.prototype = Object.create(Base.prototype) # new object's __proto__ is set to Base.prototype
+
+	But constructor property of Derived.prototype is now wrong, so fix it with:
+
+	Object.defineProperty(Derived.prototype, 'constructor', { value: Derived, enumerable: flase, writable: trye });
+
+	yuck.
+
+	Newer versions added a class syntax with extends for inheritance.
 
 	Settings and getters:
 		It has getters and setters: getter is a function called when reading:

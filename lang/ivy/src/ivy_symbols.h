@@ -17,10 +17,10 @@ details.
 IVY; see the file COPYING.  If not, write to the Free Software Foundation, 
 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _Isymbols
-#define _Isymbols 1
+#ifndef _Iivy_symbols
+#define _Iivy_symbols 1
 
-char *symbol_add(const char *name);
-char *symbol_noadd(const char *name);
+char *ivy_symbol_add(const char *name);
+char *ivy_symbol_noadd(const char *name);
 
 #endif

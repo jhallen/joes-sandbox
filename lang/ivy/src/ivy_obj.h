@@ -1,25 +1,25 @@
 /* A hash table entry */
 
-struct entry {
+struct ivy_entry {
 	char *name;		/* String or interned string */
-	Val val;		/* Value */
+	Ivy_val val;		/* Value */
 };
 
 /* An object (a hash table) */
 
-struct obj {
-	Obj *next_free;
+struct ivy_obj {
+	Ivy_obj *next_free;
 				/* Next outer scoping level is in .mom */
 
-	Entry *nam_tab;		/* Symbol table (interned string hash table) */
+	Ivy_entry *nam_tab;		/* Symbol table (interned string hash table) */
 	int nam_tab_mask;	/* Allocation size of nam_tab - 1 */
 	int nam_tab_count;	/* No. of entries actually used */
 
-	Entry *str_tab;		/* Non-interned string hash table */
+	Ivy_entry *str_tab;		/* Non-interned string hash table */
 	int str_tab_mask;	/* Allocation size of str_tab */
 	int str_tab_count;	/* No. of entries actually used */
 
-	Val *ary;		/* Automatic array of values */
+	Ivy_val *ary;		/* Automatic array of values */
 	int ary_size;		/* Size of malloc block array is in */
 	int ary_len;		/* One plus highest numbered member in array */
 
@@ -29,20 +29,20 @@ struct obj {
 };
 
 
-Val *get_by_symbol(Obj *t, char *name);	/* Find address of value or return NULL if it doesn't exist */
-Val *set_by_symbol(Obj *t, char *name); /* Find address of value: create if it doesn't exist */
+Ivy_val *ivy_get_by_symbol(Ivy_obj *t, char *name);	/* Find address of value or return NULL if it doesn't exist */
+Ivy_val *ivy_set_by_symbol(Ivy_obj *t, char *name); /* Find address of value: create if it doesn't exist */
 
-Val *get_by_string(Obj *t, char *name);
-Val *set_by_string(Obj *t, char *name);
+Ivy_val *ivy_get_by_string(Ivy_obj *t, char *name);
+Ivy_val *ivy_set_by_string(Ivy_obj *t, char *name);
 
-Val *get_by_number(Obj *t, long long num);
-Val *set_by_number(Obj *t, long long num);
+Ivy_val *ivy_get_by_number(Ivy_obj *t, long long num);
+Ivy_val *ivy_set_by_number(Ivy_obj *t, long long num);
 
-Obj *alloc_obj(int nam_size, int str_size, int ary_size);
-void mark_obj(Obj *o);
-void mark_protected_objs();
-void sweep_objs();
-void clear_protected_objs();
-void protect_obj(Obj *o);
+Ivy_obj *ivy_alloc_obj(int nam_size, int str_size, int ary_size);
+void ivy_mark_obj(Ivy_obj *o);
+void ivy_mark_protected_objs();
+void ivy_sweep_objs();
+void ivy_clear_protected_objs();
+void ivy_protect_obj(Ivy_obj *o);
 
-Obj *dupobj(Obj *, void *, int, int);		/* Duplicate an object */
+Ivy_obj *ivy_dupobj(Ivy_obj *, void *, int, int);		/* Duplicate an object */

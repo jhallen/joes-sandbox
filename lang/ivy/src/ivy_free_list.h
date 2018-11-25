@@ -17,14 +17,14 @@ details.
 IVY; see the file COPYING.  If not, write to the Free Software Foundation, 
 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _Ifree_list
-#define _Ifree_list 1
+#ifndef _Iivy_free_list
+#define _Iivy_free_list 1
 
-typedef struct free_list Free_list;
+typedef struct ivy_free_list Ivy_free_list;
 
 /* A simple item allocator */
 
-struct free_list {
+struct ivy_free_list {
 	unsigned char *page;	/* Current allocation page */
 	int alloc;		/* Current allocation index */
 	int size;		/* Item size */
@@ -34,18 +34,18 @@ struct free_list {
 };
 
 /* Create an allocator */
-void mk_allocator(Free_list *free_list, int item_size);
+void ivy_create_allocator(Ivy_free_list *free_list, int item_size);
 
 /* Free an allocator */
-void rm_allocator(Free_list *free_list);
+void ivy_free_allocator(Ivy_free_list *free_list);
 
 /* Allocate an item */
-void *al_item(Free_list *free_list);
+void *ivy_alloc_item(Ivy_free_list *free_list);
 
 /* Free an item */
-void fr_item(Free_list *free_list, void *item);
+void ivy_free_item(Ivy_free_list *free_list, void *item);
 
 /* Free all items */
-void fr_all(Free_list *free_list);
+void ivy_free_all(Ivy_free_list *free_list);
 
 #endif

@@ -17,39 +17,39 @@ details.
 IVY; see the file COPYING.  If not, write to the Free Software Foundation, 
 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _JOE_HASH_H
-#define _JOE_HASH_H 1
+#ifndef _Jivy_hash_h
+#define _Jivy_hash_h 1
 
-#include "free_list.h"
+#include "ivy_free_list.h"
 
-typedef struct hash_table Hash_table;
-typedef struct hash_entry Hash_entry;
+typedef struct ivy_hash_table Ivy_hash_table;
+typedef struct ivy_hash_entry Ivy_hash_entry;
 
-struct hash_entry {
-	struct hash_entry *next;
+struct ivy_hash_entry {
+	struct ivy_hash_entry *next;
 	unsigned hash_val;
 	const char *name;
 	void *val;
 };
 
-struct hash_table {
-	Free_list free_entries[1];
-	Hash_entry **table;
+struct ivy_hash_table {
+	Ivy_free_list free_entries[1];
+	Ivy_hash_entry **table;
 	int nentries;
 	int size;
 };
 
-unsigned hash(const char *s);
+unsigned ivy_hash(const char *s);
 
-Hash_table *htmk(int len);
-void htrm(Hash_table *ht);
+Ivy_hash_table *ivy_create_ht(int len);
+void ivy_free_ht(Ivy_hash_table *ht);
 
-void htaddhval(Hash_table *ht, const char *name, unsigned hval, void *val);
-void htadd(Hash_table *ht, const char *name, void *val);
+void ivy_ht_hval_add(Ivy_hash_table *ht, const char *name, unsigned hval, void *val);
+void ivy_ht_add(Ivy_hash_table *ht, const char *name, void *val);
 
-void *htfindhval(Hash_table *ht, const char *name, unsigned hval);
-void *htfind(Hash_table *ht, const char *name);
+void *ivy_ht_hval_find(Ivy_hash_table *ht, const char *name, unsigned hval);
+void *ivy_ht_find(Ivy_hash_table *ht, const char *name);
 
-void htexpand(Hash_table *ht);
+void ivy_ht_expand(Ivy_hash_table *ht);
 
 #endif

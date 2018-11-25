@@ -29,7 +29,7 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 
 #include "ivy_online.h"
 
-const char *choose_pager()
+static const char *choose_pager()
 {
 	const char *s = getenv("PAGER");
 	struct stat stbuf;
@@ -39,13 +39,13 @@ const char *choose_pager()
 	else return 0;
 }
 
-void rthelp(Ivy *ivy)
+void ivy_rthelp(Ivy *ivy)
 {
 	char buf[32];
-	Val *a;
+	Ivy_val *a;
 	int x;
-	a = getv_by_symbol(ivy, a_symbol);
-	if (a && a->type == tSTR) {
+	a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a && a->type == ivy_tSTR) {
 		strncpy(buf, a->u.str->s, sizeof(buf) - 1);
 		buf[sizeof(buf) - 1]=0;
 		goto find;
@@ -75,5 +75,5 @@ void rthelp(Ivy *ivy)
 		}
 	}
 	bye:
-	mkval(psh(ivy), tVOID);
+	ivy_push_void(ivy);
 }		

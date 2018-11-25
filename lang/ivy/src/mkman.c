@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	struct section *current = 0;
 	int count = 0;
 	int line = 0;
-	printf("struct section { const char *name; const char *text; } sections[]=\n");
+	printf("static struct section { const char *name; const char *text; } sections[]=\n");
 	printf("{\n");
 	while(fgets(buf, sizeof(buf) - 1, stdin)) {
 		if (strlen(buf) && buf[strlen(buf) - 1] == '\n')

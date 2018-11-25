@@ -20,22 +20,22 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #ifndef _Iivy
 #define _Iivy 1
 
-#include "error.h"
+#include "ivy_error.h"
 
 typedef struct ivy Ivy;		/* An interpreter */
-typedef struct parser Parser;	/* Parser */
-typedef struct parse_state Parse_state;
+typedef struct ivy_parser Ivy_parser;	/* Parser */
+typedef struct ivy_parse_state Ivy_parse_state;
 				/* Parser state stack entry */
 
-typedef struct func Func;	/* A function */
-typedef struct closure Closure;	/* A function in context (a closure) */
-typedef struct val Val;		/* A value */
+typedef struct ivy_func Ivy_func;	/* A function */
+typedef struct ivy_closure Ivy_closure;	/* A function in context (a closure) */
+typedef struct ivy_val Ivy_val;		/* A value */
  
-typedef struct str Str;		/* A string */
-typedef struct obj Obj;		/* An object */
+typedef struct ivy_string Ivy_string;		/* A string */
+typedef struct ivy_obj Ivy_obj;		/* An object */
 
-typedef struct entry Entry;	/* A hash table entry */
-typedef unsigned char Pseudo;	/* Byte code */
+typedef struct ivy_entry Ivy_entry;	/* A hash table entry */
+typedef unsigned char Ivy_pseudo;	/* Byte code */
 
 #include "ivy_str.h"
 #include "ivy_gc.h"
@@ -45,54 +45,54 @@ typedef unsigned char Pseudo;	/* Byte code */
 
 /* Value types */
 
-enum valtype {
-	tVOID,			/* Nothing */
-	tNUM,			/* Integer */
-	tSTR,			/* String */
-	tNAM,			/* A symbol (a name) */
-	tOBJ,			/* Object */
-	tCLOSURE,		/* A closure (function in its context) */
-	tLST,			/* List count (only on stack) */
-	tFP,			/* Floating point */
-	tRET_IVY,		/* Normal function return */
-	tRET_IVY_THUNK,		/* Normal function return for a thunk */
-	tRET_NEXT_INIT,		/* Call next initializer */
-	tRET_SIMPLE,		/* Call argument */
-	tRET_SIMPLE_THUNK,	/* Call argument thunk */
-	tPAIR,			/* A name value pair */
-	tERROR = -1
+enum ivy_valtype {
+	ivy_tVOID,		/* Nothing */
+	ivy_tNUM,		/* Integer */
+	ivy_tSTR,		/* String */
+	ivy_tNAM,		/* A symbol (a name) */
+	ivy_tOBJ,		/* Object */
+	ivy_tCLOSURE,		/* A closure (function in its context) */
+	ivy_tLST,		/* List count (only on stack) */
+	ivy_tFP,		/* Floating point */
+	ivy_tRET_IVY,		/* Normal function return */
+	ivy_tRET_IVY_THUNK,	/* Normal function return for a thunk */
+	ivy_tRET_NEXT_INIT,	/* Call next initializer */
+	ivy_tRET_SIMPLE,	/* Call argument */
+	ivy_tRET_SIMPLE_THUNK,	/* Call argument thunk */
+	ivy_tPAIR,		/* A name value pair */
+	ivy_tERROR = -1
 };
 
 /* A function closure */
 
-struct closure {
-	Func *func;	/* Code for function */
-	Obj *env;	/* Environment to run it in */
+struct ivy_closure {
+	Ivy_func *func;	/* Code for function */
+	Ivy_obj *env;	/* Environment to run it in */
 };
 
 /* A value: (5 words.. wasteful..) */
 
-struct callfunc;
+struct ivy_callstate;
 
-struct val {
-	enum valtype type;	/* What type this thing is */
-	enum valtype idx_type;
+struct ivy_val {
+	enum ivy_valtype type;	/* What type this thing is */
+	enum ivy_valtype idx_type;
 	union {
 		long long num;	/* An integer */
 		double fp;	/* Floating point */
-		Str *str;	/* A string */
-		Closure closure;/* A function */
-		Obj *obj;	/* An object */
+		Ivy_string *str;	/* A string */
+		Ivy_closure closure;/* A function */
+		Ivy_obj *obj;	/* An object */
 		char *name;	/* A symbol */
-		Pseudo *pc;	/* Return address when type is tRET_IVY */
+		Ivy_pseudo *pc;	/* Return address when type is tRET_IVY */
 	} u;
-	Obj *origin;		/* Where value is from */
+	Ivy_obj *origin;		/* Where value is from */
 	union {
 		long long num;
 		char *name;
-		Str *str;
-		void (*func)(Ivy *ivy, struct callfunc *t); /* Continuation function after tRET_SIMPLE */
-		struct callfunc *callfunc; /* Only in tRET_IVY */
+		Ivy_string *str;
+		void (*func)(Ivy *ivy, struct ivy_callstate *t); /* Continuation function after tRET_SIMPLE */
+		struct ivy_callstate *callstate; /* Only in tRET_IVY */
 	} idx;			/* Index within origin */
 };
 
@@ -101,31 +101,31 @@ struct val {
 
 /* State of function call in progress.  This tracks argument evaluations and initializer evaluations */
 
-struct callfunc {
-	Obj *argv;	/* Argument vector (no need to mark, it's in scoping level for function) */
-	Val *argv_result;	/* Where arg result goes in argv */
-	Val *scope_result;	/* Where arg result goes in scope */
-	Val *q;		/* Arg pointer on stack */
+struct ivy_callstate {
+	Ivy_obj *argv;	/* Argument vector (no need to mark, it's in scoping level for function) */
+	Ivy_val *argv_result;	/* Where arg result goes in argv */
+	Ivy_val *scope_result;	/* Where arg result goes in scope */
+	Ivy_val *q;		/* Arg pointer on stack */
 	int argn;	/* Argument vector index */
 	int x;		/* Provided arg list counter */
-	Obj *ovars;	/* Save caller's scope */
-	Closure o;	/* Function we're calling */
-	Val val;	/* String or object we're calling */
+	Ivy_obj *ovars;	/* Save caller's scope */
+	Ivy_closure o;	/* Function we're calling */
+	Ivy_val val;	/* String or object we're calling */
 };
 
 /* An interpreter */
 
 struct ivy {
 	Ivy *next;
-	Error_printer errprn[1];	/* Error printer */
-	Val stashed;	/* Stashed return value */
-	Val *sptop;	/* Base of stack */
-	Val *sp;	/* Stack */
+	Ivy_error_printer errprn[1];	/* Error printer */
+	Ivy_val stashed;	/* Stashed return value */
+	Ivy_val *sptop;	/* Base of stack */
+	Ivy_val *sp;	/* Stack */
 	int spsize;	/* Stack size */
-	Obj *glblvars;	/* Outer-most scoping level: Global variables */
-	Obj *vars;	/* Current deepest scoping level */
+	Ivy_obj *glblvars;	/* Outer-most scoping level: Global variables */
+	Ivy_obj *vars;	/* Current deepest scoping level */
 	jmp_buf err;	/* Error return point */
-	Pseudo *pc;	/* Current program counter */
+	Ivy_pseudo *pc;	/* Current program counter */
 	void (*call_me)(Ivy *);
 			/* C function to call */
 	void *call_me_obj;
@@ -136,30 +136,30 @@ struct ivy {
 
 /* Parser state */
 
-struct parse_state {
-	Parse_state *next;
-	int (*state)(Parser *);
+struct ivy_parse_state {
+	Ivy_parse_state *next;
+	int (*state)(Ivy_parser *);
 	int prec;
 	int last;
-	Node *n;
-	Node *cmd;
-	Node *args;
-	Node *blk;
-	What *op;
+	Ivy_node *n;
+	Ivy_node *cmd;
+	Ivy_node *args;
+	Ivy_node *blk;
+	Ivy_what *op;
 	int blvl;	/* Indentation level of start of command */
 	int line;	/* Line number of last argument of command */
 };
 
 /* A parser */
 
-struct parser {
+struct ivy_parser {
 	Ivy *ivy;		/* Interpreter */
-	Error_printer *err;	/* Error printer (taken from 'ivy') */
+	Ivy_error_printer *err;	/* Error printer (taken from 'ivy') */
 	// Error_printer err[1];	/* Error printer */
 
-	Free_list free_list[1];	/* Free list */
+	Ivy_free_list free_list[1];	/* Free list */
 
-	Loc loc[1];		/* Current input location */
+	Ivy_loc loc[1];		/* Current input location */
 
 	char *str_buf;	/* String buffer */
 	int str_siz;		/* Malloc size of string buffer */
@@ -168,27 +168,27 @@ struct parser {
 	int paren_level;	/* Parenthesis depth */
 	int need_more;		/* Set for continuation line */
 
-	Parse_state state;	/* Current state */
-	Node *rtn;
+	Ivy_parse_state state;	/* Current state */
+	Ivy_node *rtn;
 };
 
 
-/* Node *compargs(char *s); Compile argument string into a tree (for creating built-in functions) */
-Node *compargs(Ivy *ivy, char *);
+/* Ivy_node *compargs(char *s); Compile argument string into a tree (for creating built-in functions) */
+Ivy_node *ivy_compargs(Ivy *ivy, char *);
 
 /* Main functions */
 
 /* Interpret and execute a line immediately */
-Parser *mkparser(Ivy *ivy, const char *file_name);
-void rmparser(Parser *parser);
-Val parse(Ivy *ivy, Parser *parser, const char *text, int unasm, int ptree, int ptop, int norun, int trace);
-void parse_done(Ivy *ivy, Parser *parser, int unasm, int ptree, int ptop, int norun, int trace);
+Ivy_parser *ivy_create_parser(Ivy *ivy, const char *file_name);
+void ivy_free_parser(Ivy_parser *parser);
+Ivy_val ivy_parse(Ivy *ivy, Ivy_parser *parser, const char *text, int unasm, int ptree, int ptop, int norun, int trace);
+void ivy_parse_done(Ivy *ivy, Ivy_parser *parser, int unasm, int ptree, int ptop, int norun, int trace);
 
 /* Convert a parse-tree into pseudo-machine code */
-Pseudo *codegen(Error_printer *err,Node *n);
+Ivy_pseudo *ivy_codegen(Ivy_error_printer *err,Ivy_node *n);
 
 /* A a C-function to the global table */
-void addfunc(Error_printer *err, char *name, char *argstr, void (*cfunc) ());
+void ivy_addfunc(Ivy_error_printer *err, char *name, char *argstr, void (*cfunc) ());
 
 #ifndef _Isetjmp
 #define _Isetjmp 1
@@ -197,19 +197,19 @@ void addfunc(Error_printer *err, char *name, char *argstr, void (*cfunc) ());
 
 /* Hash iterator for strings */
 
-#define hnext(accu,c) (((accu) << 4) + ((accu) >> 28) + (c))
+#define ivy_hnext(accu,c) (((accu) << 4) + ((accu) >> 28) + (c))
 
 /* Compute hash value of symbol address */
 
-#define ahash(s) (((unsigned long)(s)>>3) ^ ((unsigned long)(s)>>12))
+#define ivy_ahash(s) (((unsigned long)(s)>>3) ^ ((unsigned long)(s)>>12))
 
 /* A function */
 
-struct func {
-	Pseudo *code;		/* Code address */
+struct ivy_func {
+	Ivy_pseudo *code;		/* Code address */
 	void (*cfunc)(Ivy *);	/* C function address */
 	char **args;		/* Arguments names */
-	Pseudo **inits;		/* Argument initializer code */
+	Ivy_pseudo **inits;		/* Argument initializer code */
 	char *quote;		/* Set to quote arg */
 	int nargs;		/* No. args */
 	int thunk;		/* Set if this is a thunk, which means it does not get its own scope level */
@@ -222,133 +222,254 @@ struct func {
 
 enum {
 	/* Flow */
-	iBRA,			/* iBRA <offset>        Add offset to PC */
-	iBEQ,			/* iBEQ <offset>        POP, BRA if ==0 */
-	iBNE,			/* iBNE <offset>        POP, BRA if !=0 */
-	iBGT,			/* iBGT <offset>        POP, BRA if >0 */
-	iBLT,			/* iBLT <offset>        POP, BRA if <0 */
-	iBGE,			/* iBGE <offset>        POP, BRA if >=0 */
-	iBLE,			/* iBLE <offset>        POP, BRA if <=0 */
+	ivy_iBRA,			/* iBRA <offset>        Add offset to PC */
+	ivy_iBEQ,			/* iBEQ <offset>        POP, BRA if ==0 */
+	ivy_iBNE,			/* iBNE <offset>        POP, BRA if !=0 */
+	ivy_iBGT,			/* iBGT <offset>        POP, BRA if >0 */
+	ivy_iBLT,			/* iBLT <offset>        POP, BRA if <0 */
+	ivy_iBGE,			/* iBGE <offset>        POP, BRA if >=0 */
+	ivy_iBLE,			/* iBLE <offset>        POP, BRA if <=0 */
 
 	/* Basic operators */
-	iCOM,			/* iCOM                 1's complement 1st */
-	iNEG,			/* iNEG                 2's complement 1st */
-	iSHL,			/* iSHL                 Shift 2nd left by 1st, POP */
-	iSHR,			/* iSHR                 Shift 2nd right by 1st, POP */
-	iMUL,			/* iMUL                 2nd*=1st, POP */
-	iDIV,			/* iDIV                 2nd/=1st, POP */
-	iMOD,			/* iMOD                 2nd%=1st, POP */
-	iAND,			/* iAND                 2nd*=1st, POP */
-	iADD,			/* iADD                 2nd+=1st, POP */
+	ivy_iCOM,			/* iCOM                 1's complement 1st */
+	ivy_iNEG,			/* iNEG                 2's complement 1st */
+	ivy_iSHL,			/* iSHL                 Shift 2nd left by 1st, POP */
+	ivy_iSHR,			/* iSHR                 Shift 2nd right by 1st, POP */
+	ivy_iMUL,			/* iMUL                 2nd*=1st, POP */
+	ivy_iDIV,			/* iDIV                 2nd/=1st, POP */
+	ivy_iMOD,			/* iMOD                 2nd%=1st, POP */
+	ivy_iAND,			/* iAND                 2nd*=1st, POP */
+	ivy_iADD,			/* iADD                 2nd+=1st, POP */
 	/* iADD also concatenates strings */
 	/* iADD also appends objects */
-	iSUB,			/* iSUB                 2nd-=1st, POP */
-	iOR,			/* iOR                  2nd|=1st, POP */
+	ivy_iSUB,			/* iSUB                 2nd-=1st, POP */
+	ivy_iOR,			/* iOR                  2nd|=1st, POP */
 	/* iOR also unions objects */
-	iXOR,			/* iXOR                 2nd^=1st, POP */
-	iCMP,			/* iCMP                 2nd compared with 1st, POP */
+	ivy_iXOR,			/* iXOR                 2nd^=1st, POP */
+	ivy_iCMP,			/* iCMP                 2nd compared with 1st, POP */
 	/* iCMP also works on strings */
 
 	/* Block structuring */
-	iBEG,			/* iBEG                 Make new block level */
-	iEND,			/* iEND                 Remove 1 level of local vars */
-	iLOC,			/* iLOC                 Create local variable */
+	ivy_iBEG,			/* iBEG                 Make new block level */
+	ivy_iEND,			/* iEND                 Remove 1 level of local vars */
+	ivy_iLOC,			/* iLOC                 Create local variable */
 
 	/* Variable lookup */
-	iGET,			/* iGET_ATOM            Get named variable's value */
-	iGETF,			/* iGETF_ATOM           Same as above, but force current scope */
-	iAT,
+	ivy_iGET,			/* iGET_ATOM            Get named variable's value */
+	ivy_iGETF,			/* iGETF_ATOM           Same as above, but force current scope */
+	ivy_iAT,
 
 	/* Assignment */
-	iSET,			/* iSET                 Assign value to variable */
+	ivy_iSET,			/* iSET                 Assign value to variable */
 
 	/* Functions / Arrays / Structures */
-	iCALL,			/* iCALL                Call or get member/element */
-	iSTASH,			/* iSTACH		Pop and stash return value */
-	iRTS,			/* iRTS                 Return from subroutine (PUSH stashed return value) */
+	ivy_iCALL,			/* iCALL                Call or get member/element */
+	ivy_iSTASH,			/* iSTACH		Pop and stash return value */
+	ivy_iRTS,			/* iRTS                 Return from subroutine (PUSH stashed return value) */
 
 	/* Stack */
-	iPOP,			/* iPOP                 Kill 1st */
+	ivy_iPOP,			/* iPOP                 Kill 1st */
 
-	iPSH_VOID,
-	iPSH_THIS,
-	iPSH_NUM,
-	iPSH_LST,
-	iPSH_FP,
-	iPSH_STR,
-	iPSH_NAM,
-	iPSH_FUNC,
-	iPSH_PAIR,
+	ivy_iPSH_VOID,
+	ivy_iPSH_THIS,
+	ivy_iPSH_NUM,
+	ivy_iPSH_LST,
+	ivy_iPSH_FP,
+	ivy_iPSH_STR,
+	ivy_iPSH_NAM,
+	ivy_iPSH_FUNC,
+	ivy_iPSH_PAIR,
 
-	iFOREACH,		/* iFOREACH             Iterate a list values */
-	iFORINDEX,		/* iFORINDEX		Iterate a list keys */
+	ivy_iFOREACH,		/* iFOREACH             Iterate a list values */
+	ivy_iFORINDEX,		/* iFORINDEX		Iterate a list keys */
 
-	iFIX			/* iFIX                 Stack list -> object */
+	ivy_iFIX			/* iFIX                 Stack list -> object */
 };
 
 /* Member functions... */
 
-Func *mkfunc(Pseudo *, int, char **, Pseudo **, char *, int thunk);	/* Create a function */
-
-Closure *mkclosure(Func *, Obj *, void *ref_who, int ref_type);	/* Create a function in context */
+Ivy_func *ivy_create_func(Ivy_pseudo *, int, char **, Ivy_pseudo **, char *, int thunk);	/* Create a function */
 
 /* Other functions */
 
-Val *getv_by_string(Ivy *,char *);	/* Get a variable - check all scope levels */
-Val *getv_by_symbol(Ivy *,char *);	/* Same as above, but only with interned strings */
+Ivy_val *ivy_getv_by_string(Ivy *,char *);	/* Get a variable - check all scope levels */
+Ivy_val *ivy_getv_by_symbol(Ivy *,char *);	/* Same as above, but only with interned strings */
 
-Val *get_origin(Val *v);
-Val *set_origin(Val *v);
+Ivy_val *ivy_get_origin(Ivy_val *v);
+Ivy_val *ivy_set_origin(Ivy_val *v);
 
-void addlvl(Ivy *ivy, Obj *dyn);		/* Add a scope level */
-void rmvlvl(Ivy *ivy);		/* Remove a scope level */
-Obj *get_mom(Obj *o);
+void ivy_scope_push(Ivy *ivy, Ivy_obj *dyn);		/* Add a scope level */
+void ivy_scope_pop(Ivy *ivy);		/* Remove a scope level */
+Ivy_obj *ivy_get_mom(Ivy_obj *o);
 
-Val mkpval(enum valtype, void *);
-void mkval(Val *,enum valtype);
-Val mkival(enum valtype, long long);
-Val mkdval(enum valtype, double);
-Val *rmval(Val *, int);
-Val *dupval(Val *, Val *);
-Val *pr(Ivy *ivy, FILE *out,Val *,int lvl);
+/* Make space on stack for one value */
 
-Val *psh(Ivy *);
-Val popval(Ivy *);
+static inline Ivy_val *ivy_push(Ivy *ivy)
+{
+	int ss;
+	if ((ss = ++ivy->sp - ivy->sptop) == ivy->spsize) {
+		ivy->sptop = (Ivy_val *) realloc(ivy->sptop, sizeof(Ivy_val) * (ivy->spsize += 1024));
+		ivy->sp = ivy->sptop + ss;
+	}
+	return ivy->sp;
+}
 
-void simple_call(Ivy *, Pseudo *, void (*func)(Ivy *,void *), void *obj);
-void callfunc(Ivy *, Closure);
+/* Make a value */
+
+static inline void ivy_val(Ivy_val *v, enum ivy_valtype type)
+{
+	v->type = type;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.num = 0;
+}
+
+static inline void ivy_void(Ivy_val *v)
+{
+	v->type = ivy_tVOID;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.num = 0;
+}
+
+static inline void ivy_push_void(Ivy *ivy)
+{
+	ivy_void(ivy_push(ivy));
+}
+
+static inline void ivy_int(Ivy_val *v, long long i)
+{
+	v->type = ivy_tNUM;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.num = i;
+}
+
+static inline void ivy_push_int(Ivy *ivy, long long i)
+{
+	ivy_int(ivy_push(ivy), i);
+}
+
+static inline void ivy_lst(Ivy_val *v, long long i)
+{
+	v->type = ivy_tLST;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.num = i;
+}
+
+static inline void ivy_double(Ivy_val *v, double d)
+{
+	v->type = ivy_tFP;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.fp = d;
+}
+
+static inline void ivy_push_double(Ivy *ivy, double d)
+{
+	ivy_double(ivy_push(ivy), d);
+}
+
+static inline void ivy_obj(Ivy_val *v, Ivy_obj *u)
+{
+	v->type = ivy_tOBJ;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.obj = u;
+}
+
+static inline void ivy_push_obj(Ivy *ivy, Ivy_obj *u)
+{
+	ivy_obj(ivy_push(ivy), u);
+}
+
+static inline void ivy_string(Ivy_val *v, Ivy_string *u)
+{
+	v->type = ivy_tSTR;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.str = u;
+}
+
+static inline void ivy_push_string(Ivy *ivy, Ivy_string *u)
+{
+	ivy_string(ivy_push(ivy), u);
+}
+
+static inline void ivy_symbol(Ivy_val *v, char *s)
+{
+	v->type = ivy_tNAM;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.name = s;
+}
+
+static inline void ivy_push_symbol(Ivy *ivy, char *name)
+{
+	ivy_symbol(ivy_push(ivy), name);
+}
+
+static inline void ivy_closure(Ivy_val *v, Ivy_func *f, Ivy_obj *env)
+{
+	v->type = ivy_tCLOSURE;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.closure.func = f;
+	v->u.closure.env = env;
+}
+
+Ivy_val *ivy_rmval(Ivy_val *v, int line);
+Ivy_val *ivy_dup(Ivy_val *, Ivy_val *);
+
+static inline void ivy_pop(Ivy_val *v, Ivy *ivy)
+{
+	ivy_dup(v, ivy->sp);
+	ivy->sp = ivy_rmval(ivy->sp, __LINE__);
+}
+
+Ivy_val *ivy_pr(Ivy *ivy, FILE *out,Ivy_val *,int lvl);
 
 /* Initialize an interpreter */
-void mk_ivy(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FILE *in, FILE *out);
+void ivy_setup(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FILE *in, FILE *out);
 
 /* Set global scope for interpreter */
-void set_globals(Ivy *ivy, Obj *globals);
+void ivy_set_globals(Ivy *ivy, Ivy_obj *globals);
 
 /* Create global scope: initialize it with built-in functions */
-Obj *mk_globals(Ivy *ivy);
+Ivy_obj *ivy_alloc_globals(Ivy *ivy);
 
 /* Execute a function */
-Val run(Ivy *, Pseudo *, int ptop, int trace);
+Ivy_val ivy_run(Ivy *, Ivy_pseudo *, int ptop, int trace);
 
 /* Table of built-in functions */
 
-extern struct builtin {
+extern struct ivy_builtin {
 	const char *name; /* Function name */
 	void (*cfunc) (Ivy *); /* Function address */
 	const char *args; /* Argument list */
-} builtins[];
+} ivy_builtins[];
 
-void rthelp(Ivy *);
+void ivy_rthelp(Ivy *);
 
-void disasm(FILE *out, Pseudo *code, int ind, int oneline);
-int cntlst(Node *args);
-int genlst(Error_printer *err, char **argv, Pseudo ** initv, char *quote, Node * n);
+void ivy_disasm(FILE *out, Ivy_pseudo *code, int ind, int oneline);
+int ivy_cntlst(Ivy_node *args);
+int ivy_genlst(Ivy_error_printer *err, char **argv, Ivy_pseudo ** initv, char *quote, Ivy_node * n);
 
 /* Atoms */
-extern char *a_symbol;
-extern char *b_symbol;
-extern char *mom_symbol;
-extern char *dynamic_symbol;
-extern char *argv_symbol;
+extern char *ivy_a_symbol;
+extern char *ivy_b_symbol;
+extern char *ivy_mom_symbol;
+extern char *ivy_dynamic_symbol;
+extern char *ivy_argv_symbol;
 
 #endif

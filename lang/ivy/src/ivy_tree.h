@@ -22,38 +22,38 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 
 #include "ivy_loc.h"
 
-typedef struct node Node;
-typedef struct what What;
+typedef struct ivy_node Ivy_node;
+typedef struct ivy_what Ivy_what;
 
 /* Node type codes: must be in same order as corresponding structures in what_tab */
 
 enum {
-	nNAM, nNUM, nFP, nSTR, nQUOTE, nCALL1, nCALL, nPRINC, nPRDEC,
-	nPOINC, nPODEC, nCOM, nNEG, nNOT, nAT, nADDR, nSHR, nSHL, nMUL, nDIV, nMOD,
-	nAND, nADD, nSUB, nOR, nXOR, nEQ, nNE, nLT, nGT, nLE, nGE, nLAND,
-	nLOR, nSET, nDOTTO, nSHLTO, nSHRTO, nMULTO, nDIVTO, nMODTO, nANDTO,
-	nADDTO, nSUBTO, nXORTO, nORTO, nPOST, nDOTPO, nSHLPO, nSHRPO, nMULPO,
-        nDIVPO, nMODPO, nANDPO, nADDPO, nSUBPO, nXORPO, nORPO, nCOMMA, nSEMI,
-        nDEFUN, nLIST, nPAREN, nVOID, nTHIS, nEMPTY, nLABEL, nIF, nFOR, nWHILE,
-        nLOCAL, nLOOP, nUNTIL, nBREAK, nCONT, nRETURN, nFOREACH, nFORINDEX
+	ivy_nNAM, ivy_nNUM, ivy_nFP, ivy_nSTR, ivy_nQUOTE, ivy_nCALL1, ivy_nCALL, ivy_nPRINC, ivy_nPRDEC,
+	ivy_nPOINC, ivy_nPODEC, ivy_nCOM, ivy_nNEG, ivy_nNOT, ivy_nAT, ivy_nADDR, ivy_nSHR, ivy_nSHL, ivy_nMUL, ivy_nDIV, ivy_nMOD,
+	ivy_nAND, ivy_nADD, ivy_nSUB, ivy_nOR, ivy_nXOR, ivy_nEQ, ivy_nNE, ivy_nLT, ivy_nGT, ivy_nLE, ivy_nGE, ivy_nLAND,
+	ivy_nLOR, ivy_nSET, ivy_nDOTTO, ivy_nSHLTO, ivy_nSHRTO, ivy_nMULTO, ivy_nDIVTO, ivy_nMODTO, ivy_nANDTO,
+	ivy_nADDTO, ivy_nSUBTO, ivy_nXORTO, ivy_nORTO, ivy_nPOST, ivy_nDOTPO, ivy_nSHLPO, ivy_nSHRPO, ivy_nMULPO,
+        ivy_nDIVPO, ivy_nMODPO, ivy_nANDPO, ivy_nADDPO, ivy_nSUBPO, ivy_nXORPO, ivy_nORPO, ivy_nCOMMA, ivy_nSEMI,
+        ivy_nDEFUN, ivy_nLIST, ivy_nPAREN, ivy_nVOID, ivy_nTHIS, ivy_nEMPTY, ivy_nLABEL, ivy_nIF, ivy_nFOR, ivy_nWHILE,
+        ivy_nLOCAL, ivy_nLOOP, ivy_nUNTIL, ivy_nBREAK, ivy_nCONT, ivy_nRETURN, ivy_nFOREACH, ivy_nFORINDEX
 };
 
 /* Parse tree nodes */
 
-struct node {
+struct ivy_node {
 	int what;		/* What type of node this is */
-	Node *l;		/* Left operand pointer */
-	Node *r;		/* Right (single) operand pointer */
+	Ivy_node *l;		/* Left operand pointer */
+	Ivy_node *r;		/* Right (single) operand pointer */
 	char *s;		/* If node is a string */
 	long long n;		/* If node is an integer or size of string */
 	double fp;		/* If node is floating point constant */
 
-	Loc loc[1];		/* Location */
+	Ivy_loc loc[1];		/* Location */
 };
 
 /* Node type structure */
 
-struct what {
+struct ivy_what {
 	int what;		/* Code for this node type */
 	const char *name;	/* How it's scanned/printed */
 	int prefix;		/* Context dependent alternatives */
@@ -64,12 +64,12 @@ struct what {
 	int meth;		/* Method to build parse tree out of it */
 	int i;			/* Which instruction to use */
 	int inst;		/* Which nodes type to use (for some meths) */
-	What *next;		/* Next node type structure with same hash value */
+	Ivy_what *next;		/* Next node type structure with same hash value */
 };
 
 /* Table of node type structures */
 
-extern What what_tab[];
+extern Ivy_what ivy_what_tab[];
 
 /* Methods for operators:
  *  1 2		No. args for operator.  Can be ORed with one of the following:
@@ -95,40 +95,40 @@ extern What what_tab[];
 
 /* Tree constructors */
 
-Node *cons1(Loc *, int, Node *);
+Ivy_node *ivy_cons1(Ivy_loc *, int, Ivy_node *);
 
-Node *cons2(Loc *, int, Node *, Node *);
+Ivy_node *ivy_cons2(Ivy_loc *, int, Ivy_node *, Ivy_node *);
 
-Node *consnum(Loc *, long long);
+Ivy_node *ivy_consnum(Ivy_loc *, long long);
 
-Node *consfp(Loc *, double);
+Ivy_node *ivy_consfp(Ivy_loc *, double);
 
-Node *conss(Loc *, int, char *s, int len);
+Ivy_node *ivy_conss(Ivy_loc *, int, char *s, int len);
 
-Node *consstr(Loc *, char *s, int len);
+Ivy_node *ivy_consstr(Ivy_loc *, char *s, int len);
 
-Node *consnam(Loc *, char *s);
+Ivy_node *ivy_consnam(Ivy_loc *, char *s);
 
-Node *conslabel(Loc *, char *s);
+Ivy_node *ivy_conslabel(Ivy_loc *, char *s);
 
-Node *consvoid(Loc *);
-Node *consthis(Loc *);
+Ivy_node *ivy_consvoid(Ivy_loc *);
+Ivy_node *ivy_consthis(Ivy_loc *);
 
-Node *consempty(Loc *);
+Ivy_node *ivy_consempty(Ivy_loc *);
 
-Node *opt(Loc *, Node * a);		// If a is NULL, return consempty() otherwise return a */
+Ivy_node *ivy_opt(Ivy_loc *, Ivy_node * a);		// If a is NULL, return consempty() otherwise return a */
 
 /* Tree duplicator */
-Node *dup(Loc *, Node *);
+Ivy_node *ivy_dup_tree(Ivy_loc *, Ivy_node *);
 
 /* Tree eliminator */
-void rm(Loc *, Node *);
+void ivy_rm_tree(Ivy_loc *, Ivy_node *);
 
 /* Print tree */
-void indent(FILE *out, int lvl);
-void prtree(FILE *out, Node *n, int lvl);
+void ivy_indent(FILE *out, int lvl);
+void ivy_prtree(FILE *out, Ivy_node *n, int lvl);
 
-Node *first(Node *);
-Node *rest(Node *);
+Ivy_node *ivy_first(Ivy_node *);
+Ivy_node *ivy_rest(Ivy_node *);
 
 #endif

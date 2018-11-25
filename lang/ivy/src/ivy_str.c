@@ -8,21 +8,21 @@
 
 static struct str_page {
 	struct str_page *next;
-	Str strs[1024];
+	Ivy_string strs[1024];
 } *str_pages;
 
 /* String free list */
 
-static Str *free_strs;
+static Ivy_string *free_strs;
 
 /* Protect from gc list */
 
 static struct str_protect {
 	struct str_protect *next;
-	Str *str;
+	Ivy_string *str;
 } *str_protect_list;
 
-void protect_str(Str *str)
+void ivy_protect_str(Ivy_string *str)
 {
 	struct str_protect *prot = (struct str_protect *)malloc(sizeof(struct str_protect));
 	prot->next = str_protect_list;
@@ -30,17 +30,17 @@ void protect_str(Str *str)
 	str_protect_list = prot;
 }
 
-extern int alloc_count;
+extern int ivy_alloc_count;
 
-Str *alloc_str(char *s, size_t len)
+Ivy_string *ivy_alloc_str(char *s, size_t len)
 {
-	Str *str;
-	if (++alloc_count == GC_COUNT)
-		collect();
+	Ivy_string *str;
+	if (++ivy_alloc_count == GC_COUNT)
+		ivy_collect();
 	if (!free_strs) {
 		struct str_page *op = (struct str_page *)calloc(1, sizeof(struct str_page));
 		int x;
-		for (x = 0; x != sizeof(op->strs) / sizeof(Str); ++x) {
+		for (x = 0; x != sizeof(op->strs) / sizeof(Ivy_string); ++x) {
 			op->strs[x].next_free = free_strs;
 			free_strs = &op->strs[x];
 		}
@@ -53,11 +53,11 @@ Str *alloc_str(char *s, size_t len)
 	str->next_free = 0;
 	str->len = len;
 	str->s = s;
-	protect_str(str);
+	ivy_protect_str(str);
 	return str;
 }
 
-static void free_str(Str *s)
+static void free_str(Ivy_string *s)
 {
 	if (s->s) {
 		free(s->s);
@@ -67,23 +67,23 @@ static void free_str(Str *s)
 	free_strs = s;
 }
 
-int mark_str_count;
+int ivy_mark_str_count;
 
-void mark_str(Str *str)
+void ivy_mark_str(Ivy_string *str)
 {
 	if (str->next_free != str) {
 		str->next_free = str;
-		++mark_str_count;
+		++ivy_mark_str_count;
 	}
 }
 
-void sweep_strs()
+void ivy_sweep_strs()
 {
 	struct str_page *sp;
 	free_strs = 0;
 	for (sp = str_pages; sp; sp = sp->next) {
 		int x;
-		for (x = 0; x != sizeof(sp->strs) / sizeof(Str); ++x) {
+		for (x = 0; x != sizeof(sp->strs) / sizeof(Ivy_string); ++x) {
 			if (sp->strs[x].next_free == &sp->strs[x])
 				sp->strs[x].next_free = 0;
 			else
@@ -92,14 +92,14 @@ void sweep_strs()
 	}
 }
 
-void mark_protected_strs()
+void ivy_mark_protected_strs()
 {
 	struct str_protect *sp;
 	for (sp = str_protect_list; sp; sp = sp->next)
-		mark_str(sp->str);
+		ivy_mark_str(sp->str);
 }
 
-void clear_protected_strs()
+void ivy_clear_protected_strs()
 {
 	struct str_protect *sp;
 	while (str_protect_list) {

@@ -20,20 +20,20 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #ifndef _Iivy_loc
 #define _Iivy_loc 1
 
-#include "free_list.h"
+#include "ivy_free_list.h"
 
-typedef struct loc Loc;		/* Input location */
+typedef struct ivy_loc Ivy_loc;		/* Input location */
 
 /* A location */
 
-struct loc {
+struct ivy_loc {
 	const char *ptr;
 	int col;
 	int lvl;
 	int line;
 	const char *name;
 	int eof;
-	Free_list *free_list;
+	Ivy_free_list *free_list;
 };
 
 #endif

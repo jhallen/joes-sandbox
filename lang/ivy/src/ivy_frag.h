@@ -17,21 +17,21 @@ details.
 IVY; see the file COPYING.  If not, write to the Free Software Foundation, 
 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-typedef struct frag Frag;
+typedef struct ivy_frag Ivy_frag;
 
-struct frag {
+struct ivy_frag {
 	unsigned char *begcode;
 	size_t code;
 	size_t codesize;
 
 	int rtn;
 	int scopelvl;
-	struct looplvl *looplvls;
+	struct ivy_looplvl *looplvls;
 };
 
 /* Initialize a fragment */
 
-void init_frag(Frag *);
+void ivy_setup_frag(Ivy_frag *);
 
 /* Generate byte offset you need to add to p so that
  * it is an exact multiple of size (which is a power of 2).
@@ -39,24 +39,24 @@ void init_frag(Frag *);
  * (it's critical that this is branch-free)
  */
 
-#define align_o(p, size) (((long)(size) - 1) & -(long)(p))
+#define ivy_align_o(p, size) (((long)(size) - 1) & -(long)(p))
 
 /* Align frag to next multiple of n */
 
-void align_frag(Frag *f, int n);
+void ivy_align_frag(Ivy_frag *f, int n);
 
 /* Append data to a fragment: return byte offset to data */
 
-int emitc(Frag *f, int c);
-int emitl(Frag *f, long long n);
-int emitn(Frag *f, int n);
-int emitd(Frag *f, double d);
-int emitp(Frag *f, void *p);
-int emits(Frag *f, char *s, int len);
+int ivy_emitc(Ivy_frag *f, int c);
+int ivy_emitl(Ivy_frag *f, long long n);
+int ivy_emitn(Ivy_frag *f, int n);
+int ivy_emitd(Ivy_frag *f, double d);
+int ivy_emitp(Ivy_frag *f, void *p);
+int ivy_emits(Ivy_frag *f, char *s, int len);
 
 /* Access data in a fragment */
 
-#define fragc(f, ofst) (*((f)->begcode + (ofst)))
-#define fragn(f, ofst) (*(int *)((f)->begcode + (ofst)))
-#define fragd(f, ofst) (*(double *)((f)->begcode + (ofst)))
-#define fragp(f, ofst) (*(void **)((f)->begcode + (ofst)))
+#define ivy_fragc(f, ofst) (*((f)->begcode + (ofst)))
+#define ivy_fragn(f, ofst) (*(int *)((f)->begcode + (ofst)))
+#define ivy_fragd(f, ofst) (*(double *)((f)->begcode + (ofst)))
+#define ivy_fragp(f, ofst) (*(void **)((f)->begcode + (ofst)))

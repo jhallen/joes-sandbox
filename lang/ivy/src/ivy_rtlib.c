@@ -22,102 +22,102 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <stdlib.h>
 #include <math.h>
 #include <setjmp.h>
-#include "error.h"
+#include "ivy_error.h"
 #include "ivy_tree.h"
 #include "ivy.h"
 #include "ivy_gc.h"
 
 /* Functions for reading args */
 
-int getintarg(Ivy *ivy, Obj * args, int n, long long *rtn)
+int ivy_getintarg(Ivy *ivy, Ivy_obj * args, int n, long long *rtn)
 {
-	Val *v;
+	Ivy_val *v;
 	if (n >= args->ary_len) {
-		error_0(ivy->errprn, "Incorrect number of args");
+		ivy_error_0(ivy->errprn, "Incorrect number of args");
 		return -1;
 	}
-	v = get_by_number(args, n);
-	if (v->type == tNUM) {
+	v = ivy_get_by_number(args, n);
+	if (v->type == ivy_tNUM) {
 		*rtn = v->u.num;
 		return 0;
 	} else {
-		error_0(ivy->errprn, "Incorrect arg type");
+		ivy_error_0(ivy->errprn, "Incorrect arg type");
 		return -1;
 	}
 }
 
-int getstringarg(Ivy *ivy, Obj * args, int n, char **rtn)
+int ivy_getstringarg(Ivy *ivy, Ivy_obj * args, int n, char **rtn)
 {
-	Val *v;
+	Ivy_val *v;
 	if (n >= args->ary_len) {
-		error_0(ivy->errprn, "Incorrect number of args");
+		ivy_error_0(ivy->errprn, "Incorrect number of args");
 		return -1;
 	}
-	v = get_by_number(args, n);
-	if (v->type == tSTR) {
+	v = ivy_get_by_number(args, n);
+	if (v->type == ivy_tSTR) {
 		*rtn = v->u.str->s;
 		return 0;
 	} else {
-		error_0(ivy->errprn, "Incorrect arg type");
+		ivy_error_0(ivy->errprn, "Incorrect arg type");
 		return -1;
 	}
 }
 
-int getdoublearg(Ivy *ivy, Obj * args, int n, double *rtn)
+int ivy_getdoublearg(Ivy *ivy, Ivy_obj * args, int n, double *rtn)
 {
-	Val *v;
+	Ivy_val *v;
 	if (n >= args->ary_len) {
-		error_0(ivy->errprn, "Incorrect number of args");
+		ivy_error_0(ivy->errprn, "Incorrect number of args");
 		return -1;
 	}
-	v = get_by_number(args, n);
-	if (v->type == tFP) {
+	v = ivy_get_by_number(args, n);
+	if (v->type == ivy_tFP) {
 		*rtn = v->u.fp;
 		return 0;
 	} else {
-		error_0(ivy->errprn, "Incorrect arg type");
+		ivy_error_0(ivy->errprn, "Incorrect arg type");
 		return -1;
 	}
 }
 
 /* Write output */
 
-void rtprint(Ivy *ivy)
+static void rtprint(Ivy *ivy)
 {
-	Obj *a = getv_by_symbol(ivy, argv_symbol)->u.obj;
+	Ivy_obj *a = ivy_getv_by_symbol(ivy, ivy_argv_symbol)->u.obj;
 	int x;
 	for (x = 0; x != a->ary_len; ++x) {
-		Val *v = get_by_number(a, x);
+		Ivy_val *v = ivy_get_by_number(a, x);
 		switch (v->type) {
-			case tSTR: {
+			case ivy_tSTR: {
 				fprintf(ivy->out, "%s", v->u.str->s);
 				break;
-			} case tNUM: {
+			} case ivy_tNUM: {
 				fprintf(ivy->out, "%lld", v->u.num);
 				break;
-			} case tFP: {
+			} case ivy_tFP: {
 				fprintf(ivy->out, "%g", v->u.fp);
 				break;
 			} default: {
-				pr(ivy, ivy->out, v, 0);
+				ivy_pr(ivy, ivy->out, v, 0);
 				break;
 			}
 		}
 	}
 	fprintf(ivy->out, "\n");
-	mkval(psh(ivy), tVOID);
+	ivy_push_void(ivy);
 }
 
 /* Printf the output */
 
-void rtprintf(Ivy *ivy)
+static void rtprintf(Ivy *ivy)
 {
-	Obj *a = getv_by_symbol(ivy, argv_symbol)->u.obj;
+	Ivy_obj *a = ivy_getv_by_symbol(ivy, ivy_argv_symbol)->u.obj;
 	if (a->ary_len == 0)
-		error_0(ivy->errprn, "Incorrect number of args to printf");
+		ivy_error_0(ivy->errprn, "Incorrect number of args to printf");
 	else {
-		Val *v = get_by_number(a, 0);
-		if (v->type == tSTR) {
+		Ivy_val *v = ivy_get_by_number(a, 0);
+		if (v->type == ivy_tSTR) {
 			char *s = v->u.str->s;
 			int x, y;
 			int n = 1;
@@ -152,7 +152,7 @@ void rtprintf(Ivy *ivy)
 						case 'X':
 							{	/* Arg has to be an integer */
 								long long i;
-								if (getintarg(ivy, a, n++, &i)) {
+								if (ivy_getintarg(ivy, a, n++, &i)) {
 									goto bye;
 								}
 								buf[y++] = 'l';
@@ -166,7 +166,7 @@ void rtprintf(Ivy *ivy)
 						case 'c':
 							{	/* Arg has to be an integer */
 								long long i;
-								if (getintarg(ivy, a, n++, &i)) {
+								if (ivy_getintarg(ivy, a, n++, &i)) {
 									goto bye;
 								}
 								buf[y++] =
@@ -187,7 +187,7 @@ void rtprintf(Ivy *ivy)
 						case 'A':
 							{	/* Arg has to be a double */
 								double d;
-								if (getdoublearg(ivy, a, n++, &d)) {
+								if (ivy_getdoublearg(ivy, a, n++, &d)) {
 									goto bye;
 								}
 								buf[y++] =
@@ -201,7 +201,7 @@ void rtprintf(Ivy *ivy)
 						case 's':
 							{	/* Arg has to be a string */
 								char *ss;
-								if (getstringarg(ivy, a, n++, &ss)) {
+								if (ivy_getstringarg(ivy, a, n++, &ss)) {
 									goto bye;
 								}
 								buf[y++] =
@@ -214,7 +214,7 @@ void rtprintf(Ivy *ivy)
 
 						default:
 							{
-								error_0(ivy->errprn, "Illegal format string");
+								ivy_error_0(ivy->errprn, "Illegal format string");
 								goto bye;
 							}
 						}
@@ -226,32 +226,32 @@ void rtprintf(Ivy *ivy)
 				s += x;
 			}
 			if (n != a->ary_len) {
-				error_0(ivy->errprn, "Incorrect number of args to printf");
+				ivy_error_0(ivy->errprn, "Incorrect number of args to printf");
 			}
 		} else
-			error_0(ivy->errprn, "First arg to printf must be a string");
+			ivy_error_0(ivy->errprn, "First arg to printf must be a string");
 	}
       bye:
-	mkval(psh(ivy), tVOID);
+	ivy_push_void(ivy);
 }
 
 /* Get pointer to origin of a value.  Returns NULL if there is none. */
 
-Val *get_origin(Val *v)
+Ivy_val *ivy_get_origin(Ivy_val *v)
 {
-	Val *l = 0;
+	Ivy_val *l = 0;
 	if (!v)
 		return NULL;
 	if (v->origin) {
 		switch (v->idx_type) {
-			case tNUM: {
-				l = get_by_number(v->origin, v->idx.num);
+			case ivy_tNUM: {
+				l = ivy_get_by_number(v->origin, v->idx.num);
 				break;
-			} case tNAM: {
-				l = get_by_symbol(v->origin, v->idx.name);
+			} case ivy_tNAM: {
+				l = ivy_get_by_symbol(v->origin, v->idx.name);
 				break;
-			} case tSTR: {
-				l = get_by_string(v->origin, v->idx.str->s);
+			} case ivy_tSTR: {
+				l = ivy_get_by_string(v->origin, v->idx.str->s);
 				break;
 			} default: {
 				fprintf(stderr, "Invalid origin index type??\n");
@@ -265,21 +265,21 @@ Val *get_origin(Val *v)
 /* Get pointer to origin of a value.  Create if it doesn't exist.
    Return NULL if there is no origin. */
 
-Val *set_origin(Val *v)
+Ivy_val *ivy_set_origin(Ivy_val *v)
 {
-	Val *l = 0;
+	Ivy_val *l = 0;
 	if (!v)
 		return NULL;
 	if (v->origin) {
 		switch (v->idx_type) {
-			case tNUM: {
-				l = set_by_number(v->origin, v->idx.num);
+			case ivy_tNUM: {
+				l = ivy_set_by_number(v->origin, v->idx.num);
 				break;
-			} case tNAM: {
-				l = set_by_symbol(v->origin, v->idx.name);
+			} case ivy_tNAM: {
+				l = ivy_set_by_symbol(v->origin, v->idx.name);
 				break;
-			} case tSTR: {
-				l = set_by_string(v->origin, v->idx.str->s);
+			} case ivy_tSTR: {
+				l = ivy_set_by_string(v->origin, v->idx.str->s);
 				break;
 			} default: {
 				fprintf(stderr, "Invalid origin index??\n");
@@ -291,107 +291,108 @@ Val *set_origin(Val *v)
 
 /* Free variables */
 
-void rtclr(Ivy *ivy)
+static void rtclr(Ivy *ivy)
 {
-	Obj *a = getv_by_symbol(ivy, argv_symbol)->u.obj;
+	Ivy_obj *a = ivy_getv_by_symbol(ivy, ivy_argv_symbol)->u.obj;
 	int x;
 	for (x = 0; x != a->ary_len; ++x) {
-		Val *v = get_by_number(a, x);
-		v = get_origin(v);
+		Ivy_val *v = ivy_get_by_number(a, x);
+		v = ivy_get_origin(v);
 		if (v)
-			mkval(v, tVOID);
+			ivy_void(v);
 	}
-	mkval(psh(ivy), tVOID);
+	ivy_push_void(ivy);
 }
 
 /* Get input */
 
-void rtget(Ivy *ivy)
+static void rtget(Ivy *ivy)
 {
 	char buf[1024];
 	if (fgets(buf, sizeof(buf), ivy->in)) {
 		int l = strlen(buf);
 		if (l) buf[--l]=0;
-		*psh(ivy) = mkpval(tSTR, alloc_str(strdup(buf), l));
+		ivy_push_string(ivy, ivy_alloc_str(strdup(buf), l));
 	} else
-		mkval(psh(ivy), tVOID);
+		ivy_push_void(ivy);
 }
 
 /* Convert string to integer */
 
-void rtatoi(Ivy *ivy)
+static void rtatoi(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tSTR) {
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tSTR) {
 		long long num = atoll(a->u.str->s);
-		*psh(ivy) = mkival(tNUM, num);
+		ivy_push_int(ivy, num);
 	} else
 		longjmp(ivy->err, 1);
 }
 
 /* Convert integer to string */
 
-void rtitoa(Ivy *ivy)
+static void rtitoa(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tNUM) {
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tNUM) {
 		char buf[30];
 		sprintf(buf, "%lld", a->u.num);
-		*psh(ivy) = mkpval(tSTR, alloc_str(strdup(buf), strlen(buf)));
+		ivy_push_string(ivy, ivy_alloc_str(strdup(buf), strlen(buf)));
 	} else
 		longjmp(ivy->err, 1);
 }
 
 /* Get length of string or array */
 
-void rtlen(Ivy *ivy)
+static void rtlen(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tSTR) {
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tSTR) {
 		long long num = a->u.str->len;
-		*psh(ivy) = mkival(tNUM, num);
-	} else if (a->type == tOBJ) {
-		*psh(ivy) = mkival(tNUM, a->u.obj->ary_len);
+		ivy_push_int(ivy, num);
+	} else if (a->type == ivy_tOBJ) {
+		ivy_push_int(ivy, a->u.obj->ary_len);
 	} else
 		longjmp(ivy->err, 1);
 }
 
 /* Get current vars object */
 
-void rtvars(Ivy *ivy)
+static void rtvars(Ivy *ivy)
 {
-	Val x = mkpval(tOBJ, get_mom(ivy->vars));
-	pr(ivy, ivy->out, &x, 0);
+	Ivy_val x;
+	ivy_obj(&x, ivy_get_mom(ivy->vars));
+	ivy_pr(ivy, ivy->out, &x, 0);
 	fprintf(ivy->out, "\n");
-	mkval(psh(ivy), tVOID);
+	ivy_push_void(ivy);
 }
 
 /* Duplicate an object */
 
-void rtdup(Ivy *ivy)
+static void rtdup(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tOBJ)
-		*psh(ivy) = mkpval(tOBJ, dupobj(a->u.obj, ivy->sp+1, 0, __LINE__));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tOBJ)
+		ivy_push_obj(ivy, ivy_dupobj(a->u.obj, ivy->sp+1, 0, __LINE__));
 	else
-		dupval(psh(ivy), a);
+		ivy_dup(ivy_push(ivy), a);
 }
 
 /* Include command */
 
-void rtinc(Ivy *ivy)
+static void rtinc(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tSTR) {
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tSTR) {
 		char *s = strdup(a->u.str->s);
 		FILE *f = fopen(s, "r");
-		rmvlvl(ivy);
+		ivy_scope_pop(ivy);
 		if (f)
 			/* FIXME: compfile(s, f), */ fclose(f);
 		else
-			error_1(ivy->errprn, "Couldn\'t open file \'%s\'", s);
-		addlvl(ivy, ivy->vars);
-		mkval(psh(ivy), tVOID);
+			ivy_error_1(ivy->errprn, "Couldn\'t open file \'%s\'", s);
+		ivy_scope_push(ivy, ivy->vars);
+		ivy_push_void(ivy);
 		free(s);
 	} else
 		longjmp(ivy->err, 1);
@@ -399,9 +400,9 @@ void rtinc(Ivy *ivy)
 
 /* Do nothing */
 
-void rtend(Ivy *ivy)
+static void rtend(Ivy *ivy)
 {
-	mkval(psh(ivy), tVOID);
+	ivy_push_void(ivy);
 }
 
 /* Simple (slow) regular expression parser.  Returns true if 'string'
@@ -418,7 +419,7 @@ void rtend(Ivy *ivy)
  *    x      other characters match themselves only.
  */
 
-int rmatch(char *string, char *pattern,
+static int rmatch(char *string, char *pattern,
 	   char **result)
 {
 	int q;
@@ -498,30 +499,30 @@ int rmatch(char *string, char *pattern,
 
 /* Regex matching */
 /* string, pattern, out... */
-void rtmatch(Ivy *ivy)
+static void rtmatch(Ivy *ivy)
 {
 	char *result[20];
-	Obj *a = getv_by_symbol(ivy, argv_symbol)->u.obj;
-	Val *v;
+	Ivy_obj *a = ivy_getv_by_symbol(ivy, ivy_argv_symbol)->u.obj;
+	Ivy_val *v;
 	char *str;
 	char *pat;
 	int x;
 	if (a->ary_len < 2) {
-		error_0(ivy->errprn, "Incorrect no. args to match");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect no. args to match");
+		ivy_push_void(ivy);
 		return;
 	}
-	v = get_by_number(a, 0);
-	if (v->type != tSTR) {
-		error_1(ivy->errprn, "Incorrect arg 1 type for match %d",v->type);
-		mkval(psh(ivy), tVOID);
+	v = ivy_get_by_number(a, 0);
+	if (v->type != ivy_tSTR) {
+		ivy_error_1(ivy->errprn, "Incorrect arg 1 type for match %d",v->type);
+		ivy_push_void(ivy);
 		return;
 	}
 	str = v->u.str->s;
-	v = get_by_number(a, 1);
-	if (v->type != tSTR) {
-		error_1(ivy->errprn, "Incorrect arg 2 type for match %d",v->type);
-		mkval(psh(ivy), tVOID);
+	v = ivy_get_by_number(a, 1);
+	if (v->type != ivy_tSTR) {
+		ivy_error_1(ivy->errprn, "Incorrect arg 2 type for match %d",v->type);
+		ivy_push_void(ivy);
 		return;
 	}
 	pat = v->u.str->s;
@@ -533,579 +534,579 @@ void rtmatch(Ivy *ivy)
 			if (n >= a->ary_len)
 				free(result[x]);
 			else {
-				Val *dest = set_origin(get_by_number(a, n));
+				Ivy_val *dest = ivy_set_origin(ivy_get_by_number(a, n));
 				if (!dest) {
-					error_0(ivy->errprn, "Arg to match must be a variable\n");
+					ivy_error_0(ivy->errprn, "Arg to match must be a variable\n");
 					free(result[x]);
 				} else {
-					*dest = mkpval(tSTR, alloc_str(result[x], strlen(result[x])));
+					ivy_string(dest, ivy_alloc_str(result[x], strlen(result[x])));
 				}
 				++n;
 			}
 		}
 		if (a->ary_len - 2 > x) {
-			error_0(ivy->errprn, "Incorrect no. args for match");
+			ivy_error_0(ivy->errprn, "Incorrect no. args for match");
 		}
-		*psh(ivy) = mkival(tNUM, 1);
+		ivy_push_int(ivy, 1);
 	} else {
 		for (x = 0; result[x]; ++x)
 			free(result[x]);
-		mkval(psh(ivy), tVOID);
+		ivy_push_void(ivy);
 	}
 }
 
 /* Math */
 
-void rtsin(Ivy *ivy)
+static void rtsin(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, sin(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, sin((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, sin(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, sin((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for sin()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for sin()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtcos(Ivy *ivy)
+static void rtcos(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, cos(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, cos((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, cos(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, cos((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for cos()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for cos()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rttan(Ivy *ivy)
+static void rttan(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, tan(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, tan((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, tan(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, tan((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for tan()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for tan()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtasin(Ivy *ivy)
+static void rtasin(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, asin(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, asin((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, asin(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, asin((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for asin()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for asin()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtacos(Ivy *ivy)
+static void rtacos(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, acos(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, acos((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, acos(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, acos((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for acos()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for acos()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtatan(Ivy *ivy)
+static void rtatan(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, atan(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, atan((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, atan(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, atan((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for atan()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for atan()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtexp(Ivy *ivy)
+static void rtexp(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, exp(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, exp((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, exp(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, exp((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for exp()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for exp()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtlog(Ivy *ivy)
+static void rtlog(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, log(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, log((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, log(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, log((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for log()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for log()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtlog10(Ivy *ivy)
+static void rtlog10(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, log10(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, log10((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, log10(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, log10((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for log10()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for log10()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtpow(Ivy *ivy)
+static void rtpow(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	Val *b = getv_by_symbol(ivy, b_symbol);
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	Ivy_val *b = ivy_getv_by_symbol(ivy, ivy_b_symbol);
 	double l, r;
-	if (a->type == tFP)
+	if (a->type == ivy_tFP)
 		l = a->u.fp;
-	else if (a->type == tNUM)
+	else if (a->type == ivy_tNUM)
 		l = a->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for pow()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for pow()");
+		ivy_push_void(ivy);
 		return;
 	}
-	if (b->type == tFP)
+	if (b->type == ivy_tFP)
 		r = b->u.fp;
-	else if (b->type == tNUM)
+	else if (b->type == ivy_tNUM)
 		r = b->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for pow()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for pow()");
+		ivy_push_void(ivy);
 		return;
 	}
-	*psh(ivy) = mkdval(tFP, pow(l, r));
+	ivy_push_double(ivy, pow(l, r));
 }
 
-void rtsqrt(Ivy *ivy)
+static void rtsqrt(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, sqrt(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, sqrt((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, sqrt(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, sqrt((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for sqrt()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for sqrt()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtatan2(Ivy *ivy)
+static void rtatan2(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	Val *b = getv_by_symbol(ivy, b_symbol);
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	Ivy_val *b = ivy_getv_by_symbol(ivy, ivy_b_symbol);
 	double l, r;
-	if (a->type == tFP)
+	if (a->type == ivy_tFP)
 		l = a->u.fp;
-	else if (a->type == tNUM)
+	else if (a->type == ivy_tNUM)
 		l = a->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for atan2()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for atan2()");
+		ivy_push_void(ivy);
 		return;
 	}
-	if (b->type == tFP)
+	if (b->type == ivy_tFP)
 		r = b->u.fp;
-	else if (b->type == tNUM)
+	else if (b->type == ivy_tNUM)
 		r = b->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for atan2()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for atan2()");
+		ivy_push_void(ivy);
 		return;
 	}
-	*psh(ivy) = mkdval(tFP, atan2(l, r));
+	ivy_push_double(ivy, atan2(l, r));
 }
 
-void rthypot(Ivy *ivy)
+static void rthypot(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	Val *b = getv_by_symbol(ivy, b_symbol);
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	Ivy_val *b = ivy_getv_by_symbol(ivy, ivy_b_symbol);
 	double l, r;
-	if (a->type == tFP)
+	if (a->type == ivy_tFP)
 		l = a->u.fp;
-	else if (a->type == tNUM)
+	else if (a->type == ivy_tNUM)
 		l = a->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for hypot()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for hypot()");
+		ivy_push_void(ivy);
 		return;
 	}
-	if (b->type == tFP)
+	if (b->type == ivy_tFP)
 		r = b->u.fp;
-	else if (b->type == tNUM)
+	else if (b->type == ivy_tNUM)
 		r = b->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for hypot()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for hypot()");
+		ivy_push_void(ivy);
 		return;
 	}
-	*psh(ivy) = mkdval(tFP, hypot(l, r));
+	ivy_push_double(ivy, hypot(l, r));
 }
 
-void rtsinh(Ivy *ivy)
+static void rtsinh(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, sinh(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, sinh((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, sinh(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, sinh((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for sinh()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for sinh()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtcosh(Ivy *ivy)
+static void rtcosh(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, cosh(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, cosh((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, cosh(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, cosh((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for cosh()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for cosh()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rttanh(Ivy *ivy)
+static void rttanh(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, tanh(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, tanh((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, tanh(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, tanh((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for tanh()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for tanh()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtasinh(Ivy *ivy)
+static void rtasinh(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, asinh(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, asinh((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, asinh(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, asinh((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for asinh()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for asinh()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtacosh(Ivy *ivy)
+static void rtacosh(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, acosh(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, acosh((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, acosh(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, acosh((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for acosh()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for acosh()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtatanh(Ivy *ivy)
+static void rtatanh(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, atanh(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, atanh((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, atanh(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, atanh((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for atanh()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for atanh()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtfloor(Ivy *ivy)
+static void rtfloor(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, floor(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, floor((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, floor(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, floor((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for floor()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for floor()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtceil(Ivy *ivy)
+static void rtceil(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, ceil(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, ceil((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, ceil(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, ceil((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for ceil()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for ceil()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtint(Ivy *ivy)
+static void rtint(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkival(tNUM, (long long) (a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkival(tNUM, a->u.num);
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_int(ivy, (long long) (a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_int(ivy, a->u.num);
 	else {
-		error_0(ivy->errprn, "Incorrect type for int()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for int()");
+		ivy_push_void(ivy);
 	}
 }
 
-extern int symbol_count;
+extern int ivy_symbol_count;
 
-void rtsymbolcount(Ivy *ivy)
+static void rtsymbolcount(Ivy *ivy)
 {
-	printf("Symbol count = %d\n", symbol_count);
-	mkval(psh(ivy), tVOID);
+	printf("Symbol count = %d\n", ivy_symbol_count);
+		ivy_push_void(ivy);
 }
 
-void rtabs(Ivy *ivy)
+static void rtabs(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, fabs(a->u.fp));
-	else if (a->type == tNUM)
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, fabs(a->u.fp));
+	else if (a->type == ivy_tNUM)
 		if (a->u.num >= 0)
-			*psh(ivy) = mkival(tNUM, a->u.num);
+			ivy_push_int(ivy, a->u.num);
 		else
-			*psh(ivy) = mkival(tNUM, -a->u.num);
+			ivy_push_int(ivy, -a->u.num);
 	else {
-		error_0(ivy->errprn, "Incorrect type for abs()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for abs()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rterf(Ivy *ivy)
+static void rterf(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, erf(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, erf((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, erf(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, erf((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for erf()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for erf()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rterfc(Ivy *ivy)
+static void rterfc(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, erfc(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, erfc((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, erfc(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, erfc((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for erfc()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for erfc()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtj0(Ivy *ivy)
+static void rtj0(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, j0(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, j0((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, j0(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, j0((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for j0()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for j0()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtj1(Ivy *ivy)
+static void rtj1(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, j1(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, j1((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, j1(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, j1((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for j1()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for j1()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rty0(Ivy *ivy)
+static void rty0(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, y0(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, y0((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, y0(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, y0((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for y0()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for y0()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rty1(Ivy *ivy)
+static void rty1(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	if (a->type == tFP)
-		*psh(ivy) = mkdval(tFP, y1(a->u.fp));
-	else if (a->type == tNUM)
-		*psh(ivy) = mkdval(tFP, y1((double) a->u.num));
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	if (a->type == ivy_tFP)
+		ivy_push_double(ivy, y1(a->u.fp));
+	else if (a->type == ivy_tNUM)
+		ivy_push_double(ivy, y1((double) a->u.num));
 	else {
-		error_0(ivy->errprn, "Incorrect type for y1()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for y1()");
+		ivy_push_void(ivy);
 	}
 }
 
-void rtjn(Ivy *ivy)
+static void rtjn(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	Val *b = getv_by_symbol(ivy, b_symbol);
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	Ivy_val *b = ivy_getv_by_symbol(ivy, ivy_b_symbol);
 	double l, r;
-	if (a->type == tFP)
+	if (a->type == ivy_tFP)
 		l = a->u.fp;
-	else if (a->type == tNUM)
+	else if (a->type == ivy_tNUM)
 		l = a->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for jn()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for jn()");
+		ivy_push_void(ivy);
 		return;
 	}
-	if (b->type == tFP)
+	if (b->type == ivy_tFP)
 		r = b->u.fp;
-	else if (b->type == tNUM)
+	else if (b->type == ivy_tNUM)
 		r = b->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for jn()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for jn()");
+		ivy_push_void(ivy);
 		return;
 	}
-	*psh(ivy) = mkdval(tFP, jn(l, r));
+	ivy_push_double(ivy, jn(l, r));
 }
 
-void rtyn(Ivy *ivy)
+static void rtyn(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	Val *b = getv_by_symbol(ivy, b_symbol);
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	Ivy_val *b = ivy_getv_by_symbol(ivy, ivy_b_symbol);
 	double l, r;
-	if (a->type == tFP)
+	if (a->type == ivy_tFP)
 		l = a->u.fp;
-	else if (a->type == tNUM)
+	else if (a->type == ivy_tNUM)
 		l = a->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for yn()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for yn()");
+		ivy_push_void(ivy);
 		return;
 	}
-	if (b->type == tFP)
+	if (b->type == ivy_tFP)
 		r = b->u.fp;
-	else if (b->type == tNUM)
+	else if (b->type == ivy_tNUM)
 		r = b->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for yn()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for yn()");
+		ivy_push_void(ivy);
 		return;
 	}
-	*psh(ivy) = mkdval(tFP, yn(l, r));
+	ivy_push_double(ivy, yn(l, r));
 }
 
-void rtmax(Ivy *ivy)
+static void rtmax(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	Val *b = getv_by_symbol(ivy, b_symbol);
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	Ivy_val *b = ivy_getv_by_symbol(ivy, ivy_b_symbol);
 	double l, r;
-	if (a->type == tFP)
+	if (a->type == ivy_tFP)
 		l = a->u.fp;
-	else if (a->type == tNUM)
+	else if (a->type == ivy_tNUM)
 		l = a->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for max()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for max()");
+		ivy_push_void(ivy);
 		return;
 	}
-	if (b->type == tFP)
+	if (b->type == ivy_tFP)
 		r = b->u.fp;
-	else if (b->type == tNUM)
+	else if (b->type == ivy_tNUM)
 		r = b->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for max()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for max()");
+		ivy_push_void(ivy);
 		return;
 	}
 	if (l >= r)
-		*psh(ivy) = mkdval(tFP, l);
+		ivy_push_double(ivy, l);
 	else
-		*psh(ivy) = mkdval(tFP, r);
+		ivy_push_double(ivy, r);
 }
 
-void rtmin(Ivy *ivy)
+static void rtmin(Ivy *ivy)
 {
-	Val *a = getv_by_symbol(ivy, a_symbol);
-	Val *b = getv_by_symbol(ivy, b_symbol);
+	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
+	Ivy_val *b = ivy_getv_by_symbol(ivy, ivy_b_symbol);
 	double l, r;
-	if (a->type == tFP)
+	if (a->type == ivy_tFP)
 		l = a->u.fp;
-	else if (a->type == tNUM)
+	else if (a->type == ivy_tNUM)
 		l = a->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for min()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for min()");
+		ivy_push_void(ivy);
 		return;
 	}
-	if (b->type == tFP)
+	if (b->type == ivy_tFP)
 		r = b->u.fp;
-	else if (b->type == tNUM)
+	else if (b->type == ivy_tNUM)
 		r = b->u.num;
 	else {
-		error_0(ivy->errprn, "Incorrect type for min()");
-		mkval(psh(ivy), tVOID);
+		ivy_error_0(ivy->errprn, "Incorrect type for min()");
+		ivy_push_void(ivy);
 		return;
 	}
 	if (l < r)
-		*psh(ivy) = mkdval(tFP, l);
+		ivy_push_double(ivy, l);
 	else
-		*psh(ivy) = mkdval(tFP, r);
+		ivy_push_double(ivy, r);
 }
 
-void rtrandom(Ivy *ivy)
+static void rtrandom(Ivy *ivy)
 {
-	*psh(ivy) = mkival(tNUM, random());
+	ivy_push_int(ivy, random());
 }
 
-void rtdepth(Ivy *ivy)
+static void rtdepth(Ivy *ivy)
 {
-	*psh(ivy) = mkival(tNUM, ivy->sp - ivy->sptop);
+	ivy_push_int(ivy, ivy->sp - ivy->sptop);
 }
 
 /* Table of built-in functions */
 
-struct builtin builtins[] = {
+struct ivy_builtin ivy_builtins[] = {
 	{"depth", rtdepth, ""},
 	{"pr", rtprint, ""},
 	{"vars", rtvars, ""},
@@ -1154,7 +1155,7 @@ struct builtin builtins[] = {
 	{"max", rtmax, "a;b"},
 	{"min", rtmin, "a;b"},
 	{"random", rtrandom, ""},
-	{"help", rthelp, "a"},
+	{"help", ivy_rthelp, "a"},
 	{"symbolcount", rtsymbolcount, ""},
 	{0, 0, 0}
 };

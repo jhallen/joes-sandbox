@@ -45,8 +45,8 @@ int main(int argc,char *argv[])
 	int x;
 	Ivy ivy[1];
 
-	mk_ivy(ivy, error_print, NULL, stdin, stdout);
-	set_globals(ivy, mk_globals(ivy));
+	ivy_setup(ivy, error_print, NULL, stdin, stdout);
+	ivy_set_globals(ivy, ivy_alloc_globals(ivy));
 
 	/* Parse options */
 	for(x = 1; x != argc; ++x) {
@@ -93,16 +93,16 @@ int main(int argc,char *argv[])
 			return -1;
 		} else {
 			char buf[1024];
-			Parser *parser = mkparser(ivy, filename);
+			Ivy_parser *parser = ivy_create_parser(ivy, filename);
 			while (fgets(buf, sizeof(buf) - 1, f)) {
-				parse(ivy, parser, buf, unasm, ptree, ptop, norun, trace);
+				ivy_parse(ivy, parser, buf, unasm, ptree, ptop, norun, trace);
 			}
-			parse_done(ivy, parser, unasm, ptree, ptop, norun, trace);
-			rmparser(parser);
+			ivy_parse_done(ivy, parser, unasm, ptree, ptop, norun, trace);
+			ivy_free_parser(parser);
 			fclose(f);
 		}
 	} else { /* Interactive */
-		Parser *parser = mkparser(ivy, "Command Line");
+		Ivy_parser *parser = ivy_create_parser(ivy, "Command Line");
 		char *s;
 		char prompt[100];
 		printf("\nIvy\n\n");
@@ -116,12 +116,12 @@ int main(int argc,char *argv[])
 			if (!s)
 				break;
 			add_history(s);
-			parse(ivy, parser, s, unasm, ptree, ptop, norun, trace);
+			ivy_parse(ivy, parser, s, unasm, ptree, ptop, norun, trace);
 			if (!parser->need_more)
-				parse_done(ivy, parser, unasm, ptree, ptop, norun, trace);
+				ivy_parse_done(ivy, parser, unasm, ptree, ptop, norun, trace);
 			free(s);
 		}
-		rmparser(parser);
+		ivy_free_parser(parser);
 	}
 	return 0;
 }

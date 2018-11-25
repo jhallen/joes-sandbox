@@ -1,4 +1,4 @@
-struct section { const char *name; const char *text; } sections[]=
+static struct section { const char *name; const char *text; } sections[]=
 {
   { "syntax",
     "\n"

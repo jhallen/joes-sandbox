@@ -17,34 +17,34 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <string.h>
-#include "hash.h"
+#include "ivy_hash.h"
 #include "ivy_symbols.h"
 
-Hash_table *symbol_table;
+static Ivy_hash_table *symbol_table;
 
-int symbol_count;
+int ivy_symbol_count;
 
-char *symbol_add(const char *name)
+char *ivy_symbol_add(const char *name)
 {
 	char *s;
 	unsigned hval;
 	if (!symbol_table)
-		symbol_table = htmk(1024);
-	hval = hash(name);
-	s = (char *)htfindhval(symbol_table, name, hval);
+		symbol_table = ivy_create_ht(1024);
+	hval = ivy_hash(name);
+	s = (char *)ivy_ht_hval_find(symbol_table, name, hval);
 	if (!s) {
 		s = strdup(name);
-		htaddhval(symbol_table, s, hval, s);
-		++symbol_count;
+		ivy_ht_hval_add(symbol_table, s, hval, s);
+		++ivy_symbol_count;
 	}
 	return s;
 }
 
-char *symbol_noadd(const char *name)
+char *ivy_symbol_noadd(const char *name)
 {
 	unsigned hval;
 	if (!symbol_table)
-		symbol_table = htmk(1024);
-	hval = hash(name);
-  	return (char *)htfindhval(symbol_table, name, hval);
+		symbol_table = ivy_create_ht(1024);
+	hval = ivy_hash(name);
+  	return (char *)ivy_ht_hval_find(symbol_table, name, hval);
 }

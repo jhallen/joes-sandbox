@@ -22,7 +22,7 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <string.h>
 #include <setjmp.h>
 #include "ivy_tree.h"
-#include "free_list.h"
+#include "ivy_free_list.h"
 #include "ivy.h"
 
 /* Trees are short-lived in Ivy: they exist between the parser and the
@@ -32,20 +32,20 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 /* Construct a two operand node: note that NULL is returned if any
    of the arguments are NULL. */
 
-Node *cons2(Loc *loc, int what, Node *left, Node *right)
+Ivy_node *ivy_cons2(Ivy_loc *loc, int what, Ivy_node *left, Ivy_node *right)
 {
 	if (!left || !right) {
-		rm(loc, right);
-		rm(loc, left);
+		ivy_rm_tree(loc, right);
+		ivy_rm_tree(loc, left);
 		return 0;
-	} else if (what == nSEMI && left->what == nSEMI) {
+	} else if (what == ivy_nSEMI && left->what == ivy_nSEMI) {
 		/* Build a list */
-		Node *n;
-		for (n = left; n->r && n->r->what == nSEMI; n = n->r);
-		n->r = cons2(loc, nSEMI, n->r, right);
+		Ivy_node *n;
+		for (n = left; n->r && n->r->what == ivy_nSEMI; n = n->r);
+		n->r = ivy_cons2(loc, ivy_nSEMI, n->r, right);
 		return left;
 	} else {
-		Node *n = (Node *)al_item(loc->free_list);
+		Ivy_node *n = (Ivy_node *)ivy_alloc_item(loc->free_list);
 		n->what = what;
 		n->l = left;
 		n->r = right;
@@ -57,9 +57,9 @@ Node *cons2(Loc *loc, int what, Node *left, Node *right)
 
 /* Get first node of list */
 
-Node *first(Node *list)
+Ivy_node *ivy_first(Ivy_node *list)
 {
-	if (list && list->what == nSEMI)
+	if (list && list->what == ivy_nSEMI)
 		return list->l;
 	else
 		return list;
@@ -67,9 +67,9 @@ Node *first(Node *list)
 
 /* Get rest of list */
 
-Node *rest(Node *list)
+Ivy_node *ivy_rest(Ivy_node *list)
 {
-	if (list && list->what == nSEMI)
+	if (list && list->what == ivy_nSEMI)
 		return list->r;
 	else
 		return 0;
@@ -78,12 +78,12 @@ Node *rest(Node *list)
 /* Construct a single operand node: note that NULL is returned if any
    of the arguments are NULL. */
 
-Node *cons1(Loc *loc,int what, Node *right)
+Ivy_node *ivy_cons1(Ivy_loc *loc,int what, Ivy_node *right)
 {
 	if (!right)
 		return 0;
 	else {
-		Node *n = (Node *)al_item(loc->free_list);
+		Ivy_node *n = (Ivy_node *)ivy_alloc_item(loc->free_list);
 		n->what = what;
 		n->l = 0;
 		n->r = right;
@@ -93,12 +93,12 @@ Node *cons1(Loc *loc,int what, Node *right)
 	}
 }
 
-/* Construct an integer constant */
+/* Construct an integer ivy_constant */
 
-Node *consnum(Loc *loc,long long v)
+Ivy_node *ivy_consnum(Ivy_loc *loc,long long v)
 {
-	Node *n = (Node *)al_item(loc->free_list);
-	n->what = nNUM;
+	Ivy_node *n = (Ivy_node *)ivy_alloc_item(loc->free_list);
+	n->what = ivy_nNUM;
 	n->l = 0;
 	n->r = 0;
 	n->n = v;
@@ -107,12 +107,12 @@ Node *consnum(Loc *loc,long long v)
 	return n;
 }
 
-/* Construct a floating point constant */
+/* Construct a floating point ivy_constant */
 
-Node *consfp(Loc *loc,double v)
+Ivy_node *ivy_consfp(Ivy_loc *loc,double v)
 {
-	Node *n = (Node *)al_item(loc->free_list);
-	n->what = nFP;
+	Ivy_node *n = (Ivy_node *)ivy_alloc_item(loc->free_list);
+	n->what = ivy_nFP;
 	n->l = 0;
 	n->fp = v;
 	n->r = 0;
@@ -124,9 +124,9 @@ Node *consfp(Loc *loc,double v)
 
 /* Construct a string family node */
 
-Node *conss(Loc *loc,int a, char *v, int l)
+Ivy_node *ivy_conss(Ivy_loc *loc,int a, char *v, int l)
 {
-	Node *n = (Node *)al_item(loc->free_list);
+	Ivy_node *n = (Ivy_node *)ivy_alloc_item(loc->free_list);
 	n->what = a;
 	n->l = 0;
 	n->r = 0;
@@ -138,31 +138,31 @@ Node *conss(Loc *loc,int a, char *v, int l)
 
 /* Construct a string constant */
 
-Node *consstr(Loc *loc, char *v, int len)
+Ivy_node *ivy_consstr(Ivy_loc *loc, char *v, int len)
 {
-	return conss(loc, nSTR, v, len);
+	return ivy_conss(loc, ivy_nSTR, v, len);
 }
 
 /* Construct an identifier */
 
-Node *consnam(Loc *loc, char *v)
+Ivy_node *ivy_consnam(Ivy_loc *loc, char *v)
 {
-	return conss(loc, nNAM, v, strlen(v));
+	return ivy_conss(loc, ivy_nNAM, v, strlen(v));
 }
 
 /* Construct a label */
 
-Node *conslabel(Loc *loc, char *v)
+Ivy_node *ivy_conslabel(Ivy_loc *loc, char *v)
 {
-	return conss(loc, nLABEL, v, strlen(v));
+	return ivy_conss(loc, ivy_nLABEL, v, strlen(v));
 }
 
 /* Construct a void */
 
-Node *consvoid(Loc *loc)
+Ivy_node *ivy_consvoid(Ivy_loc *loc)
 {
-	Node *n = (Node *)al_item(loc->free_list);
-	n->what = nVOID;
+	Ivy_node *n = (Ivy_node *)ivy_alloc_item(loc->free_list);
+	n->what = ivy_nVOID;
 	n->l = 0;
 	n->r = 0;
 	n->s = 0;
@@ -171,10 +171,10 @@ Node *consvoid(Loc *loc)
 	return n;
 }
 
-Node *consthis(Loc *loc)
+Ivy_node *ivy_consthis(Ivy_loc *loc)
 {
-	Node *n = (Node *)al_item(loc->free_list);
-	n->what = nTHIS;
+	Ivy_node *n = (Ivy_node *)ivy_alloc_item(loc->free_list);
+	n->what = ivy_nTHIS;
 	n->l = 0;
 	n->r = 0;
 	n->s = 0;
@@ -185,10 +185,10 @@ Node *consthis(Loc *loc)
 
 /* Construct empty */
 
-Node *consempty(Loc *loc)
+Ivy_node *ivy_consempty(Ivy_loc *loc)
 {
-	Node *n = (Node *)al_item(loc->free_list);
-	n->what = nEMPTY;
+	Ivy_node *n = (Ivy_node *)ivy_alloc_item(loc->free_list);
+	n->what = ivy_nEMPTY;
 	n->l = 0;
 	n->r = 0;
 	n->s = 0;
@@ -199,24 +199,24 @@ Node *consempty(Loc *loc)
 
 /* Construct an optional node */
 
-Node *opt(Loc *loc, Node *n)
+Ivy_node *ivy_opt(Ivy_loc *loc, Ivy_node *n)
 {
 	if (n)
 		return n;
 	else
-		return consempty(loc);
+		return ivy_consempty(loc);
 }
 
 /* Duplicate a tree */
 
-Node *dup(Loc *loc, Node * o)
+Ivy_node *ivy_dup_tree(Ivy_loc *loc, Ivy_node * o)
 {
-	Node *n;
+	Ivy_node *n;
 	if (!o)
 		return 0;
-	n = (Node *)al_item(loc->free_list);
+	n = (Ivy_node *)ivy_alloc_item(loc->free_list);
 	n->what = o->what;
-	if (o->s && o->what == nNAM) {
+	if (o->s && o->what == ivy_nNAM) {
 		n->s = o->s;
 	} else if (o->s) {
 		int x;
@@ -227,58 +227,58 @@ Node *dup(Loc *loc, Node * o)
 	} else
 		n->s = 0;
 	n->n = o->n;
-	n->r = dup(loc, o->r);
-	n->l = dup(loc, o->l);
+	n->r = ivy_dup_tree(loc, o->r);
+	n->l = ivy_dup_tree(loc, o->l);
 	*n->loc = *o->loc;
 	return n;
 }
 
 /* Eliminate a tree */
 
-void rm(Loc *loc, Node *n)
+void ivy_rm_tree(Ivy_loc *loc, Ivy_node *n)
 {
 	if (n) {
-		rm(loc, n->l);
-		rm(loc, n->r);
-		if (n->s && n->what != nNAM)
+		ivy_rm_tree(loc, n->l);
+		ivy_rm_tree(loc, n->r);
+		if (n->s && n->what != ivy_nNAM)
 			free(n->s);
-		fr_item(loc->free_list, n);
+		ivy_free_item(loc->free_list, n);
 	}
 }
 
 /* Tree printer */
 
-void indent(FILE *out, int x)
+void ivy_indent(FILE *out, int x)
 {
 	while (x--)
 		fputc(' ', out);
 }
 
-void prtree(FILE *out, Node *n, int lvl)
+void ivy_prtree(FILE *out, Ivy_node *n, int lvl)
 {
 	switch (n->what) {
-		case nNUM: {
-			indent(out, lvl), fprintf(out, "%lld", n->n);
+		case ivy_nNUM: {
+			ivy_indent(out, lvl), fprintf(out, "%lld", n->n);
 			break;
-		} case nFP: {
-			indent(out, lvl), fprintf(out, "%g", n->fp);
+		} case ivy_nFP: {
+			ivy_indent(out, lvl), fprintf(out, "%g", n->fp);
 			break;
-		} case nSTR: {
-			indent(out, lvl), fprintf(out, "\"%s\"", n->s);
+		} case ivy_nSTR: {
+			ivy_indent(out, lvl), fprintf(out, "\"%s\"", n->s);
 			break;
-		} case nVOID: {
-			indent(out, lvl), fprintf(out, "void");
+		} case ivy_nVOID: {
+			ivy_indent(out, lvl), fprintf(out, "void");
 			break;
 		} default: {
 			if (n->s)
-				indent(out, lvl), fprintf(out, "%s", n->s);
+				ivy_indent(out, lvl), fprintf(out, "%s", n->s);
 			else {
-				indent(out, lvl), fprintf(out, "(%s\n", what_tab[n->what].name);
+				ivy_indent(out, lvl), fprintf(out, "(%s\n", ivy_what_tab[n->what].name);
 				if (n->l)
-					prtree(out, n->l, lvl + 2);
+					ivy_prtree(out, n->l, lvl + 2);
 				if (n->r)
-					prtree(out, n->r, lvl + 2);
-				indent(out, lvl), fprintf(out, ")");
+					ivy_prtree(out, n->r, lvl + 2);
+				ivy_indent(out, lvl), fprintf(out, ")");
 			}
 		}
 	}
