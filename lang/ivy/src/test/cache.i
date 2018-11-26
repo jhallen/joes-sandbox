@@ -12,7 +12,7 @@ var fib = fn((), {
 		# print "Compute value for " n
 
 		if n < 2 {
-			val = 1
+			val = n
 		} {
 			val = fib(n - 1) + fib(n - 2)
 		}
