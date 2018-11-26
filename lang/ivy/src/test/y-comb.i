@@ -14,7 +14,12 @@ print fact(6)
 
 fn af(&f) fn((n),if(n==0,1,n*(*f)(n-1)))
 
-fn Y(f) fn((x),f(x(x)))(fn((x),f(x(x))))
+#fn Y(f) fn((x),f(x(x)))(fn((x),f(x(x))))
+
+fn Y(f) {
+	fn inner(z) f(z(z))
+	inner(inner)
+}
 
 fact=Y(af)
 

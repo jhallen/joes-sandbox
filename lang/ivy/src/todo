@@ -2,6 +2,8 @@
 Notes from other languages:
 
 Lua:
+	do ... end blocks are scoped
+
 	x == (a || b)
 		x set to a if it's true, b otherwise
 
@@ -77,6 +79,8 @@ Lua:
 
 Python:
 
+	Blocks do not create scope: only functions
+
 	Classes:
 
 		class foo(BaseClass):
@@ -115,6 +119,8 @@ Python:
 		[i for i in range(10)] -> [1,2,3,4,5,6,7,8,9]
 
 Javascript:
+
+	no block-level scoping, except with new let keyword
 
 	a = new SomeFunction()...   Calls function and returns its scope, as if its last
 		line was "return this".  I think it reparents the scope to the construction
