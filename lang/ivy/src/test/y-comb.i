@@ -12,10 +12,10 @@ print fact(6)
 
 # Lazy eval version
 
-fn af1(&f) fn((n),if(n==0,1,n*(*f)(n-1)))
+fn af(&f) fn((n),if(n==0,1,n*(*f)(n-1)))
 
-fn Y1(f) f(Y1(f))
+fn Y(f) fn((x),f(x(x)))(fn((x),f(x(x))))
 
-fact1=Y1(af1)
+fact=Y(af)
 
-print fact1(6)
+print fact(6)
