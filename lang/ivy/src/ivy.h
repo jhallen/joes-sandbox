@@ -115,7 +115,7 @@ struct ivy_callstate {
 /* An interpreter */
 
 struct ivy {
-	Ivy *next;
+	Ivy *next, *prev;	/* Doubly-linked list of all existing ivys */
 	Ivy_error_printer errprn[1];	/* Error printer */
 	Ivy_val stashed;	/* Stashed return value */
 	Ivy_val *sptop;	/* Base of stack */
@@ -181,7 +181,7 @@ Ivy_node *ivy_compargs(Ivy *ivy, char *);
 Ivy_parser *ivy_create_parser(Ivy *ivy, const char *file_name);
 void ivy_free_parser(Ivy_parser *parser);
 Ivy_val ivy_parse(Ivy *ivy, Ivy_parser *parser, const char *text, int unasm, int ptree, int ptop, int norun, int trace);
-void ivy_parse_done(Ivy *ivy, Ivy_parser *parser, int unasm, int ptree, int ptop, int norun, int trace);
+Ivy_val ivy_parse_done(Ivy *ivy, Ivy_parser *parser, int unasm, int ptree, int ptop, int norun, int trace);
 
 /* Convert a parse-tree into pseudo-machine code */
 Ivy_pseudo *ivy_codegen(Ivy_error_printer *err,Ivy_node *n);
@@ -443,12 +443,7 @@ Ivy_val *ivy_pr(Ivy *ivy, FILE *out,Ivy_val *,int lvl);
 
 /* Initialize an interpreter */
 void ivy_setup(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FILE *in, FILE *out);
-
-/* Set global scope for interpreter */
-void ivy_set_globals(Ivy *ivy, Ivy_obj *globals);
-
-/* Create global scope: initialize it with built-in functions */
-Ivy_obj *ivy_alloc_globals(Ivy *ivy);
+void ivy_shutdown(Ivy *ivy);
 
 /* Execute a function */
 Ivy_val ivy_run(Ivy *, Ivy_pseudo *, int ptop, int trace);
@@ -473,5 +468,8 @@ extern char *ivy_b_symbol;
 extern char *ivy_mom_symbol;
 extern char *ivy_dynamic_symbol;
 extern char *ivy_argv_symbol;
+
+/* Doubly-linked list of all Ivys */
+extern Ivy ivy_list[1];
 
 #endif

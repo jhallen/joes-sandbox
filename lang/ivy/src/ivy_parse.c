@@ -1240,7 +1240,8 @@ Ivy_val ivy_parse(Ivy *ivy, Ivy_parser *parser, const char *text, int unasm, int
 				code = ivy_codegen(parser->err, parser->rtn);
 				if (unasm) ivy_disasm(ivy->out, code, 0, 0);
 				if (!parser->err->error_flag) {
-					if (!norun) ivy_run(ivy, code, ptop, trace);
+					if (!norun)
+						rtn_val = ivy_run(ivy, code, ptop, trace);
 				} else {
 					ivy_error_0(parser->err, "There were code generator errors- not executing");
 					parser->err->error_flag = 0;
@@ -1265,15 +1266,18 @@ Ivy_val ivy_parse(Ivy *ivy, Ivy_parser *parser, const char *text, int unasm, int
 	return rtn_val;
 }
 
-void ivy_parse_done(Ivy *ivy, Ivy_parser *parser, int unasm, int ptree, int ptop, int norun, int trace)
+Ivy_val ivy_parse_done(Ivy *ivy, Ivy_parser *parser, int unasm, int ptree, int ptop, int norun, int trace)
 {
+	Ivy_val rtn_val;
+	rtn_val.type = ivy_tERROR;
 	if (!parser->need_more) {
 		parser->loc->eof = 1;
-		ivy_parse(ivy, parser, "", unasm, ptree, ptop, norun, trace);
+		rtn_val = ivy_parse(ivy, parser, "", unasm, ptree, ptop, norun, trace);
 		parser->loc->eof = 0;
 		parser->loc->line = 0;
 		parser->err->error_flag = 0; /* All errors printed at this point */
 	}
+	return rtn_val;
 }
 
 /* Create a parser */

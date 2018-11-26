@@ -24,6 +24,8 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include "ivy.h"
 
 int ivy_alloc_count;
+extern int ivy_mark_str_count;
+extern int ivy_mark_obj_count;
 
 Ivy_val *ivy_mark_val(Ivy_val *val)
 {
@@ -64,8 +66,6 @@ Ivy_val *ivy_mark_val(Ivy_val *val)
 	return val - 1;
 }
 
-extern Ivy *ivys;
-
 void ivy_mark_protected()
 {
 	ivy_mark_protected_strs();
@@ -73,9 +73,6 @@ void ivy_mark_protected()
 }
 
 /* Collect garbage */
-
-extern int ivy_mark_str_count;
-extern int ivy_mark_obj_count;
 
 void ivy_collect()
 {
@@ -91,7 +88,7 @@ void ivy_collect()
 
 	ivy_mark_protected();
 
-	for (ivy = ivys; ivy; ivy = ivy->next) {
+	for (ivy = ivy_list->next; ivy != ivy_list; ivy = ivy->next) {
 		/* Mark */
 		p = ivy->sp;
 		while (p != ivy->sptop) {

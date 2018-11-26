@@ -52,6 +52,14 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #define MEM_PRINTF3(a,b,c,d)
 #endif
 
+char *ivy_a_symbol;
+char *ivy_b_symbol;
+char *ivy_mom_symbol;
+char *ivy_dynamic_symbol;
+char *ivy_argv_symbol;
+
+Ivy_obj *ivy_globals;
+
 /*
 Ivy calling C: returns with call_me set to function to call.
 
@@ -1125,7 +1133,7 @@ static int pexe(Ivy *ivy, int trace)
 						}
 					ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				} else {
-				        ivy_error_0(ivy->errprn, "Improper types for subtract");
+				        ivy_error_0(ivy->errprn, "Improper types for union");
 					longjmp(ivy->err, 1);
                                 }
 			}
@@ -1613,7 +1621,7 @@ Ivy_val *ivy_pr(Ivy *ivy, FILE *out, Ivy_val * v, int lvl)
 			int x;
 			if (v->u.obj->visit)
 				fprintf(out, "{ %d at 0x%p } (previously shown)", v->u.obj->objno, v->u.obj);
-			else if (v->u.obj == ivy->glblvars && lvl != 0)
+			else if (v->u.obj == ivy_globals && lvl != 0)
 				fprintf(out, "{ %d at 0x%p } (globals)", v->u.obj->objno, v->u.obj);
 			else {
 				v->u.obj->visit = 1;
@@ -1696,13 +1704,7 @@ void ivy_add_cfunc(Ivy *ivy, Ivy_obj *vars, const char *name, const char *argstr
 
 /* Initialize global variables and symbols*/
 
-char *ivy_a_symbol;
-char *ivy_b_symbol;
-char *ivy_mom_symbol;
-char *ivy_dynamic_symbol;
-char *ivy_argv_symbol;
-
-Ivy_obj *ivy_alloc_globals(Ivy *ivy)
+static Ivy_obj *ivy_alloc_globals(Ivy *ivy)
 {
 	Ivy_obj *o;
 	int x;
@@ -1720,14 +1722,17 @@ Ivy_obj *ivy_alloc_globals(Ivy *ivy)
 	return o;
 }
 
-/* Initialize an interpreter */
+Ivy ivy_list[1] = { { ivy_list, ivy_list } };
 
-Ivy *ivys;
+/* Initialize an interpreter */
 
 void ivy_setup(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FILE *in, FILE *out)
 {
-	ivy->next = ivys;
-	ivys = ivy;
+	ivy->next = ivy_list->next;
+	ivy->prev = ivy_list;
+	ivy->next->prev = ivy;
+	ivy->prev->next = ivy;
+
         ivy->errprn->error_flag = 0;
         ivy->errprn->error_obj = err_obj;
         ivy->errprn->error_print = err_print;
@@ -1739,12 +1744,27 @@ void ivy_setup(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FI
 	ivy->out = out;
 	ivy->in = in;
 	ivy_void(&ivy->stashed);
+
+	if (!ivy_globals) {
+		ivy_globals = ivy_alloc_globals(ivy);
+	}
+
+        ivy->vars = ivy->glblvars = ivy_globals;
+
+	ivy_scope_push(ivy, ivy->vars);
+	ivy->glblvars = ivy->vars;
 }
 
-void ivy_set_globals(Ivy *ivy, Ivy_obj *globals)
+void ivy_shutdown(Ivy *ivy)
 {
-	SCOPE_PRINTF1("Initial scope = %p\n", globals);
-        ivy->vars = ivy->glblvars = globals;
+	ivy->next->prev = ivy->prev;
+	ivy->prev->next = ivy->next;
+
+	while (ivy->vars != ivy->glblvars)
+		ivy_scope_pop(ivy);
+
+	popall(ivy);
+	free(ivy->sptop);
 }
 
 /* Run some compiled code */

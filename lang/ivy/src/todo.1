@@ -21,7 +21,11 @@ Nifty features:
 
 	NaN and Infinity values
 
-	** for exponentiation
+	** for exponentiation or overload ^?
+
+	printf as in Python
+
+	advancing scan
 
 Loading:
 
@@ -29,6 +33,11 @@ Loading:
 	this.
 
 	Dump non-working include statement
+
+	Need module path I think...
+
+	It would be nice if you could assign this.  Then you could
+	include all exports with this|=loadfile("lib.i")
 
 Debug:
 
@@ -74,7 +83,11 @@ Performance:
 	Only extra arguments should go into argv [done]
 
 	We create scope level and argv when we index objects and strings..
-	this is way too much overhead
+	this is way too much overhead.
+
+	We create a scope level for if body.. this is slow.. should
+	we have no scope levels?
+	It's slow because of increase mom access.  Make mom faster..
 	
 	Make switch native?
 
@@ -102,3 +115,10 @@ New features:
 	Iterators, and/or common interface for foreach and forindex
 
 	List comprehensions
+
+Safety
+
+	ivy_globals should be read-only I think.  This way loaded files
+	always see the same thing.
+
+	popall doesn't free callstates..

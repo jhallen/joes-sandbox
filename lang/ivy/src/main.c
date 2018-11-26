@@ -46,7 +46,6 @@ int main(int argc,char *argv[])
 	Ivy ivy[1];
 
 	ivy_setup(ivy, error_print, NULL, stdin, stdout);
-	ivy_set_globals(ivy, ivy_alloc_globals(ivy));
 
 	/* Parse options */
 	for(x = 1; x != argc; ++x) {

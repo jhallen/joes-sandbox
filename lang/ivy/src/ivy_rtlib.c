@@ -378,21 +378,36 @@ static void rtdup(Ivy *ivy)
 		ivy_dup_val(ivy_push(ivy), a);
 }
 
-/* Include command */
+/* Load Ivy source code, run it and return its final value */
 
-static void rtinc(Ivy *ivy)
+static void rtloadfile(Ivy *ivy)
 {
 	Ivy_val *a = ivy_getv_by_symbol(ivy, ivy_a_symbol);
 	if (a->type == ivy_tSTR) {
 		char *s = strdup(a->u.str->s);
 		FILE *f = fopen(s, "r");
-		ivy_scope_pop(ivy);
-		if (f)
-			/* FIXME: compfile(s, f), */ fclose(f);
-		else
+		if (f) {
+			Ivy tmp[1];
+			char buf[1024];
+			Ivy_val rtn_val;
+			Ivy_parser *parser;
+			ivy_void(&rtn_val);
+			ivy_setup(tmp, ivy->errprn->error_print, NULL, ivy->in, ivy->out);
+			parser = ivy_create_parser(tmp, s);
+			while (fgets(buf, sizeof(buf) - 1, f)) {
+				Ivy_val rtn = ivy_parse(tmp, parser, buf, 0, 0, 0, 0, 0);
+				if (rtn.type != ivy_tERROR)
+					rtn_val = rtn;
+			}
+			ivy_parse_done(tmp, parser, 0, 0, 0, 0, 0);
+			ivy_free_parser(parser);
+			ivy_shutdown(tmp);
+			fclose(f);
+			*ivy_push(ivy) = rtn_val;
+		} else {
 			ivy_error_1(ivy->errprn, "Couldn\'t open file \'%s\'", s);
-		ivy_scope_push(ivy, ivy->vars);
-		ivy_push_void(ivy);
+			ivy_push_void(ivy);
+		}
 		free(s);
 	} else
 		longjmp(ivy->err, 1);
@@ -1118,7 +1133,7 @@ struct ivy_builtin ivy_builtins[] = {
 	{"itoa", rtitoa, "a"},
 	{"len", rtlen, "a"},
 	{"clear", rtclr, ""},
-	{"include", rtinc, "a"},
+	{"loadfile", rtloadfile, "a"},
 	{"end", rtend, ""},
 	{"match", rtmatch, ""},
 	{"sin", rtsin, "a"},
