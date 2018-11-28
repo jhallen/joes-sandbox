@@ -233,11 +233,12 @@ DerivedClass = MyClass.create_DerivedClass()
 ~~~~
 
 **create_DerivedClass** is defined as a member of **MyClass** so that when
-it's called, **create_DerivedClass**'s execution environment ends up being
-**MyClass**.  This execution environment becomes **DerivedClass**.
+it's called, **create_DerivedClass**'s execution environment's mom ends up
+being **MyClass**.  *create_DerivedClass**'s execution environment becomes
+**DerivedClass**.
 
 An alternative way of defining **create_DerivedClass** which does not
-involve modifying MyClass is as follows:
+involve modifying MyClass at all is as follows:
 
 ~~~~
 fn create_DerivedClass() {
@@ -261,7 +262,7 @@ fn create_DerivedClass() {
 DerivedClass = create_DerivedClass()
 ~~~~
 
-Notice that we modified **create_DerivedClass**'s execution environment's
+Notice that we replaced **create_DerivedClass**'s execution environment's
 mom during execution to connect it with its base class.  Since Ivy is a late
 binding language, this is perfectly legal to do.
 
@@ -282,7 +283,7 @@ Now we can create an instance of the derived class:
 ~~~~
 derived_instance_1 = DerivedClass.instance()
 
-derived_instance_1.show()  --> This prints:
+derived_instance_1.show()  --> Prints:
 
 Derived
 10
