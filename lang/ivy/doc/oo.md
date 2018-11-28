@@ -262,7 +262,8 @@ DerivedClass = create_DerivedClass()
 ~~~~
 
 Notice that we modified **create_DerivedClass**'s execution environment's
-mom to connect it with its base class.
+mom during execution to connect it with its base class.  Since Ivy is a late
+binding language, this is perfectly legal to do.
 
 In either case, the new construction function adds a new instance variable,
 **y**, as in the direct method.  It also calls the base class constructor. 
