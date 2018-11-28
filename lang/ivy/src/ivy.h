@@ -327,7 +327,7 @@ static inline void ivy_val(Ivy_val *v, enum ivy_valtype type)
 	v->u.num = 0;
 }
 
-static inline void ivy_void(Ivy_val *v)
+static inline void ivy_void_val(Ivy_val *v)
 {
 	v->type = ivy_tVOID;
 	v->origin = 0;
@@ -338,10 +338,10 @@ static inline void ivy_void(Ivy_val *v)
 
 static inline void ivy_push_void(Ivy *ivy)
 {
-	ivy_void(ivy_push(ivy));
+	ivy_void_val(ivy_push(ivy));
 }
 
-static inline void ivy_int(Ivy_val *v, long long i)
+static inline void ivy_int_val(Ivy_val *v, long long i)
 {
 	v->type = ivy_tNUM;
 	v->origin = 0;
@@ -352,10 +352,10 @@ static inline void ivy_int(Ivy_val *v, long long i)
 
 static inline void ivy_push_int(Ivy *ivy, long long i)
 {
-	ivy_int(ivy_push(ivy), i);
+	ivy_int_val(ivy_push(ivy), i);
 }
 
-static inline void ivy_lst(Ivy_val *v, long long i)
+static inline void ivy_lst_val(Ivy_val *v, long long i)
 {
 	v->type = ivy_tLST;
 	v->origin = 0;
@@ -364,7 +364,7 @@ static inline void ivy_lst(Ivy_val *v, long long i)
 	v->u.num = i;
 }
 
-static inline void ivy_double(Ivy_val *v, double d)
+static inline void ivy_double_val(Ivy_val *v, double d)
 {
 	v->type = ivy_tFP;
 	v->origin = 0;
@@ -375,10 +375,10 @@ static inline void ivy_double(Ivy_val *v, double d)
 
 static inline void ivy_push_double(Ivy *ivy, double d)
 {
-	ivy_double(ivy_push(ivy), d);
+	ivy_double_val(ivy_push(ivy), d);
 }
 
-static inline void ivy_obj(Ivy_val *v, Ivy_obj *u)
+static inline void ivy_obj_val(Ivy_val *v, Ivy_obj *u)
 {
 	v->type = ivy_tOBJ;
 	v->origin = 0;
@@ -389,10 +389,10 @@ static inline void ivy_obj(Ivy_val *v, Ivy_obj *u)
 
 static inline void ivy_push_obj(Ivy *ivy, Ivy_obj *u)
 {
-	ivy_obj(ivy_push(ivy), u);
+	ivy_obj_val(ivy_push(ivy), u);
 }
 
-static inline void ivy_string(Ivy_val *v, Ivy_string *u)
+static inline void ivy_string_val(Ivy_val *v, Ivy_string *u)
 {
 	v->type = ivy_tSTR;
 	v->origin = 0;
@@ -403,10 +403,10 @@ static inline void ivy_string(Ivy_val *v, Ivy_string *u)
 
 static inline void ivy_push_string(Ivy *ivy, Ivy_string *u)
 {
-	ivy_string(ivy_push(ivy), u);
+	ivy_string_val(ivy_push(ivy), u);
 }
 
-static inline void ivy_symbol(Ivy_val *v, char *s)
+static inline void ivy_symbol_val(Ivy_val *v, char *s)
 {
 	v->type = ivy_tNAM;
 	v->origin = 0;
@@ -417,10 +417,10 @@ static inline void ivy_symbol(Ivy_val *v, char *s)
 
 static inline void ivy_push_symbol(Ivy *ivy, char *name)
 {
-	ivy_symbol(ivy_push(ivy), name);
+	ivy_symbol_val(ivy_push(ivy), name);
 }
 
-static inline void ivy_closure(Ivy_val *v, Ivy_func *f, Ivy_obj *env)
+static inline void ivy_closure_val(Ivy_val *v, Ivy_func *f, Ivy_obj *env)
 {
 	v->type = ivy_tCLOSURE;
 	v->origin = 0;

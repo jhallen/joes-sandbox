@@ -299,7 +299,7 @@ static void rtclr(Ivy *ivy)
 		Ivy_val *v = ivy_get_by_number(a, x);
 		v = ivy_get_origin(v);
 		if (v)
-			ivy_void(v);
+			ivy_void_val(v);
 	}
 	ivy_push_void(ivy);
 }
@@ -361,7 +361,7 @@ static void rtlen(Ivy *ivy)
 static void rtvars(Ivy *ivy)
 {
 	Ivy_val x;
-	ivy_obj(&x, ivy_get_mom(ivy->vars));
+	ivy_obj_val(&x, ivy_get_mom(ivy->vars));
 	ivy_pr(ivy, ivy->out, &x, 0);
 	fprintf(ivy->out, "\n");
 	ivy_push_void(ivy);
@@ -391,7 +391,7 @@ static void rtloadfile(Ivy *ivy)
 			char buf[1024];
 			Ivy_val rtn_val;
 			Ivy_parser *parser;
-			ivy_void(&rtn_val);
+			ivy_void_val(&rtn_val);
 			ivy_setup(tmp, ivy->errprn->error_print, NULL, ivy->in, ivy->out);
 			parser = ivy_create_parser(tmp, s);
 			while (fgets(buf, sizeof(buf) - 1, f)) {
@@ -554,7 +554,7 @@ static void rtmatch(Ivy *ivy)
 					ivy_error_0(ivy->errprn, "Arg to match must be a variable\n");
 					free(result[x]);
 				} else {
-					ivy_string(dest, ivy_alloc_str(result[x], strlen(result[x])));
+					ivy_string_val(dest, ivy_alloc_str(result[x], strlen(result[x])));
 				}
 				++n;
 			}
