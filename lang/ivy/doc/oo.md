@@ -49,6 +49,23 @@ fn My_class.increment() {
 }
 ~~~~
 
+Or we could even have included them when we created the object in the first
+place:
+
+~~~~
+My_class = [
+	`mom = this
+
+	`show = fn((), {
+		print x
+	})
+
+	`increment = fn((), {
+		x = x + 1
+	})
+]
+~~~~
+
 In the closure method, we write a function which returns its execution
 environment.  This will be used as the class.  Any nested functions will
 become member functions:
