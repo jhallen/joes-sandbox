@@ -83,6 +83,10 @@ fn create_My_class() {
 My_class = create_My_class()
 ~~~~
 
+The closure method has the advantage of not requiring explicit setting of **mom**,
+in case that bothers you.  My_class.mom will still exist, however.  It was
+set when then function was invoked.
+
 We can add more member functions after the class has been created (by either
 method: assigning lambda functions to member names or by declaring named
 functions with the dot notation):
