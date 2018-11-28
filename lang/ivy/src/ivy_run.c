@@ -583,7 +583,8 @@ void copy_next_str_arg(Ivy *ivy, struct ivy_callstate *t)
                                 ivy->sp[0].idx.name = name;
 
                                 /* If we just looked up a function, change scope to object it was found in */
-                                if (ivy->sp[0].type == ivy_tCLOSURE) {
+                                /* But only if obj has a mom... */
+                                if (ivy->sp[0].type == ivy_tCLOSURE && ivy_get_by_symbol(obj, ivy_mom_symbol)) {
                                 	ivy->sp[0].u.closure.env = obj;
                                 }
                         } else {

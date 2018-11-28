@@ -63,6 +63,17 @@ Thunks:
 
 	But 'this' is magic...
 
+	n=a.b			<- closure env set to a?
+	n()
+
+	a.b()			<- b executed in a (only if a has `mom)
+
+	a.b::whatever()		<- b executed in whatever
+
+	*a.b::whatever		<- b executed in whatever
+		:: operater modifies the closure, sets scope of closure to
+		right side.
+
 i18n:
 
 ->	Allow UTF-8 symbols
