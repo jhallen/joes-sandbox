@@ -82,16 +82,33 @@ fn My_class.instance(i=[]) {
 }
 ~~~~
 
-For the closure method, instance could be a nested function of
-create_My_class:
+Notice that we create the object for the instance as the default value for
+i.  If i is missing, the object is automatically created.  If the argument
+is provided, then the caller provided the object for the instance.  We will
+use this later for derived classes, where we want to allow the derived
+class constructor to call the base class constructor.
+
+We create an instance variable x and set it to a default value 10.
+
+We set the mom of the instance to the class so that if the instance is used
+as an execution environment, then the called function will have access to
+the class variables and other member functions.
+
+For the closure method, the instance creation function is a nested function
+of create_My_class which returns its execution environment as the instance. 
+We provide a separate construct function so that it can be called by derived
+class constructors.
 
 ~~~~
 fn create_My_class() {
 
-	fn instance(i=[]) {
+	fn construct(i) {
 	        i.x = 10
-	        i.mom = My_class
-	        return i
+	}
+
+	fn instance() {
+		construct(this)
+		return this
 	}
 
 	fn show() {
@@ -106,22 +123,11 @@ fn create_My_class() {
 }
 ~~~~
 
-Notice that we create the object for the instance as the default value for
-i.  If i is missing, the object is automatically created.  If the argument
-is provided, then the caller provided the object for the instance.  We will
-use this later for derived classes, where we want to allow the derived
-class constructor to call the base class constructor.
-
-We create an instance variable x and set it to a default value 10.
-
-We set the mom of the instance to the class so that if the instance is used
-as an execution environment, then the called function will have access to
-the class variables and other member functions.
-
-Now we create an instance of the class:
+Now we create instances of the class:
 
 ~~~~
-instance_1 = My_class.instance()
+instance_1 = My_class.construct()
+instance_2 = My_class.construct()
 ~~~~
 
 The instance is now ready and we can call member functions:
@@ -130,25 +136,28 @@ The instance is now ready and we can call member functions:
 instance_1.show()   --> prints 10
 instance_1.inc()
 instance_1.show()   --> prints 11
+instance_2.show()   --> prints 10
 ~~~~
 
 Some magic must be going on here, since member functions are not in the
-instance object, and since you would expect the execution environment to be
-the class itself.
+instance objects, and since you would expect the execution environment to be
+the class, not the instance.
 
-So the member functions are found because we set i.mom to My_class in the
-constructor.  The symbol lookup follows the mom chain as usual.  It finds
-the closure containing show or inc with the recorded environment being the
-class object.
+The member functions are found because we explicitly set i.mom to My_class
+in the constructor with the direct method or it was implicitly set this way
+in the closure method.  In either case, the symbol lookup follows the mom
+chain as usual.  It finds the closure containing show or inc with the
+recorded environment being the class object.
 
 But the class object is not used for the execution environment.  The . 
 operator replaces the environment part of the closure retrieved from the
-symbol of the right side (show or inc) with the object it was found in on
-the left side (instance_1), but only if that object contains a mom.
+symbol of its right side (show or inc) with the object it began the symbol
+search with on the left side (instance_1), but only if that object contains
+a mom.
 
 If the object did not contain a mom, then the environment replacement does
 not happen.  Instead the recorded environment is used.  This allows you to
-make objects that just record member functions:
+make objects that just refere to other object's member functions:
 
 ~~~~
 z=[]
@@ -160,3 +169,6 @@ Note that the environement replacement is happening in the instance_1.show
 part of the assignment above, so instance_1 is still the execution
 environment for show.  Since z does not have a mom, z is not used as the
 environment when we finally call show.
+
+## Inheritance
+
