@@ -476,17 +476,17 @@ Derived_class = [
 		i.z = 30
 		i.mom = Derived_class
 		return i
-	}
+	})
 
 	`show = fn(() {
 		mom.first_show
 		mom.second_show
 		print "z = ", z
-	}
+	})
 
 	`third_inc = fn(() {
 		z = z + 1
-	}
+	})
 ]
 ~~~~
 
