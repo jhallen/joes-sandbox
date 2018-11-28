@@ -27,7 +27,8 @@ My_class=[`mom=this]
 The special symbol **this** always refers to the object being used as the
 current execution environment.
 
-We can add a member function by assigning a lambda (nameless) function:
+We can add a member function by assigning a lambda (nameless) function to a
+member name (**show** in this case):
 
 ~~~~
 My_class.show = fn((), {
@@ -35,7 +36,8 @@ My_class.show = fn((), {
 })
 ~~~~
 
-Or by using the dot notation in the function declaration:
+Or by using the dot notation in the function declaration.  The two methods
+are equivalent:
 
 ~~~~
 fn My_class.show() {
@@ -64,7 +66,9 @@ fn create_My_class() {
 My_class = create_My_class()
 ~~~~
 
-We can add more member functions after the class has been created:
+We can add more member functions after the class has been created (by either
+method: assigning lambda functions to member names or by declaring named
+functions with the dot notation):
 
 ~~~~
 fn My_class.increment() {
@@ -84,10 +88,10 @@ fn My_class.instance(i=[]) {
 ~~~~
 
 Notice that we create the object for the instance as the default value for
-i.  If i is missing, the object is automatically created.  If the argument
-is provided, then the caller provided the object for the instance.  We will
-use this later for derived classes, where we want to allow the derived
-class constructor to call the base class constructor.
+**i**.  If **i** is missing, the object is automatically created.  If the
+argument is provided, then the caller provided the object for the instance. 
+We will use this later for derived classes, where we want to allow the
+derived class constructor to call the base class constructor.
 
 We create an instance variable x and set it to a default value 10.
 
@@ -96,9 +100,9 @@ as an execution environment, then the called function will have access to
 the class variables and other member functions.
 
 For the closure method, the instance creation function is a nested function
-of create_My_class which returns its execution environment as the instance. 
-We separate out a construct function from the instance allocator so that it
-may be later be called by derived class constructors:
+of **create_My_class** which returns its execution environment as the
+instance.  We separate out a construct function from the instance allocator
+so that it may be later called by derived class constructors:
 
 ~~~~
 fn create_My_class() {
@@ -141,8 +145,8 @@ instance_2.show()   --> prints 10
 ~~~~
 
 Some magic must be going on here, since member functions are not in the
-instance objects, and since you would expect the execution environment to be
-the class, not the instance.
+instance objects, and een then you would expect the execution environment to
+be the class, not the instance.
 
 The member functions are found because we explicitly set **i.mom** to
 **My_class** in the constructor with the direct method or it was implicitly
