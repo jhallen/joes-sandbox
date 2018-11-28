@@ -51,12 +51,16 @@ C interface:
 
 Thunks:
 
-->	Add a way to explicitly set the environment during a function
+	Add a way to explicitly set the environment during a function
 	call:
+
+	[we now have this]
 
 		z = &x++
 		test = [`x=3]
 		z(`mom=test)	# <- works, but what about for '*' syntax?
+
+		*z::test
 
 	For thunks, should it be setting 'this'?  They are not supposed
 	to have their own scope.

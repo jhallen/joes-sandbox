@@ -96,6 +96,8 @@ Ivy_what ivy_what_tab[]=
 
 	{ ivy_nCALL1, ".", 0, ivy_nCALL1, 0, 110, 0, 2, 0, 0 },
 
+	{ ivy_nENV, "::", 0, ivy_nENV, 0, 105, 0, 2, ivy_iENV, 0 },
+
 	{ ivy_nCALL, "(", 0, ivy_nCALL, 0, 100, 0, 66, 0, 0 },
 
 	{ ivy_nPRINC, "++", ivy_nPRINC, 0, ivy_nPOINC, 90, 0, 5, 0, ivy_nADD },
@@ -206,7 +208,7 @@ static int opr_isinit;			/* Set if table has been initialized */
 
 static int ioprtab[] =
 {
-	ivy_nCALL1, ivy_nCALL, ivy_nPRINC, ivy_nPRDEC, ivy_nCOM, ivy_nSUB, ivy_nNOT, ivy_nSHR, ivy_nSHL,
+	ivy_nCALL1, ivy_nENV, ivy_nCALL, ivy_nPRINC, ivy_nPRDEC, ivy_nCOM, ivy_nSUB, ivy_nNOT, ivy_nSHR, ivy_nSHL,
 	ivy_nMUL, ivy_nDIV, ivy_nMOD, ivy_nAND, ivy_nADD, ivy_nOR, ivy_nXOR, ivy_nEQ, ivy_nNE, ivy_nGE, ivy_nLE,
 	ivy_nGT, ivy_nLT, ivy_nLAND, ivy_nLOR, ivy_nSET, ivy_nDOTTO, ivy_nSHLTO, ivy_nSHRTO, ivy_nMULTO,
 	ivy_nDIVTO, ivy_nMODTO, ivy_nANDTO, ivy_nADDTO, ivy_nSUBTO, ivy_nXORTO, ivy_nORTO, ivy_nPOST,

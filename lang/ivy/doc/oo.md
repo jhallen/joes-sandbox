@@ -32,11 +32,11 @@ activation record, in this case the one containing the global variables:
 My_class=[`mom=this]
 ~~~~
 
-The special symbol **this** always refers to the object being used as the
+The special symbol *this* always refers to the object being used as the
 current activation record.
 
 We can add a member function by assigning a lambda (nameless) function to a
-member name (**show** in this case):
+member name (*show* in this case):
 
 ~~~~
 My_class.show = fn((), {
@@ -91,8 +91,8 @@ fn create_My_class() {
 My_class = create_My_class()
 ~~~~
 
-The closure method has the advantage of not requiring explicit setting of **mom**,
-in case that bothers you.  **My_class.mom** will still exist, however.  It was
+The closure method has the advantage of not requiring explicit setting of *mom*,
+in case that bothers you.  *My_class.mom* will still exist, however.  It was
 set when then function was invoked.
 
 We can add more member functions after the class has been created (by either
@@ -129,7 +129,7 @@ fn My_class.instance(i=[]) {
 ~~~~
 
 Notice that we create the object for the instance as the default value for
-**i**.  If **i** is missing, the object is automatically created.  If the
+*i*.  If *i* is missing, the object is automatically created.  If the
 argument is provided, then the caller provided the object for the instance. 
 We will use this later for derived classes, where we want to allow the
 derived class constructor to call the base class constructor.
@@ -140,7 +140,7 @@ We set the mom of the instance to the class so that if we call member
 functions on the instance, the ones defined in the class will be found.
 
 For the closure method, the instance creation function is a nested function
-of **create_My_class** which returns its activation record as the instance. 
+of *create_My_class* which returns its activation record as the instance. 
 We separate out a construction function from the instance allocator so that
 it may be later called by derived class constructors:
 
@@ -188,17 +188,17 @@ You might think some magic must be going on here, since member functions are
 not in the instance objects, and even then you would expect the called
 function's activation record's mom to be the class, not the instance.
 
-The member functions are found because we explicitly set **i.mom** to
-**My_class** in the constructor with the direct method or it was implicitly
+The member functions are found because we explicitly set *i.mom* to
+*My_class* in the constructor with the direct method or it was implicitly
 set this way in the closure method.  In either case, the symbol lookup
-follows the mom chain as usual.  It finds the closure for **show** or
-**increment** with the recorded environment being the class object.
+follows the mom chain as usual.  It finds the closure for *show* or
+*increment* with the recorded environment being the class object.
 
 But the class object is not used for the member function's environment (and
 here we come to the heart of Ivy's object system).  This is because the . 
 operator replaces the environment part of the closure retrieved from the
-symbol on its right side (**show** or **increment**) with the object it
-began the symbol search in on its left side (**instance_1**), but only if
+symbol on its right side (*show* or *increment*) with the object it
+began the symbol search in on its left side (*instance_1*), but only if
 that object contains a mom.
 
 [If the object did not contain a mom, then the environment replacement does
@@ -212,10 +212,10 @@ z.show = instance_1.show
 z.show()  --> prints 11
 ~~~~
 
-The environement replacement is happening in the **instance_1.show** part of
-the assignment above, so **instance_1** is the mom for **show**'s activation
-record.  Since **z** does not have a mom, **z** is not used as the
-environment when we finally call show in **z.show()**.]
+The environement replacement is happening in the *instance_1.show* part of
+the assignment above, so *instance_1* is the mom for *show*'s activation
+record.  Since *z* does not have a mom, *z* is not used as the
+environment when we finally call show in *z.show()*.]
 
 The bottom line is that a function does not know that it is a member
 function and certainly not which instance to operate on until it has been
@@ -233,10 +233,10 @@ fn My_class.inc_and_show() {
 }
 ~~~~
 
-But it will not work.  The increment will look up **x** starting in the
+But it will not work.  The increment will look up *x* starting in the
 environment where it was defined.  This is either in the global environment
 for the direct method or in the class object for the closure method.  Either
-way, it's not accessing the **x** in the instance.
+way, it's not accessing the *x* in the instance.
 
 The correct way to write this function is as follows:
 
@@ -260,9 +260,9 @@ We can create a new class based on an existing class like this:
 DerivedClass = [ `mom = MyClass ]
 ~~~~
 
-Since **DerivedClass**'s mom is set to **MyClass**, symbol lookup for member
-functions will find ones defined in **MyClass** if they are not directly
-provided in **DerivedClass**.
+Since *DerivedClass*'s mom is set to *MyClass*, symbol lookup for member
+functions will find ones defined in *MyClass* if they are not directly
+provided in *DerivedClass*.
 
 It will need a new instance constructor:
 
@@ -276,9 +276,9 @@ fn DerivedClass.construct(i=[]) {
 ~~~~
 
 Notice how we are calling the base class's constructor, but then elaborating
-the instance by adding a new instance variable **y**.  Naturally the instance's
-mom is replaced (it had been set to **MyClass** by **MyClass**'s constructor) so
-that it is set to **DerivedClass**.
+the instance by adding a new instance variable *y*.  Naturally the instance's
+mom is replaced (it had been set to *MyClass* by *MyClass*'s constructor) so
+that it is set to *DerivedClass*.
 
 And we will override one of the member functions:
 
@@ -313,12 +313,12 @@ fn MyClass.create_DerivedClass() {
 DerivedClass = MyClass.create_DerivedClass()
 ~~~~
 
-**create_DerivedClass** is defined as a member of **MyClass** so that when
-it's called, **create_DerivedClass**'s activation record's mom ends up being
-**MyClass**.
+*create_DerivedClass* is defined as a member of *MyClass* so that when
+it's called, *create_DerivedClass*'s activation record's mom ends up being
+*MyClass*.
 
-An alternative way of defining **create_DerivedClass** which does not
-involve modifying **MyClass** at all is as follows:
+An alternative way of defining *create_DerivedClass* which does not
+involve modifying *MyClass* at all is as follows:
 
 ~~~~
 fn create_DerivedClass() {
@@ -342,20 +342,20 @@ fn create_DerivedClass() {
 DerivedClass = create_DerivedClass()
 ~~~~
 
-Notice that we replaced **create_DerivedClass**'s activation record's mom
+Notice that we replaced *create_DerivedClass*'s activation record's mom
 during execution to connect it with its base class.  Since Ivy is a late
 binding language, this is perfectly legal to do.
 
 In either case, the new construction function adds a new instance variable,
-**y**, as in the direct method.  It also calls the base class constructor. 
+*y*, as in the direct method.  It also calls the base class constructor. 
 Notice that we follow mom twice to find it.  Remember that the construction
 function will have its own activation record when it's called, so one "mom."
-is needed to traverse to **DerivedClass**.  The second "mom." traversed back
-to **My_class**, which has the construct function we want to call.
+is needed to traverse to *DerivedClass*.  The second "mom." traversed back
+to *My_class*, which has the construct function we want to call.
 
 Notice that we do not provide a new instance allocation function.  The one
-in **My_class** does the right thing, so there is no need to replace it.  It
-will find **DerivedClass**'s **construct** function.
+in *My_class* does the right thing, so there is no need to replace it.  It
+will find *DerivedClass*'s *construct* function.
 
 Now we can create an instance of the derived class:
 
@@ -418,12 +418,12 @@ In this case, there are no name conflicts, so you can union the base classes
 together:
 
 ~~~~
-DerivedClass = First_class | Second_class
-DerivedClass.mom = this
+Derived_class = First_class | Second_class
+Derived_class.mom = this
 ~~~~
 
 Much more realistically you will have to fix conflicting names.  Suppose the
-base classes both used **show** and **inc**:
+base classes both used *show* and *inc*:
 
 ~~~~
 First_class = [ `mom=this ]

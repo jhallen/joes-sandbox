@@ -312,6 +312,9 @@ void ivy_disasm(FILE *out, Ivy_pseudo * c, int ind, int oneline)
 			} case ivy_iAT: {
 				ivy_indent(out, ind); fprintf(out, "	at\n");
 				break;
+			} case ivy_iENV: {
+				ivy_indent(out, ind); fprintf(out, "	env\n");
+				break;
 			} case ivy_iSET: {
 				ivy_indent(out, ind); fprintf(out, "	set\n");
 				break;
@@ -809,7 +812,7 @@ static void gen(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 			fixlooplvl(frag, nargs + 1);
 			break;
 		} case ivy_nCOM: case ivy_nNEG: case ivy_nSHL: case ivy_nSHR: case ivy_nMUL: case ivy_nDIV: case ivy_nMOD: case ivy_nAND:
-		  case ivy_nADD: case ivy_nSUB: case ivy_nOR: case ivy_nXOR: case ivy_nAT: {
+		  case ivy_nADD: case ivy_nSUB: case ivy_nOR: case ivy_nXOR: case ivy_nAT: case ivy_nENV: {
 			if (n->l)
 				gen(err, frag, n->l);
 			if (n->r)

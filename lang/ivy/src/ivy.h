@@ -259,7 +259,8 @@ enum {
 	/* Variable lookup */
 	ivy_iGET,			/* iGET_ATOM            Get named variable's value */
 	ivy_iGETF,			/* iGETF_ATOM           Same as above, but force current scope */
-	ivy_iAT,
+	ivy_iAT,			/* iAT			Call zero-arg function */
+	ivy_iENV,			/* iENV			replace environment of closure */
 
 	/* Assignment */
 	ivy_iSET,			/* iSET                 Assign value to variable */

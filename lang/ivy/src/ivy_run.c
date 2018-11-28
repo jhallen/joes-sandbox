@@ -1271,7 +1271,16 @@ static int pexe(Ivy *ivy, int trace)
 				ivy->sp[0].idx.name = name;
 			}
 			break;
-                } case ivy_iAT: {
+		} case ivy_iENV: {
+			if (ivy->sp->type != ivy_tOBJ || ivy->sp[-1].type != ivy_tCLOSURE) {
+			        ivy_error_0(ivy->errprn, "Improper argument for ::");
+				longjmp(ivy->err, 1);
+			} else {
+				ivy->sp[-1].u.closure.env = ivy->sp[0].u.obj;
+				--ivy->sp;
+			}
+			break;
+                } case ivy_iAT: { /* This is the same as ivy_iCALL except no args */
 			if (ivy->sp->type != ivy_tCLOSURE) {
 			        ivy_error_0(ivy->errprn, "Improper argument for *");
 				longjmp(ivy->err, 1);

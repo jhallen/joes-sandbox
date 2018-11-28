@@ -28,7 +28,7 @@ typedef struct ivy_what Ivy_what;
 /* Node type codes: must be in same order as corresponding structures in what_tab */
 
 enum {
-	ivy_nNAM, ivy_nNUM, ivy_nFP, ivy_nSTR, ivy_nQUOTE, ivy_nELLIPSIS, ivy_nCALL1, ivy_nCALL, ivy_nPRINC, ivy_nPRDEC,
+	ivy_nNAM, ivy_nNUM, ivy_nFP, ivy_nSTR, ivy_nQUOTE, ivy_nELLIPSIS, ivy_nCALL1, ivy_nENV, ivy_nCALL, ivy_nPRINC, ivy_nPRDEC,
 	ivy_nPOINC, ivy_nPODEC, ivy_nCOM, ivy_nNEG, ivy_nNOT, ivy_nAT, ivy_nADDR, ivy_nSHR, ivy_nSHL, ivy_nMUL, ivy_nDIV, ivy_nMOD,
 	ivy_nAND, ivy_nADD, ivy_nSUB, ivy_nOR, ivy_nXOR, ivy_nEQ, ivy_nNE, ivy_nLT, ivy_nGT, ivy_nLE, ivy_nGE, ivy_nLAND,
 	ivy_nLOR, ivy_nSET, ivy_nDOTTO, ivy_nSHLTO, ivy_nSHRTO, ivy_nMULTO, ivy_nDIVTO, ivy_nMODTO, ivy_nANDTO,
