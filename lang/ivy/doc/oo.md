@@ -44,8 +44,8 @@ My_class.show = fn((), {
 })
 ~~~~
 
-Or by using the dot notation in the function declaration.  The two methods
-are equivalent:
+Or we can do this same thing by using dot notation in the function
+declaration:
 
 ~~~~
 fn My_class.show() {
@@ -105,15 +105,20 @@ fn My_class.increment() {
 }
 ~~~~
 
-Notice that member functions refer to instance variables and other member
-functions directly, as in C++ or Java.  There is no need to prefix each
-instance variable with *self* or *this* as in most languages with prototype
-based object systems.  On the other hand, Ivy shares most features of
-prototype based object systems: you are free to modify classes after they
-have been created or use instances as base classes.
+Notice that member functions refer to instance variables as in C++ or Java. 
+There is no need to prefix each instance variable with *self* or *this* as
+in most languages with prototype based object systems.  On the other hand,
+calls to sibling member functions should use dot notation:
+
+~~~~
+fn My_class.inc_and_show() {
+	this.increment()
+	this.show()
+}
+~~~~
 
 We need a constructor to create class instances.  This constructor
-should be a class member.  For the direct method, we add this:
+should be a class member.  For the direct method, we write this:
 
 ~~~~
 fn My_class.instance(i=[]) {
@@ -179,9 +184,9 @@ instance_1.show()   --> prints 11
 instance_2.show()   --> prints 10
 ~~~~
 
-Some magic must be going on here, since member functions are not in the
-instance objects, and even then you would expect the called function's
-activation record's mom to be the class, not the instance.
+You might think some magic must be going on here, since member functions are
+not in the instance objects, and even then you would expect the called
+function's activation record's mom to be the class, not the instance.
 
 The member functions are found because we explicitly set **i.mom** to
 **My_class** in the constructor with the direct method or it was implicitly
@@ -211,6 +216,41 @@ The environement replacement is happening in the **instance_1.show** part of
 the assignment above, so **instance_1** is the mom for **show**'s activation
 record.  Since **z** does not have a mom, **z** is not used as the
 environment when we finally call show in **z.show()**.]
+
+The bottom line is that a function does not know that it is a member
+function and certainly not which instance to operate on until it has been
+accessed via the dot notation.  A non-obivious consequence of this is that
+member functions must use dot notation when calling sibling member
+functions, even though the dot notation is not required to find them.
+
+For example, we could have a function which increments and shows.  We might
+try writing it like this:
+
+~~~~
+fn My_class.inc_and_show() {
+	increment()
+	show()
+}
+~~~~
+
+But it will not work.  The increment will look up **x** starting in the
+environment where it was defined.  This is either in the global environment
+for the direct method or in the class object for the closure method.  Either
+way, it's not accessing the **x** in the instance.
+
+The correct way to write this function is as follows:
+
+~~~~
+fn My_class.inc_and_show() {
+	mom.increment()
+	mom.show()
+}
+~~~~
+
+*Mom* will refer to the instance object when inc_and_show is called.  In
+this case, you could replace *mom* with *this*.  But it is better to use
+*mom*, since the member function should never be modifying the activation
+record of inc_and_show.
 
 ## Inheritance
 
@@ -327,4 +367,138 @@ derived_instance_1.show()  --> Prints:
 Derived
 10
 20
+~~~~
+
+## Multiple Inheritance
+
+Multiple inheritance is possible in Ivy.  First define some base
+classes:
+
+~~~~
+First_class = [ `mom=this ]
+
+fn First_class.construct(i=[]) {
+        i.x = 10
+        i.mom = First_class
+        return i
+}
+
+fn First_class.first_show() {
+        print "x = ", x
+}
+
+fn First_class.first_inc() {
+        x = x + 1
+}
+
+Second_class = [ `mom=this ]
+
+fn Second_class.construct(i=[]) {
+        i.y = 20
+        i.mom = Second_class
+        return i
+}
+
+fn Second_class.second_show() {
+        print "y = ", y
+}
+
+fn Second_class.second_inc() {
+        y = y + 1
+}
+~~~~
+
+For the derived class, we can not rely on the automatic scope traversal
+mechanism for symbol lookup, since it does not handle branches.  In any case
+it is often ambiguous- there could be member functions with the same name in
+both base classes.
+
+Instead, we must bring in all of the base class member functions manually. 
+In this case, there are no name conflicts, so you can union the base classes
+together:
+
+~~~~
+DerivedClass = First_class | Second_class
+DerivedClass.mom = this
+~~~~
+
+Much more realistically you will have to fix conflicting names.  Suppose the
+base classes both used **show** and **inc**:
+
+~~~~
+First_class = [ `mom=this ]
+
+fn First_class.instance(i=[]) {
+        i.x = 10
+        i.mom = First_class
+        return i
+}
+
+fn First_class.show() {
+        print "x = ", x
+}
+
+fn First_class.inc() {
+        x = x + 1
+}
+
+Second_class = [ `mom=this ]
+
+fn Second_class.instance(i=[]) {
+        i.y = 20
+        i.mom = Second_class
+        return i
+}
+
+fn Second_class.show() {
+        print "y = ", y
+}
+
+fn Second_class.inc() {
+        y = y + 1
+}
+~~~~
+
+Then we might construct the derived class as follows:
+
+~~~~
+Derived_class = [
+	`mom = this
+
+	`first_show = First_class.show
+	`second_show = Second_class.show
+	`first_inc = First_class.inc
+	`second_inc = Second_class.inc
+
+	`instance = fn((i=[]) {
+		First_class.instance(i)
+		Second_class.instance(i)
+		i.z = 30
+		i.mom = Derived_class
+		return i
+	}
+
+	`show = fn(() {
+		mom.first_show
+		mom.second_show
+		print "z = ", z
+	}
+
+	`third_inc = fn(() {
+		z = z + 1
+	}
+]
+~~~~
+
+We can try it as follows:
+
+~~~~
+inst = Derived_class.instance()
+inst.first_inc()
+inst.third_inc()
+inst.show()  --> Prints
+
+x = 11
+y = 20
+z = 31
 ~~~~
