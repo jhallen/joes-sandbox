@@ -173,8 +173,8 @@ instance_2.show()   --> prints 10
 ~~~~
 
 Some magic must be going on here, since member functions are not in the
-instance objects, and even then you would expect the execution environment to
-be the class, not the instance.
+instance objects, and even then you would expect the execution environment's
+mom to be the class, not the instance.
 
 The member functions are found because we explicitly set **i.mom** to
 **My_class** in the constructor with the direct method or it was implicitly
@@ -182,12 +182,12 @@ set this way in the closure method.  In either case, the symbol lookup
 follows the mom chain as usual.  It finds the closure for **show** or
 **increment** with the recorded environment being the class object.
 
-But the class object is not used for the execution environment (and here we
-come to the heart of Ivy's object system).  This is because the .  operator
-replaces the environment part of the closure retrieved from the symbol on
-its right side (**show** or **increment**) with the object it began the
-symbol search in on its left side (**instance_1**), but only if that object
-contains a mom.
+But the class object is not used for the execution environment's mom (and
+here we come to the heart of Ivy's object system).  This is because the . 
+operator replaces the environment part of the closure retrieved from the
+symbol on its right side (**show** or **increment**) with the object it
+began the symbol search in on its left side (**instance_1**), but only if
+that object contains a mom.
 
 [If the object did not contain a mom, then the environment replacement does
 not happen.  Instead the recorded environment is used.  This allows you to
@@ -201,9 +201,9 @@ z.show()  --> prints 11
 ~~~~
 
 The environement replacement is happening in the **instance_1.show** part of
-the assignment above, so **instance_1** is the execution environment
-for **show**.  Since **z** does not have a mom, **z** is not used as the environment
-when we finally call show in **z.show()**.]
+the assignment above, so **instance_1** is the mom for **show**'s execution
+environment.  Since **z** does not have a mom, **z** is not used as the
+environment when we finally call show in **z.show()**.]
 
 ## Inheritance
 
