@@ -84,7 +84,7 @@ My_class = create_My_class()
 ~~~~
 
 The closure method has the advantage of not requiring explicit setting of **mom**,
-in case that bothers you.  My_class.mom will still exist, however.  It was
+in case that bothers you.  **My_class.mom** will still exist, however.  It was
 set when then function was invoked.
 
 We can add more member functions after the class has been created (by either
@@ -96,6 +96,13 @@ fn My_class.increment() {
 	x = x + 1
 }
 ~~~~
+
+Notice that member functions refer to instance variables and other member
+functions directly, as in C++ or Java.  There is no need to prefix each
+instance variable with *self* or *this* as in most languages with prototype
+based object systems.  On the other hand, Ivy shares most features of
+prototype based object systems: you are free to modify classes after they
+have been created or use instances as base classes.
 
 We need a constructor to create class instances.  This constructor
 should be a class member.  For the direct method, we add this:
@@ -264,7 +271,7 @@ it's called, **create_DerivedClass**'s execution environment's mom ends up
 being **MyClass**.
 
 An alternative way of defining **create_DerivedClass** which does not
-involve modifying MyClass at all is as follows:
+involve modifying **MyClass** at all is as follows:
 
 ~~~~
 fn create_DerivedClass() {
@@ -297,11 +304,11 @@ In either case, the new construction function adds a new instance variable,
 Notice that we follow mom twice to find it.  Remember that the construction
 function will have its own execution environment when it's called, so one
 "mom." is needed to traverse to **DerivedClass**.  The second "mom."
-traversed back to **MyClass**, which has the construct function we want to
+traversed back to **My_class**, which has the construct function we want to
 call.
 
 Notice that we do not provide a new instance allocation function.  The one
-in **MyClass** does the right thing, so there is no need to replace it.  It
+in **My_class** does the right thing, so there is no need to replace it.  It
 will find **DerivedClass**'s **construct** function.
 
 Now we can create an instance of the derived class:
