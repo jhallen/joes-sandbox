@@ -1,15 +1,23 @@
 # Object-Oriented Progamming
 
 Besides being available for use by the programmer, Ivy's objects are used
-internally for function execution contexts (also known as scoping levels or
-environments).  This means that a function's local variables, including
-nested functions are implemented as object members.
+internally for activation records.  This means that a function's local
+variables are implemented as object members.
 
-The only difference between regular objects and objects used for execution
-contexts is the presence of a member called `mom.  This member refers to the
-next outer scoping level.  During symbol lookup, the chain of moms is
-searched for the symbol.  Always the outermost level is the object
-containing Ivy's built-in functions, such as print.
+The only difference between regular objects and objects used for activation
+records is the presence of a member called `mom.  This member refers to the
+next outer scoping level.  Ivy uses lexical scoping, so the next outer level
+is usually (for the case of nested functions) the parent function's (*not*
+the calling function's) activation record, the global variables (when
+modules are loaded, they each get their own object for global variables), or
+finally the object containing Ivy's built-in functions, such as *print*. 
+During symbol lookup, the chain of moms is searched for the symbol.
+
+When functions are passed around, they always come in closures.  A closure
+contains a pointer to the function's code and a pointer to the environment
+where it was defined (the activation record at that time).  The environment
+is the object that becomes the function's activation record's mom when the
+function is called.
 
 With this understanding, we can proceed towards implementing object-oriented
 programming in Ivy.  There are two ways to do it: the direct method and the
@@ -17,15 +25,15 @@ closure method.  They are equivalent, and will be shown side by side.
 
 First we need to define a class to hold member functions and static
 variables (variables shared by all instances of the class).  In the direct
-method, we just create an object, but with `mom set to the current execution
-environment:
+method, we just create an object, but with `mom set to the current
+activation record, in this case the one containing the global variables:
 
 ~~~~
 My_class=[`mom=this]
 ~~~~
 
 The special symbol **this** always refers to the object being used as the
-current execution environment.
+current activation record.
 
 We can add a member function by assigning a lambda (nameless) function to a
 member name (**show** in this case):
@@ -66,9 +74,9 @@ My_class = [
 ]
 ~~~~
 
-In the closure method, we write a function which returns its execution
-environment.  This will be used as the class.  Any nested functions will
-become member functions:
+In the closure method, we write a function which returns its activation
+record.  This will be used as the class.  Any nested functions will become
+member functions:
 
 ~~~~
 fn create_My_class() {
@@ -123,14 +131,13 @@ derived class constructor to call the base class constructor.
 
 We create an instance variable x and set it to a default value 10.
 
-We set the mom of the instance to the class so that if the instance is used
-as an execution environment, then the called function will have access to
-the class variables and other member functions.
+We set the mom of the instance to the class so that if we call member
+functions on the instance, the ones defined in the class will be found.
 
 For the closure method, the instance creation function is a nested function
-of **create_My_class** which returns its execution environment as the
-instance.  We separate out a construct function from the instance allocator
-so that it may be later called by derived class constructors:
+of **create_My_class** which returns its activation record as the instance. 
+We separate out a construction function from the instance allocator so that
+it may be later called by derived class constructors:
 
 ~~~~
 fn create_My_class() {
@@ -173,8 +180,8 @@ instance_2.show()   --> prints 10
 ~~~~
 
 Some magic must be going on here, since member functions are not in the
-instance objects, and even then you would expect the execution environment's
-mom to be the class, not the instance.
+instance objects, and even then you would expect the called function's
+activation record's mom to be the class, not the instance.
 
 The member functions are found because we explicitly set **i.mom** to
 **My_class** in the constructor with the direct method or it was implicitly
@@ -182,7 +189,7 @@ set this way in the closure method.  In either case, the symbol lookup
 follows the mom chain as usual.  It finds the closure for **show** or
 **increment** with the recorded environment being the class object.
 
-But the class object is not used for the execution environment's mom (and
+But the class object is not used for the member function's environment (and
 here we come to the heart of Ivy's object system).  This is because the . 
 operator replaces the environment part of the closure retrieved from the
 symbol on its right side (**show** or **increment**) with the object it
@@ -201,8 +208,8 @@ z.show()  --> prints 11
 ~~~~
 
 The environement replacement is happening in the **instance_1.show** part of
-the assignment above, so **instance_1** is the mom for **show**'s execution
-environment.  Since **z** does not have a mom, **z** is not used as the
+the assignment above, so **instance_1** is the mom for **show**'s activation
+record.  Since **z** does not have a mom, **z** is not used as the
 environment when we finally call show in **z.show()**.]
 
 ## Inheritance
@@ -267,8 +274,8 @@ DerivedClass = MyClass.create_DerivedClass()
 ~~~~
 
 **create_DerivedClass** is defined as a member of **MyClass** so that when
-it's called, **create_DerivedClass**'s execution environment's mom ends up
-being **MyClass**.
+it's called, **create_DerivedClass**'s activation record's mom ends up being
+**MyClass**.
 
 An alternative way of defining **create_DerivedClass** which does not
 involve modifying **MyClass** at all is as follows:
@@ -295,17 +302,16 @@ fn create_DerivedClass() {
 DerivedClass = create_DerivedClass()
 ~~~~
 
-Notice that we replaced **create_DerivedClass**'s execution environment's
-mom during execution to connect it with its base class.  Since Ivy is a late
+Notice that we replaced **create_DerivedClass**'s activation record's mom
+during execution to connect it with its base class.  Since Ivy is a late
 binding language, this is perfectly legal to do.
 
 In either case, the new construction function adds a new instance variable,
 **y**, as in the direct method.  It also calls the base class constructor. 
 Notice that we follow mom twice to find it.  Remember that the construction
-function will have its own execution environment when it's called, so one
-"mom." is needed to traverse to **DerivedClass**.  The second "mom."
-traversed back to **My_class**, which has the construct function we want to
-call.
+function will have its own activation record when it's called, so one "mom."
+is needed to traverse to **DerivedClass**.  The second "mom." traversed back
+to **My_class**, which has the construct function we want to call.
 
 Notice that we do not provide a new instance allocation function.  The one
 in **My_class** does the right thing, so there is no need to replace it.  It
