@@ -213,8 +213,36 @@ Using the closure method, we provide a new class creation function and then
 call it:
 
 ~~~~
+fn MyClass.create_DerivedClass() {
+
+	fn construct(i) {
+		mom.mom.construct(i)
+		i.y = 20
+	}
+
+	fn show() {
+		print "Derived"
+		print x
+		print y
+	}
+
+	return this
+}
+
+DerivedClass = MyClass.create_DerivedClass()
+~~~~
+
+**create_DerivedClass** is defined as a member of **MyClass** so that when
+it's called, **create_DerivedClass**'s execution environment ends up being
+**MyClass**.  This execution environment becomes **DerivedClass**.
+
+An alternative way of defining **create_DerivedClass** which does not
+involve modifying MyClass is as follows:
+
+~~~~
 fn create_DerivedClass() {
-	mom=MyClass  # inherit from MyClass
+
+	mom = MyClass
 
 	fn construct(i) {
 		mom.mom.construct(i)
@@ -233,19 +261,19 @@ fn create_DerivedClass() {
 DerivedClass = create_DerivedClass()
 ~~~~
 
-Notice that we modified **DerivedClass**'s mom to connect it with its base
-class.  In this way, any symbol lookups which fail to find a member function
-directly in **DerivedClass** will search next in **MyClass**.
+Notice that we modified **create_DerivedClass**'s execution environment's
+mom to connect it with its base class.
 
-The new construction function adds a new instance variable, **y**, as in the
-direct method.  It also calls the base class constructor.  Notice that we
-follow mom twice to find it.  Remember that the construction function will
-have its own execution environment when it's called, so one "mom." is needed
-to traverse to **DerivedClass**.  The second "mom." traversed back to
-**MyClass**, which has the construct function we want to call.
+In either case, the new construction function adds a new instance variable,
+**y**, as in the direct method.  It also calls the base class constructor. 
+Notice that we follow mom twice to find it.  Remember that the construction
+function will have its own execution environment when it's called, so one
+"mom." is needed to traverse to **DerivedClass**.  The second "mom."
+traversed back to **MyClass**, which has the construct function we want to
+call.
 
-Notice that we do not provide a new instance function.  The one in
-**MyClass** does the right thing, so there is no need to replace it.  It
+Notice that we do not provide a new instance allocation function.  The one
+in **MyClass** does the right thing, so there is no need to replace it.  It
 will find **DerivedClass**'s **construct** function.
 
 Now we can create an instance of the derived class:
