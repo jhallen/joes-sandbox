@@ -144,11 +144,11 @@ Some magic must be going on here, since member functions are not in the
 instance objects, and since you would expect the execution environment to be
 the class, not the instance.
 
-The member functions are found because we explicitly set i.mom to My_class
-in the constructor with the direct method or it was implicitly set this way
-in the closure method.  In either case, the symbol lookup follows the mom
-chain as usual.  It finds the closure containing **show** or **increment** with the
-recorded environment being the class object.
+The member functions are found because we explicitly set **i.mom** to
+**My_class** in the constructor with the direct method or it was implicitly
+set this way in the closure method.  In either case, the symbol lookup
+follows the mom chain as usual.  It finds the closure containing **show** or
+**increment** with the recorded environment being the class object.
 
 But the class object is not used for the execution environment.  This is
 because the . operator replaces the environment part of the closure
@@ -167,7 +167,7 @@ z.show()  --> prints 11
 ~~~~
 
 The environement replacement is happening in the **instance_1.show** part of
-the assignment above, so **instance_1** is still the execution environment
+the assignment above, so **instance_1** is the execution environment
 for **show**.  Since **z** does not have a mom, **z** is not used as the environment
 when we finally call show.
 
@@ -248,7 +248,7 @@ Notice that we do not provide a new instance function.  The one in
 **MyClass** does the right thing, so there is no need to replace it.  It
 will find **DerivedClass**'s **construct** function.
 
-Now we can an instance of the derived class:
+Now we can create an instance of the derived class:
 
 ~~~~
 derived_instance_1 = DerivedClass.instance()
