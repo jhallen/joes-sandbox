@@ -59,7 +59,7 @@ fn create_My_class() {
 		print x
 	}
 
-	fn inc() {
+	fn increment() {
 		x = x + 1
 	}
 
@@ -113,7 +113,7 @@ fn create_My_class() {
 		print x
 	}
 
-	fn inc() {
+	fn increment() {
 		x = x + 1
 	}
 
@@ -132,7 +132,7 @@ The instance is now ready and we can call member functions:
 
 ~~~~
 instance_1.show()   --> prints 10
-instance_1.inc()
+instance_1.increment()
 instance_1.show()   --> prints 11
 instance_2.show()   --> prints 10
 ~~~~
@@ -144,12 +144,12 @@ the class, not the instance.
 The member functions are found because we explicitly set i.mom to My_class
 in the constructor with the direct method or it was implicitly set this way
 in the closure method.  In either case, the symbol lookup follows the mom
-chain as usual.  It finds the closure containing show or inc with the
+chain as usual.  It finds the closure containing show or increment with the
 recorded environment being the class object.
 
 But the class object is not used for the execution environment.  The . 
 operator replaces the environment part of the closure retrieved from the
-symbol of its right side (show or inc) with the object it began the symbol
+symbol of its right side (show or increment) with the object it began the symbol
 search with on the left side (instance_1), but only if that object contains
 a mom.
 
@@ -170,3 +170,89 @@ environment when we finally call show.
 
 ## Inheritance
 
+We can create a new class based on an existing class like this:
+
+~~~~
+DerivedClass = [ `mom = MyClass ]
+~~~~
+
+Since DerivedClass's mom is set to MyClass, symbol lookup for member
+functions will find ones defined in MyClass if they are not directly
+provided in DerivedClass.
+
+It will need a new instance constructor:
+
+~~~~
+fn DerivedClass.construct(i=[]) {
+	i = MyClass.construct(i)
+	i.y = 20
+	i.mom = DerivedClass
+	return i
+}
+~~~~
+
+Notice how we are calling the base class's constructor, but then elaborating
+the instance by adding a new instance variable y.  Naturally the instance's
+mom is replaced (it had been set to MyClass by MyClass's constructor) so
+that it is set to DerivedClass.
+
+And we will override one of the member functions:
+
+~~~~
+fn DerivedClass.show() {
+	print "Derived"
+	print x
+	print y
+}
+~~~~
+
+Using the closure method, we provide a new class creation function and then
+call it:
+
+~~~~
+fn create_DerivedClass() {
+	mom=MyClass  # inherit from MyClass
+
+	fn construct(i) {
+		mom.mom.construct(i)
+		i.y = 20
+	}
+
+	fn show() {
+		print "Derived"
+		print x
+		print y
+	}
+
+	return this
+}
+
+DerivedClass = create_DerivedClass()
+~~~~
+
+Notice that we modified DerivedClass's mom to connect with its base class. 
+In this way, any symbol lookups which fail to find a member function
+directly in DerivedClass will search next in MyClass.
+
+The new construction function adds a new instance variable, y, as in the
+direct method.  It also calls the base class constructor.  Notice that we
+follow mom twice to find it.  Remember that the construction function will
+have it's own execution environment when it's called, so one mom. is needed
+to traverse to DerivedClass.  The second mom. traversed back to MyClass,
+which has the construct function we want to call.
+
+Notice that we do not provide a new instance function.  The one in MyClass
+does the right thing, so there is no need to replace it.  It will find
+DerivedClass's construct function.
+
+Now we can create some instances of the derived class:
+
+~~~~
+derived_instance_1 = DerivedClass.instance()
+
+derived_instance_1.show()  --> This prints:
+
+Derived
+10
+20
+~~~~
