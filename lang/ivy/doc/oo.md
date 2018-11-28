@@ -502,3 +502,88 @@ x = 11
 y = 20
 z = 31
 ~~~~
+
+Here is the closure version:
+
+~~~~
+fn create_First_class() {
+
+        fn construct(i) {
+                i.x = 10
+        }
+
+        fn instance() {
+                construct(i)
+                return i
+        }
+
+        fn show() {
+                print "x = ", x
+        }
+
+        fn inc() {
+                x = x + 1
+        }
+
+        return this
+}
+
+First_class = create_First_class()
+
+fn create_Second_class() {
+
+        fn construct(i) {
+                i.y = 20
+        }
+
+        fn instance() {
+                construct(i)
+                return i
+        }
+
+        fn show() {
+                print "y = ", y
+        }
+
+        fn inc() {
+                y = y + 1
+        }
+
+        return this
+}
+
+Second_class = create_Second_class()
+
+fn create_Derived_class() {
+
+        first_show = First_class.show
+        second_show = Second_class.show
+        first_inc = First_class.inc
+        second_inc = Second_class.inc
+
+        fn construct(i) {
+                First_class.construct(i)
+                Second_class.construct(i)
+                i.z = 30
+        }
+
+        fn instance() {
+                construct(this)
+                return this
+        }
+
+        fn show() {
+                mom.first_show()
+                mom.second_show()
+                print "z = ", z
+        }
+
+        fn third_inc() {
+                z = z + 1
+        }
+
+        return this
+}
+
+Derived_class = create_Derived_class()
+~~~~
