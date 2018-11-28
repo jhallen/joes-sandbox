@@ -3,9 +3,7 @@
 Besides being available for use by the programmer, Ivy's objects are used
 internally for function execution contexts (also known as scoping levels or
 environments).  This means that a function's local variables, including
-nested functions are implemented as object members.  A closure includes both
-a function and the object which should be used as the execution context when
-the function is invoked.
+nested functions are implemented as object members.
 
 The only difference between regular objects and objects used for execution
 contexts is the presence of a member called `mom.  This member refers to the
