@@ -261,7 +261,7 @@ DerivedClass = MyClass.create_DerivedClass()
 
 **create_DerivedClass** is defined as a member of **MyClass** so that when
 it's called, **create_DerivedClass**'s execution environment's mom ends up
-being **MyClass**.  *create_DerivedClass**'s execution environment becomes
+being **MyClass**.  **create_DerivedClass**'s execution environment becomes
 **DerivedClass**.
 
 An alternative way of defining **create_DerivedClass** which does not
