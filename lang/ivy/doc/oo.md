@@ -11,9 +11,8 @@ next outer scoping level.  During symbol lookup, the chain of moms is
 searched for the symbol.  Always the outermost level is the object
 containing Ivy's built-in functions, such as print.
 
-With this understanding, we can proceed towards an understand of how
-object-oriented programming is supported by Ivy.  There are two ways to
-implement object-oriented programming in Ivy: the direct method and the
+With this understanding, we can proceed towards implementing object-oriented
+programming in Ivy.  There are two ways to do it: the direct method and the
 closure method.  They are equivalent, and will be shown side by side.
 
 First we need to define a class to hold member functions and static
@@ -59,17 +58,21 @@ fn create_My_class() {
 		print x
 	}
 
-	fn increment() {
-		x = x + 1
-	}
-
 	return this
 }
 
 My_class = create_My_class()
 ~~~~
 
-Now we need a constructor to create class instances.  This constructor
+We can add more member functions after the class has been created:
+
+~~~~
+fn My_class.increment() {
+	x = x + 1
+}
+~~~~
+
+We need a constructor to create class instances.  This constructor
 should be a class member.  For the direct method, we add this:
 
 ~~~~
@@ -94,8 +97,8 @@ the class variables and other member functions.
 
 For the closure method, the instance creation function is a nested function
 of create_My_class which returns its execution environment as the instance. 
-We provide a separate construct function so that it can be called by derived
-class constructors.
+We separate out a construct function from the instance allocator so that it
+may be later be called by derived class constructors:
 
 ~~~~
 fn create_My_class() {
@@ -128,7 +131,7 @@ instance_1 = My_class.construct()
 instance_2 = My_class.construct()
 ~~~~
 
-The instance is now ready and we can call member functions:
+The instances are now ready and we can call their member functions:
 
 ~~~~
 instance_1.show()   --> prints 10
@@ -144,18 +147,18 @@ the class, not the instance.
 The member functions are found because we explicitly set i.mom to My_class
 in the constructor with the direct method or it was implicitly set this way
 in the closure method.  In either case, the symbol lookup follows the mom
-chain as usual.  It finds the closure containing show or increment with the
+chain as usual.  It finds the closure containing **show** or **increment** with the
 recorded environment being the class object.
 
-But the class object is not used for the execution environment.  The . 
-operator replaces the environment part of the closure retrieved from the
-symbol of its right side (show or increment) with the object it began the symbol
-search with on the left side (instance_1), but only if that object contains
-a mom.
+But the class object is not used for the execution environment.  This is
+because the . operator replaces the environment part of the closure
+retrieved from the symbol of its right side (**show** or **increment**) with the
+object it began the symbol search with on the left side (**instance_1**), but
+only if that object contains a mom.
 
 If the object did not contain a mom, then the environment replacement does
 not happen.  Instead the recorded environment is used.  This allows you to
-make objects that just refere to other object's member functions:
+make non-class objects as containers for other object's member functions:
 
 ~~~~
 z=[]
@@ -163,10 +166,10 @@ z.show = instance_1.show
 z.show()  --> prints 11
 ~~~~
 
-Note that the environement replacement is happening in the instance_1.show
-part of the assignment above, so instance_1 is still the execution
-environment for show.  Since z does not have a mom, z is not used as the
-environment when we finally call show.
+The environement replacement is happening in the **instance_1.show** part of
+the assignment above, so **instance_1** is still the execution environment
+for **show**.  Since **z** does not have a mom, **z** is not used as the environment
+when we finally call show.
 
 ## Inheritance
 
@@ -176,9 +179,9 @@ We can create a new class based on an existing class like this:
 DerivedClass = [ `mom = MyClass ]
 ~~~~
 
-Since DerivedClass's mom is set to MyClass, symbol lookup for member
-functions will find ones defined in MyClass if they are not directly
-provided in DerivedClass.
+Since **DerivedClass**'s mom is set to **MyClass**, symbol lookup for member
+functions will find ones defined in **MyClass** if they are not directly
+provided in **DerivedClass**.
 
 It will need a new instance constructor:
 
@@ -192,9 +195,9 @@ fn DerivedClass.construct(i=[]) {
 ~~~~
 
 Notice how we are calling the base class's constructor, but then elaborating
-the instance by adding a new instance variable y.  Naturally the instance's
-mom is replaced (it had been set to MyClass by MyClass's constructor) so
-that it is set to DerivedClass.
+the instance by adding a new instance variable **y**.  Naturally the instance's
+mom is replaced (it had been set to **MyClass** by **MyClass**'s constructor) so
+that it is set to **DerivedClass**.
 
 And we will override one of the member functions:
 
@@ -230,22 +233,22 @@ fn create_DerivedClass() {
 DerivedClass = create_DerivedClass()
 ~~~~
 
-Notice that we modified DerivedClass's mom to connect with its base class. 
-In this way, any symbol lookups which fail to find a member function
-directly in DerivedClass will search next in MyClass.
+Notice that we modified **DerivedClass**'s mom to connect it with its base
+class.  In this way, any symbol lookups which fail to find a member function
+directly in **DerivedClass** will search next in **MyClass**.
 
-The new construction function adds a new instance variable, y, as in the
+The new construction function adds a new instance variable, **y**, as in the
 direct method.  It also calls the base class constructor.  Notice that we
 follow mom twice to find it.  Remember that the construction function will
-have it's own execution environment when it's called, so one mom. is needed
-to traverse to DerivedClass.  The second mom. traversed back to MyClass,
-which has the construct function we want to call.
+have its own execution environment when it's called, so one "mom." is needed
+to traverse to **DerivedClass**.  The second "mom." traversed back to
+**MyClass**, which has the construct function we want to call.
 
-Notice that we do not provide a new instance function.  The one in MyClass
-does the right thing, so there is no need to replace it.  It will find
-DerivedClass's construct function.
+Notice that we do not provide a new instance function.  The one in
+**MyClass** does the right thing, so there is no need to replace it.  It
+will find **DerivedClass**'s **construct** function.
 
-Now we can create some instances of the derived class:
+Now we can an instance of the derived class:
 
 ~~~~
 derived_instance_1 = DerivedClass.instance()

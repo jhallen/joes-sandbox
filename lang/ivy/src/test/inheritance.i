@@ -104,11 +104,11 @@ fn MyClass.CreateAnotherDerived() {
 		i.z = 30 # Add another variable to it..
 	}
 
-	fn Instance() {
-		print "Instance2"
-		Construct(this)
-		return this
-	}
+#	fn Instance() {
+#		print "Instance2"
+##		Construct(this)
+#		return this
+#	}
 
 	fn Show() {
 		print "Hi"
@@ -129,5 +129,5 @@ print "Create instance of it"
 Instance_4 = AnotherDerivedClass.Instance()
 print "Call its show"
 Instance_4.Show()
-print Instance_4
+#print Instance_4
 print "Done"
