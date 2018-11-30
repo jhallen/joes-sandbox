@@ -5,19 +5,20 @@ internally for activation records.  This means that a function's local
 variables are implemented as object members.
 
 The only difference between regular objects and objects used for activation
-records is the presence of a member called `mom.  This member refers to the
-next outer scoping level.  Ivy uses lexical scoping, so the next outer level
-is usually (for the case of nested functions) the parent function's (*not*
-the calling function's) activation record, the global variables (when
-modules are loaded, they each get their own object for global variables), or
-finally the object containing Ivy's built-in functions, such as *print*. 
-During symbol lookup, the chain of moms is searched for the symbol.
+records is the presence of a member called *`mom*.  This member refers to
+the next outer scoping level.  Ivy uses lexical scoping, so the chain of
+next outer levels include (for the case of nested functions) the parent
+function's (*not* the calling function's) activation record, then the global
+variables (when modules are loaded, they each get their own object for
+global variables), then finally the object containing Ivy's built-in
+functions, such as *print*.  During symbol lookup, the chain of moms is
+searched for the symbol.
 
 When functions are passed around, they always come in closures.  A closure
 contains a pointer to the function's code and a pointer to the environment
-where it was defined (the activation record at that time).  The environment
-is the object that becomes the function's activation record's mom when the
-function is called.
+where it was defined, which is the activation record in effect at that time. 
+The environment is the object that becomes the function's activation
+record's mom when the function is called.
 
 With this understanding, we can proceed towards implementing object-oriented
 programming in Ivy.  There are two ways to do it: the direct method and the
@@ -25,7 +26,7 @@ closure method.  They are equivalent, and will be shown side by side.
 
 First we need to define a class to hold member functions and static
 variables (variables shared by all instances of the class).  In the direct
-method, we just create an object, but with `mom set to the current
+method, we just create an object, but with *`mom* set to the current
 activation record, in this case the one containing the global variables:
 
 ~~~~
@@ -91,9 +92,9 @@ fn create_My_class() {
 My_class = create_My_class()
 ~~~~
 
-The closure method has the advantage of not requiring explicit setting of *mom*,
-in case that bothers you.  *My_class.mom* will still exist, however.  It was
-set when then function was invoked.
+The closure method has the advantage of not requiring you to explicitly set
+*mom*, in case that bothers you.  *My_class.mom* will still exist, however. 
+It was set in the activation record when then function was invoked.
 
 We can add more member functions after the class has been created (by either
 method: assigning lambda functions to member names or by declaring named
@@ -128,16 +129,18 @@ fn My_class.instance(i=[]) {
 }
 ~~~~
 
-Notice that we create the object for the instance as the default value for
-*i*.  If *i* is missing, the object is automatically created.  If the
-argument is provided, then the caller provided the object for the instance. 
-We will use this later for derived classes, where we want to allow the
-derived class constructor to call the base class constructor.
+Notice that an empty object is provided as the default value for *i*.  If
+the *i* argument is missing, this default empty object will become the
+instance.  If the argument is provided, then the caller provided object is
+used for the instance.  We will use this capability later for derived
+classes, where we want to allow the derived class constructor to call the
+base class constructor.
 
-We create an instance variable x and set it to a default value 10.
+Next, we create an instance variable x and set it to a default value 10.
 
-We set the mom of the instance to the class so that if we call member
-functions on the instance, the ones defined in the class will be found.
+Finally, we set the mom of the instance to the class so that if we call
+member functions on the instance, the ones defined in the class will be
+found.
 
 For the closure method, the instance creation function is a nested function
 of *create_My_class* which returns its activation record as the instance. 
@@ -168,7 +171,7 @@ fn create_My_class() {
 }
 ~~~~
 
-Now we create instances of the class:
+Now we create some instances of the class:
 
 ~~~~
 instance_1 = My_class.construct()
@@ -184,9 +187,9 @@ instance_1.show()   --> prints 11
 instance_2.show()   --> prints 10
 ~~~~
 
-You might think some magic must be going on here, since member functions are
-not in the instance objects, and even then you would expect the called
-function's activation record's mom to be the class, not the instance.
+But, the member functions are not in the instance objects, and even then you
+would expect the called function's activation record's mom to be the class,
+not the instance.  So what is going on?
 
 The member functions are found because we explicitly set *i.mom* to
 *My_class* in the constructor with the direct method or it was implicitly
