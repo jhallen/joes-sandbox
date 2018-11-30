@@ -23,6 +23,8 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include <setjmp.h>
 #include "ivy.h"
 
+// #define AUTOSCOPE 1
+
 Ivy_func *ivy_create_func(Ivy_pseudo *code, int nargs, char **args, Ivy_pseudo **inits, char *quote, int thunk,
 			char *argv, Ivy_pseudo *argv_init, char argv_quote)
 {
@@ -614,7 +616,9 @@ static void gencond(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node *n, int v)
 
 	if (f && r) { /* elif */
 		int els = genbra(err, frag, f, 1); /* Branch if false */
+#ifdef AUTOSCOPE
 		push_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 		if (v) {
 			gen(err, frag, r);
 			/* Value is still here, but we need to pop the lvlSCOPE */
@@ -622,7 +626,9 @@ static void gencond(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node *n, int v)
 			pop_looplvl(frag, lvlVALUE, 0, 0);
 		} else
 			genn(err, frag, r);
+#ifdef AUTOSCOPE
 		pop_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 		ivy_emitc(frag, ivy_iBRA);
 		if (end)
 			addlist(frag, end, ivy_emitn(frag, 0));
@@ -632,13 +638,17 @@ static void gencond(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node *n, int v)
 		setlist(frag, els, frag->code);
 		goto loop;
 	} else if (f) { /* else */
+#ifdef AUTOSCOPE
 		push_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 		if (v) {
 			gen(err, frag, f);
 			pop_looplvl(frag, lvlVALUE, 0, 0);
 		} else
 			genn(err, frag, f);
+#ifdef AUTOSCOPE
 		pop_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 		if (v) {
 			push_looplvl(frag, lvlVALUE, 0, 0); /* here XXX */
 		}
@@ -957,9 +967,13 @@ static void genn(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
+#ifdef AUTOSCOPE
 				push_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 				genn(err, frag, args->r->r->r); /* Body */
+#ifdef AUTOSCOPE
 				pop_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 				genn(err, frag, args->r->r->l); /* Increment */
 				cont = frag->code;
 				setlist(frag,genbra(err, frag, args->r->l, 0), top); /* Test */
@@ -978,7 +992,9 @@ static void genn(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 				if (args->l->what != ivy_nNAM) {
 					ivy_error_2(err, "\"%s\" %d: First arg to foreach must be a variable", n->loc->name, n->loc->line);
 				}
+#ifdef AUTOSCOPE
 				push_looplvl(frag, lvlSCOPE, 0, 0); /* Scope for args */
+#endif
 				gen(err, frag, args->l);	/* Variable (check that it really is at runtime) */
 				gen(err, frag, args->r->l);	/* Array/object */
 				push_num(frag);
@@ -991,9 +1007,13 @@ static void genn(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 				if (name)
 					frag->looplvls->name = strdup(name->r->s);
 				top = frag->code;
+#ifdef AUTOSCOPE
 				push_looplvl(frag, lvlSCOPE, 0, 0); /* Scope for body */
+#endif
 				genn(err, frag, args->r->r);
+#ifdef AUTOSCOPE
 				pop_looplvl(frag, lvlSCOPE, 0, 0); /* Body scope done */
+#endif
 				cont = frag->code;
 				if (n->what == ivy_nFOREACH)
 					ivy_emitc(frag, ivy_iFOREACH);
@@ -1007,7 +1027,9 @@ static void genn(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 				ivy_emitc(frag, ivy_iPOP);
 				ivy_emitc(frag, ivy_iPOP);
 				fixlooplvl(frag, 4); /* POP temp vars */
+#ifdef AUTOSCOPE
 				pop_looplvl(frag, lvlSCOPE, 0, 0); /* POP args scope */
+#endif
 			}
 			break;
 		} case ivy_nWHILE: {
@@ -1024,10 +1046,14 @@ static void genn(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 			if (name)
 				frag->looplvls->name = strdup(name->r->s);
 			top = frag->code;
+#ifdef AUTOSCOPE
 			push_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 			if (args->what==ivy_nSEMI)
 				genn(err, frag, args->r);
+#ifdef AUTOSCOPE
 			pop_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 			cont = frag->code;
 			if (args->what==ivy_nSEMI)
 				setlist(frag, genbra(err, frag, args->l, 0), top);
@@ -1059,9 +1085,13 @@ static void genn(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 			push_looplvl(frag, lvlLOOP, 0, 0);
 			if (name)
 				frag->looplvls->name = strdup(name->r->s);
+#ifdef AUTOSCOPE
 			push_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 			genn(err, frag, args);
+#ifdef AUTOSCOPE
 			pop_looplvl(frag, lvlSCOPE, 0, 0);
+#endif
 			ivy_emitc(frag, ivy_iBRA);
 			ivy_align_frag(frag, sizeof(int));
 			ivy_emitn(frag, cont - (frag->code));

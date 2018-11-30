@@ -873,11 +873,12 @@ static int pexe(Ivy *ivy, int trace)
 {
 	Ivy_pseudo *pc = ivy->pc;
 
-	for (;;) { if (trace) fprintf(ivy->out,"-----\n"), ivy_showstack(ivy), ivy_disasm(ivy->out, pc, 0, 1); ivy_clear_protected(); switch (*pc++) {
+	for (;;) { /* if (trace) fprintf(ivy->out,"-----\n"), ivy_showstack(ivy), ivy_disasm(ivy->out, pc, 0, 1);  */ switch (*pc++) {
                 case ivy_iBRA: {	/* Branch unconditionally */
                         pc += ivy_align_o(pc, sizeof(int));
                         pc += *(int *)pc;
-                        break;
+			ivy_clear_protected();
+			break;
                 } case ivy_iBEQ: {	/* Branch if zero or void */
                         pc += ivy_align_o(pc, sizeof(int));
                         if (ivy->sp->type == ivy_tNUM)
@@ -895,7 +896,8 @@ static int pexe(Ivy *ivy, int trace)
                                 ivy->sp = ivy_rmval(ivy->sp, __LINE__);
                                 pc += sizeof(int);
                         }
-                        break;
+			ivy_clear_protected();
+			break;
 		} case ivy_iBNE: {	/* Branch if non-zero or non-void */
 			pc += ivy_align_o(pc, sizeof(int));
 			if (ivy->sp->type == ivy_tVOID) {
@@ -911,6 +913,7 @@ static int pexe(Ivy *ivy, int trace)
                                 ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				pc += sizeof(int);
 			}
+			ivy_clear_protected();
 			break;
 		} case ivy_iBGT: {	/* Branch if > 0 */
 			pc += ivy_align_o(pc, sizeof(int));
@@ -927,6 +930,7 @@ static int pexe(Ivy *ivy, int trace)
                                 ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				pc += sizeof(int);
                         }
+			ivy_clear_protected();
 			break;
 		} case ivy_iBLT: {	/* Branch if < 0 */
 			pc += ivy_align_o(pc, sizeof(int));
@@ -943,6 +947,7 @@ static int pexe(Ivy *ivy, int trace)
                                 ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				pc += sizeof(int);
                         }
+			ivy_clear_protected();
 			break;
 		} case ivy_iBGE: {	/* Branch if >= 0 */
 			pc += ivy_align_o(pc, sizeof(int));
@@ -959,6 +964,7 @@ static int pexe(Ivy *ivy, int trace)
                                 ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				pc += sizeof(int);
                         }
+			ivy_clear_protected();
 			break;
 		} case ivy_iBLE: {	/* Branch if <= 0 */
 			pc += ivy_align_o(pc, sizeof(int));
@@ -975,6 +981,7 @@ static int pexe(Ivy *ivy, int trace)
                                 ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				pc += sizeof(int);
                         }
+			ivy_clear_protected();
 			break;
 		} case ivy_iCOM: {	/* 1's complement */
 			if (ivy->sp->type == ivy_tNUM)
@@ -1347,6 +1354,7 @@ static int pexe(Ivy *ivy, int trace)
                         }
 			break;
 		} case ivy_iRTS: {	/* Return from function */
+			ivy_clear_protected();
 			*ivy_push(ivy) = ivy->stashed;
 			ivy_void_val(&ivy->stashed);
 			ivy->pc = pc;

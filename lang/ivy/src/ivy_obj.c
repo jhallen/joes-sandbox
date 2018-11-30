@@ -222,14 +222,26 @@ static Ivy_obj *free_objs;
 
 static int next_obj_no;
 
-struct obj_protect *obj_protect_list;
+struct ivy_obj_protect *ivy_obj_protect_list;
+struct ivy_obj_protect *ivy_obj_protect_ptr;
+int ivy_obj_protect_idx;
 
 void ivy_protect_obj(Ivy_obj *o)
 {
-	struct obj_protect *prot = (struct obj_protect *)malloc(sizeof(struct obj_protect));
-	prot->next = obj_protect_list;
-	prot->obj = o;
-	obj_protect_list = prot;
+	if (!ivy_obj_protect_ptr) {
+		ivy_obj_protect_list = (struct ivy_obj_protect *)calloc(1, sizeof(struct ivy_obj_protect));
+		ivy_obj_protect_ptr = ivy_obj_protect_list;
+		ivy_obj_protect_idx = 0;
+	}
+
+	ivy_obj_protect_ptr->list[ivy_obj_protect_idx++] = o;
+
+	if (ivy_obj_protect_idx == IVY_OBJ_PROTECT_SIZE) {
+		if (!ivy_obj_protect_ptr->next)
+			ivy_obj_protect_ptr->next = (struct ivy_obj_protect *)calloc(1, sizeof(struct ivy_obj_protect));
+		ivy_obj_protect_ptr = ivy_obj_protect_ptr->next;
+		ivy_obj_protect_idx = 0;
+	}
 }
 
 Ivy_obj *ivy_alloc_obj(int nam_size, int str_size, int ary_size)
@@ -315,9 +327,16 @@ void ivy_mark_obj(Ivy_obj *o)
 
 void ivy_mark_protected_objs()
 {
-	struct obj_protect *op;
-	for (op = obj_protect_list; op; op = op->next)
-		ivy_mark_obj(op->obj);
+	struct ivy_obj_protect *op;
+	int x;
+	for (op = ivy_obj_protect_list; op; op = op->next)
+		if (op == ivy_obj_protect_ptr) {
+			for (x = 0; x != ivy_obj_protect_idx; ++x)
+				ivy_mark_obj(op->list[x]);
+				break;
+		} else
+			for (x = 0; x != IVY_OBJ_PROTECT_SIZE; ++x)
+				ivy_mark_obj(op->list[x]);
 }
 
 void ivy_sweep_objs()
@@ -334,4 +353,3 @@ void ivy_sweep_objs()
 		}
 	}
 }
-

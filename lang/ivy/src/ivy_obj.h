@@ -44,20 +44,22 @@ void ivy_mark_obj(Ivy_obj *o);
 void ivy_mark_protected_objs();
 void ivy_sweep_objs();
 
-extern struct obj_protect {
-	struct obj_protect *next;
-	Ivy_obj *obj;
-} *obj_protect_list;
+#define IVY_OBJ_PROTECT_SIZE 128
+
+extern struct ivy_obj_protect {
+	struct ivy_obj_protect *next;
+	Ivy_obj *list[IVY_OBJ_PROTECT_SIZE];
+} *ivy_obj_protect_list;
+
+struct ivy_obj_protect *ivy_obj_protect_ptr;
+extern int ivy_obj_protect_idx;
 
 static inline void ivy_clear_protected_objs()
 {
-	struct obj_protect *op;
-	while (obj_protect_list) {
-		op = obj_protect_list;
-		obj_protect_list = op->next;
-		free(op);
-	}
+	ivy_obj_protect_ptr = ivy_obj_protect_list;
+	ivy_obj_protect_idx = 0;
 }
+
 void ivy_protect_obj(Ivy_obj *o);
 
 Ivy_obj *ivy_dup_obj(Ivy_obj *, void *, int, int);		/* Duplicate an object */

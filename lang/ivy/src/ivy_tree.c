@@ -35,8 +35,6 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 Ivy_node *ivy_cons2(Ivy_loc *loc, int what, Ivy_node *left, Ivy_node *right)
 {
 	if (!left || !right) {
-		ivy_rm_tree(loc, right);
-		ivy_rm_tree(loc, left);
 		return 0;
 	} else if (what == ivy_nSEMI && left->what == ivy_nSEMI) {
 		/* Build a list */
@@ -231,19 +229,6 @@ Ivy_node *ivy_dup_tree(Ivy_loc *loc, Ivy_node * o)
 	n->l = ivy_dup_tree(loc, o->l);
 	*n->loc = *o->loc;
 	return n;
-}
-
-/* Eliminate a tree */
-
-void ivy_rm_tree(Ivy_loc *loc, Ivy_node *n)
-{
-	if (n) {
-		ivy_rm_tree(loc, n->l);
-		ivy_rm_tree(loc, n->r);
-		if (n->s && n->what != ivy_nNAM)
-			free(n->s);
-		ivy_free_item(loc->free_list, n);
-	}
 }
 
 /* Tree printer */

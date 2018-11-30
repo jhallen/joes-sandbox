@@ -17,14 +17,25 @@ static Ivy_string *free_strs;
 
 /* Protect from gc list */
 
-struct str_protect *str_protect_list;
+struct ivy_str_protect *ivy_str_protect_list, *ivy_str_protect_ptr;
+int ivy_str_protect_idx;
 
 void ivy_protect_str(Ivy_string *str)
 {
-	struct str_protect *prot = (struct str_protect *)malloc(sizeof(struct str_protect));
-	prot->next = str_protect_list;
-	prot->str = str;
-	str_protect_list = prot;
+	if (!ivy_str_protect_ptr) {
+		ivy_str_protect_list = (struct ivy_str_protect *)calloc(1, sizeof(struct ivy_str_protect));
+		ivy_str_protect_ptr = ivy_str_protect_list;
+		ivy_str_protect_idx = 0;
+	}
+
+	ivy_str_protect_ptr->list[ivy_str_protect_idx++] = str;
+
+	if (ivy_str_protect_idx == IVY_OBJ_PROTECT_SIZE) {
+		if (!ivy_str_protect_ptr->next)
+			ivy_str_protect_ptr->next = (struct ivy_str_protect *)calloc(1, sizeof(struct ivy_str_protect));
+		ivy_str_protect_ptr = ivy_str_protect_ptr->next;
+		ivy_str_protect_idx = 0;
+	}
 }
 
 extern int ivy_alloc_count;
@@ -91,8 +102,15 @@ void ivy_sweep_strs()
 
 void ivy_mark_protected_strs()
 {
-	struct str_protect *sp;
-	for (sp = str_protect_list; sp; sp = sp->next)
-		ivy_mark_str(sp->str);
+	struct ivy_str_protect *sp;
+	int x;
+	for (sp = ivy_str_protect_list; sp; sp = sp->next)
+		if (sp == ivy_str_protect_ptr) {
+			for (x = 0; x != ivy_str_protect_idx; ++x)
+				ivy_mark_str(sp->list[x]);
+			break;
+		} else {
+			for (x = 0; x != IVY_STR_PROTECT_SIZE; ++x)
+				ivy_mark_str(sp->list[x]);
+		}
 }
-

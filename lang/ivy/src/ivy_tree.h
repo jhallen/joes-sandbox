@@ -121,9 +121,6 @@ Ivy_node *ivy_opt(Ivy_loc *, Ivy_node * a);		// If a is NULL, return consempty()
 /* Tree duplicator */
 Ivy_node *ivy_dup_tree(Ivy_loc *, Ivy_node *);
 
-/* Tree eliminator */
-void ivy_rm_tree(Ivy_loc *, Ivy_node *);
-
 /* Print tree */
 void ivy_indent(FILE *out, int lvl);
 void ivy_prtree(FILE *out, Ivy_node *n, int lvl);
