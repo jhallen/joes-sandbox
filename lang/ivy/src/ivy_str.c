@@ -17,10 +17,7 @@ static Ivy_string *free_strs;
 
 /* Protect from gc list */
 
-static struct str_protect {
-	struct str_protect *next;
-	Ivy_string *str;
-} *str_protect_list;
+struct str_protect *str_protect_list;
 
 void ivy_protect_str(Ivy_string *str)
 {
@@ -99,12 +96,3 @@ void ivy_mark_protected_strs()
 		ivy_mark_str(sp->str);
 }
 
-void ivy_clear_protected_strs()
-{
-	struct str_protect *sp;
-	while (str_protect_list) {
-		sp = str_protect_list;
-		str_protect_list = sp->next;
-		free(sp);
-	}
-}

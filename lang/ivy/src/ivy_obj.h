@@ -13,6 +13,7 @@ struct ivy_obj {
 
 	Ivy_entry *nam_tab;		/* Symbol table (interned string hash table) */
 	int nam_tab_mask;	/* Allocation size of nam_tab - 1 */
+	int nam_tab_shift;	/* Log2 of nam_tab size */
 	int nam_tab_count;	/* No. of entries actually used */
 
 	Ivy_entry *str_tab;		/* Non-interned string hash table */
@@ -42,7 +43,21 @@ Ivy_obj *ivy_alloc_obj(int nam_size, int str_size, int ary_size);
 void ivy_mark_obj(Ivy_obj *o);
 void ivy_mark_protected_objs();
 void ivy_sweep_objs();
-void ivy_clear_protected_objs();
+
+extern struct obj_protect {
+	struct obj_protect *next;
+	Ivy_obj *obj;
+} *obj_protect_list;
+
+static inline void ivy_clear_protected_objs()
+{
+	struct obj_protect *op;
+	while (obj_protect_list) {
+		op = obj_protect_list;
+		obj_protect_list = op->next;
+		free(op);
+	}
+}
 void ivy_protect_obj(Ivy_obj *o);
 
 Ivy_obj *ivy_dup_obj(Ivy_obj *, void *, int, int);		/* Duplicate an object */

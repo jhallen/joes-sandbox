@@ -1,4 +1,8 @@
-void ivy_clear_protected();
+static inline void ivy_clear_protected()
+{
+	ivy_clear_protected_objs();
+	ivy_clear_protected_strs();
+}
 void ivy_collect();
 Ivy_val *ivy_mark_val(Ivy_val *val);
 

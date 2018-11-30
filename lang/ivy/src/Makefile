@@ -1,7 +1,7 @@
 all: build ivy
 
 #CFLAGS = -pg -g -Wall
-CFLAGS = -O2 -Wall
+CFLAGS = -O3 -Wall
 CC = gcc
 
 # LIBS = -lm -lreadline -lcurses

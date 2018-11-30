@@ -12,7 +12,7 @@ static int slot_for_symbol(Ivy_obj *t, char *name)
         int x;
 
         for (
-        	x = (ivy_ahash(name) & t->nam_tab_mask);
+        	x = ivy_fib_hash(name, t->nam_tab_shift);
         	t->nam_tab[x].name != name && t->nam_tab[x].name;
         	x = ((x + 1) & t->nam_tab_mask)
 	);
@@ -24,11 +24,20 @@ static int slot_for_symbol(Ivy_obj *t, char *name)
 
 Ivy_val *ivy_get_by_symbol(Ivy_obj *t, char *name)
 {
-        int x = slot_for_symbol(t, name);
-        if (t->nam_tab[x].name)
-        	return &t->nam_tab[x].val;
-	else
-		return NULL;
+        int x;
+
+	x = ivy_fib_hash(name, t->nam_tab_shift);
+
+	for (;;) {
+
+		if (t->nam_tab[x].name == name)
+			return &t->nam_tab[x].val;
+
+		if (!t->nam_tab[x].name)
+			return NULL;
+		
+        	x = ((x + 1) & t->nam_tab_mask);
+	}
 }
 
 /* Expand hash table to avoid clashes */
@@ -38,12 +47,13 @@ static void expand_symbol_tab(Ivy_obj *t)
 	int x, y;
 	int new_tab_size = (t->nam_tab_mask + 1) * 2;
 	int new_tab_mask = new_tab_size - 1;
+	int new_tab_shift = t->nam_tab_shift - 1;
 
 	Ivy_entry *new_tab = (Ivy_entry *)calloc(new_tab_size, sizeof(Ivy_entry));
 
 	for (y = 0; y != t->nam_tab_mask + 1; ++y) {
 		if (t->nam_tab[y].name) {
-			for (x = (ivy_ahash(t->nam_tab[y].name) & new_tab_mask); new_tab[x].name; x = ((x + 1) & new_tab_mask));
+			for (x = (ivy_fib_hash(t->nam_tab[y].name, new_tab_shift) & new_tab_mask); new_tab[x].name; x = ((x + 1) & new_tab_mask));
 			new_tab[x].name = t->nam_tab[y].name;
 			new_tab[x].val = t->nam_tab[y].val;
 		}
@@ -53,6 +63,7 @@ static void expand_symbol_tab(Ivy_obj *t)
 
 	t->nam_tab = new_tab;
 	t->nam_tab_mask = new_tab_mask;
+	t->nam_tab_shift = new_tab_shift;
 }
 
 /* Get variable bound to symbol in an object.  If no variable is bound to the symbol create one. */
@@ -209,12 +220,9 @@ static Ivy_obj *free_objs;
 
 /* Protect from gc list */
 
-static struct obj_protect {
-	struct obj_protect *next;
-	Ivy_obj *obj;
-} *obj_protect_list;
-
 static int next_obj_no;
+
+struct obj_protect *obj_protect_list;
 
 void ivy_protect_obj(Ivy_obj *o)
 {
@@ -250,8 +258,9 @@ Ivy_obj *ivy_alloc_obj(int nam_size, int str_size, int ary_size)
 	o->ary_len = 0;
 	o->ary = (Ivy_val *)calloc(o->ary_size, sizeof(Ivy_val));
 
-	o->nam_tab_mask = nam_size - 1;
-	o->nam_tab = (Ivy_entry *)calloc(nam_size, sizeof(Ivy_entry));
+	o->nam_tab_shift = 64 - 2; // shift is (64 - log2(size))- what fib_hash() needs
+	o->nam_tab_mask = (1 << (64 - o->nam_tab_shift)) - 1;
+	o->nam_tab = (Ivy_entry *)calloc(o->nam_tab_mask + 1, sizeof(Ivy_entry));
 	o->nam_tab_count = 0;
 
 	o->str_tab_mask = str_size - 1;
@@ -326,12 +335,3 @@ void ivy_sweep_objs()
 	}
 }
 
-void ivy_clear_protected_objs()
-{
-	struct obj_protect *op;
-	while (obj_protect_list) {
-		op = obj_protect_list;
-		obj_protect_list = op->next;
-		free(op);
-	}
-}

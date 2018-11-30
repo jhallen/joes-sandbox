@@ -252,8 +252,8 @@ fn My_class.inc_and_show() {
 
 *Mom* will refer to the instance object when inc_and_show is called.  In
 this case, you could replace *mom* with *this*.  But it is better to use
-*mom*, since the member function should never be modifying the activation
-record of inc_and_show.
+*mom*, since the member function should not be modifying the activation
+record of *inc_and_show* itself.
 
 ## Inheritance
 

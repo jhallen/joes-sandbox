@@ -38,7 +38,6 @@ typedef struct ivy_entry Ivy_entry;	/* A hash table entry */
 typedef unsigned char Ivy_pseudo;	/* Byte code */
 
 #include "ivy_str.h"
-#include "ivy_gc.h"
 #include "ivy_tree.h"
 #include "ivy_symbols.h"
 #include "ivy_frag.h"
@@ -116,19 +115,18 @@ struct ivy_callstate {
 
 struct ivy {
 	Ivy *next, *prev;	/* Doubly-linked list of all existing ivys */
-	Ivy_error_printer errprn[1];	/* Error printer */
-	Ivy_val stashed;	/* Stashed return value */
-	Ivy_val *sptop;	/* Base of stack */
-	Ivy_val *sp;	/* Stack */
-	int spsize;	/* Stack size */
-	Ivy_obj *glblvars;	/* Outer-most scoping level: Global variables */
+	Ivy_val *sp;	/* Stack pointer sp[0] is most recently pushed value */
+	Ivy_val *spend; /* End of stack */
 	Ivy_obj *vars;	/* Current deepest scoping level */
-	jmp_buf err;	/* Error return point */
+	Ivy_val stashed;	/* Stashed return value */
 	Ivy_pseudo *pc;	/* Current program counter */
 	void (*call_me)(Ivy *);
 			/* C function to call */
 	void *call_me_obj;
-
+	Ivy_val *sptop;	/* Base of stack */
+	Ivy_obj *glblvars;	/* Outer-most scoping level: Global variables */
+	jmp_buf err;	/* Error return point */
+	Ivy_error_printer errprn[1];	/* Error printer */
 	FILE *out;	/* Standard output */
 	FILE *in;	/* Standard input */
 };
@@ -200,7 +198,9 @@ void ivy_addfunc(Ivy_error_printer *err, char *name, char *argstr, void (*cfunc)
 
 /* Compute hash value of symbol address */
 
-#define ivy_ahash(s) (((unsigned long)(s)>>3) ^ ((unsigned long)(s)>>12))
+//#define ivy_ahash(s) (((unsigned long)(s)>>3) ^ ((unsigned long)(s)>>12))
+//#define ivy_ahash(s) (((unsigned long)(s)>>3))
+#define ivy_fib_hash(s, n) (((unsigned long long)(s) * 11400714819323198485llu) >> (n))
 
 /* A function */
 
@@ -307,13 +307,12 @@ Ivy_obj *ivy_get_mom(Ivy_obj *o);
 
 /* Make space on stack for one value */
 
+void ivy_expand_stack(Ivy *ivy);
+
 static inline Ivy_val *ivy_push(Ivy *ivy)
 {
-	int ss;
-	if ((ss = ++ivy->sp - ivy->sptop) == ivy->spsize) {
-		ivy->sptop = (Ivy_val *) realloc(ivy->sptop, sizeof(Ivy_val) * (ivy->spsize += 1024));
-		ivy->sp = ivy->sptop + ss;
-	}
+	if (++ivy->sp == ivy->spend)
+		ivy_expand_stack(ivy);
 	return ivy->sp;
 }
 

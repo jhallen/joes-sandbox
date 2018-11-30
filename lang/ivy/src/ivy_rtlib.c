@@ -25,7 +25,6 @@ IVY; see the file COPYING.  If not, write to the Free Software Foundation,
 #include "ivy_error.h"
 #include "ivy_tree.h"
 #include "ivy.h"
-#include "ivy_gc.h"
 
 /* Functions for reading args */
 

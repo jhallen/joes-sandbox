@@ -126,8 +126,3 @@ void ivy_collect()
 	// printf("Done.\n");
 }
 
-void ivy_clear_protected()
-{
-	ivy_clear_protected_objs();
-	ivy_clear_protected_strs();
-}

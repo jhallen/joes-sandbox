@@ -175,6 +175,15 @@ Ivy_val *ivy_rmval(Ivy_val *v, int line)
 	return v;
 }
 
+void ivy_expand_stack(Ivy *ivy)
+{
+	int org_size = ivy->spend - ivy->sptop;
+	int new_size = org_size + 1024;
+	ivy->sptop = (Ivy_val *) realloc(ivy->sptop, sizeof(Ivy_val) * new_size);
+	ivy->sp = ivy->sptop + org_size;
+	ivy->spend = ivy->sptop + new_size;
+}
+
 /* Add a new level of local variables */
 
 void ivy_scope_push(Ivy *ivy, Ivy_obj *dyn)
@@ -1148,7 +1157,15 @@ static int pexe(Ivy *ivy, int trace)
                         }
 			break;
                 } case ivy_iCMP: {
-			if (ivy->sp[0].type == ivy_tVOID && ivy->sp[-1].type == ivy_tVOID) {
+			if (ivy->sp[0].type == ivy_tNUM && ivy->sp[-1].type == ivy_tNUM) {	/* Compare numbers */
+				if (ivy->sp[-1].u.num == ivy->sp[0].u.num)
+					ivy->sp[-1].u.num = 0;
+				else if (ivy->sp[-1].u.num > ivy->sp[0].u.num)
+					ivy->sp[-1].u.num = 1;
+				else
+					ivy->sp[-1].u.num = -1;
+				--ivy->sp;
+			} else if (ivy->sp[0].type == ivy_tVOID && ivy->sp[-1].type == ivy_tVOID) {
 				ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				ivy_int_val(++ivy->sp, 0);
@@ -1157,14 +1174,6 @@ static int pexe(Ivy *ivy, int trace)
 				ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				ivy->sp = ivy_rmval(ivy->sp, __LINE__);
 				ivy_int_val(++ivy->sp, 1);
-			} else if (ivy->sp[0].type == ivy_tNUM && ivy->sp[-1].type == ivy_tNUM) {	/* Compare numbers */
-				if (ivy->sp[-1].u.num == ivy->sp[0].u.num)
-					ivy->sp[-1].u.num = 0;
-				else if (ivy->sp[-1].u.num > ivy->sp[0].u.num)
-					ivy->sp[-1].u.num = 1;
-				else
-					ivy->sp[-1].u.num = -1;
-				--ivy->sp;
 			} else if (ivy->sp[0].type == ivy_tFP && ivy->sp[-1].type == ivy_tFP) {
 				if (ivy->sp[-1].u.fp == ivy->sp[0].u.fp)
 					ivy->sp[-1].u.num = 0;
@@ -1237,13 +1246,11 @@ static int pexe(Ivy *ivy, int trace)
 			} else {
 				char *name = ivy->sp[0].u.name;
 				Ivy_obj *o = ivy->vars;
-				Ivy_obj *next;
 				Ivy_val *e;
 				do {
 					if ((e = ivy_get_by_symbol(o, name)))
 						break;
-					next = ivy_get_mom(o);
-				} while ((o = next));
+				} while ((o = ivy_get_mom(o)));
 				
                                 if (e) { /* We found it */
                                 	*ivy->sp = *e;
@@ -1746,7 +1753,9 @@ void ivy_setup(Ivy *ivy, void (*err_print)(void *obj, char *), void *err_obj, FI
         ivy->errprn->error_flag = 0;
         ivy->errprn->error_obj = err_obj;
         ivy->errprn->error_print = err_print;
-	ivy->sptop = ivy->sp = (Ivy_val *) malloc(sizeof(Ivy_val) * (ivy->spsize = 1024));
+        int spsize = 1024;
+	ivy->sptop = ivy->sp = (Ivy_val *) malloc(sizeof(Ivy_val) * (spsize));
+	ivy->spend = ivy->sptop + spsize;
 	ivy->vars = ivy->glblvars = 0;
 	ivy->pc = 0;
 	ivy->call_me = 0;
