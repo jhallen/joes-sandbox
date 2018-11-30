@@ -1238,13 +1238,12 @@ static int pexe(Ivy *ivy, int trace)
 		        SCOPE_PRINTF("iEND\n");
 			ivy_scope_pop(ivy);
 			break;
-                } case ivy_iLOC: {	/* Local variables */
-                        long long y = ivy->sp--->u.num, x;
-                        for (x = 0; x != y; ++x)
-                                if (ivy->sp->type == ivy_tSTR) {
-                                        // set(ivy->vars, ivy->sp[0].u.str->s);
-                                        ivy->sp = ivy_rmval(ivy->sp, __LINE__);
-                                }
+                } case ivy_iLOC: {	/* Create local variables */
+                        long long y = ivy->sp--->u.num, x; /* must be tLST */
+                        for (x = 0; x != y; ++x) {
+                        	ivy_set_by_symbol(ivy->vars, ivy->sp[0].u.name); /* must be tNAM */
+				ivy->sp = ivy_rmval(ivy->sp, __LINE__);
+			}
 			break;
                 } case ivy_iGET: {	/* Replace variable's name with its value */
 			if (ivy->sp->type != ivy_tNAM) {

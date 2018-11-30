@@ -35,7 +35,7 @@ enum {
 	ivy_nADDTO, ivy_nSUBTO, ivy_nXORTO, ivy_nORTO, ivy_nPOST, ivy_nDOTPO, ivy_nSHLPO, ivy_nSHRPO, ivy_nMULPO,
         ivy_nDIVPO, ivy_nMODPO, ivy_nANDPO, ivy_nADDPO, ivy_nSUBPO, ivy_nXORPO, ivy_nORPO, ivy_nCOMMA, ivy_nSEMI,
         ivy_nDEFUN, ivy_nLIST, ivy_nPAREN, ivy_nVOID, ivy_nTHIS, ivy_nEMPTY, ivy_nLABEL, ivy_nIF, ivy_nFOR, ivy_nWHILE,
-        ivy_nLOCAL, ivy_nLOOP, ivy_nUNTIL, ivy_nBREAK, ivy_nCONT, ivy_nRETURN, ivy_nFOREACH, ivy_nFORINDEX
+        ivy_nVAR, ivy_nLOOP, ivy_nUNTIL, ivy_nBREAK, ivy_nCONT, ivy_nRETURN, ivy_nFOREACH, ivy_nFORINDEX, ivy_nSCOPE
 };
 
 /* Parse tree nodes */

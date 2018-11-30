@@ -90,17 +90,33 @@ static void push_looplvl(Ivy_frag *frag, int what, int cont, int brk)
 		ivy_emitc(frag, ivy_iBEG);
 }
 
+static char *looplvl_name(int what)
+{
+	switch (what) {
+		case 0: return "scope";
+		case 1: return "loop";
+		case 2: return "value";
+		default: return "unknown";
+	}
+}
+
+static void show_looplvls(Ivy_frag *frag)
+{
+	struct ivy_looplvl *ll = frag->looplvls;
+	while (ll) {
+		printf("  %s\n", looplvl_name(ll->what));
+		ll = ll->next;
+	}
+}
+
 static void pop_looplvl(Ivy_frag *frag, int what, int cont, int brk)
 {
 	struct ivy_looplvl *ll = frag->looplvls;
 	frag->looplvls = ll->next;
 	if (what != ll->what) {
-		printf("Expected level of type %d\n", what);
+		printf("Expected level of type %s\n", looplvl_name(what));
 		printf("But we have this:\n");
-		while (ll) {
-			printf("  %d\n", ll->what);
-			ll = ll->next;
-		}
+		show_looplvls(frag);
 		abort();
 	}
 	if (ll->what == lvlLOOP) {
@@ -552,7 +568,7 @@ static int gencl(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 	return 1;
 }
 
-/* Generate and count local command, don't emit initializers */
+/* Generate and count list for 'var' */
 
 static int genll(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {
@@ -563,22 +579,25 @@ static int genll(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 			int result = genll(err, frag, n->r);
 			return result + genll(err, frag, n->l);
 		} case ivy_nNAM: {
-			push_str(frag);
-			ivy_emits(frag, n->s, n->n);
+			push_nam(frag);
+			ivy_emitp(frag, n->s);
 			return 1;
 		} case ivy_nSET: {
 			if (n->l->what == ivy_nNAM) {
-				push_str(frag);
-				ivy_emits(frag, n->l->s, n->l->n);
+				push_nam(frag);
+				ivy_emitp(frag, n->l->s);
 				return 1;
+			} else {
+				ivy_error_2(err, "\"%s\" %d: incorrect list for vars", n->loc->name, n->loc->line);
+				return 0;
 			}
 		}
 	}
-	ivy_error_2(err, "\"%s\" %d: incorrect local list", n->loc->name, n->loc->line);
+	ivy_error_2(err, "\"%s\" %d: incorrect list for vars", n->loc->name, n->loc->line);
 	return 0;
 }
 
-/* Generate initializers for local list */
+/* Generate initializers for 'var': no need to check, genll was always called previously */
 
 static int genla(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {
@@ -591,13 +610,10 @@ static int genla(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 		} case ivy_nNAM: {
 			return 1;
 		} case ivy_nSET: {
-			if (n->l->what == ivy_nNAM) {
-				genn(err, frag, n);
-				return 1;
-			}
+			genn(err, frag, n);
+			return 1;
 		}
 	}
-	ivy_error_2(err, "\"%s\" %d: incorrect local list", n->loc->name, n->loc->line);
 	return 0;
 }
 
@@ -831,6 +847,13 @@ static void gen(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 			if (n->r && n->l)
 				pop_looplvl(frag, lvlVALUE, 0, 0);
 			break;
+		} case ivy_nSCOPE: {
+			push_looplvl(frag, lvlSCOPE, 0, 0);
+			gen(err, frag, n->r);
+			pop_looplvl(frag, lvlVALUE, 0, 0);
+			pop_looplvl(frag, lvlSCOPE, 0, 0);
+			push_looplvl(frag, lvlVALUE, 0, 0);
+			break;
 		} case ivy_nELLIPSIS: {
 			ivy_error_2(err, "\"%s\" %d: invalid use of ...", n->loc->name, n->loc->line);
 			push_void(frag);
@@ -895,40 +918,13 @@ static void genn(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 		} case ivy_nLABEL: {
 			frag->looplvls->name = strdup(n->s);
 			break;
-		} case ivy_nLOCAL: {
-			if (n->r->what == ivy_nSEMI && n->r->l->what == ivy_nPAREN) {
-				int amnt;
-				push_looplvl(frag, lvlSCOPE, 0, 0);
-				amnt = genll(err, frag, n->r->l->r);
-				push_lst(frag);
-				ivy_emitn(frag, amnt);
-				ivy_emitc(frag, ivy_iLOC);
-				fixlooplvl(frag, amnt + 1);
-				genla(err, frag, n->r->l->r);
-				genn(err, frag, n->r->r);
-				pop_looplvl(frag, lvlSCOPE, 0, 0);
-			} else if (n->r->what == ivy_nSEMI && last_is_paren(n->r)) {
-				// Handles with a b [f]
-				Ivy_node *r;
-				int amnt;
-				n->r = extract_last_is_paren(n->r, &r);
-				push_looplvl(frag, lvlSCOPE, 0, 0);
-				amnt = genll(err, frag, n->r);
-				push_lst(frag);
-				ivy_emitn(frag, amnt);
-				ivy_emitc(frag, ivy_iLOC);
-				fixlooplvl(frag, amnt + 1);
-				genla(err, frag, n->r);
-				genn(err, frag, r);
-				pop_looplvl(frag, lvlSCOPE, 0, 0);
-			} else {
-				int amnt = genll(err, frag, n->r); /* Create variables */
-				push_lst(frag);
-				ivy_emitn(frag, amnt);
-				ivy_emitc(frag, ivy_iLOC);
-				fixlooplvl(frag, amnt + 1);
-				genla(err, frag, n->r); /* Initialize them */
-			}
+		} case ivy_nVAR: {
+			int amnt = genll(err, frag, n->r); /* Create variables */
+			push_lst(frag);
+			ivy_emitn(frag, amnt);
+			ivy_emitc(frag, ivy_iLOC);
+			fixlooplvl(frag, amnt + 1);
+			genla(err, frag, n->r); /* Initialize them */
 			break;
 		} case ivy_nFOR: {
 			int top, cont;
@@ -1294,11 +1290,19 @@ Ivy_pseudo *ivy_codegen(Ivy_error_printer *err, Ivy_node *n)
 	gen(err, frag, n);
 
 	ivy_emitc(frag, ivy_iSTASH);
+	pop_looplvl(frag, lvlVALUE, 0, 0);
 
 	if (frag->rtn)
 		setlist(frag, frag->rtn, frag->code);
 
 	ivy_emitc(frag, ivy_iRTS);
+
+	if (frag->looplvls) {
+		printf("Expected no looplvls at end of code\n");
+		printf("But we have this:\n");
+		show_looplvls(frag);
+		abort();
+	}
 
 	return frag->begcode;
 }

@@ -720,8 +720,8 @@ Var statement
 
 	var a, b, c
 
-		This declares variables which are local to the block.  The
-		variables may also have initializers:
+		Declare local variables.  The variables may also have
+		initializers:
 
 			var a=10, b=20
 
@@ -731,12 +731,14 @@ Var statement
 			  return x
 			}
 
-Include statement
 
-	include "string"
+Scope statement
 
-		Executes the file specified by the string.
+	scope expr expr ...
 
+		The expressions are evaluated in their own scope.  If they
+	create local variables, they will not show in the outer scope.  The
+	value of the last expression is returned.
 
 FUNCTIONS
 
@@ -860,6 +862,11 @@ which calls add, but with one argument set to a constant:
 
 . builtin
 
+	a = loadfile("name")
+
+		Execute an Ivy source file within an empty global variable
+	scope.  The code will only see Ivy's built-in functions.  The final
+	value is returned.
 
 	len(a)
 

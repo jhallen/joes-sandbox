@@ -188,14 +188,15 @@ Ivy_what ivy_what_tab[]=
 	{ ivy_nIF, "if", 0, 0, 0, 0, 0, 1, 0, 0 },
 	{ ivy_nFOR, "for", 0, 0, 0, 0, 0, 1, 0, 0 },
 	{ ivy_nWHILE, "while", 0, 0, 0, 0, 0, 1, 0, 0 },
-	{ ivy_nLOCAL, "var", 0, 0, 0, 0, 0, 1, 0, 0 },
+	{ ivy_nVAR, "var", 0, 0, 0, 0, 0, 1, 0, 0 },
 	{ ivy_nLOOP, "loop", 0, 0, 0, 0, 0, 2, 0, 0 },
 	{ ivy_nUNTIL, "until", 0, 0, 0, 0, 0, 3, 0, 0 },
 	{ ivy_nBREAK, "break", 0, 0, 0, 0, 0, 4, 0, 0 },
 	{ ivy_nCONT, "continue", 0, 0, 0, 0, 0, 4, 0, 0 },
 	{ ivy_nRETURN, "return", 0, 0, 0, 0, 0, 4, 0, 0 },
 	{ ivy_nFOREACH, "foreach", 0, 0, 0, 0, 0, 5, 0, 0 },
-	{ ivy_nFORINDEX, "forindex", 0, 0, 0, 0, 0, 5, 0, 0 }
+	{ ivy_nFORINDEX, "forindex", 0, 0, 0, 0, 0, 5, 0, 0 },
+	{ ivy_nSCOPE, "scope", 0, 0, 0, 0, 0, 1, 0, 0 }
 };
 
 /* Operator scanner */
@@ -364,7 +365,7 @@ static int escape(Ivy_loc *loc)
 /* Keyword (statement) table */
 
 static int ikwtab[] =
-    { ivy_nIF, ivy_nFOR, ivy_nWHILE, ivy_nLOOP, ivy_nLOCAL, ivy_nUNTIL, ivy_nBREAK, ivy_nCONT, ivy_nRETURN, ivy_nFOREACH, ivy_nFORINDEX, ivy_nDEFUN, -1 };
+    { ivy_nIF, ivy_nFOR, ivy_nWHILE, ivy_nLOOP, ivy_nVAR, ivy_nUNTIL, ivy_nBREAK, ivy_nCONT, ivy_nRETURN, ivy_nFOREACH, ivy_nFORINDEX, ivy_nDEFUN, ivy_nSCOPE, -1 };
 
 #define KWHTLEN 32
 static Ivy_what *kwhtab[KWHTLEN];
