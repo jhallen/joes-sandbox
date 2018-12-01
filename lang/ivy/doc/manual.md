@@ -2,7 +2,7 @@
 
 ## Introduction
 
-	Ivy is an embeddable language which is useful as both an extension
+Ivy is an embeddable language which is useful as both an extension
 and a command language.  Its syntax is designed to be similar to
 command-style languages like BASIC and UNIX shell, and is thus suitable for
 simple command entry applications.  However, the awkwardness typically
@@ -10,14 +10,14 @@ associated with command languages is eliminated through Ivy's support of
 full expressions, including function calls and assignments, and orthogonal
 block structuring.
 
-	Ivy compiles its source code into a compact byte code which is then
+Ivy compiles its source code into a compact byte code which is then
 interpreted.  Six types are currently supported: integers, strings,
 functions, void, floats, and objects.  Objects are late-binding storage
 devices which take the role of arrays, structures and hash tables.  Type
 declarations are not necessary, but type checking is not done until
 run-time.
 
-	Ivy comes packaged as an interactive language like BASIC and LISP. 
+Ivy comes packaged as an interactive language like BASIC and LISP. 
 You can either execute language statements immediately from the keyboard or
 run a program stored in a file.  Ivy is also easy to embed into another
 program.  Calls are provided to execute Ivy code and to add C function
@@ -167,43 +167,43 @@ equivalent:
 
 ### Symbols
 
-	There are symbols:
+There are symbols:
 
 		`hello
 
-	Symbols can be tested for equality:
+Symbols can be tested for equality:
 
 		`hello==`hello		# True
 		`hello==`goodbye	# False
 
-	There is an interned string table for all symbols, so to check if
-	two symbols are identical their addresses are compared.
+There is an interned string table for all symbols, so to check if
+two symbols are identical their addresses are compared.
 
-	Symbols can be used as object indices.  Variables within a scope are
-	indexed by symbols.  These are equivalent:
+Symbols can be used as object indices.  Variables within a scope are
+indexed by symbols.  These are equivalent:
 
 		a(`hello)=5
 		a.hello=5
 
 ### Integers
 
-	Integers may be entered in a variety of bases:
+Integers may be entered in a variety of bases:
 
 		x=0o127		# Octal
 		x=0x80		# Hexadecimal
 		x=0b11		# Binary
 		x=123		# Decimal
 
-	Octal, binary and hexadecimal digits may be interspersed with
-	underscores (_) for enhanced readability:
+Octal, binary and hexadecimal digits may be interspersed with
+underscores (_) for enhanced readability:
 
 		x=0xADDED_FEE
 
-	Also the ASCII value of a character may be taken as an integer:
+Also the ASCII value of a character may be taken as an integer:
 
 		x='A'		# The value 65
 
-	The following "escape sequences" may also be used in place of a
+The following "escape sequences" may also be used in place of a
 character:
 
 		x='\n'		# New-line
@@ -221,54 +221,52 @@ character:
 
 ### Floating point
 
-	Floating point:
-
 		x=.125
 		x=.125e3
 		x=0.3
 
 ### Strings
 
-	String constants are enclosed in double-quotes:
+String constants are enclosed in double-quotes:
 
 		x="Hello there"
 
-	Escape sequences may also be used inside of strings.
+Escape sequences may also be used inside of strings.
 
 ## Variables
 
-	Variables set outside of functions are global variables.  They will
+Variables set outside of functions are global variables.  They will
 be visible in any block unless 'var' is used within the block to force the
 creation of a new local variable with the same name.
 
-	If a variable is set inside of a function and there is no global
+If a variable is set inside of a function and there is no global
 variable of the same name, that variable will be local to the block it was
 assigned in.
 
 
 ## Objects
 
-	Objects are catch all data structures which may be indexed by
+Objects are catch all data structures which may be indexed by
 number, symbol or string.  Objects indexed by number are similar to
 arrays.  Objects indexed by symbol are similar to structures.  Objects
 indexed by string are similar to hash tables.
 
-	A mixture of index types may be used on the same object, but always
+A mixture of index types may be used on the same object, but always
 refer to different locations (symbol foo and string "foo" can have different
 values).
 
-	An automatic array is used for numbered indexing.  This array
+An automatic array is used for numbered indexing.  This array
 expands to accommodate whatever index is used.  If you store a value at
 index 0 and also at index 999, then space for 1000 values will be allocated.
 
-	Auto-expanding hash tables are used for symbol and string indexing. 
+Auto-expanding hash tables are used for symbol and string indexing. 
 These hash tables expand to twice their size when they reach half full. 
 Symbol indexing is faster than string indexing since, for symbols, the hash
 value does not have to be recomputed on each access.  On the other hand,
 there is a global hash table for symbols which is never compacted so symbols
 should not be used for data input.
 
-	Objects can be created either member by member:
+Objects can be created either member by member:
 
 		o=[]
 		o.a=5
@@ -276,29 +274,29 @@ should not be used for data input.
 		o(1)=7
 		o("foo")=8
 
-	or all at once:
+or all at once:
 
 		o=[`a=5, `b=6, `1=7, `"foo"=8]
 
-	Objects are assigned by reference.  This means that if you have an
+Objects are assigned by reference.  This means that if you have an
 object in one variable:
 
 		x=[1 2 3]
 
-	And you assign it to another:
+And you assign it to another:
 
 		y=x
 
-	And then change one of the members of x:
+And then change one of the members of x:
 
 		x(0)=5
 
-	Then the change will appear both in x and in y
+Then the change will appear both in x and in y
 
 
 ## Expressions
 
-	An expression is a single or dual operand operator, a constant, a
+An expression is a single or dual operand operator, a constant, a
 variable, a lambda function, a block enclosed within braces, a function
 call, or an object.  Examples of each of these cases follow:
 
@@ -322,7 +320,7 @@ call, or an object.  Examples of each of these cases follow:
 
 ## Operators
 
-	Ivy uses a superset of operators from C but with more intuitive
+Ivy uses a superset of operators from C but with more intuitive
 precedence.  Here are the operators grouped from highest precedence to
 lowest:
 
@@ -362,7 +360,7 @@ lowest:
 
 ### "`" Symbol quoting
 
-		This operator can be used to prevent a symbol from being
+This operator can be used to prevent a symbol from being
 replaced by its value.  Instead the symbol is used directly as the value. 
 It is also used to explicitly state the argument or member name in a
 command, function call or object.  For example:
@@ -374,7 +372,7 @@ command, function call or object.  For example:
 
 ### "." Member selection
 
-		This operator is used to select a named member from an
+This operator is used to select a named member from an
 object.  For example:
 
 		o=[`x=5, `y=10]		# Create an object
@@ -384,7 +382,7 @@ object.  For example:
 
 ### "::" Modify environment
 
-		This operator replaces the environment part of the closure
+This operator replaces the environment part of the closure
 on the left side with the object on the right side.
 
 		x = 2
@@ -403,7 +401,7 @@ on the left side with the object on the right side.
 
 ### "( )" Function call
 
-		This operator calls the function resulting from the
+This operator calls the function resulting from the
 expression on the left with the arguments inside of the parenthesis.  This
 operator can also be used for object member selection and for string
 character selection and substring operations.  Examples of each of these
@@ -428,23 +426,25 @@ follow:
 
 ### "&" Address of.
 
-		This operator converts its operand into a thunk (a zero
-	argument nameless function thunk with no environment).  The thunk can
-	be called with () or *.
+This operator converts its operand into a thunk (a zero
+argument nameless function thunk with no environment).  The thunk can
+be called with () or *.
 
 ### "~" Bit-wise one's complement
 
 ### "!" Logical not
 
-### "++" Pre or post increment depending on whether it precedes or follows
-	   a variable
+### "++"
+
+Pre or post increment depending on whether it precedes or follows
+a variable
 
 ### "--" Pre or post decrement
 
 ### "*" Indirection
 
-		This prefix operator is used to call a zero argument
-	function or thunk.
+This prefix operator is used to call a zero argument
+function or thunk.
 
 		fn set(&a b) {
 			*a=b
@@ -468,13 +468,13 @@ follow:
 
 ### "+" Add or concatenate
 
-		In addition to adding integers, this operator concatenates
-	strings if strings are passed to it.  For example:
+In addition to adding integers, this operator concatenates
+strings if strings are passed to it.  For example:
 
 		pr "Hello"+" There" 	# Prints "Hello There"
 
-		'+' will also append an element on the right into an
-	array object on the left:
+"+" will also append an element on the right into an
+array object on the left:
 
 		a=[1 2 3]
 		a+=4			# a now is [ 1 2 3 4 ]
@@ -486,10 +486,10 @@ follow:
 
 ### "|" Bit-wise OR or 
 
-		If objects are given as arguments to OR, OR unions the
-        objects together into a single object.  If the objects have
-        numerically referenced members, OR will append the array on the
-        right to the array on the left.  For example:
+If objects are given as arguments to OR, OR unions the
+objects together into a single object.  If the objects have
+numerically referenced members, OR will append the array on the
+right to the array on the left.  For example:
 
 		a=[1 2 3]
 		b=[4 5 6]
@@ -562,15 +562,16 @@ Notes on assignment groups:
 		x+:1	Is the same as x++
 		x+=1	Is the same as ++x
 
+
+":" is useful for shifting the value of variables around.  In this example,
+a gets b, b gets c, and c gets 5:
+
 		a:b:c:5
-			':' is useful for shifting the value of variables
-			around.  In this example, a gets b, b gets c, and
-			c gets 5.
+
+":" is also useful for swapping the values of variables.  In this example, a
+gets swapped with b:
 
 		a:b:a
-			':' is also useful for swapping the values of
-			variables.  In this example, a gets swapped with
-			b.
 
 ### "\" Sequential evaluation
 
@@ -587,7 +588,7 @@ expression, it has the same effect as \
 
 ### Function declaration syntax:
 
-	Command format named function declarations:
+Command format named function declarations:
 
 		fn name(args) expr
 
@@ -595,19 +596,19 @@ expression, it has the same effect as \
 	        	body
 		}
 
-	Expression format named function declarations:
+Expression format named function declarations:
 
 		fn(name, (args), body-expr)
 
-	Command format anonymous function:
+Command format anonymous function:
 
 		{ fn (args) body-expr }
 
-	Expression format anonymous function:
+Expression format anonymous function:
 
 		fn((args), body-expr)
 
-	These are all equivalent:
+These are all equivalent:
 
 		fn square(x) x*x
 
@@ -619,14 +620,14 @@ expression, it has the same effect as \
 
 		square = fn((x), x*x)
 
-	The last forms define so-called "Lambda" (anonymous) functions.  You
-	can call anonymous functions without assigning them:
+The last forms define so-called "Lambda" (anonymous) functions.  You
+can call anonymous functions without assigning them:
 
 		x=fn((x),x*x)(6)	# x gets assigned 36
 
 ### Argument lists
 
-	You may specify zero or more formal arguments.  Each argument must be
+You may specify zero or more formal arguments.  Each argument must be
 provided during a function call, or an error occurs.
 
 		fn mm(x,y) x*y
@@ -637,7 +638,7 @@ provided during a function call, or an error occurs.
 
 		mm(3,4)    --> returns 12.
 
-	However, default values may be specified.  If an argument with a
+However, default values may be specified.  If an argument with a
 default value is missing, no error occurs and the default value is used
 instead:
 
@@ -649,7 +650,7 @@ instead:
 
                 mm(6,2)    --> x=6,y=2 --> 12
 
-	Expressions may be used for the default values.  The expressions are
+Expressions may be used for the default values.  The expressions are
 evaluated when the function is called (not when defined).  The evaluation
 happens in the body of the function (where the expression may declare local
 variables).  The order is left to right, and expressions on the right may
@@ -665,7 +666,7 @@ use arguments to their left.
 
 		zz(3, 3)  --> x=3,q=10,y=3 --> 19
 
-	Arguments may be passed by name.  When an argument is passed by
+Arguments may be passed by name.  When an argument is passed by
 name, a local variable of that name is injected into the function's body. 
 Variables may be created which are not in the argument list.  Named and
 unnammed arguments may be mixed in the same function call.  The named
@@ -683,7 +684,7 @@ were not provided by a named argument, an error occurs.
 
 		zz(`e=1,`y=2,3) --> x=3, y=2, z=10, e=1 --> 16
 
-	Extra unnamed arguments may be collected into an object with the
+Extra unnamed arguments may be collected into an object with the
 following syntax:
 
 		fn zz(x,extras...) {
@@ -702,15 +703,17 @@ following syntax:
 
 ### Function execution
 
-	When the body of a function gets control, its activation record (the
+When the body of a function gets control, its activation record (the
 object used for the function's local variables) gets several variables:
+
+
 
 		this	The function's activation record itself as an object
 
-				print this	Prints all local variables
+			print this	Prints all local variables
 
-			[this is not a variable, it's a special symbol that
-			is replaced by the activation record object]
+[this is not a variable, it's a special symbol that
+is replaced by the activation record object]
 
 		mom
 			The next outer lexical scope.  This is a normal
@@ -724,7 +727,7 @@ object used for the function's local variables) gets several variables:
 			This feature is optional and depends on how
 			Ivy is compiled.  It is off by default.
 
-	Functions may be assigned to variables and passed to other
+Functions may be assigned to variables and passed to other
 functions.  For example you can define a function 'apply' which applies a
 function to an argument:
 
@@ -739,7 +742,7 @@ function to an argument:
 		print apply(square,5)	# Prints 25
 
 
-	Functions can return other named or unnamed functions.  To return a
+Functions can return other named or unnamed functions.  To return a
 named function, 'return' must be used since it forces its argument to be an
 expression (otherwise the returned function name would look like a function
 call).  For example:
@@ -761,7 +764,7 @@ call).  For example:
 		pr bar()(4)		# Prints 16
 
 
-	Functions can be declared inside of other functions.  This is
+Functions can be declared inside of other functions.  This is
 especially useful for manipulating the argument lists of pre-existing
 functions.  Suppose you had an averaging function:
 
@@ -773,14 +776,14 @@ functions.  Suppose you had an averaging function:
 			return accu/(to-from)
 		}
 
-	And suppose that you have another function which takes two arguments
+And suppose that you have another function which takes two arguments
 which you'd like to average, but with one argument set to a constant:
 
 		fn add(a b) {
 			return a+b
 		}
 
-	You could do this by using a function which creates a function
+You could do this by using a function which creates a function
 which calls add, but with one argument set to a constant:
 
 		fn curry(y) {
@@ -793,14 +796,14 @@ which calls add, but with one argument set to a constant:
 
 ### Delayed evaluation of arguments
 
-	Arguments may be prefixed with ampersands to prevent them from being
+Arguments may be prefixed with ampersands to prevent them from being
 immediately evaluated.  The marked argument is packaged up as a "thunk"- a
 zero argument function with the environment set as the calling function's
 activation record.  The function may call the thunk whenever it wants,
 either by using the normal function call syntax or by using the indirection
 operator, '*'.
 
-	For example, here is a function which sets a specified variable to
+For example, here is a function which sets a specified variable to
 a value:
 
 	fn set(&x,y) { *x = y }
@@ -831,11 +834,11 @@ a value:
 
 	foreach `label variable expr block
 
-		Sets the variable to each element in the array resulting
-		from expr and executes the block.
+Sets the variable to each element in the array resulting from expr and
+executes the block.
 
-		'foreach' may optionally be labeled for matching
-		with the argument to 'break' and 'continue'
+'foreach' may optionally be labeled for matching with the argument to
+'break' and 'continue'
 
 	e.g.
 	foreach a [1 2 3] {
@@ -849,11 +852,11 @@ a value:
 
 	forindex `label variable expr block
 
-		Sets the variable to each valid index into the array
-		resulting from expr and executes the block.
+Sets the variable to each valid index into the array resulting from expr and
+executes the block.
 
-		'forindex' may optionally be labeled for matching
-		with the argument to 'break' and 'continue'
+'forindex' may optionally be labeled for matching with the argument to
+'break' and 'continue'
 
 	e.g.
 	forindex a [10 20 30] {
@@ -866,12 +869,11 @@ a value:
 	loop block
 	loop `label block
 
-		The block gets repeatedly executed until a 'break' or
-                'until' statement within the block terminates the loop.
+The block gets repeatedly executed until a 'break' or
+'until' statement within the block terminates the loop.
 
-
-		'loop' may optionally be labeled for matching
-		with the argument to 'break' and 'continue'
+'loop' may optionally be labeled for matching
+with the argument to 'break' and 'continue'
 
 ### While statement
 
@@ -879,11 +881,11 @@ a value:
 
 	while `label expr block
 
-		The block is repeatedly executed if the expression is true.
+The block is repeatedly executed if the expression is true.
 
 
-		'while' may optionally be labeled for matching
-		with the argument to 'break' and 'continue'
+'while' may optionally be labeled for matching
+with the argument to 'break' and 'continue'
 
 ### For statement
 
@@ -891,7 +893,7 @@ a value:
 
 	for `label expr1, expr2, expr3 block
 
-		This is a shorthand for the follow while statement:
+This is a shorthand for the follow while statement:
 
 			expr1
 			while expr2 {
@@ -899,13 +901,14 @@ a value:
 				expr3
 			}
 
-		Thus,
+Thus,
+
         	   expr1 is usually used as an index variable initializer
 		   expr2 is the loop test
 	           expr3 is the index variable incrementer
 
-		'for' may optionally be labeled for matching
-		with the argument to 'break' and 'continue'
+'for' may optionally be labeled for matching
+with the argument to 'break' and 'continue'
 
 ### Return statement
 
@@ -913,9 +916,9 @@ a value:
 
 	return expr
 
-		This exits the function it is executed in with the given
-                return value or with the value of the last expression
-                preceding the return.
+This exits the function it is executed in with the given
+return value or with the value of the last expression
+preceding the return.
 
 ### Break statement
 
@@ -923,7 +926,7 @@ a value:
 
 	break LABEL
 
-		This jumps out of the innermost or labeled loop
+This jumps out of the innermost or labeled loop
 
 ### Continue statement
 
@@ -931,37 +934,36 @@ a value:
 
 	continue LABEL
 
-		This jumps the beginning of the innermost or labeled loop.
+This jumps the beginning of the innermost or labeled loop.
 
 ### Until statement
 
 	until expr
 
-		This exits the loop it's in if the expression is true.
+This exits the loop it's in if the expression is true.
 
 ### Var statement
 
 	var a, b, c
 
-		Declare local variables.  The variables may also have
-		initializers:
+Declare local variables.  The variables may also have
+initializers:
 
-			var a=10, b=20
+	var a=10, b=20
 
-			fn raise(a) {
-			  var x
-			  for x=1, a, x<<=1\ --a
-			  return x
-			}
-
+	fn raise(a) {
+		var x
+		for x=1, a, x<<=1\ --a
+		return x
+	}
 
 ### Scope statement
 
 	scope expr expr ...
 
-		The expressions are evaluated in their own scope.  If they
-	create local variables, they will not show in the outer scope.  The
-	value of the last expression is returned.
+The expressions are evaluated in their own scope.  If they
+create local variables, they will not show in the outer scope.  The
+value of the last expression is returned.
 
 
 ## Builtin functions
@@ -970,87 +972,89 @@ a value:
 
 	a = loadfile("name")
 
-		Execute an Ivy source file within an empty global variable
-	scope.  The executed code will only see Ivy's built-in functions. 
-	The final value is returned.
+Execute an Ivy source file within an empty global variable
+scope.  The executed code will only see Ivy's built-in functions. 
+The final value is returned.
 
 ### len
 
 	len(a)
 
-		Returns the length of string 'a' or number of elements in
-                array 'a'
+Returns the length of string 'a' or number of elements in
+array 'a'
 
 ### print
 
 	print(...)
 
-		Prints the arguments
+Prints the arguments
+
 ### printf
 
 	printf(...)
-		C printf
 
-		printf "%d\n", 17
+C printf
+
+	printf "%d\n", 17
 
 ### get
 
 	a=get()
 
-		Get a line of input as a string.  Returns void if there is
-		no more input.
+Get a line of input as a string.  Returns void if there is
+no more input.
 
-                # Add line numbers to input
-                n=1
-		while a=get() {
-			print n++, " ", a
-		}
+	# Add line numbers to input
+	n=1
+	while a=get() {
+		print n++, " ", a
+	}
 
 ### atoi
 
 	x=atoi("2")
 
-		Converts a string to a number
+Converts a string to a number
 
 ### itoa
 
 	s=itoa(20)
 
-		Convert a number to a string
+Convert a number to a string
 
 ### clear
 
 	clear(...)
 
-		Frees the values of the listed variables and sets the
-		variables to VOID.
+Frees the values of the listed variables and sets the
+variables to VOID.
 
 ### dup
 
 	b=dup(a)
 
-		Make a duplicate of an array/object
+Make a duplicate of an array/object
 
 ### match
 
 	match(string,pattern,result-variables...)
 
-		Regular expression pattern matching
+Regular expression pattern matching
 
-		Return true if string matches pattern (which must be a
-		regular expression string).
+Return true if string matches pattern (which must be a
+regular expression string).
 
-		If there is a match, each spanned area is stored in the
-		corresponding result variable:
+If there is a match, each spanned area is stored in the
+corresponding result variable:
 
-			match "fooAbar" ".*A.*" a b
+	match "fooAbar" ".*A.*" a b
 
 		a now has "foo" and b has "bar".
 
-		It is ok to supply fewer result variables than there are
-		spanning areas.
+It is ok to supply fewer result variables than there are
+spanning areas.
 
-		The regular expression string may be made of:
+	The regular expression string may be made of:
 
                     .      matches any character.
                     *      matches zero or more of the previous character
@@ -1062,13 +1066,13 @@ a value:
                            as 0-9, a-z, etc.
                     x      other characters match themselves only.
 
-		Note that the entire string must be spanned for a match to
-		occur:  It is as if the pattern always begins with ^ and
-		ends with $.
+Note that the entire string must be spanned for a match to
+occur:  It is as if the pattern always begins with ^ and
+ends with $.
 
-## math functions
+## Math functions
 
-	The following functions from the standard C library are provided:
+The following functions from the standard C library are provided:
 
 	sin() cos() tan() asin() acos() atan() atan2()
 	sinh() cosh() tanh() asinh() acosh() atanh()
