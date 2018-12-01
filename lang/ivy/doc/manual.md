@@ -526,33 +526,33 @@ These translate directly into: "left : left X right"
 
 Notes on assignment groups:
 
-		.=	translates into "left = left . right" and is
-			useful for traversing linked lists.  For example:
+	.=	translates into "left = left . right" and is
+		useful for traversing linked lists.  For example:
 
-			for list=0\ x=0, x!=10, ++x	# Build list
-			  list=[`next=list, `value=x]
+		for list=0\ x=0, x!=10, ++x	# Build list
+		  list=[`next=list, `value=x]
 
-			(note, this builds the list in reverse
-			order.  9,8,7...)
+		(note, this builds the list in reverse
+		order.  9,8,7...)
 				
-			for a=list, a, a.=next {	# Print list  (second
-							# expr evals for 0)
-				print a.value
-			}
+		for a=list, a, a.=next {	# Print list  (second
+						# expr evals for 0)
+			print a.value
+		}
 
-		x+:1	Is the same as x++
-		x+=1	Is the same as ++x
+	x+:1	Is the same as x++
+	x+=1	Is the same as ++x
 
 
 ":" is useful for shifting the value of variables around.  In this example,
 a gets b, b gets c, and c gets 5:
 
-		a:b:c:5
+	a:b:c:5
 
 ":" is also useful for swapping the values of variables.  In this example, a
 gets swapped with b:
 
-		a:b:a
+	a:b:a
 
 ### \ Sequential evaluation
 
@@ -571,65 +571,71 @@ expression, it has the same effect as \
 
 Command format named function declarations:
 
-		fn name(args) expr
+	fn name(args) expr
 
-		fn name(args) {
-	        	body
-		}
+	fn name(args) {
+	       	body
+	}
 
 Expression format named function declarations:
 
-		fn(name, (args), body-expr)
+	fn(name, (args), body-expr)
 
 Command format anonymous function:
 
-		{ fn (args) body-expr }
+	{ fn (args) body-expr }
 
 Expression format anonymous function:
 
-		fn((args), body-expr)
+	fn((args), body-expr)
 
 These are all equivalent:
 
-		fn square(x) x*x
+	fn square(x) x*x
 
-		fn square (x) {
-			x*x
-		}
+	fn square (x) {
+		x*x
+	}
 
-		square = { fn (x) x*x }
+	square = { fn (x) x*x }
 
-		square = fn((x), x*x)
+	square = fn((x), x*x)
 
 The last forms define so-called "Lambda" (anonymous) functions.  You
 can call anonymous functions without assigning them:
 
-		x=fn((x),x*x)(6)	# x gets assigned 36
+	x=fn((x),x*x)(6)	# x gets assigned 36
+
+You can also define named functions right in the middle of an expression,
+and immediately call them:
+
+	y=fn(square,(x),x*x)(5)	# y gets assigned 25
+	print square(6)		# Prints 36
 
 ### Argument lists
 
 You may specify zero or more formal arguments.  Each argument must be
 provided during a function call, or an error occurs.
 
-		fn mm(x,y) x*y
+	fn mm(x,y) x*y
 
-		mm(1)      --> "Error: Missing arguments"
+	mm(1)      --> "Error: Missing arguments"
 
-		mm(1,2,3)  --> "Error: Too many arguments"
+	mm(1,2,3)  --> "Error: Too many arguments"
 
-		mm(3,4)    --> returns 12.
+	mm(3,4)    --> returns 12.
 
 However, default values may be specified.  If an argument with a
 default value is missing, no error occurs and the default value is used
 instead:
 
-		fn mm(x=5,y=6) x*y
+	fn mm(x=5,y=6) x*y
 
-		mm()       --> x=5,y=6 --> 30
+	mm()       --> x=5,y=6 --> 30
 
-		mm(6)      --> x=6,y=6 --> 36
+	mm(6)      --> x=6,y=6 --> 36
 
-                mm(6,2)    --> x=6,y=2 --> 12
+	mm(6,2)    --> x=6,y=2 --> 12
 
 Expressions may be used for the default values.  The expressions are
 evaluated when the function is called (not when defined).  The evaluation
@@ -637,19 +643,19 @@ happens in the body of the function (where the expression may declare local
 variables).  The order is left to right, and expressions on the right may
 use arguments to their left.
 
-		fn zz(x=5,y={ var q=5; x }) x*y+q
+	fn zz(x=5,y={ var q=5; x }) x*y+q
 
-		q=10
+	q=10
 
-		zz()      --> x=5,q=5,y=5  --> 25
+	zz()      --> x=5,q=5,y=5  --> 25
 
-		zz(3)     --> x=3,q=5,y=3  --> 14
+	zz(3)     --> x=3,q=5,y=3  --> 14
 
-		zz(3, 3)  --> x=3,q=10,y=3 --> 19
+	zz(3, 3)  --> x=3,q=10,y=3 --> 19
 
-Arguments may be passed by name.  When an argument is passed by
-name, a local variable of that name is injected into the function's body. 
-Variables may be created which are not in the argument list.  Named and
+Arguments may be passed by name.  When an argument is passed by name, a
+local variable of that name is injected into the function's body.  Variables
+may be created which are not in the formal argument list.  Named and
 unnammed arguments may be mixed in the same function call.  The named
 arguments have no effect on how the unnamed arguments are processed: the
 unnamed arguments are matched up left-to-right with the formal argument list
@@ -661,26 +667,26 @@ values, and they were not provided with a named argument, then the default
 value is used.  If arguments without default values are missing, and they
 were not provided by a named argument, an error occurs.
 
-		fn zz(x,y,z=10) x+y+z+e
+	fn zz(x,y,z=10) x+y+z+e
 
-		zz(`e=1,`y=2,3) --> x=3, y=2, z=10, e=1 --> 16
+	zz(`e=1,`y=2,3) --> x=3, y=2, z=10, e=1 --> 16
 
-Extra unnamed arguments may be collected into an object with the
-following syntax:
+Extra unnamed arguments may be collected into an object with your choice of
+name with the following syntax:
 
-		fn zz(x,extras...) {
-			print "x = ", x
-			forindex z extras {
-				print "extras(", z, ") = ", extras(z)
-			}
+	fn zz(x,extras...) {
+		print "x = ", x
+		forindex z extras {
+			print "extras(", z, ") = ", extras(z)
 		}
+	}
 
-		zz(5,6,7,8) --> prints
+	zz(5,6,7,8) --> prints
 
-			x = 5
-			extras(0) = 6
-			extras(1) = 7
-			extras(2) = 8
+	x = 5
+	extras(0) = 6
+	extras(1) = 7
+	extras(2) = 8
 
 ### Function execution
 
@@ -689,91 +695,81 @@ object used for the function's local variables) gets several variables:
 
 
 
-		this	The function's activation record itself as an object
+	this	The function's activation record itself as an object
 
-			print this	Prints all local variables
+		print this	Prints all local variables
 
 [this is not a variable, it's a special symbol that
 is replaced by the activation record object]
 
-		mom
-			The next outer lexical scope.  This is a normal
-			variable.  If you assign it, the next outer lexical
-			scope is changed to the specified object.
-
-		dynamic
-			This function's dynamic scope: the caller's
-			activation record.
-
-			This feature is optional and depends on how
-			Ivy is compiled.  It is off by default.
+	mom	The next outer lexical scope.  Mom is a normal
+		variable.  If you assign it, the next outer lexical
+		scope is changed to the specified object.
 
 Functions may be assigned to variables and passed to other
 functions.  For example you can define a function 'apply' which applies a
 function to an argument:
 
-		fn apply(x y) {
-			return x(y)
-		}
+	fn apply(x y) {
+		return x(y)
+	}
 
-		fn square(x) {
-			return x*x
-		}
+	fn square(x) {
+		return x*x
+	}
 
-		print apply(square,5)	# Prints 25
+	print apply(square,5)	# Prints 25
 
 
-Functions can return other named or unnamed functions.  To return a
-named function, 'return' must be used since it forces its argument to be an
-expression (otherwise the returned function name would look like a function
-call).  For example:
+Functions can return other named or unnamed functions.  (Remember to enclose
+the function name in parenthasis to suppress command interpretation, or use
+return).  For example:
 
-		fn square(x) {
-			return x*x
-		}
+	fn square(x) {
+		return x*x
+	}
 
-		fn foo() {
-			return square
-		}
+	fn foo() {
+		return square
+	}
 
-		print foo()(4)		# Prints 16
+	print foo()(4)		# Prints 16
 
-		fn bar() {
-                	(fn((x),x*x))	# Return lambda function
-		}
+	fn bar() {
+		(fn((x),x*x))	# Return lambda function
+	}
 
-		pr bar()(4)		# Prints 16
-
+	print bar()(4)		# Prints 16
 
 Functions can be declared inside of other functions.  This is
 especially useful for manipulating the argument lists of pre-existing
 functions.  Suppose you had an averaging function:
 
-		fn avg(func from to) {
-			var x, accu
-			for x=from\ accu=0, x!=to, ++x {
-				accu+=func(x)
-			}
-			return accu/(to-from)
+	fn avg(func from to) {
+		var x, accu = 0
+		for x = from, x != to, ++x {
+			accu += func(x)
 		}
+		return accu / (to - from)
+	}
 
-And suppose that you have another function which takes two arguments
-which you'd like to average, but with one argument set to a constant:
+And suppose that you have another function which takes two arguments which
+you'd like its average, but with one argument set to a constant:
 
-		fn add(a b) {
-			return a+b
-		}
+	fn add(a b) {
+		return a+b
+	}
 
 You could do this by using a function which creates a function
 which calls add, but with one argument set to a constant:
 
-		fn curry(y) {
-			return fn((x),add(x,y))
-		}
+	fn curry(y) {
+		return fn((x), add(x,y))
+	}
 
 	Now 'avg' can be used on 'add':
 
-		print avg(curry(20),0,10)
+	print avg(curry(20),0,10) # Prints 24
 
 ### Delayed evaluation of arguments
 
@@ -811,50 +807,50 @@ a value:
 
 ### Foreach statement
 
-	foreach variable expr block
+	foreach name expr block
 
-	foreach `label variable expr block
+	foreach `label name expr block
 
-Sets the variable to each element in the array resulting from expr and
-executes the block.
+Sets the variable *name* to each element in the object resulting from *expr*
+and executes the *block*.
 
-'foreach' may optionally be labeled for matching with the argument to
-'break' and 'continue'
+*foreach* may optionally be labeled for matching with the argument to
+*break* and *continue*
 
-	e.g.
-	foreach a [1 2 3] {
-		print a		# prints 123
-	}
-
+	->foreach a [1 2 3] print(a)
+	1
+	2
+	3
+	->
 
 ### Forindex statement
 
-	forindex variable expr block
+	forindex name expr block
 
-	forindex `label variable expr block
+	forindex `label name expr block
 
-Sets the variable to each valid index into the array resulting from expr and
-executes the block.
+Sets the variable *name* to each valid index into the object resulting from
+*expr* and executes the block.
 
-'forindex' may optionally be labeled for matching with the argument to
-'break' and 'continue'
+*forindex* may optionally be labeled for matching with the argument to
+*break* and *continue*
 
-	e.g.
-	forindex a [10 20 30] {
-		print a		# prints 0, 1 and 2.
-	}
-
+	->forindex a [10 20 30] print(a)
+	0
+	1
+	2
+	->
 
 ### Loop statement
 
 	loop block
 	loop `label block
 
-The block gets repeatedly executed until a 'break' or
-'until' statement within the block terminates the loop.
+The block gets repeatedly executed until a 'break' or 'until' statement
+within the block terminates the loop.
 
-'loop' may optionally be labeled for matching
-with the argument to 'break' and 'continue'
+*loop* may optionally be labeled for matching with the argument to *break*
+and *continue*.
 
 ### While statement
 
@@ -864,32 +860,31 @@ with the argument to 'break' and 'continue'
 
 The block is repeatedly executed if the expression is true.
 
-
-'while' may optionally be labeled for matching
-with the argument to 'break' and 'continue'
+*while* may optionally be labeled for matching with the argument to *break*
+and *continue*.
 
 ### For statement
 
-	for expr1, expr2, expr3 block
+	for init, test, incr block
 
-	for `label expr1, expr2, expr3 block
+	for `label init, test, incr block
 
 This is a shorthand for the follow while statement:
 
-			expr1
-			while expr2 {
-				block
-				expr3
-			}
+	init
+	while test {
+		block
+		incr
+	}
 
 Thus,
 
-        	   expr1 is usually used as an index variable initializer
-		   expr2 is the loop test
-	           expr3 is the index variable incrementer
+	*init* is usually used as an index variable initializer
+	*test* is the loop test
+	*incr* is the index variable incrementer
 
-'for' may optionally be labeled for matching
-with the argument to 'break' and 'continue'
+*for* may optionally be labeled for matching with the argument to *break*
+and *continue*
 
 ### Return statement
 
@@ -897,9 +892,8 @@ with the argument to 'break' and 'continue'
 
 	return expr
 
-This exits the function it is executed in with the given
-return value or with the value of the last expression
-preceding the return.
+This exits the function it is executed in with the given return value or
+with *void* if no value is given.
 
 ### Break statement
 
@@ -921,7 +915,7 @@ This jumps the beginning of the innermost or labeled loop.
 
 	until expr
 
-This exits the loop it's in if the expression is true.
+This exits the loop it's in if *expr* is true.
 
 ### Var statement
 
@@ -942,10 +936,9 @@ initializers:
 
 	scope expr expr ...
 
-The expressions are evaluated in their own scope.  If they
-create local variables, they will not show in the outer scope.  The
-value of the last expression is returned.
-
+The expressions are evaluated in their own scope.  If they create local
+variables, they will not show up in the outer scope.  The value of the last
+expression is returned.
 
 ## Builtin functions
 
@@ -953,9 +946,9 @@ value of the last expression is returned.
 
 	a = loadfile("name")
 
-Execute an Ivy source file within an empty global variable
-scope.  The executed code will only see Ivy's built-in functions. 
-The final value is returned.
+Execute an Ivy source file within an empty global variable scope.  The
+executed code will only see Ivy's built-in functions.  The final value is
+returned.
 
 ### len
 
