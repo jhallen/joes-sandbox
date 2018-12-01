@@ -460,7 +460,7 @@ int ivy_cntlst(Ivy_node * n)
 	}
 }
 
-/* Generate list of comma seperated names (for function args) */
+/* Generate list of comma seperated names (for arg list in function declarations) */
 
 int ivy_genlst(Ivy_error_printer *err, char **argv, Ivy_pseudo ** initv, char *quote, Ivy_node *n, int *ellipsis)
 {
@@ -497,7 +497,7 @@ int ivy_genlst(Ivy_error_printer *err, char **argv, Ivy_pseudo ** initv, char *q
 	return 0;
 }
 
-/* Generate and count list (used to generate arg lists) */
+/* Generate and count list (used to generate inside of objects) */
 
 static int genl(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {
@@ -557,7 +557,7 @@ static void genfunc(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node *args, Ivy_
 	ivy_emitp(frag, o);
 }
 
-/* Generate and count list (used to generate arg lists) */
+/* Generate and count list (used to generate function call arg lists) */
 
 static int gencl(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 {

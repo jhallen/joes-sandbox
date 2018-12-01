@@ -1,7 +1,7 @@
 all: build ivy
 
-#CFLAGS = -pg -g -Wall
-CFLAGS = -O3 -Wall
+CFLAGS = -pg -g -Wall
+#CFLAGS = -O3 -Wall
 CC = gcc
 
 # LIBS = -lm -lreadline -lcurses
@@ -19,8 +19,8 @@ SUBDIR_OBJS = $(addprefix build/, $(OBJS))
 ivy: $(SUBDIR_OBJS)
 	$(CC) $(CFLAGS) -pg -o ivy $(SUBDIR_OBJS) $(LIBS)
 
-ivy_online.h: ../doc/manual.txt build/mkman
-	build/mkman <../doc/manual.txt >ivy_online.h
+ivy_online.h: ../doc/manual.md build/mkman
+	build/mkman <../doc/manual.md >ivy_online.h
 
 build/ivy_help.o: ivy_online.h ivy_help.c
 	$(CC) $(CFLAGS) -c ivy_help.c -o build/ivy_help.o

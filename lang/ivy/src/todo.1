@@ -1,3 +1,13 @@
+Bugs:
+	foreach / forindex: they are not checking that index variable is
+	really a variable.
+		(code generator does this- it's at least a NAM)
+
+	when cmp is used to indicate not-equal, it uses the value 1.  This
+	will return true for > test.
+
+	callstate is not getting free when we call popall during errors
+
 Things I'm not so sure about:
 
 	2. we now allow fn a.b.c() { }

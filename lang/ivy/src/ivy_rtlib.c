@@ -1169,7 +1169,7 @@ struct ivy_builtin ivy_builtins[] = {
 	{"max", rtmax, "a;b"},
 	{"min", rtmin, "a;b"},
 	{"random", rtrandom, ""},
-	{"help", ivy_rthelp, "a"},
+	{"help", ivy_rthelp, "a=void"},
 	{"symbolcount", rtsymbolcount, ""},
 	{0, 0, 0}
 };
