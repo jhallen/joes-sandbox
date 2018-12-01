@@ -267,7 +267,8 @@ enum {
 
 	/* Functions / Arrays / Structures */
 	ivy_iCALL,			/* iCALL                Call or get member/element */
-	ivy_iSTASH,			/* iSTACH		Pop and stash return value */
+	ivy_iSTASH,			/* iSTASH		Pop and stash a value (used for returning a value when stack needs unwinding) */
+	ivy_iUNSTASH,			/* iUNSTASH		Push stashed value */
 	ivy_iRTS,			/* iRTS                 Return from subroutine (PUSH stashed return value) */
 
 	/* Stack */

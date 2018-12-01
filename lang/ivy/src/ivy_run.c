@@ -1354,8 +1354,6 @@ static int pexe(Ivy *ivy, int trace)
 			break;
 		} case ivy_iRTS: {	/* Return from function */
 			ivy_clear_protected();
-			*ivy_push(ivy) = ivy->stashed;
-			ivy_void_val(&ivy->stashed);
 			ivy->pc = pc;
 			if (!retfunc(ivy))
 				return 0;
@@ -1363,10 +1361,14 @@ static int pexe(Ivy *ivy, int trace)
 				return 1;
                         pc = ivy->pc;
 			break;
-		} case ivy_iSTASH: { /* Pop return value */
+		} case ivy_iSTASH: { /* Save top of stack off to the side */
 			//printf("sp=%p sptop=%p\n", ivy->sp, ivy->sptop);
 			ivy_pop(&ivy->stashed, ivy);
 			//pr(stdout, &ivy->stashed, 0);
+			break;
+		} case ivy_iUNSTASH: {
+			*ivy_push(ivy) = ivy->stashed;
+			ivy_void_val(&ivy->stashed);
 			break;
 		} case ivy_iPOP: {	/* Pop something off of stack */
 			ivy->sp = ivy_rmval(ivy->sp, __LINE__);

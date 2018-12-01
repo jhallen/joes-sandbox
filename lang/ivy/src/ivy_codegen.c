@@ -164,6 +164,30 @@ static void poploops(Ivy_frag *frag, struct ivy_looplvl *target)
 	}
 }
 
+static void poploops1(Ivy_frag *frag, struct ivy_looplvl *target)
+{
+	struct ivy_looplvl *ll;
+	for (ll = frag->looplvls->next; ll && ll != target; ll = ll->next) {
+		if (ll->what == lvlSCOPE)
+			ivy_emitc(frag, ivy_iEND);
+		else if (ll->what == lvlVALUE)
+			ivy_emitc(frag, ivy_iPOP);
+	}
+}
+
+/* Count values we would have to pop */
+
+static int countvalues(Ivy_frag *frag, struct ivy_looplvl *target)
+{
+	int count = 0;
+	struct ivy_looplvl *ll;
+	for (ll = frag->looplvls; ll && ll != target; ll = ll->next) {
+		if (ll->what == lvlVALUE)
+			++count;
+	}
+	return count;
+}
+
 /* Push something */
 
 static void push_str(Ivy_frag *frag)
@@ -344,6 +368,9 @@ void ivy_disasm(FILE *out, Ivy_pseudo * c, int ind, int oneline)
 				return;
 			} case ivy_iSTASH: {
 				ivy_indent(out, ind); fprintf(out, "	stash\n");
+				break;
+			} case ivy_iUNSTASH: {
+				ivy_indent(out, ind); fprintf(out, "	unstash\n");
 				break;
 			} case ivy_iPOP: {
 				ivy_indent(out, ind); fprintf(out, "	pop\n");
@@ -1063,9 +1090,16 @@ static void genn(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 				gen(err, frag, n->r);
 			else
 				push_void(frag);
-			ivy_emitc(frag, ivy_iSTASH);
+
 			pop_looplvl(frag, lvlVALUE, 0, 0);
-			poploops(frag, NULL);
+
+			if (countvalues(frag, NULL)) {
+				ivy_emitc(frag, ivy_iSTASH);
+				poploops(frag, NULL);
+				ivy_emitc(frag, ivy_iUNSTASH);
+			} else {
+				poploops(frag, NULL);
+			}
 			ivy_emitc(frag, ivy_iBRA);
 			z = ivy_emitn(frag, 0);
 			if (frag->rtn)
@@ -1289,19 +1323,20 @@ Ivy_pseudo *ivy_codegen(Ivy_error_printer *err, Ivy_node *n)
 
 	gen(err, frag, n);
 
-	ivy_emitc(frag, ivy_iSTASH);
-	pop_looplvl(frag, lvlVALUE, 0, 0);
+	//ivy_emitc(frag, ivy_iSTASH);
+	//pop_looplvl(frag, lvlVALUE, 0, 0);
 
 	if (frag->rtn)
 		setlist(frag, frag->rtn, frag->code);
 
 	ivy_emitc(frag, ivy_iRTS);
+	pop_looplvl(frag, lvlVALUE, 0, 0);
 
 	if (frag->looplvls) {
 		printf("Expected no looplvls at end of code\n");
 		printf("But we have this:\n");
 		show_looplvls(frag);
-		abort();
+		// abort();
 	}
 
 	return frag->begcode;
