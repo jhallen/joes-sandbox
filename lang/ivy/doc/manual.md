@@ -2,27 +2,19 @@
 
 ## Introduction
 
-Ivy is an embeddable language which is useful as both an extension
-and a command language.  Its syntax is designed to be similar to
-command-style languages like BASIC and UNIX shell, and is thus suitable for
-simple command entry applications.  However, the awkwardness typically
-associated with command languages is eliminated through Ivy's support of
-full expressions, including function calls and assignments, and orthogonal
-block structuring.
+Ivy is an extensible, dynamically typed, late binding language intenended to
+be used as an embedded command language.  It can also be used stand-alone:
+it can execute script files from the command line or presents a
+read-eval-print loop (REPL) to the user if no files are given.
 
-Ivy compiles its source code into a compact byte code which is then
-interpreted.  Six types are currently supported: integers, strings,
-functions, void, floats, and objects.  Objects are late-binding storage
-devices which take the role of arrays, structures and hash tables.  Type
-declarations are not necessary, but type checking is not done until
-run-time.
+Ivy is an expression oriented language where statements and commands are
+parsed into function calls.  Blocks of commands enclosed with braces may be
+used anywhere an expression is expected.
 
-Ivy comes packaged as an interactive language like BASIC and LISP. 
-You can either execute language statements immediately from the keyboard or
-run a program stored in a file.  Ivy is also easy to embed into another
-program.  Calls are provided to execute Ivy code and to add C function
-extensions to Ivy's interpreter.
-
+New user defined statements can be added just by defining functions. 
+Function arguments are packaged up as thunks and may have their evaluation
+delayed and execution environment modified.  This allows functions to do
+many of the things that traditional language statements can do.
 
 ## Invocation
 
@@ -44,9 +36,9 @@ extensions to Ivy's interpreter.
 
 ### Comments
 
-Ivy uses '#' to introduce comments.  Everything from an unquoted # to the
-end of the line is a comment.  '#' was chosen so that the very first line in
-an Ivy program can be '#!/usr/bin/ivy', which makes the file into a script
+Ivy uses *#* to introduce comments.  Everything from an unquoted *#* to the
+end of the line is a comment.  *#* was chosen so that the very first line in
+an Ivy program can be *#!/usr/bin/ivy*, which makes the file into a script
 in UNIX.
 
 ### Expression syntax
