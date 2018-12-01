@@ -41,6 +41,62 @@ end of the line is a comment.  *#* was chosen so that the very first line in
 an Ivy program can be *#!/usr/bin/ivy*, which makes the file into a script
 in UNIX.
 
+### Commands
+
+There is a command format for function calls, where one or more commands
+are provided on a single logical line:
+
+	command arg arg arg ; command arg arg arg ; ...
+
+Newlines are permitted within parenthesis, brackets and braces and in this
+way commands may span multiple physical lines.
+
+The value of a list of commands is the value returned by the last command.
+
+Arguments may be separated with whitespace or commas.  Arguments are
+expressions.
+
+Commands are simple names or several names separated with periods (for
+member selection).  If anything other than this is provided, the command and
+its arguments are treated as a list of expressions and they are sequentially
+evaluatied (and the final value is the value of the last expression).
+
+	expression expression expression ; command arg arg arg ; ...
+
+Sometimes you may want to suppress the treatement of a simple name as a
+command (for example, to return a function).  To do this, enclose it within
+parenthasis:
+
+	(name)
+
+### Blocks
+
+Commands appear at the top-level (non-enclosed) and within braces to make a
+block.  
+	{ commands }
+
+The entire block is treated as a single expression and may be used as an
+argument for a command.
+
+Block structured statements such as *if* are just function calls but with
+blocks given as arguments.  The traditional *if...else if...else* statement
+looks like this in Ivy:
+
+	if a==1 {
+		print "A is 1"
+	} a==2 {
+		print "A is 2"
+	} a==3 {
+		print "A is 3"
+	} {
+		print "A is something else"
+	}
+
+It is equivalent to calling *if* as a function like this:
+
+	if(a==1, print("A is 1"), a==2, print("A is 2"), a==3, print("A is
+	3"), print("A is something else"))
+
 ### Expression syntax
 
 Everything in Ivy is an expression, meaning that statements and function
@@ -107,53 +163,6 @@ operator is infix, otherwise it's prefix.
 	f  ( 7 )		Two expressions: f and 7.
 
 Note that tabs occur every 8 spaces for this purpose.
-
-## Command format function calls
-
-There is a "command" format for function calls:
-
-	function-name arg arg arg ; function-name arg arg arg ; ...
-
-This is available at the top-level (non-enclosed) and within brackets:
-
-	{commands}
-
-In this context, semicolons and new-lines have the same low precedence: either
-can be used to separate successive commands.  Commas and whitespace can be
-used as argument separators, just as in lists.
-
-"function-name" must be a single simple name or a member name.  If it is a
-more complicated expression, the command is reduced to a list of expressions
-until the next new-line or semicolon.
-
-	print 10 20		# Print 10 and 20 (one command)
-
-	print(20) print(1)	# Print 20 and 1 (two expressions)
-
-Sometimes you may want to suppress the command interpretation of a single
-simple name.  This can be done by surrounding the name with parenthesis:
-
-	(print)			# The print function (no call)
-	print			# Call print function with no arguments
-
-### Blocks
-
-Arguments to commands can be given as blocks or expressions.  These are all
-equivalent:
-
-	if(a==1,print("one"),a==2,print("two"),print("something else"))
-
-	if a==1 print("one") a==2 print("two") print("something else")
-
-	if a==1 { print "one" } a==2 { print "two" } { print "else" }
-
-	if a==1 {
-		print "one"
-	} a==2 {
-		print "two"
-	} {
-		print "something else"
-	}
 
 ## Values
 
