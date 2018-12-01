@@ -13,8 +13,9 @@ used anywhere an expression is expected.
 
 New user defined statements can be added just by defining functions. 
 Function arguments are packaged up as thunks and may have their evaluation
-delayed and execution environment modified.  This allows functions to do
-many of the things that traditional language statements can do.
+delayed and execution environment modified.  This allows user defined
+functions to do many of the things that traditional language statements can
+do.
 
 ## Invocation
 
@@ -73,6 +74,7 @@ parenthasis:
 
 Commands appear at the top-level (non-enclosed) and within braces to make a
 block.  
+
 	{ commands }
 
 The entire block is treated as a single expression and may be used as an
@@ -97,18 +99,7 @@ It is equivalent to calling *if* as a function like this:
 	if(a==1, print("A is 1"), a==2, print("A is 2"), a==3, print("A is
 	3"), print("A is something else"))
 
-### Expression syntax
-
-Everything in Ivy is an expression, meaning that statements and function
-calls have the same syntax.  A consequence of this is that new statements
-can be added to the language by defining new functions:
-
-	print(square(10))	Call square function with 10 as arg, and
-				print result.
-
-	print(if(a==1,2,3))	If a==1, print 2.  Otherwise print 3.
-
-### Lists of expressions
+### Lists
 
 A list of expressions is expected within parenthesis and brackets:
 
@@ -117,43 +108,35 @@ A list of expressions is expected within parenthesis and brackets:
 
 	[list]			An object.
 
-If a list is expected in the given context, the list is used as is.  If a
-single expression is expected in the given context, all of the expressions
-in the list are evaluated (left to right), and the value of the right-most
-expression is returned:
+A list is expected for function arguments and objects.  A list may also be
+provided for simple parenthetical expressions.  In this case, the
+expressions of the list are evaluated in turn from left to right, and the
+last one provides the value of the parenthetical expression.
 
-	mul(2 3)		Pass two args to mul: 2 and 3
+	func(2 3)		Call func with two args: 2 and 3
 
 	3*(2 3)			Results in the value 9
 
-The expressions within a list can be separated with whitespace, commas or
+Expressions within a list can be separated with whitespace, commas or
 semicolons.  These are all identical in this context:
 
-	mul(10 20 40)		3 args passed to mul
-	mul(10,20;40)		3 args passed to mul
-	mul(10;,20,,,40)	3 args passed to mul
+	func(10 20 40)		Call func with three args
+	func(10,20;40)		Call func with three args
+	func(10;,20,,,40)	Call func with three args
 
 Note that successive separators with nothing between them are ignored:
 
-	mul(1,2) is exactly the same as mul(1,,,,2)
+	func(1,2) is exactly the same as func(1,,,,2)
 
 Note however, that an empty set of parenthesis has meaning:
 
-	mul(() 20)	Passing two args to mul: void and 20.
-
-Note that \ is a sequential evaluation infix operator which computes the
-left side, discards the result and then computes the right side and returns
-its result:
-
-	mul(10\15\20 30)	Pass two args to mul: 20 and 30.
-
-### Ambiguities
+	func(() 20)	Call func with  two args: void and 20.
 
 Since whitespace is a valid separator for expressions, ambiguities between
 symbols which can be both infix and prefix operators result.  These
-ambiguities are resolved by noting the physical distance between the
-symbol and its potential arguments.  If the distance is balanced, the
-operator is infix, otherwise it's prefix.
+ambiguities are resolved by noting the typographical distance between the
+symbol and its potential arguments.  The rule is that if the distance is
+balanced, the operator is infix, otherwise it's prefix:
 
 	a - b			One expression: subtract b from a
 	a  -b			Two expressions: a and negated b
@@ -170,87 +153,87 @@ Note that tabs occur every 8 spaces for this purpose.
 
 There are symbols:
 
-		`hello
+	`hello
 
 Symbols can be tested for equality:
 
-		`hello==`hello		# True
-		`hello==`goodbye	# False
+	`hello==`hello		# True
+	`hello==`goodbye	# False
 
-There is an interned string table for all symbols, so to check if
-two symbols are identical their addresses are compared.
+There is an interned string table for all symbols, so within Ivy, the check
+for symbol equality is fast: symbols are identical if their addresses match.
 
 Symbols can be used as object indices.  Variables within a scope are
 indexed by symbols.  These are equivalent:
 
-		a(`hello)=5
-		a.hello=5
+	a(`hello)=5
+	a.hello=5
 
 ### Integers
 
 Integers may be entered in a variety of bases:
 
-		x=0o127		# Octal
-		x=0x80		# Hexadecimal
-		x=0b11		# Binary
-		x=123		# Decimal
+	x=0o127		# Octal
+	x=0x80		# Hexadecimal
+	x=0b11		# Binary
+	x=123		# Decimal
 
 Octal, binary and hexadecimal digits may be interspersed with
 underscores (_) for enhanced readability:
 
-		x=0xADDED_FEE
+	x=0xADDED_FEE
 
 Also the ASCII value of a character may be taken as an integer:
 
-		x='A'		# The value 65
+	x='A'		# The value 65
 
 The following "escape sequences" may also be used in place of a
 character:
 
-		x='\n'		# New-line
-		x='\r'		# Return
-		x='\b'		# Backspace
-		x='\t'		# Tab
-		x='\a'		# Alert (bell)
-		x='\e'		# Escape
-		x='\f'		# Form-feed
-		x='\^A'		# Ctrl-A (works for ^@ to ^_ and ^?)
-		x='\010'	# Octal for 8
-		x='\xFF'	# Hexadecimal for 255
-		x='\\'		# \
-		x='\q'		# q (undefined characters return themselves)
+	x='\n'		# New-line
+	x='\r'		# Return
+	x='\b'		# Backspace
+	x='\t'		# Tab
+	x='\a'		# Alert (bell)
+	x='\e'		# Escape
+	x='\f'		# Form-feed
+	x='\^A'		# Ctrl-A (works for ^@ to ^_ and ^?)
+	x='\010'	# Octal for 8
+	x='\xFF'	# Hexadecimal for 255
+	x='\\'		# \
+	x='\q'		# q (undefined characters return themselves)
 
 ### Floating point
 
-		x=.125
-		x=.125e3
-		x=0.3
+	x=.125
+	x=.125e3
+	x=0.3
 
 ### Strings
 
 String constants are enclosed in double-quotes:
 
-		x="Hello there"
+	x="Hello there"
 
 Escape sequences may also be used inside of strings.
 
 ## Variables
 
-Variables set outside of functions are global variables.  They will
-be visible in any block unless 'var' is used within the block to force the
-creation of a new local variable with the same name.
+Variables set outside of functions are global variables.  They will be
+visible in any function or scope unless 'var' is used to force the creation
+of a new local variable with the same name.
 
-If a variable is set inside of a function and there is no global
+If a variable is assigned to inside of a function and there is no global
 variable of the same name, that variable will be local to the block it was
 assigned in.
 
 
 ## Objects
 
-Objects are catch all data structures which may be indexed by
-number, symbol or string.  Objects indexed by number are similar to
-arrays.  Objects indexed by symbol are similar to structures.  Objects
-indexed by string are similar to hash tables.
+Objects are catch all data structures which may be indexed by number, symbol
+or string.  Objects indexed by number are similar to arrays.  Objects
+indexed by symbol are similar to structures.  Objects indexed by string are
+similar to hash tables.
 
 A mixture of index types may be used on the same object, but always
 refer to different locations (symbol foo and string "foo" can have different
@@ -260,12 +243,10 @@ An automatic array is used for numbered indexing.  This array
 expands to accommodate whatever index is used.  If you store a value at
 index 0 and also at index 999, then space for 1000 values will be allocated.
 
-Auto-expanding hash tables are used for symbol and string indexing. 
-These hash tables expand to twice their size when they reach half full. 
-Symbol indexing is faster than string indexing since, for symbols, the hash
-value does not have to be recomputed on each access.  On the other hand,
-there is a global hash table for symbols which is never compacted so symbols
-should not be used for data input.
+Auto-expanding hash tables are used for symbol and string indexing.  These
+hash tables expand to twice their size when they reach half full.  Symbol
+indexing is faster than string indexing since, for symbols, the hash value
+is just the address of the symbol.
 
 Objects can be created either member by member:
 
@@ -292,14 +273,15 @@ And then change one of the members of x:
 
 		x(0)=5
 
-Then the change will appear both in x and in y
+Then the change will appear both in x and in y.
 
 
 ## Expressions
 
-An expression is a single or dual operand operator, a constant, a
-variable, a lambda function, a block enclosed within braces, a function
-call, or an object.  Examples of each of these cases follow:
+An expression is a single or dual operand operator with arguments, a
+constant, a variable, a function definition, a block enclosed within braces,
+a function call, an object or parenthetical expression.  Examples of each of
+these cases follow:
 
 		~expr			Single operand
 
@@ -316,14 +298,12 @@ call, or an object.  Examples of each of these cases follow:
 
 		[`next=item `value=1]	A structure object
 
-		(fn (x,y) x*y)(3,5)	Calling a lambda function
+		(fn (x,y) x*y)(3,5)	Calling an anonymous function
 
 
 ## Operators
 
-Ivy uses a superset of operators from C but with more intuitive
-precedence.  Here are the operators grouped from highest precedence to
-lowest:
+Here are the operators grouped from highest precedence to lowest:
 
 	`				# Named argument
 
@@ -359,7 +339,7 @@ lowest:
 
 	A detailed description of each operator follows:
 
-### "`" Symbol quoting
+### ` Symbol quoting
 
 This operator can be used to prevent a symbol from being
 replaced by its value.  Instead the symbol is used directly as the value. 
@@ -371,7 +351,7 @@ command, function call or object.  For example:
 		[`1=5 `0=7]			# Array object
 		[`x=10 `y=10]			# Structure object
 
-### "." Member selection
+### . Member selection
 
 This operator is used to select a named member from an
 object.  For example:
@@ -381,7 +361,7 @@ object.  For example:
 		pr o.y			# Print member y
 		pr o("y")		# Same as above
 
-### "::" Modify environment
+### :: Modify environment
 
 This operator replaces the environment part of the closure
 on the left side with the object on the right side.
@@ -400,7 +380,7 @@ on the left side with the object on the right side.
 
 		foo::my_obj(7)		# Prints 21
 
-### "( )" Function call
+### ( ) Function call
 
 This operator calls the function resulting from the
 expression on the left with the arguments inside of the parenthesis.  This
@@ -423,26 +403,26 @@ follow:
 					# end before second).
 
 
-### "-" Negate
+### - Negate
 
-### "&" Address of.
+### & Address of.
 
 This operator converts its operand into a thunk (a zero
 argument nameless function thunk with no environment).  The thunk can
 be called with () or *.
 
-### "~" Bit-wise one's complement
+### ~ Bit-wise one's complement
 
-### "!" Logical not
+### ! Logical not
 
-### "++"
+### ++ Pre or post increment
 
 Pre or post increment depending on whether it precedes or follows
 a variable
 
-### "--" Pre or post decrement
+### -- Pre or post decrement
 
-### "*" Indirection
+### * Indirection
 
 This prefix operator is used to call a zero argument
 function or thunk.
@@ -455,37 +435,37 @@ function or thunk.
 		set x 10	# Set x to 10
 		pr x		# Prints 10
 
-### "<<" Bit-wise shift left
+### << Bit-wise shift left
 
-### ">>" Bit-wise shift right
+### >> Bit-wise shift right
 
-### "*" Multiply
+### * Multiply
 
-### "/" Divide
+### / Divide
 
-### "&" Bit-wise AND
+### & Bit-wise AND
 
-### "%" Modulus (Remainder)
+### % Modulus (Remainder)
 
-### "+" Add or concatenate
+### + Add or concatenate
 
 In addition to adding integers, this operator concatenates
 strings if strings are passed to it.  For example:
 
-		pr "Hello"+" There" 	# Prints "Hello There"
+	print "Hello"+" There" 	# Prints "Hello There"
 
 "+" will also append an element on the right into an
 array object on the left:
 
-		a=[1 2 3]
-		a+=4			# a now is [ 1 2 3 4 ]
+	a=[1 2 3]
+	a+=4			# a now is [ 1 2 3 4 ]
 
-		pr []+1+2+3+4		# same as pr [1 2 3 4]
-		pr []+1+2+3+[4 5]	# same as pr [1 2 3 [4 5]]
+	print []+1+2+3+4	# same as print [1 2 3 4]
+	print []+1+2+3+[4 5]	# same as print [1 2 3 [4 5]]
 
-### "-" Subtract
+### - Subtract
 
-### "|" Bit-wise OR or 
+### | Bit-wise or
 
 If objects are given as arguments to OR, OR unions the
 objects together into a single object.  If the objects have
@@ -496,51 +476,51 @@ right to the array on the left.  For example:
 		b=[4 5 6]
 		a|=b			# a now is [1 2 3 4 5 6]
 
-### "^" Bit-wise Exclusive OR
+### ^ Bit-wise Exclusive OR
 
-### "==" Equal
+### == Equal
 
 Returns 1 (true) if arguments are equal or 0 (false) if arguments are not
 equal.  Can be used for strings, numbers, symbols and objects.  For objects,
 "==" tests if the two arguments are the same object, not if the two
 arguments have equivalent objects.
 
-### ">" Greater than
+### > Greater than
 
-### ">=" Greater than or equal to
+### >= Greater than or equal to
 
-### "<"  Less than
+### <  Less than
 
-### "<=" Less than or equal to
+### <= Less than or equal to
 
-### "!=" Not equal to
+### != Not equal to
 
-### "&&" Logical and
+### && Logical and
 
 The right argument is only evaluated if the left argument is
 true (non-zero).
 
-### "||" Logical or
+### || Logical or
 
 The right argument is evaluated only if the left argument is
 false (zero).
 
-### "=" Pre-assignment
+### = Pre-assignment
 
 The right side is evaluated and the result is stored in the variable
 specified on the left side.  The right side's result is also returned.
 
-### ":" Post-assignment
+### : Post-assignment
 
 The right side is evaluated and the result is stored in the
 variable specified on the left side.  The left side's original value
 is returned.
 
-### "X=" Pre-assignment group
+### X= Pre-assignment group
 
 These translate directly into: "left = left X right"
 
-### "X:" Post-assignment group
+### X: Post-assignment group
 
 These translate directly into: "left : left X right"
 
@@ -574,12 +554,12 @@ gets swapped with b:
 
 		a:b:a
 
-### "\" Sequential evaluation
+### \ Sequential evaluation
 
 The left and then the right argument are evaluated and the
 result of the right argument is returned.
 
-### "," Argument separator
+### , Argument separator
 
 When this is used in statements which require only a single
 expression, it has the same effect as \
