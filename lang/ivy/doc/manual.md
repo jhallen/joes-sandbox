@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Ivy is an extensible, dynamically typed, late binding language intenended to
+Ivy is an extensible, dynamically typed, late binding language intended to
 be used as an embedded command language.  It can also be used stand-alone:
 it can execute script files from the command line or presents a
 read-eval-print loop (REPL) to the user if no files are given.
@@ -60,13 +60,13 @@ expressions.
 Commands are simple names or several names separated with periods (for
 member selection).  If anything other than this is provided, the command and
 its arguments are treated as a list of expressions and they are sequentially
-evaluatied (and the final value is the value of the last expression).
+evaluated (and the final value is the value of the last expression).
 
 	expression expression expression ; command arg arg arg ; ...
 
-Sometimes you may want to suppress the treatement of a simple name as a
+Sometimes you may want to suppress the treatment of a simple name as a
 command (for example, to return a function).  To do this, enclose it within
-parenthasis:
+parenthesis:
 
 	(name)
 
@@ -369,7 +369,7 @@ on the left side with the object on the right side.
 		x = 2
 		fn foo(n) { print x * n }
 
-		# Call foo in its recorded environmment-
+		# Call foo in its recorded environment-
 		# in this case, the global variables
 
 		foo(7)			# Prints 14
@@ -656,12 +656,12 @@ use arguments to their left.
 Arguments may be passed by name.  When an argument is passed by name, a
 local variable of that name is injected into the function's body.  Variables
 may be created which are not in the formal argument list.  Named and
-unnammed arguments may be mixed in the same function call.  The named
+unnamed arguments may be mixed in the same function call.  The named
 arguments have no effect on how the unnamed arguments are processed: the
 unnamed arguments are matched up left-to-right with the formal argument list
 as if there were no provided named arguments.  This means that an unnamed
 argument may overwrite a named argument if it occurs after the named
-argument, or vice-versa.  If there were fewer unnamed arguments than in the
+argument, or vice-verse.  If there were fewer unnamed arguments than in the
 formal argument list, and the missing ones were declared with default
 values, and they were not provided with a named argument, then the default
 value is used.  If arguments without default values are missing, and they
@@ -722,7 +722,7 @@ function to an argument:
 
 
 Functions can return other named or unnamed functions.  (Remember to enclose
-the function name in parenthasis to suppress command interpretation, or use
+the function name in parenthesis to suppress command interpretation, or use
 return).  For example:
 
 	fn square(x) {
@@ -940,7 +940,7 @@ The expressions are evaluated in their own scope.  If they create local
 variables, they will not show up in the outer scope.  The value of the last
 expression is returned.
 
-## Builtin functions
+## Built in functions
 
 ### loadfile
 
