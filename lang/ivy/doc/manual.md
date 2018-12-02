@@ -1093,7 +1093,7 @@ The following functions from the standard C library are provided:
 	floor() ceil() int() abs() min() max() erf() erfc()
 	j0() j1() jn() y0() y1() yn()
 
-## Object Oriented Progamming
+## Object-Oriented Programming
 
 Besides being available for use by the programmer, Ivy's objects are used
 internally for activation records.  This means that a function's local
