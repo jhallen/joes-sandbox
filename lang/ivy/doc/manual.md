@@ -208,6 +208,17 @@ An automatic array is used for numbered indexing.  This array expands to
 accommodate whatever index is used.  If you store a value at index 0 and
 also at index 999, then space for 1000 values will be allocated.
 
+When arrays are created all at once, the first item will be at index 0:
+
+	->o=[10 20 30]
+	->print o[0]
+	10
+	->print o[1]
+	20
+	->print o[2]
+	30
+	->
+
 Auto-expanding hash tables are used for symbol and string indexing.  These
 hash tables expand to twice their size when they reach half full.  Symbol
 indexing is faster than string indexing since, for symbols, the hash value
@@ -215,28 +226,28 @@ is just the address of the symbol.
 
 Objects can be created either member by member:
 
-		o=[]
-		o.a=5
-		o.b=6
-		o(1)=7
-		o("foo")=8
+	o=[]
+	o.a=5
+	o.b=6
+	o(1)=7
+	o("foo")=8
 
 or all at once:
 
-		o=[`a=5, `b=6, `1=7, `"foo"=8]
+	o=[`a=5, `b=6, `1=7, `"foo"=8]
 
 Objects are assigned by reference.  This means that if you have an
 object in one variable:
 
-		x=[1 2 3]
+	x=[1 2 3]
 
 And you assign it to another:
 
-		y=x
+	y=x
 
 And then change one of the members of x:
 
-		x(0)=5
+	x(0)=5
 
 Then the change will appear both in x and in y.
 
