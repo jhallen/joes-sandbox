@@ -1,5 +1,17 @@
 # Ivy
 
+- [Introduction](#Introduction)
+- [Invocation](Invocation)
+- [Syntax](Syntax)
+- [Values](Values)
+- [Variables](Variables)
+- [Objects](Objects)
+- [Expressions](Expressions)
+- [Operators](Operators)
+- [Functions](Functions)
+- [Statements](Statements)
+- [Built in functions](Built in functions)
+
 ## Introduction
 
 Ivy is an extensible, dynamically typed, late binding language intended to
@@ -79,6 +91,18 @@ command (for example, to return a function).  To do this, enclose it within
 parenthesis:
 
 	(name)
+
+Note that if you try to call a non-function value with zero arguments, the
+result is the value itself.  This is relevant when you use Ivy
+interactively (when invoked with the -c option):
+
+	->a=10
+	10
+	->a
+	10
+
+*a* alone on a line is treated as a command, and is called with zero
+arguments, and returns itself.
 
 ### Blocks
 
