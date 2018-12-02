@@ -199,13 +199,70 @@ Note that tabs occur every 8 spaces for this purpose.
 
 ## Variables
 
-Variables set outside of functions are global variables.  They will be
-visible in any function or scope unless the *var* statement is used to force
-the creation of a new local variable with the same name.
+### Scoping rules
+
+Variables set (assigned to) outside of functions are global variables.  They
+will be visible in any function or scope.
 
 If a variable is assigned to inside of a function and there is no global
-variable of the same name, that variable will be local to the block it was
-assigned in.
+variable of the same name, a local variable will be created within the
+function.
+
+The *var* statement can be used to force the creation of local variables,
+even if there are global variables with the same name.
+
+Functions have their own scope.  Local variables created within a function
+are only visible within the function.  Nested functions can see their
+parent's variables.  
+
+Statements and blocks do not have their own scope.  The only exception is
+the *scope* statement.  Local variables created in its body will be visible
+only within its body.
+
+### Assignment
+
+Ivy supports nested multi-assignment via objects:
+
+	[a,b,[x,y]] = [1,2,[9,10]]
+
+Functions may return an object for multi-assignment:
+
+	fn multi() [1 2 3]
+
+	[a,b,c]=multi()
+
+Ivy is unlike most languages in that it does not know that a variable will
+be used as an L-value until very late (not until the assignment takes
+place).  Therefore more things are legal L-values than you would expect. 
+For example, if a function returns a variable, it may be assigned to:
+
+	->x=1
+	->fn rtnvar() x
+	->print x
+	1
+	->rtnvar()=10
+	->print x
+	10
+
+This works for multi-assignment also:
+
+	# Select a set of variables to assign to
+	fn rtn(n) {
+		if n==1 {
+			return [x,y,z]
+		} {
+			return [i,j,k]
+	}
+	# Make sure they exist
+	x=y=z=0
+	i=j=l=0
+	# Assign
+	rtn(1)=[1,2,3]
+	# x, y and z have been assigned to.
+
+Note that the variables must already exist for this to work, otherwise they
+will be created as local variables within the function.  They will still be
+assigned to, but it is probably not what you want.
 
 ## Values
 
