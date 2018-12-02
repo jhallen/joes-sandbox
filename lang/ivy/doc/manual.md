@@ -295,6 +295,9 @@ activation record is an Ivy object which is used to hold local variables.
 		`mom=[ 0 at 0x0x13904e0 (globals) ]
 		`b=20
 	]
+	->print this.a
+	10
+	->
 
 ### mom
 
