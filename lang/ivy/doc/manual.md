@@ -15,7 +15,7 @@ have their evaluation delayed and execution environment modified.  This
 allows user defined functions to do many of the things that traditional
 language statements can do.
 
-A number of feature make Ivy suitable as a command language.  Commands in
+A number of features make Ivy suitable as a command language.  Commands in
 Ivy are just function calls, but with a convenient lightweight syntax. 
 Also, Ivy supports named arguments, default argument values and variadic
 functions.
@@ -82,8 +82,8 @@ parenthesis:
 
 ### Blocks
 
-Commands appear at the top-level (non-enclosed) and within braces to make a
-block.  
+Commands may appear at the top-level (non-enclosed) and within braces to
+make a block.
 
 	{ commands }
 
@@ -140,9 +140,9 @@ Note that successive separators with nothing between them are ignored:
 
 Note however, that an empty set of parenthesis has meaning:
 
-	func(() 20)	Call func with  two args: void and 20.
+	func(() 20)	Call func with two args: void and 20.
 
-Since whitespace is a valid separator for expressions, ambiguities between
+Since whitespace may be used to separate expressions, ambiguities between
 symbols which can be both infix and prefix operators result.  These
 ambiguities are resolved by noting the typographical distance between the
 symbol and its potential arguments.  The rule is that if the distance is
