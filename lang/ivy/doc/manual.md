@@ -347,7 +347,7 @@ Here are the operators grouped from highest precedence to lowest:
 
 	;				# Command separation
 
-	A detailed description of each operator follows:
+A detailed description of each operator follows:
 
 ### ` Symbol quoting
 
@@ -709,16 +709,17 @@ object used for the function's local variables) gets several variables:
 
 		print this	Prints all local variables
 
-[this is not a variable, it's a special symbol that
-is replaced by the activation record object]
+*this* is not a variable, it's a special symbol that is replaced by the
+activation record object.
 
-	mom	The next outer lexical scope.  Mom is a normal
-		variable.  If you assign it, the next outer lexical
-		scope is changed to the specified object.
+	mom	The next outer lexical scope.
 
-Functions may be assigned to variables and passed to other
-functions.  For example you can define a function 'apply' which applies a
-function to an argument:
+Mom is a normal variable.  If you assign it, the next outer lexical scope is
+changed to the specified object.
+
+Functions may be assigned to variables and passed to other functions.  For
+example you can define a function *apply* which applies a function to an
+argument:
 
 	fn apply(x y) {
 		return x(y)
@@ -889,9 +890,11 @@ This is a shorthand for the follow while statement:
 
 Thus,
 
-	*init* is usually used as an index variable initializer
-	*test* is the loop test
-	*incr* is the index variable incrementer
+*init* is usually used as an index variable initializer
+
+*test* is the loop test
+
+*incr* is the index variable incrementer
 
 *for* may optionally be labeled for matching with the argument to *break*
 and *continue*
@@ -902,7 +905,7 @@ and *continue*
 
 	return expr
 
-This exits the function it is executed in with the given return value or
+*return* exits the function it is executed in with the given return value or
 with *void* if no value is given.
 
 ### Break statement
@@ -911,7 +914,7 @@ with *void* if no value is given.
 
 	break LABEL
 
-This jumps out of the innermost or labeled loop
+*break* jumps out of the innermost or labeled loop
 
 ### Continue statement
 
@@ -919,20 +922,19 @@ This jumps out of the innermost or labeled loop
 
 	continue LABEL
 
-This jumps the beginning of the innermost or labeled loop.
+*continue* jumps to the beginning of the innermost or labeled loop.
 
 ### Until statement
 
 	until expr
 
-This exits the loop it's in if *expr* is true.
+*until* exits the loop it's in if *expr* is true.
 
 ### Var statement
 
 	var a, b, c
 
-Declare local variables.  The variables may also have
-initializers:
+Declare local variables.  The variables may also have initializers:
 
 	var a=10, b=20
 
