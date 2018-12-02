@@ -3,9 +3,8 @@
 - [Introduction](#Introduction)
 - [Invocation](#Invocation)
 - [Syntax](#Syntax)
-- [Values](#Values)
 - [Variables](#Variables)
-- [Objects](#Objects)
+- [Values](#Values)
 - [Expressions](#Expressions)
 - [Operators](#Operators)
 - [Functions](#Functions)
@@ -182,7 +181,135 @@ balanced, the operator is infix, otherwise it's prefix:
 
 Note that tabs occur every 8 spaces for this purpose.
 
+## Variables
+
+Variables set outside of functions are global variables.  They will be
+visible in any function or scope unless the *var* statement is used to force
+the creation of a new local variable with the same name.
+
+If a variable is assigned to inside of a function and there is no global
+variable of the same name, that variable will be local to the block it was
+assigned in.
+
 ## Values
+
+### Objects
+
+Objects are catch-all data structures which may be indexed by number, symbol
+or string.  Objects indexed by number are similar to arrays.  Objects
+indexed by symbol are similar to structures.  Objects indexed by string are
+similar to hash tables.
+
+A mixture of index types may be used on the same object, but always
+refer to different locations (symbol foo and string "foo" can have different
+values).
+
+An automatic array is used for numbered indexing.  This array expands to
+accommodate whatever index is used.  If you store a value at index 0 and
+also at index 999, then space for 1000 values will be allocated.
+
+Auto-expanding hash tables are used for symbol and string indexing.  These
+hash tables expand to twice their size when they reach half full.  Symbol
+indexing is faster than string indexing since, for symbols, the hash value
+is just the address of the symbol.
+
+Objects can be created either member by member:
+
+		o=[]
+		o.a=5
+		o.b=6
+		o(1)=7
+		o("foo")=8
+
+or all at once:
+
+		o=[`a=5, `b=6, `1=7, `"foo"=8]
+
+Objects are assigned by reference.  This means that if you have an
+object in one variable:
+
+		x=[1 2 3]
+
+And you assign it to another:
+
+		y=x
+
+And then change one of the members of x:
+
+		x(0)=5
+
+Then the change will appear both in x and in y.
+
+### void
+
+The special value *void* is returned when you attempt to look up an object
+member, but it's missing.  *void* is equivalent to false or 0 when used with
+*if*.
+
+Here is an example:
+
+	->a=[]
+	->if a.b print("it exists")
+	->a.b=1
+	->if a.b print("it exists")
+	it exists
+	->
+
+### this
+
+*this* is a read-only symbol that returns the current activation record.  An
+activation record is an Ivy object which is used to hold local variables.
+
+	->a=10
+	->b=20
+	->print this
+	[ 1 at 0x0x1390498
+		`a=10
+		`mom=[ 0 at 0x0x13904e0 (globals) ]
+		`b=20
+	]
+
+### mom
+
+*mom* is an object member present in objects used as activation records.  It
+refers to the object used as the next outer scope.  *mom* can be used to
+access variables in the next outer scope:
+
+	->x=10
+	->fn foo() {
+	->	var x = 20
+	->	print x
+	->	print mom.x
+	->}
+	->foo
+	20
+	10
+	->
+
+### Closures
+
+When functions are treated as data, they are always passed around as
+closures.  A closure has the address of the code for the function and a
+reference to its environment- the object which was the activation record at
+the time when the function was defined.  This object will become the next
+outer scope of the function (it's activation record's mom) when the function
+is called.
+
+The environment part of a closure value can be replaced in various ways. 
+There is an operator to do this directly:
+
+	modified = original::new_environment
+
+When a closure is retrieved from an object which a member called mom via dot
+notation, the object will replace the environment part of the closure:
+
+	->x=10
+	->fn p() print(x)
+	->a=[`mom=this, `x=20, `p=p]
+	->p()
+	10
+	->a.p()
+	20
 
 ### Symbols
 
@@ -238,7 +365,7 @@ character:
 	x='\\'		# \
 	x='\q'		# q (undefined characters return themselves)
 
-### Floating point
+### Floating point numbers
 
 	x=.125
 	x=.125e3
@@ -251,64 +378,6 @@ String constants are enclosed in double-quotes:
 	x="Hello there"
 
 Escape sequences may also be used inside of strings.
-
-## Variables
-
-Variables set outside of functions are global variables.  They will be
-visible in any function or scope unless 'var' is used to force the creation
-of a new local variable with the same name.
-
-If a variable is assigned to inside of a function and there is no global
-variable of the same name, that variable will be local to the block it was
-assigned in.
-
-
-## Objects
-
-Objects are catch all data structures which may be indexed by number, symbol
-or string.  Objects indexed by number are similar to arrays.  Objects
-indexed by symbol are similar to structures.  Objects indexed by string are
-similar to hash tables.
-
-A mixture of index types may be used on the same object, but always
-refer to different locations (symbol foo and string "foo" can have different
-values).
-
-An automatic array is used for numbered indexing.  This array
-expands to accommodate whatever index is used.  If you store a value at
-index 0 and also at index 999, then space for 1000 values will be allocated.
-
-Auto-expanding hash tables are used for symbol and string indexing.  These
-hash tables expand to twice their size when they reach half full.  Symbol
-indexing is faster than string indexing since, for symbols, the hash value
-is just the address of the symbol.
-
-Objects can be created either member by member:
-
-		o=[]
-		o.a=5
-		o.b=6
-		o(1)=7
-		o("foo")=8
-
-or all at once:
-
-		o=[`a=5, `b=6, `1=7, `"foo"=8]
-
-Objects are assigned by reference.  This means that if you have an
-object in one variable:
-
-		x=[1 2 3]
-
-And you assign it to another:
-
-		y=x
-
-And then change one of the members of x:
-
-		x(0)=5
-
-Then the change will appear both in x and in y.
 
 
 ## Expressions
