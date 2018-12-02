@@ -59,6 +59,7 @@ enum ivy_valtype {
 	ivy_tRET_SIMPLE,	/* Call argument */
 	ivy_tRET_SIMPLE_THUNK,	/* Call argument thunk */
 	ivy_tPAIR,		/* A name value pair */
+	ivy_tSCOPE,		/* A scope */
 	ivy_tERROR = -1
 };
 
@@ -109,6 +110,7 @@ struct ivy_callstate {
 	Ivy_obj *ovars;	/* Save caller's scope */
 	Ivy_closure o;	/* Function we're calling */
 	Ivy_val val;	/* String or object we're calling */
+	void (*cont_func)(Ivy *, struct ivy_callstate *);	/* What to do next after RET_SIMPLE */
 };
 
 /* An interpreter */
@@ -171,7 +173,7 @@ struct ivy_parser {
 
 
 /* Ivy_node *compargs(char *s); Compile argument string into a tree (for creating built-in functions) */
-Ivy_node *ivy_compargs(Ivy *ivy, char *);
+Ivy_node *ivy_compargs(Ivy *ivy, const char *);
 
 /* Main functions */
 
@@ -340,6 +342,20 @@ static inline void ivy_void_val(Ivy_val *v)
 static inline void ivy_push_void(Ivy *ivy)
 {
 	ivy_void_val(ivy_push(ivy));
+}
+
+static inline void ivy_scope_val(Ivy_val *v, Ivy_obj *old)
+{
+	v->type = ivy_tSCOPE;
+	v->origin = 0;
+	v->idx_type = ivy_tVOID;
+	v->idx.num = 0;
+	v->u.obj = old;
+}
+
+static inline void ivy_push_scope(Ivy *ivy, Ivy_obj *old)
+{
+	ivy_scope_val(ivy_push(ivy), old);
 }
 
 static inline void ivy_int_val(Ivy_val *v, long long i)

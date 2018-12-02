@@ -1121,6 +1121,7 @@ static void rtdepth(Ivy *ivy)
 /* Table of built-in functions */
 
 struct ivy_builtin ivy_builtins[] = {
+	{"help", ivy_rthelp, "a=void"},
 	{"depth", rtdepth, ""},
 	{"pr", rtprint, ""},
 	{"vars", rtvars, ""},
@@ -1169,7 +1170,6 @@ struct ivy_builtin ivy_builtins[] = {
 	{"max", rtmax, "a;b"},
 	{"min", rtmin, "a;b"},
 	{"random", rtrandom, ""},
-	{"help", ivy_rthelp, "a=void"},
 	{"symbolcount", rtsymbolcount, ""},
 	{0, 0, 0}
 };

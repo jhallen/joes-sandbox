@@ -33,7 +33,7 @@ Ivy_val *ivy_mark_val(Ivy_val *val)
 		case ivy_tSTR: {
 			ivy_mark_str(val->u.str);
 			break;
-		} case ivy_tOBJ: {
+		} case ivy_tOBJ: case ivy_tSCOPE: {
 			ivy_mark_obj(val->u.obj);
 			break;
 		} case ivy_tCLOSURE: {

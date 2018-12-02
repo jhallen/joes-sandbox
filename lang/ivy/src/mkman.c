@@ -9,7 +9,7 @@ struct section {
 	char *name;
 } *sections;
 
-void tolower(char *d, char *s)
+void tolowers(char *d, char *s)
 {
 	int x;
 	for (x = 0; s[x]; ++x)
@@ -48,28 +48,28 @@ int main(int argc, char *argv[])
 		if (strlen(buf) && buf[strlen(buf) - 1] == '\n')
 			buf[strlen(buf) - 1] = 0;
 		++line;
-		if (buf[0] == '#' && buf[1] == ' ') {
+		/* if (buf[0] == '#' && buf[1] == ' ') {
 			if (current)
 				printf("  },\n");
-			tolower(lower, buf + 2);
+			tolowers(lower, buf + 2);
 			current=find_section(lower);
 			++count;
 			printf("  { \"%s\",\n", lower);
-		} else if (buf[0] == '#' && buf[1] == '#' && buf[2] == ' ') {
+		} else */ if (buf[0] == '#' && buf[1] == '#' && buf[2] == ' ') {
 			if (current)
 				printf("  },\n");
-			tolower(lower, buf + 3);
+			tolowers(lower, buf + 3);
 			current=find_section(lower);
 			++count;
 			printf("  { \"%s\",\n", lower);
-		} else if (buf[0] == '#' && buf[1] == '#' && buf[2] == '#' && buf[3] == ' ') {
+		} /* else if (buf[0] == '#' && buf[1] == '#' && buf[2] == '#' && buf[3] == ' ') {
 			if (current)
 				printf("  },\n");
-			tolower(lower, buf + 4);
+			tolowers(lower, buf + 4);
 			current=find_section(lower);
 			++count;
 			printf("  { \"%s\",\n", lower);
-		} else if (current) {
+		} */ else if (current) {
 			int x;
 			int col = 0;
 			printf("    \"");

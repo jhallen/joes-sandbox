@@ -877,8 +877,12 @@ static void gen(Ivy_error_printer *err, Ivy_frag *frag, Ivy_node * n)
 		} case ivy_nSCOPE: {
 			push_looplvl(frag, lvlSCOPE, 0, 0);
 			gen(err, frag, n->r);
+			ivy_emitc(frag, ivy_iSTASH);
 			pop_looplvl(frag, lvlVALUE, 0, 0);
+
 			pop_looplvl(frag, lvlSCOPE, 0, 0);
+
+			ivy_emitc(frag, ivy_iUNSTASH);
 			push_looplvl(frag, lvlVALUE, 0, 0);
 			break;
 		} case ivy_nELLIPSIS: {

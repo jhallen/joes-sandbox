@@ -6,8 +6,6 @@ Bugs:
 	when cmp is used to indicate not-equal, it uses the value 1.  This
 	will return true for > test.
 
-	callstate is not getting free when we call popall during errors
-
 Things I'm not so sure about:
 
 	2. we now allow fn a.b.c() { }
@@ -100,6 +98,9 @@ i18n:
 Tests:
 
 ->	continue
+
+	loop exits inside of scopes (the loop tests used to do this, but we
+	eliminated scopes from loop statements)
 
 Performance:
 

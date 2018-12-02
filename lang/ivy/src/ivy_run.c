@@ -314,6 +314,11 @@ static void call_next_init(Ivy *ivy, struct ivy_callstate *t)
 		}
 		++t->x;
 	}
+        /* Set new program counter value... */
+        if (t->o.func->code)
+                ivy->pc = t->o.func->code;
+        else
+                ivy->call_me = t->o.func->cfunc;
 }
 
 static void copy_next_arg(Ivy *ivy, struct ivy_callstate *t)
@@ -393,12 +398,6 @@ static void copy_next_arg(Ivy *ivy, struct ivy_callstate *t)
 //        ivy->sp[0].u.obj = t->ovars;
         ivy->sp[0].idx.callstate = t;
         ivy->sp[0].u.pc = ivy->pc;
-
-        /* Set new program counter value... */
-        if (t->o.func->code)
-                ivy->pc = t->o.func->code;
-        else
-                ivy->call_me = t->o.func->cfunc;
 
         /* Initializers... */
         t->x = 0;
@@ -860,6 +859,10 @@ void ivy_showstack(Ivy *ivy)
                                 fprintf(ivy->out, "%d:	RET_NEXT_INIT (pc = %p, callstate = %p)\n", (int)(sp - ivy->sptop), sp->u.pc, sp->idx.callstate);
                                 --sp;
                                 break;
+			} case ivy_tSCOPE: {
+                                fprintf(ivy->out, "%d:	SCOPE (obj = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.obj);
+				--sp;
+				break;
                         } default: {
                                 fprintf(ivy->out, "%d:	Unknown type = %d\n", (int)(sp - ivy->sptop), sp->type);
                                 --sp;
@@ -1232,11 +1235,13 @@ static int pexe(Ivy *ivy, int trace)
 			break;
                 } case ivy_iBEG: {	/* New scoping level */
 		        SCOPE_PRINTF("iBEG:\n");
-			ivy_scope_push(ivy,ivy->vars);
+		        ivy_push_scope(ivy, ivy->vars); // Save old scope on stack
+			ivy_scope_push(ivy,ivy->vars); // Create new scope
 			break;
                 } case ivy_iEND: {	/* Eliminate scoping level */
 		        SCOPE_PRINTF("iEND\n");
-			ivy_scope_pop(ivy);
+		        ivy->vars = ivy->sp->u.obj; // Restore scope
+		        --ivy->sp;
 			break;
                 } case ivy_iLOC: {	/* Create local variables */
                         long long y = ivy->sp--->u.num, x; /* must be tLST */
@@ -1585,28 +1590,39 @@ static void popall(Ivy *ivy)
                                 break;
                         } case ivy_tRET_IVY: {
                                 fprintf(ivy->out, "%d:	RET_IVY (pc = %p, callstate = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callstate);
+                                ivy->vars = ivy->sp->idx.callstate->ovars;
+                                free(ivy->sp->idx.callstate);
                                 --ivy->sp;
                                 break;
                         } case ivy_tRET_IVY_THUNK: {
                                 fprintf(ivy->out, "%d:	RET_IVY_THUNK (pc = %p, callstate = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callstate);
+                                ivy->vars = ivy->sp->idx.callstate->ovars;
+                                free(ivy->sp->idx.callstate);
                                 --ivy->sp;
                                 break;
                         } case ivy_tRET_SIMPLE: {
                                 fprintf(ivy->out, "%d:	RET_SIMPLE (pc = %p, callstate = %p", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callstate);
                                 --ivy->sp;
                                 fprintf(ivy->out, "func = %p, obj = %p)\n", ivy->sp->idx.func, ivy->sp->u.obj);
+                                ivy->vars = ivy->sp->u.obj;
                                 --ivy->sp;
                                 break;
                         } case ivy_tRET_SIMPLE_THUNK: {
                                 fprintf(ivy->out, "%d:	RET_SIMPLE_THUNK (pc = %p, callstate = %p", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callstate);
                                 --ivy->sp;
                                 fprintf(ivy->out, "func = %p, obj = %p)\n", ivy->sp->idx.func, ivy->sp->u.obj);
+                                ivy->vars = ivy->sp->u.obj;
                                 --ivy->sp;
                                 break;
                         } case ivy_tRET_NEXT_INIT: {
                                 fprintf(ivy->out, "%d:	RET_NEXT_INIT (pc = %p, callstate = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.pc, ivy->sp->idx.callstate);
                                 --ivy->sp;
                                 break;
+			} case ivy_tSCOPE: {
+                                fprintf(ivy->out, "%d:	SCOPE (obj = %p)\n", (int)(ivy->sp - ivy->sptop), ivy->sp->u.obj);
+				ivy->vars = ivy->sp->u.obj;
+				--ivy->sp;
+				break;
                         } default: {
                                 fprintf(ivy->out, "%d:	Unknown type = %d\n", (int)(ivy->sp - ivy->sptop), ivy->sp->type);
                                 --ivy->sp;
@@ -1617,6 +1633,33 @@ static void popall(Ivy *ivy)
 }
 
 /* Print a value */
+
+void ivy_pr_func(FILE *out, Ivy_func *f)
+{
+	int x;
+	if (f->code)
+		fprintf(out, "{ %p pseudo = %p", f, f->code);
+	else
+		fprintf(out, "{ %p c-func = %p", f, f->cfunc);
+	if (f->argv) {
+		if (f->argv_quote)
+			fprintf(out, " argv=&%s", f->argv);
+		else
+			fprintf(out, " argv=%s", f->argv);
+	}
+	if (f->thunk)
+		fprintf(out, " thunk");
+	fprintf(out, " (");
+	for (x = 0; x != f->nargs; ++x) {
+		if (f->quote[x])
+			fprintf(out, " &%s", f->args[x]);
+		else
+			fprintf(out, " %s", f->args[x]);
+		if (f->inits[x])
+			fprintf(out, "=%p", f->inits[x]);
+	}
+	fprintf(out, " ) }");
+}
 
 Ivy_val *ivy_pr(Ivy *ivy, FILE *out, Ivy_val * v, int lvl)
 {
@@ -1638,7 +1681,9 @@ Ivy_val *ivy_pr(Ivy *ivy, FILE *out, Ivy_val * v, int lvl)
         		return v + 1;
                 } case ivy_tCLOSURE: {
         		Ivy_val w;
-        		fprintf(out, "Ivy_closure f=%p scope=%p: ", v->u.closure.func, v->u.closure.env);
+        		fprintf(out, "Ivy_closure func=");
+        		ivy_pr_func(out, v->u.closure.func);
+        		fprintf(out, " env=");
         		w.type = ivy_tOBJ;
         		w.u.obj = v->u.closure.env;
         		ivy_pr(ivy, out, &w,lvl+4);
@@ -1646,12 +1691,12 @@ Ivy_val *ivy_pr(Ivy *ivy, FILE *out, Ivy_val * v, int lvl)
                 } case ivy_tOBJ: {
 			int x;
 			if (v->u.obj->visit)
-				fprintf(out, "{ %d at 0x%p } (previously shown)", v->u.obj->objno, v->u.obj);
+				fprintf(out, "[ %d at 0x%p (previously shown) ]", v->u.obj->objno, v->u.obj);
 			else if (v->u.obj == ivy_globals && lvl != 0)
-				fprintf(out, "{ %d at 0x%p } (globals)", v->u.obj->objno, v->u.obj);
+				fprintf(out, "[ %d at 0x%p (globals) ]", v->u.obj->objno, v->u.obj);
 			else {
 				v->u.obj->visit = 1;
-				fprintf(out, "{ %d at 0x%p\n", v->u.obj->objno, v->u.obj);
+				fprintf(out, "[ %d at 0x%p\n", v->u.obj->objno, v->u.obj);
 				for (x = 0; x != (v->u.obj->nam_tab_mask + 1); ++x)
 					if (v->u.obj->nam_tab[x].name) {
 						/* if (e->var->val.type != tFUN || !e->var->val.u.fun->f->cfunc) */ {
@@ -1689,7 +1734,7 @@ Ivy_val *ivy_pr(Ivy *ivy, FILE *out, Ivy_val * v, int lvl)
 						    ivy_pr(ivy, out, &v->u.obj->ary[x], lvl+4), fprintf(out, "\n");
 				}
 				ivy_indent(out, lvl);
-				fprintf(out, "}");
+				fprintf(out, "]");
 				v->u.obj->visit = 0;
 			}
 			return v + 1;
@@ -1704,7 +1749,6 @@ Ivy_val *ivy_pr(Ivy *ivy, FILE *out, Ivy_val * v, int lvl)
 
 void ivy_add_cfunc(Ivy *ivy, Ivy_obj *vars, const char *name, const char *argstr, void (*cfunc) (Ivy *))
 {
-	char bf[1024];
 	Ivy_node *args;
 	Ivy_func *o;
 	int argc;
@@ -1712,8 +1756,7 @@ void ivy_add_cfunc(Ivy *ivy, Ivy_obj *vars, const char *name, const char *argstr
 	char *quote;
 	int ellipsis = 0;
 	Ivy_pseudo **initv;
-	strcpy(bf, argstr);
-	args = ivy_compargs(ivy, bf);
+	args = ivy_compargs(ivy, argstr);
 	argc = ivy_cntlst(args);
 	quote = (char *) calloc(argc, 1);
 	argv = (char **) malloc(argc * sizeof(char *));
@@ -1804,8 +1847,12 @@ Ivy_val ivy_run(Ivy *ivy, Ivy_pseudo *code, int ptop, int trace)
 	if (!setjmp(ivy->err)) {
 	        ivy->pc = code;
 		while (pexe(ivy, trace)) {
-			ivy->call_me(ivy);
-			ivy->call_me = 0;
+			void (*call_me)(Ivy *);
+			call_me = ivy->call_me;
+			ivy->call_me = 0; // Clear it before we call it.
+			// If we clear after call_me, then it would still be set if call_me longjmps, which screws things
+			// up for next time.
+			call_me(ivy);
 			retfunc(ivy);
 		}
 		ivy_pop(&rtn, ivy);
@@ -1814,27 +1861,16 @@ Ivy_val ivy_run(Ivy *ivy, Ivy_pseudo *code, int ptop, int trace)
        			fprintf(ivy->out, "\n");
 		}
 		if (ivy->sp != ivy->sptop) {
-		        fprintf(ivy->out, "Oops, stack not empty?\n");
-		        fprintf(ivy->out, "Stack:\n");
-		        popall(ivy);
-		}
-		if (ivy->vars != ivy->glblvars) {
-		        fprintf(ivy->out, "Oops, current scope level is not global?\n");
-                        fprintf(ivy->out, "Scope:\n");
-                        while (ivy->vars != ivy->glblvars) {
-                                fprintf(ivy->out, "Scope = %p\n", ivy->vars);
-                                ivy_scope_pop(ivy);
-                        }
+			ivy_error_0(ivy->errprn, "Stack not empty?");
+			longjmp(ivy->err, 1);
 		}
 	} else {
 		fprintf(ivy->out, "\nError stop\n");
 		fprintf(ivy->out, "Stack:\n");
 		popall(ivy);
-		fprintf(ivy->out, "Scope:\n");
-		while (ivy->vars != ivy->glblvars) {
-		        fprintf(ivy->out, "Scope = %p\n", ivy->vars);
-		        ivy_scope_pop(ivy);
-                }
+		if (ivy->vars != ivy->glblvars) {
+			ivy_error_0(ivy->errprn, "Scope incorrect after stack unwound\n");
+		}
         }
 	return rtn;
 }

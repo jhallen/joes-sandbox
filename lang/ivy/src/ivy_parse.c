@@ -1322,7 +1322,7 @@ void ivy_free_parser(Ivy_parser *parser)
 
 /* Compile argument string into a tree */
 
-Ivy_node *ivy_compargs(Ivy *ivy, char *buf)
+Ivy_node *ivy_compargs(Ivy *ivy, const char *buf)
 {
 	Ivy_node *rtn = 0;
 	Ivy_parser *parser = ivy_create_parser(ivy, "builtins");
@@ -1334,7 +1334,7 @@ Ivy_node *ivy_compargs(Ivy *ivy, char *buf)
 	parser->loc->eof = 1;
 	/* Keep feeding parser as long as we have data */
 	while (*parser->loc->ptr || parser->state.state != parse_lst_idle) {
-		if (parser->state.state(parser)) {
+		if (1 == parser->state.state(parser)) {
 			rtn = parser->rtn;
 			break;
 		}

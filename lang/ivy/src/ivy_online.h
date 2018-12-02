@@ -1,8 +1,5 @@
 static struct section { const char *name; const char *text; } sections[]=
 {
-  { "ivy",
-    "\n"
-  },
   { "introduction",
     "\n"
     "Ivy is an extensible, dynamically typed, late binding language intenended to\n"
@@ -40,16 +37,14 @@ static struct section { const char *name; const char *text; } sections[]=
   },
   { "syntax",
     "\n"
-  },
-  { "comments",
+    "### Comments\n"
     "\n"
     "Ivy uses *#* to introduce comments.  Everything from an unquoted *#* to the\n"
     "end of the line is a comment.  *#* was chosen so that the very first line in\n"
     "an Ivy program can be *#!/usr/bin/ivy*, which makes the file into a script\n"
     "in UNIX.\n"
     "\n"
-  },
-  { "commands",
+    "### Commands\n"
     "\n"
     "There is a command format for function calls, where one or more commands\n"
     "are provided on a single logical line:\n"
@@ -77,8 +72,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "\n"
     "       (name)\n"
     "\n"
-  },
-  { "blocks",
+    "### Blocks\n"
     "\n"
     "Commands appear at the top-level (non-enclosed) and within braces to make a\n"
     "block.  \n"
@@ -107,8 +101,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "       if(a==1, print(\"A is 1\"), a==2, print(\"A is 2\"), a==3, print(\"A is\n"
     "       3\"), print(\"A is something else\"))\n"
     "\n"
-  },
-  { "lists",
+    "### Lists\n"
     "\n"
     "A list of expressions is expected within parenthesis and brackets:\n"
     "\n"
@@ -159,8 +152,7 @@ static struct section { const char *name; const char *text; } sections[]=
   },
   { "values",
     "\n"
-  },
-  { "symbols",
+    "### Symbols\n"
     "\n"
     "There are symbols:\n"
     "\n"
@@ -180,8 +172,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "       a(`hello)=5\n"
     "       a.hello=5\n"
     "\n"
-  },
-  { "integers",
+    "### Integers\n"
     "\n"
     "Integers may be entered in a variety of bases:\n"
     "\n"
@@ -215,15 +206,13 @@ static struct section { const char *name; const char *text; } sections[]=
     "       x='\\\\'        # \\\n"
     "       x='\\q'        # q (undefined characters return themselves)\n"
     "\n"
-  },
-  { "floating point",
+    "### Floating point\n"
     "\n"
     "       x=.125\n"
     "       x=.125e3\n"
     "       x=0.3\n"
     "\n"
-  },
-  { "strings",
+    "### Strings\n"
     "\n"
     "String constants are enclosed in double-quotes:\n"
     "\n"
@@ -357,8 +346,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "\n"
     "       A detailed description of each operator follows:\n"
     "\n"
-  },
-  { "` symbol quoting",
+    "### ` Symbol quoting\n"
     "\n"
     "This operator can be used to prevent a symbol from being\n"
     "replaced by its value.  Instead the symbol is used directly as the value. \n"
@@ -370,8 +358,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "              [`1=5 `0=7]                  # Array object\n"
     "              [`x=10 `y=10]                # Structure object\n"
     "\n"
-  },
-  { ". member selection",
+    "### . Member selection\n"
     "\n"
     "This operator is used to select a named member from an\n"
     "object.  For example:\n"
@@ -381,8 +368,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "              pr o.y               # Print member y\n"
     "              pr o(\"y\")             # Same as above\n"
     "\n"
-  },
-  { ":: modify environment",
+    "### :: Modify environment\n"
     "\n"
     "This operator replaces the environment part of the closure\n"
     "on the left side with the object on the right side.\n"
@@ -401,8 +387,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "\n"
     "              foo::my_obj(7)        # Prints 21\n"
     "\n"
-  },
-  { "( ) function call",
+    "### ( ) Function call\n"
     "\n"
     "This operator calls the function resulting from the\n"
     "expression on the left with the arguments inside of the parenthesis.  This\n"
@@ -425,33 +410,26 @@ static struct section { const char *name; const char *text; } sections[]=
     "                                   # end before second).\n"
     "\n"
     "\n"
-  },
-  { "- negate",
+    "### - Negate\n"
     "\n"
-  },
-  { "& address of.",
+    "### & Address of.\n"
     "\n"
     "This operator converts its operand into a thunk (a zero\n"
     "argument nameless function thunk with no environment).  The thunk can\n"
     "be called with () or *.\n"
     "\n"
-  },
-  { "~ bit-wise one's complement",
+    "### ~ Bit-wise one's complement\n"
     "\n"
-  },
-  { "! logical not",
+    "### ! Logical not\n"
     "\n"
-  },
-  { "++ pre or post increment",
+    "### ++ Pre or post increment\n"
     "\n"
     "Pre or post increment depending on whether it precedes or follows\n"
     "a variable\n"
     "\n"
-  },
-  { "-- pre or post decrement",
+    "### -- Pre or post decrement\n"
     "\n"
-  },
-  { "* indirection",
+    "### * Indirection\n"
     "\n"
     "This prefix operator is used to call a zero argument\n"
     "function or thunk.\n"
@@ -464,26 +442,19 @@ static struct section { const char *name; const char *text; } sections[]=
     "              set x 10       # Set x to 10\n"
     "              pr x          # Prints 10\n"
     "\n"
-  },
-  { "<< bit-wise shift left",
+    "### << Bit-wise shift left\n"
     "\n"
-  },
-  { ">> bit-wise shift right",
+    "### >> Bit-wise shift right\n"
     "\n"
-  },
-  { "* multiply",
+    "### * Multiply\n"
     "\n"
-  },
-  { "/ divide",
+    "### / Divide\n"
     "\n"
-  },
-  { "& bit-wise and",
+    "### & Bit-wise AND\n"
     "\n"
-  },
-  { "% modulus (remainder)",
+    "### % Modulus (Remainder)\n"
     "\n"
-  },
-  { "+ add or concatenate",
+    "### + Add or concatenate\n"
     "\n"
     "In addition to adding integers, this operator concatenates\n"
     "strings if strings are passed to it.  For example:\n"
@@ -499,11 +470,9 @@ static struct section { const char *name; const char *text; } sections[]=
     "       print []+1+2+3+4       # same as print [1 2 3 4]\n"
     "       print []+1+2+3+[4 5]   # same as print [1 2 3 [4 5]]\n"
     "\n"
-  },
-  { "- subtract",
+    "### - Subtract\n"
     "\n"
-  },
-  { "| bit-wise or",
+    "### | Bit-wise or\n"
     "\n"
     "If objects are given as arguments to OR, OR unions the\n"
     "objects together into a single object.  If the objects have\n"
@@ -514,64 +483,51 @@ static struct section { const char *name; const char *text; } sections[]=
     "              b=[4 5 6]\n"
     "              a|=b                 # a now is [1 2 3 4 5 6]\n"
     "\n"
-  },
-  { "^ bit-wise exclusive or",
+    "### ^ Bit-wise Exclusive OR\n"
     "\n"
-  },
-  { "== equal",
+    "### == Equal\n"
     "\n"
     "Returns 1 (true) if arguments are equal or 0 (false) if arguments are not\n"
     "equal.  Can be used for strings, numbers, symbols and objects.  For objects,\n"
     "\"==\" tests if the two arguments are the same object, not if the two\n"
     "arguments have equivalent objects.\n"
     "\n"
-  },
-  { "> greater than",
+    "### > Greater than\n"
     "\n"
-  },
-  { ">= greater than or equal to",
+    "### >= Greater than or equal to\n"
     "\n"
-  },
-  { "<  less than",
+    "### <  Less than\n"
     "\n"
-  },
-  { "<= less than or equal to",
+    "### <= Less than or equal to\n"
     "\n"
-  },
-  { "!= not equal to",
+    "### != Not equal to\n"
     "\n"
-  },
-  { "&& logical and",
+    "### && Logical and\n"
     "\n"
     "The right argument is only evaluated if the left argument is\n"
     "true (non-zero).\n"
     "\n"
-  },
-  { "|| logical or",
+    "### || Logical or\n"
     "\n"
     "The right argument is evaluated only if the left argument is\n"
     "false (zero).\n"
     "\n"
-  },
-  { "= pre-assignment",
+    "### = Pre-assignment\n"
     "\n"
     "The right side is evaluated and the result is stored in the variable\n"
     "specified on the left side.  The right side's result is also returned.\n"
     "\n"
-  },
-  { ": post-assignment",
+    "### : Post-assignment\n"
     "\n"
     "The right side is evaluated and the result is stored in the\n"
     "variable specified on the left side.  The left side's original value\n"
     "is returned.\n"
     "\n"
-  },
-  { "x= pre-assignment group",
+    "### X= Pre-assignment group\n"
     "\n"
     "These translate directly into: \"left = left X right\"\n"
     "\n"
-  },
-  { "x: post-assignment group",
+    "### X: Post-assignment group\n"
     "\n"
     "These translate directly into: \"left : left X right\"\n"
     "\n"
@@ -605,14 +561,12 @@ static struct section { const char *name; const char *text; } sections[]=
     "\n"
     "       a:b:a\n"
     "\n"
-  },
-  { "\ sequential evaluation",
+    "### \\ Sequential evaluation\n"
     "\n"
     "The left and then the right argument are evaluated and the\n"
     "result of the right argument is returned.\n"
     "\n"
-  },
-  { ", argument separator",
+    "### , Argument separator\n"
     "\n"
     "When this is used in statements which require only a single\n"
     "expression, it has the same effect as \\\n"
@@ -621,8 +575,7 @@ static struct section { const char *name; const char *text; } sections[]=
   },
   { "functions",
     "\n"
-  },
-  { "function declaration syntax:",
+    "### Function declaration syntax:\n"
     "\n"
     "Command format named function declarations:\n"
     "\n"
@@ -667,8 +620,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "       y=fn(square,(x),x*x)(5)# y gets assigned 25\n"
     "       print square(6)       # Prints 36\n"
     "\n"
-  },
-  { "argument lists",
+    "### Argument lists\n"
     "\n"
     "You may specify zero or more formal arguments.  Each argument must be\n"
     "provided during a function call, or an error occurs.\n"
@@ -744,8 +696,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "       extras(1) = 7\n"
     "       extras(2) = 8\n"
     "\n"
-  },
-  { "function execution",
+    "### Function execution\n"
     "\n"
     "When the body of a function gets control, its activation record (the\n"
     "object used for the function's local variables) gets several variables:\n"
@@ -828,8 +779,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "\n"
     "       print avg(curry(20),0,10) # Prints 24\n"
     "\n"
-  },
-  { "delayed evaluation of arguments",
+    "### Delayed evaluation of arguments\n"
     "\n"
     "Arguments may be prefixed with ampersands to prevent them from being\n"
     "immediately evaluated.  The marked argument is packaged up as a \"thunk\"- a\n"
@@ -850,8 +800,7 @@ static struct section { const char *name; const char *text; } sections[]=
   },
   { "statements",
     "\n"
-  },
-  { "if statement",
+    "### If statement\n"
     "\n"
     "       if test-expr-1 {\n"
     "              expr-1\n"
@@ -865,8 +814,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "\n"
     "       if(test-expr-1,expr-1,test-expr-2,expr-2,...,otherwise-expr)\n"
     "\n"
-  },
-  { "foreach statement",
+    "### Foreach statement\n"
     "\n"
     "       foreach name expr block\n"
     "\n"
@@ -884,8 +832,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "       3\n"
     "       ->\n"
     "\n"
-  },
-  { "forindex statement",
+    "### Forindex statement\n"
     "\n"
     "       forindex name expr block\n"
     "\n"
@@ -903,8 +850,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "       2\n"
     "       ->\n"
     "\n"
-  },
-  { "loop statement",
+    "### Loop statement\n"
     "\n"
     "       loop block\n"
     "       loop `label block\n"
@@ -915,8 +861,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "*loop* may optionally be labeled for matching with the argument to *break*\n"
     "and *continue*.\n"
     "\n"
-  },
-  { "while statement",
+    "### While statement\n"
     "\n"
     "       while expr block\n"
     "\n"
@@ -927,8 +872,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "*while* may optionally be labeled for matching with the argument to *break*\n"
     "and *continue*.\n"
     "\n"
-  },
-  { "for statement",
+    "### For statement\n"
     "\n"
     "       for init, test, incr block\n"
     "\n"
@@ -951,8 +895,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "*for* may optionally be labeled for matching with the argument to *break*\n"
     "and *continue*\n"
     "\n"
-  },
-  { "return statement",
+    "### Return statement\n"
     "\n"
     "       return\n"
     "\n"
@@ -961,8 +904,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "This exits the function it is executed in with the given return value or\n"
     "with *void* if no value is given.\n"
     "\n"
-  },
-  { "break statement",
+    "### Break statement\n"
     "\n"
     "       break\n"
     "\n"
@@ -970,8 +912,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "\n"
     "This jumps out of the innermost or labeled loop\n"
     "\n"
-  },
-  { "continue statement",
+    "### Continue statement\n"
     "\n"
     "       continue\n"
     "\n"
@@ -979,15 +920,13 @@ static struct section { const char *name; const char *text; } sections[]=
     "\n"
     "This jumps the beginning of the innermost or labeled loop.\n"
     "\n"
-  },
-  { "until statement",
+    "### Until statement\n"
     "\n"
     "       until expr\n"
     "\n"
     "This exits the loop it's in if *expr* is true.\n"
     "\n"
-  },
-  { "var statement",
+    "### Var statement\n"
     "\n"
     "       var a, b, c\n"
     "\n"
@@ -1002,8 +941,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "              return x\n"
     "       }\n"
     "\n"
-  },
-  { "scope statement",
+    "### Scope statement\n"
     "\n"
     "       scope expr expr ...\n"
     "\n"
@@ -1014,8 +952,7 @@ static struct section { const char *name; const char *text; } sections[]=
   },
   { "builtin functions",
     "\n"
-  },
-  { "loadfile",
+    "### loadfile\n"
     "\n"
     "       a = loadfile(\"name\")\n"
     "\n"
@@ -1023,23 +960,20 @@ static struct section { const char *name; const char *text; } sections[]=
     "executed code will only see Ivy's built-in functions.  The final value is\n"
     "returned.\n"
     "\n"
-  },
-  { "len",
+    "### len\n"
     "\n"
     "       len(a)\n"
     "\n"
     "Returns the length of string 'a' or number of elements in\n"
     "array 'a'\n"
     "\n"
-  },
-  { "print",
+    "### print\n"
     "\n"
     "       print(...)\n"
     "\n"
     "Prints the arguments\n"
     "\n"
-  },
-  { "printf",
+    "### printf\n"
     "\n"
     "       printf(...)\n"
     "\n"
@@ -1047,8 +981,7 @@ static struct section { const char *name; const char *text; } sections[]=
     "\n"
     "       printf \"%d\\n\", 17\n"
     "\n"
-  },
-  { "get",
+    "### get\n"
     "\n"
     "       a=get()\n"
     "\n"
@@ -1061,37 +994,32 @@ static struct section { const char *name; const char *text; } sections[]=
     "              print n++, \" \", a\n"
     "       }\n"
     "\n"
-  },
-  { "atoi",
+    "### atoi\n"
     "\n"
     "       x=atoi(\"2\")\n"
     "\n"
     "Converts a string to a number\n"
     "\n"
-  },
-  { "itoa",
+    "### itoa\n"
     "\n"
     "       s=itoa(20)\n"
     "\n"
     "Convert a number to a string\n"
     "\n"
-  },
-  { "clear",
+    "### clear\n"
     "\n"
     "       clear(...)\n"
     "\n"
     "Frees the values of the listed variables and sets the\n"
     "variables to VOID.\n"
     "\n"
-  },
-  { "dup",
+    "### dup\n"
     "\n"
     "       b=dup(a)\n"
     "\n"
     "Make a duplicate of an array/object\n"
     "\n"
-  },
-  { "match",
+    "### match\n"
     "\n"
     "       match(string,pattern,result-variables...)\n"
     "\n"
