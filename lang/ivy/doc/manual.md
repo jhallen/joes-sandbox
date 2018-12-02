@@ -10,7 +10,7 @@
 - [Operators](#Operators)
 - [Functions](#Functions)
 - [Statements](#Statements)
-- [Built in functions](#Built in functions)
+- [Built in functions](#Built)
 
 ## Introduction
 
