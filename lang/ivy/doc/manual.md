@@ -11,7 +11,7 @@
 - [Functions](#Functions)
 - [Statements](#Statements)
 - [Intrinsic functions](#Intrinsics)
-- [Object Oriented Programming](#Object-Oriented Programming)
+- [Object Oriented Programming](#Object-Oriented-Programming)
 
 ## Introduction
 
