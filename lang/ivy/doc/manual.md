@@ -55,6 +55,22 @@ Ivy uses garbage collection for memory management.
 		    expression which is immediately executed
 
 
+For example, here is "hello world" in Ivy interactive mode:
+
+	ivy
+	->print "Hello, world"
+	Hello, world
+	->
+
+When calculator mode is used (-c option), the value of each command is
+printed:
+
+	ivy -c
+	->10;20
+	10
+	20
+	->
+
 ## Syntax
 
 ### Comments
