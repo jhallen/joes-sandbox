@@ -7,15 +7,25 @@ be used as an embedded command language.  It can also be used stand-alone:
 it can execute script files from the command line or presents a
 read-eval-print loop (REPL) to the user if no files are given.
 
-Ivy is an expression oriented language where statements and commands are
-parsed into function calls.  Blocks of commands enclosed with braces may be
-used anywhere an expression is expected.
+Ivy's extensibility is based on the fact that statements are syntactically
+identical to funciton calls.  Also blocks (surrounded by braces) may be used
+as function arguments.  Thus, new user-defined statements can be added just
+by defining functions.  Function arguments are packaged up as thunks and may
+have their evaluation delayed and execution environment modified.  This
+allows user defined functions to do many of the things that traditional
+language statements can do.
 
-New user defined statements can be added just by defining functions. 
-Function arguments are packaged up as thunks and may have their evaluation
-delayed and execution environment modified.  This allows user defined
-functions to do many of the things that traditional language statements can
-do.
+A number of feature make Ivy suitable as a command language.  Commands in
+Ivy are just function calls, but with a convenient lightweight syntax. 
+Also, Ivy supports named arguments, default argument values and variadic
+functions.
+
+Ivy source code is compiled to byte-code which is then interpreted.  Ivy's
+compiler and interpreter are both event driven (meaning that they return to
+the top level when more input is needed).  This allows Ivy to be easily
+embedded into other programs.
+
+Ivy uses garbage collection for memory management.
 
 ## Invocation
 
