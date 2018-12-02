@@ -409,7 +409,6 @@ String constants are enclosed in double-quotes:
 
 Escape sequences may also be used inside of strings.
 
-
 ## Expressions
 
 An expression is a single or dual operand operator with arguments, a
@@ -417,22 +416,22 @@ constant, a variable, a function definition, a block enclosed within braces,
 a function call, an object or parenthetical expression.  Examples of each of
 these cases follow:
 
-		~expr			Single operand
+	~expr			Single operand
 
-		expr+expr		Dual operand
+	expr+expr		Dual operand
 
-		25			Constant
+	25			Constant
 
-		(expressions)		Precedence
-		{commands}
+	(expressions)		Precedence
+	{commands}
 
-		expr(expr ...)		Function call
+	expr(expr ...)		Function call
 
-		[1 2 3 4]		An array object
+	[1 2 3 4]		An array object
 
-		[`next=item `value=1]	A structure object
+	[`next=item `value=1]	A structure object
 
-		(fn (x,y) x*y)(3,5)	Calling an anonymous function
+	(fn (x,y) x*y)(3,5)	Calling an anonymous function
 
 
 ## Operators
@@ -480,39 +479,39 @@ replaced by its value.  Instead the symbol is used directly as the value.
 It is also used to explicitly state the argument or member name in a
 command, function call or object.  For example:
 
-		open `name="joe.c",  `mode="r"
-		square(`x=5, `y=6)
-		[`1=5 `0=7]			# Array object
-		[`x=10 `y=10]			# Structure object
+	open `name="joe.c",  `mode="r"
+	square(`x=5, `y=6)
+	[`1=5 `0=7]			# Array object
+	[`x=10 `y=10]			# Structure object
 
 ### . Member selection
 
 This operator is used to select a named member from an
 object.  For example:
 
-		o=[`x=5, `y=10]		# Create an object
-		pr o.x			# Print member x
-		pr o.y			# Print member y
-		pr o("y")		# Same as above
+	o=[`x=5, `y=10]		# Create an object
+	pr o.x			# Print member x
+	pr o.y			# Print member y
+	pr o("y")		# Same as above
 
 ### :: Modify environment
 
 This operator replaces the environment part of the closure
 on the left side with the object on the right side.
 
-		x = 2
-		fn foo(n) { print x * n }
+	x = 2
+	fn foo(n) { print x * n }
 
-		# Call foo in its recorded environment-
-		# in this case, the global variables
+	# Call foo in its recorded environment-
+	# in this case, the global variables
 
-		foo(7)			# Prints 14
+	foo(7)			# Prints 14
 
-		my_obj=[`mom=this, `x=3]
+	my_obj=[`mom=this, `x=3]
 
-		# Call foo with my_obj as its environment
+	# Call foo with my_obj as its environment
 
-		foo::my_obj(7)		# Prints 21
+	foo::my_obj(7)		# Prints 21
 
 ### ( ) Function call
 
@@ -522,19 +521,19 @@ operator can also be used for object member selection and for string
 character selection and substring operations.  Examples of each of these
 follow:
 
-		x.y(5)			# Call function y in object x
+	x.y(5)			# Call function y in object x
 
-		z(0)=1, z(1)=2		# Set numbered members of an object
+	z(0)=1, z(1)=2		# Set numbered members of an object
 
-		z("foo")=3, z("bar")=4	# Set string members of an object
+	z("foo")=3, z("bar")=4	# Set string members of an object
 
-		z(`foo)=3, z(`bar)=4	# Set symbol members of an object
+	z(`foo)=3, z(`bar)=4	# Set symbol members of an object
 
-		pr "Hello"(0)		# Prints 72
+	pr "Hello"(0)		# Prints 72
 
-		pr "Hello"(1,3)		# Prints "el" (selects substring
-					# beginning with first index and
-					# end before second).
+	pr "Hello"(1,3)		# Prints "el" (selects substring
+				# beginning with first index and
+				# end before second).
 
 
 ### - Negate
@@ -561,13 +560,13 @@ a variable
 This prefix operator is used to call a zero argument
 function or thunk.
 
-		fn set(&a b) {
-			*a=b
-		}
+	fn set(&a b) {
+		*a=b
+	}
 
-		x=3
-		set x 10	# Set x to 10
-		pr x		# Prints 10
+	x=3
+	set x 10	# Set x to 10
+	print x		# Prints 10
 
 ### << Bit-wise shift left
 
@@ -606,9 +605,9 @@ objects together into a single object.  If the objects have
 numerically referenced members, OR will append the array on the
 right to the array on the left.  For example:
 
-		a=[1 2 3]
-		b=[4 5 6]
-		a|=b			# a now is [1 2 3 4 5 6]
+	a=[1 2 3]
+	b=[4 5 6]
+	a|=b			# a now is [1 2 3 4 5 6]
 
 ### ^ Bit-wise Exclusive OR
 
