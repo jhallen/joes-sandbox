@@ -20,7 +20,7 @@ it can execute script files from the command line or presents a
 read-eval-print loop (REPL) to the user if no files are given.
 
 Ivy's extensibility is based on the fact that statements are syntactically
-identical to funciton calls.  Also blocks (surrounded by braces) may be used
+identical to function calls.  Also blocks (surrounded by braces) may be used
 as function arguments.  Thus, new user-defined statements can be added just
 by defining functions.  Function arguments are packaged up as thunks and may
 have their evaluation delayed and execution environment modified.  This
@@ -387,7 +387,7 @@ There is an operator to do this directly:
 
 	modified = original::new_environment
 
-When a closure is retrieved from an object which a member called mom via dot
+When a closure is retrieved from an object with a member called mom via dot
 notation, the object will replace the environment part of the closure:
 
 	->x=10
@@ -719,8 +719,9 @@ Notes on assignment groups:
 	.=	translates into "left = left . right" and is
 		useful for traversing linked lists.  For example:
 
-		for list=0\ x=0, x!=10, ++x	# Build list
+		for list=void\ x=0, x!=10, ++x {	# Build list
 		  list=[`next=list, `value=x]
+		}
 
 		(note, this builds the list in reverse
 		order.  9,8,7...)
@@ -851,7 +852,7 @@ arguments have no effect on how the unnamed arguments are processed: the
 unnamed arguments are matched up left-to-right with the formal argument list
 as if there were no provided named arguments.  This means that an unnamed
 argument may overwrite a named argument if it occurs after the named
-argument, or vice-verse.  If there were fewer unnamed arguments than in the
+argument, or vice-versa.  If there were fewer unnamed arguments than in the
 formal argument list, and the missing ones were declared with default
 values, and they were not provided with a named argument, then the default
 value is used.  If arguments without default values are missing, and they
@@ -1060,7 +1061,7 @@ and *continue*.
 
 	for `label init, test, incr block
 
-This is a shorthand for the follow while statement:
+This is a shorthand for the following while statement:
 
 	init
 	while test {
