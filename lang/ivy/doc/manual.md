@@ -10,7 +10,7 @@
 - [Operators](#Operators)
 - [Functions](#Functions)
 - [Statements](#Statements)
-- [Intrinsic functions](#Intrinsic)
+- [Intrinsic functions](#Intrinsics)
 
 ## Introduction
 
@@ -976,7 +976,9 @@ The expressions are evaluated in their own scope.  If they create local
 variables, they will not show up in the outer scope.  The value of the last
 expression is returned.
 
-## Intrinsic functions
+## Intrinsics
+
+Here are functions that are always built-in.
 
 ### loadfile
 
