@@ -1,16 +1,16 @@
 # Ivy
 
 - [Introduction](#Introduction)
-- [Invocation](Invocation)
-- [Syntax](Syntax)
-- [Values](Values)
-- [Variables](Variables)
-- [Objects](Objects)
-- [Expressions](Expressions)
-- [Operators](Operators)
-- [Functions](Functions)
-- [Statements](Statements)
-- [Built in functions](Built in functions)
+- [Invocation](#Invocation)
+- [Syntax](#Syntax)
+- [Values](#Values)
+- [Variables](#Variables)
+- [Objects](#Objects)
+- [Expressions](#Expressions)
+- [Operators](#Operators)
+- [Functions](#Functions)
+- [Statements](#Statements)
+- [Built in functions](#Built in functions)
 
 ## Introduction
 
