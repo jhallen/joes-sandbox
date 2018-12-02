@@ -1286,7 +1286,7 @@ functions:
 	z.show = instance_1.show
 	z.show()  --> prints 11
 
-The environement replacement is happening in the *instance_1.show* part of
+The environment replacement is happening in the *instance_1.show* part of
 the assignment above, so *instance_1* is the mom for *show*'s activation
 record.  Since *z* does not have a mom, *z* is not used as the
 environment when we finally call show in *z.show()*.]
