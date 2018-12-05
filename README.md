@@ -24,6 +24,8 @@
 
 [An item tracking application for an Opticon OPH-1005 or OPH-3001 scanner](https://github.com/jhallen/cartscan)
 
+[My YouTube Channel](https://www.youtube.com/user/jhallenworld/videos)
+
 ### Some projects within joes-sandbox
 
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
