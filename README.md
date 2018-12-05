@@ -6,6 +6,8 @@
 
 [Relaysbc - A single board relay computer](http://relaysbc.sourceforge.net)
 
+[Ivy Programming Language](https://github.com/jhallen/ivy-lang)
+
 [Atari Tools](https://github.com/jhallen/atari-tools)
 
 [CP/M Emulator](https://github.com/jhallen/cpm)
@@ -26,7 +28,6 @@
 
 [x86 Bootloaders](https://github.com/jhallen/joes-sandbox/tree/master/boot)
 
-[IVY Language](https://github.com/jhallen/joes-sandbox/tree/master/lang/ivy)
 
 [x86 Coff Linker](https://github.com/jhallen/joes-sandbox/tree/master/lang/alink)
 
