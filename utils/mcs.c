@@ -28,6 +28,9 @@
    a .mcs file.
 */
 
+#define GROW (1024*1024)
+#define INITIAL (1024*1024)
+
 int hexval(char *s)
  {
  int val=0;
@@ -48,6 +51,7 @@ int main(int argc,char *argv[])
  FILE *f, *g;
  char buf[1024];
  unsigned char *image;
+ int image_size = INITIAL;
  int size=0;
  int segment=0;
  int x;
@@ -58,13 +62,13 @@ int main(int argc,char *argv[])
   return -1;
   }
 
- image=malloc(1024*1024);
+ image=malloc(image_size);
  if(!image)
   {
   fprintf(stderr,"mcs: couldn't allocate buffer\n");
   return -1;
   }
- for(x=0;x!=1024*1024;++x) image[x]=0xFF;
+ for(x=0;x!=image_size;++x) image[x]=0xFF;
 
  f=fopen(argv[1],"r");
  if(!f)
@@ -97,6 +101,18 @@ int main(int argc,char *argv[])
 
    if(type==0)
     { /* Copy data */
+    while (offset+segment*16+len-1 > image_size) {
+     printf("Grow...\n");
+     image = realloc(image, image_size + GROW);
+     if (!image) {
+      fprintf(stderr, "Malloc failure\n");
+      return -1;
+     }
+     for (x = image_size; x != image_size + GROW; ++x) {
+      image[x] = 0xFF;
+     }
+     image_size = image_size + GROW;
+    }
     for(x=0;x!=len;++x)
      image[offset+segment*16+x]=hexval(buf+9+x*2);
     if(offset+segment*16+x>size)
@@ -126,7 +142,8 @@ int main(int argc,char *argv[])
      {
      int checksum=0;
      fprintf(stderr,"mcs: wrote %d bytes\n",size);
-     for(x=0;x!=1024*1024;++x) checksum+=image[x];
+     // Note that each additional 64K of 0xFFs makes no difference on the checksum
+     for(x=0;x!=image_size;++x) checksum+=image[x];
      fprintf(stderr,"mcs: checksum=%x\n",checksum&0xFFFF);
      }
     return 0;
