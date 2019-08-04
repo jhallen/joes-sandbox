@@ -1,4 +1,7 @@
-- allow exact duplicate defines
+
 - handle float / double constants
-- short circuiting || &&.. does it make any difference?
-- prevent macro recursion: #define stderr stderr
+
+- print contents of #error directives
+- print macros in actual macro syntax
+
+- handle '...' macro agument and __VA_ARGS__ __VA_OPT__
