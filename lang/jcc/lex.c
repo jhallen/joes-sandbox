@@ -10,8 +10,8 @@
 
 struct macro_arg {
         struct macro_arg *next;
-        char *name;	// Argument name
-        char *subst;	// Substitution text
+        char *name;	// Argument name, "__VA_ARGS__" for varargs
+        char *subst;	// Substitution text: could be NULL for varargs
 };
 
 struct macro {
@@ -106,6 +106,10 @@ void word_buffer_first(int c)
 
 char *word_buffer_done()
 {
+        if (word_buffer_len == word_buffer_size) {
+                word_buffer_size *= 2;
+                word_buffer = (char *)realloc(word_buffer, word_buffer_size);
+        }
         word_buffer[word_buffer_len] = 0;
         return word_buffer;
 }
@@ -202,7 +206,7 @@ int push_file(char *name, struct include_path *whence)
         if (!f) {
                 return -1;
         }
-        printf("Opened %s\n", name);
+        printf("%s %d: Opened %s\n", file_name, line, name);
         s = (struct file_stack *)calloc(1, sizeof(struct file_stack));
         s->file_name = file_name;
         s->line = line;
@@ -491,16 +495,102 @@ int escape(int c)
         }
 }
 
+int only_spaces(char *s)
+{
+        while (*s == ' ')
+                ++s;
+        if (*s)
+                return 0;
+        else
+                return 1;
+}
+
 int collect_args(struct macro_arg *args)
 {
         int c;
         int toomany = 0;
         int count = 0;
+        if (args && args->subst) {
+                free(args->subst);
+                args->subst = 0;
+        }
         loop:
         word_buffer_init();
         c = tok_skipws_getc(1);
         for (;;) {
-                if (c == ')' && count) {
+                if (args && !strcmp(args->name, "__VA_ARGS__")) {
+                        // All remaining args should be put into this argument
+                        for (;;) {
+                                if (c == ')' && count) {
+                                        --count;
+                                        word_buffer_next(c);
+                                } else if (c == EOF) {
+                                        printf("%s %d: Error: input ended while in middle of macro argument list\n", file_name, line);
+                                        return -1;
+                                } else if (c == ')') {
+                                        // End of all arguments
+                                        word_buffer_done();
+                                        if (!only_spaces(word_buffer))
+                                                args->subst = strdup(word_buffer);
+                                        goto done;
+                                } else if (c == '\'' || c == '"') {
+                                        word_buffer_next(c);
+                                        for (;;) {
+                                                int d = tok_getc();
+                                                if (d == c) {
+                                                        word_buffer_next(d);
+                                                        break;
+                                                } else if (d == '\\') {
+                                                        word_buffer_next(d);
+                                                        d = tok_getc();
+                                                        if (d == EOF) {
+                                                                printf("%s %d: Error: Bad escape sequence\n", file_name, line);
+                                                                word_buffer_next('\\');
+                                                        } else {
+                                                                word_buffer_next(d);
+                                                        }
+                                                } else if (d == EOF) {
+                                                        word_buffer_next(c);
+                                                        printf("%s %d: Error input ended before string\n", file_name, line);
+                                                        break;
+                                                } else {
+                                                        word_buffer_next(d);
+                                                }
+                                        }
+                                } else if (c == '/') {
+                                        c = tok_getc();
+                                        if (c == '/') {
+                                                word_buffer_next(' ');
+                                                do
+                                                        c = tok_getc();
+                                                while (c != EOF && c != '\n');
+                                        } else if (c == '*') {
+                                                int first = line;
+                                                // Skip comments to end of comment
+                                                do {
+                                                        do
+                                                                c = tok_getc();
+                                                        while (c == '*');
+                                                } while (c != '/' && c != EOF);
+                                                if (c == EOF) {
+                                                        printf("%s %d: Error: file ended before comment on line %d\n", file_name, line, first);
+                                                        exit(-1);
+                                                }
+                                                word_buffer_next(' ');
+                                        } else {
+                                                tok_ungetc(c);
+                                                word_buffer_next(c);
+                                        }
+                                } else if (c == '(') {
+                                        ++count;
+                                        word_buffer_next(c);
+                                } else {
+                                        word_buffer_next(c);
+                                }
+                                c = tok_getc();
+                        }
+                        break;
+                } else if (c == ')' && count) {
                         --count;
                         word_buffer_next(c);
                 } else if (c == ',' && count) {
@@ -509,10 +599,15 @@ int collect_args(struct macro_arg *args)
                         // End of argument
                         word_buffer_done();
                         if (args) {
-                                if (args->subst)
-                                        free(args->subst);
-                                args->subst = strdup(word_buffer);
+                                if (strcmp(args->name, "__VA_ARGS__") || !only_spaces(word_buffer))
+                                        args->subst = strdup(word_buffer);
                                 args = args->next;
+                                if (args) {
+                                        if (args->subst) {
+                                                free(args->subst);
+                                                args->subst = 0;
+                                        }
+                                }
                         } else {
                                 if (!toomany) {
                                         toomany = 1;
@@ -584,7 +679,7 @@ int collect_args(struct macro_arg *args)
                 c = tok_getc();
         }
         done:
-        if (args) {
+        if (args && strcmp(args->name, "__VA_ARGS__")) {
                 printf("%s %d: Error: not enough macro arguments\n", file_name, line);
                 return -1;
         } else {
@@ -595,6 +690,7 @@ int collect_args(struct macro_arg *args)
 char *macro_subst(struct macro *m, char *s)
 {
         int c;
+        int first = 0;
         word_buffer_init();
         for (;;) {
                 c = *s++;
@@ -603,6 +699,7 @@ char *macro_subst(struct macro *m, char *s)
                                 goto done;
                         } case '\'': case '"': {
                                 int d;
+                                first = 1;
                                 word_buffer_next(c);
                                 for (;;) {
                                         d = *s++;
@@ -618,37 +715,50 @@ char *macro_subst(struct macro *m, char *s)
                                 }
                                 break;
                         } case '#': {
-                                while (*s == ' ') ++s;
-                                c = *s;
-                                if (c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-                                        int start = word_buffer_len;
-                                        struct macro_arg *arg;
+                                if (*s == '#') {
                                         ++s;
-                                        do {
-                                                word_buffer_next(c);
-                                                c = *s++;
-                                        } while ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_');
-                                        --s;
-                                        word_buffer[word_buffer_len] = 0;
-                                        for (arg = m->args; arg; arg = arg->next)
-                                                if (!strcmp(arg->name, word_buffer + start))
-                                                        break;
-                                        if (arg) {
-                                                int x;
-                                                word_buffer_len = start;
-                                                word_buffer_next('"');
-                                                for (x = 0; arg->subst[x]; ++x) {
-                                                        if (arg->subst[x] == '"')
-                                                                word_buffer_next('\\');
-                                                        word_buffer_next(arg->subst[x]);
-                                                }
-                                                word_buffer_next('"');
-                                        } else {
-                                                printf("%s %d: Error: '%s' is not a macro parameter\n", m->file_name, m->line, word_buffer + start);
-                                                word_buffer_len = start;
+                                        /* Edit these out... */
+                                        while (*s == ' ') ++s;
+                                        if (!*s || !first) {
+                                                printf("%s %d: Error: '##' can not appear at either end of a macro\n", m->file_name, m->line);
                                         }
+                                        while (word_buffer_len && word_buffer[word_buffer_len-1] == ' ')
+                                                --word_buffer_len;
                                 } else {
-                                        printf("%s %d: Error: expected macro parameter after #\n", m->file_name, m->line);
+                                        while (*s == ' ') ++s;
+                                        c = *s;
+                                        if (c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+                                                int start = word_buffer_len;
+                                                struct macro_arg *arg;
+                                                ++s;
+                                                do {
+                                                        word_buffer_next(c);
+                                                        c = *s++;
+                                                } while ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_');
+                                                --s;
+                                                word_buffer_done();
+                                                for (arg = m->args; arg; arg = arg->next)
+                                                        if (!strcmp(arg->name, word_buffer + start))
+                                                                break;
+                                                if (arg) {
+                                                        int x;
+                                                        word_buffer_len = start;
+                                                        word_buffer_next('"');
+                                                        if (arg->subst) {
+                                                                for (x = 0; arg->subst[x]; ++x) {
+                                                                        if (arg->subst[x] == '"')
+                                                                                word_buffer_next('\\');
+                                                                        word_buffer_next(arg->subst[x]);
+                                                                }
+                                                        }
+                                                        word_buffer_next('"');
+                                                } else {
+                                                        printf("%s %d: Error: '%s' is not a macro parameter\n", m->file_name, m->line, word_buffer + start);
+                                                        word_buffer_len = start;
+                                                }
+                                        } else {
+                                                printf("%s %d: Error: expected macro parameter after #\n", m->file_name, m->line);
+                                        }
                                 }
                                 break;
                         } case '_':
@@ -663,6 +773,7 @@ char *macro_subst(struct macro *m, char *s)
                                 char *orgs;
                                 int start = word_buffer_len;
                                 struct macro_arg *arg;
+                                first = 1;
                                 do {
                                         word_buffer_next(c);
                                         c = *s++;
@@ -675,47 +786,15 @@ char *macro_subst(struct macro *m, char *s)
                                 if (arg) {
                                         int x;
                                         word_buffer_len = start;
-                                        for (x = 0; arg->subst[x]; ++x)
-                                                word_buffer_next(arg->subst[x]);
-                                }
-                                // Check for ##
-                                orgs = s;
-                                while (*s == ' ') ++s;
-                                if (s[0] == '#' && s[1] == '#') {
-                                        s += 2;
-                                        while (*s == ' ') ++s;
-                                        c = *s;
-                                        if (c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-                                                int start = word_buffer_len;
-                                                struct macro_arg *arg;
-                                                ++s;
-                                                do {
-                                                        word_buffer_next(c);
-                                                        c = *s++;
-                                                } while ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_');
-                                                --s;
-                                                word_buffer[word_buffer_len] = 0;
-                                                for (arg = m->args; arg; arg = arg->next)
-                                                        if (!strcmp(arg->name, word_buffer + start))
-                                                                break;
-                                                if (arg) {
-                                                        int x;
-                                                        word_buffer_len = start;
-                                                        for (x = 0; arg->subst[x]; ++x) {
-                                                                word_buffer_next(arg->subst[x]);
-                                                        }
-                                                } else {
-                                                        printf("%s %d: Error: '%s' is not a macro parameter\n", m->file_name, m->line, word_buffer + start);
-                                                        word_buffer_len = start;
-                                                }
-                                        } else {
-                                                printf("%s %d: Error: expected macro parameter after ##\n", m->file_name, m->line);
+                                        if (arg->subst) {
+                                                for (x = 0; arg->subst[x]; ++x)
+                                                        word_buffer_next(arg->subst[x]);
                                         }
-                                } else {
-                                        s = orgs;
                                 }
                                 break;
                         } default: {
+                                if (c != ' ')
+                                        first = 1;
                                 word_buffer_next(c);
                                 break;
                         }
@@ -867,7 +946,15 @@ int get_tok(int preproc)
                                         if (m->args) {
                                                 c = tok_skipws_getc(1);
                                                 if (c == '(') {
+                                                        struct macro_arg *arg;
                                                         collect_args(m->args);
+#if 0
+                                                        printf("Args:");
+                                                        for (arg = m->args; arg; arg = arg->next) {
+                                                                printf(" %s='%s'", arg->name, arg->subst ? arg->subst : "none");
+                                                        }
+                                                        printf("\n");
+#endif
                                                         push_macro(m, macro_subst(m, m->body));
                                                         goto again;
                                                 } else {
@@ -1100,7 +1187,7 @@ struct macro_arg *get_macro_args()
                                 first = last = m;
                         else
                                 last = last->next = m;
-                        m->name = strdup("...");
+                        m->name = strdup("__VA_ARGS__");
                         d = get_tok(2);
                         if (d == ')')
                                 break;
@@ -1228,7 +1315,11 @@ int args_differ(struct macro_arg *a, struct macro_arg *b)
         while (a && b) {
                 if (strcmp(a->name, b->name))
                         return 1;
-                if (strcmp(a->subst, b->subst))
+                if (a->subst && b->subst && strcmp(a->subst, b->subst))
+                        return 1;
+                if (!a->subst && b->subst)
+                        return 1;
+                if (a->subst && !b->subst)
                         return 1;
                 a = a->next;
                 b = b->next;
@@ -1612,6 +1703,7 @@ void handle_preproc()
                         }
                         break;
                 } case pIFDEF: case pIFNDEF: {
+                        printf("--ifdef\n");
                         if (!conds || conds->t == 1) {
                                 int d = get_tok(2);
                                 if (d != tWORD) {
@@ -1636,6 +1728,7 @@ void handle_preproc()
                         }
                         break;
                 } case pELSE: {
+                        printf("--else\n");
                         if (conds) {
                                 if (conds->e) {
                                         printf("%s %d: Error: multiple #else in #if\n", file_name, line);
@@ -1652,6 +1745,7 @@ void handle_preproc()
                         check_eol();
                         break;
                 } case pENDIF: {
+                        printf("--endif\n");
                         if (conds) {
                                 struct cond *t = conds;
                                 conds = t->next;
@@ -1662,6 +1756,7 @@ void handle_preproc()
                         check_eol();
                         break;
                 } case pIF: {
+                        printf("--if\n");
                         if (!conds || conds->t == 1) {
                                 struct num n;
                                 int sta = preproc_expr(0, &n);
@@ -1669,7 +1764,7 @@ void handle_preproc()
                                 // Check for extra tokens...
                                 c = get_tok(1);
                                 if (!sta && c != EOF) {
-                                        printf("%s %d: Error: extra junk after expression\n", file_name, line);
+                                        printf("%s %d: Error: extra junk after #if expression\n", file_name, line);
                                         sta = -1;
                                         push_cond(0);
                                 } else if (sta) { // Parse error
@@ -1687,6 +1782,7 @@ void handle_preproc()
                         }
                         break;
                 } case pELIF: {
+                        printf("--elif\n");
                         if (conds && conds->e) {
                                 printf("%s %d: Error: #elif after #else\n", file_name, line);
                                 eat_eol(c);
@@ -1698,7 +1794,7 @@ void handle_preproc()
                                 int sta = preproc_expr(0, &n);
                                 c = get_tok(1);
                                 if (!sta && c != EOF) {
-                                        printf("%s %d: Error: extra junk after expression\n", file_name, line);
+                                        printf("%s %d: Error: extra junk after #elif expression\n", file_name, line);
                                         sta = -1;
                                 } else if (sta) { // Parse error
                                         printf("%s %d: Error: bad or missing expression for #elif\n", file_name, line);
@@ -1807,6 +1903,7 @@ void show_macros()
 int main(int argc, char *argv[])
 {
         int c;
+        // Include path from: gcc -dM -E - < /dev/null
         add_path("/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include");
         add_path("/usr/include");
         add_path("/usr/include/w32api");
