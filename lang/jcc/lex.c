@@ -779,7 +779,7 @@ char *macro_subst(struct macro *m, char *s)
                                         c = *s++;
                                 } while ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_');
                                 --s;
-                                word_buffer[word_buffer_len] = 0;
+                                word_buffer_done();
                                 for (arg = m->args; arg; arg = arg->next)
                                         if (!strcmp(arg->name, word_buffer + start))
                                                 break;
