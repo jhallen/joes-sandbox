@@ -1,5 +1,13 @@
 // Tokens
 
+// Preprocessor directives: these only appear within the lexer
+enum {
+        pDEFINE = 500, pINCLUDE, pIFDEF, pIFNDEF, pPRAGMA, pELIF, pENDIF, pELSE, pIF, pUNDEF,
+        pERROR, pLINE, tDEFINED, pINCLUDE_NEXT, pWARNING
+};
+
+/* Get them from y.tab.h */
+#if 0
 enum {
         tEOF = -1, tNUM = -2, tFP = -3, tSTRING = -4, tWORD = -5, tAUTO = -6, tBREAK = -7,
         tCASE = -8, tCHAR = -9, tCONST = -10, tCONTINUE = -11, tDEFAULT = -12, tDO = -13,
@@ -8,10 +16,8 @@ enum {
         tSHORT = -26, tSIGNED = -27, tSIZEOF = -28, tSTATIC = -29, tSTRUCT = -30,
         tSWITCH = -31, tTYPEDEF = -32, tUNION = -33, tUNSIGNED = -34, tVOID = -35,
         tVOLATILE = -36, tWHILE = -37,
-        pDEFINE = -38, pINCLUDE = -39, pIFDEF = -40, pIFNDEF = -41, pPRAGMA = -42,
-        pELIF = -43, pENDIF = -44, pELSE = -45, pIF = -46, pUNDEF = -47, pERROR = -48,
-        pLINE = -49, tDEFINED = -50, pINCLUDE_NEXT = -51, pWARNING = -52
 };
+#endif
 
 int get_tok(); // Read next token
 
@@ -30,8 +36,20 @@ extern double float_val;
 
 void unget_tok(int token); // Unget token
 void show_tok(int token); // Print token
+void show_macros();
+
 
 // Information about source file
 
 extern int line;
 extern char *file_name;
+
+struct include_path {
+        struct include_path *next;
+        char *path;
+};
+
+extern struct include_path *include_paths;
+
+void add_path(char *s);
+int open_file(char *name);

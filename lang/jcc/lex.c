@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 
+/* For token defines */
+#include "y.tab.h"
+
 #include "lex.h"
 
 // Macros
@@ -63,10 +66,7 @@ int unget_tok_val;
 
 // List of include paths
 
-struct include_path {
-        struct include_path *next;
-        char *path;
-} *include_paths, *include_paths_last;
+struct include_path *include_paths, *include_paths_last;
 
 // Input: it could be from a file or from a macro
 
@@ -199,6 +199,22 @@ struct file_stack {
         int unget_char;
         struct include_path *whence;
 } *file_stack;
+
+int open_file(char *name)
+{
+        FILE *f = fopen(name, "r");
+        if (!f) {
+                return -1;
+        }
+        file_name = name;
+        file_whence = include_paths;
+        line = 1;
+        file = f;
+        curmac = 0;
+        macptr = 0;
+        unget = 0;
+        return 0;
+}
 
 int push_file(char *name, struct include_path *whence)
 {
@@ -1926,23 +1942,4 @@ void show_macros()
                 }
                 printf(") %s\n", m->body);
         }
-}
-
-int main(int argc, char *argv[])
-{
-        int c;
-        // Include path from: gcc -dM -E - < /dev/null
-        add_path("/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include");
-        add_path("/usr/include");
-        add_path("/usr/include/w32api");
-        file_whence = include_paths;
-        file_name = argv[1];
-        file = fopen(file_name, "r");
-        line = 1;
-        do {
-                c = get_tok(0);
-                show_tok(c);
-        } while(c != tEOF);
-        show_macros();
-        return 0;
 }
