@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "y.tab.h"
 #include "lex.h"
+#include "y.tab.h"
 
 int main(int argc, char *argv[])
 {

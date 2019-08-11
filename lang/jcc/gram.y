@@ -10,9 +10,19 @@ int yylex();
 void yyerror(char *s);
 %}
 
-%token tEOF 0
+%union {
+    struct num num;
+    double fp;
+    char *str;
+}
 
-%token tNUM tFP tSTRING tWORD tAUTO tBREAK tCASE tCHAR tCONST tCONTINUE
+%token tEOF 0
+%token <num> tNUM
+%token <str> tSTRING
+%token <str> tWORD
+%token <fp> tFP
+
+%token tAUTO tBREAK tCASE tCHAR tCONST tCONTINUE
 %token tDEFAULT tDO tDOUBLE tELSE tENUM tEXTERN tFLOAT tFOR tGOTO tIF tINT
 %token tLONG tREGISTER tRETURN tSHORT tSIGNED tSIZEOF tSTATIC tSTRUCT tSWITCH
 %token tTYPEDEF tUNION tUNSIGNED tVOID tVOLATILE tWHILE
@@ -24,7 +34,7 @@ void yyerror(char *s);
 input: %empty | input line;
 
 line : '{' tNUM '}' {
-    printf("Value is %d\n", $2);
+    printf("Value is %d\n", $2.num);
 }
 
 %%
@@ -33,6 +43,12 @@ int yylex()
 {
     int t;
     t = get_tok(0);
+    if (t == tFP)
+        yylval.fp = float_val;
+    else if (t == tNUM)
+        yylval.num = num;
+    else if (t == tWORD || t == tSTRING)
+        yylval.str = strdup(word_buffer);
     return t;
 }
 

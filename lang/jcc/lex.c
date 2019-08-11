@@ -5,9 +5,9 @@
 #include <string.h>
 
 /* For token defines */
+#include "lex.h"
 #include "y.tab.h"
 
-#include "lex.h"
 
 // Macros
 
@@ -992,8 +992,9 @@ int get_tok(int preproc)
                                 }
                                 if (preproc != 3)
                 		  	return lookup(keyword, word_buffer);
-                                else
+                                else {
                                         return tWORD;
+                                }
                         }
 		} case '0': {
 			d = tok_getc();

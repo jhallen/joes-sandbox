@@ -10,4 +10,4 @@ lex : $(OBJS)
 	$(CC) $(OPTS) -o lex $(OBJS)
 
 clean:
-	rm -f $(OBJS) y.tab.c y.tab.h
+	rm -f $(OBJS) y.tab.c y.tab.h *~
