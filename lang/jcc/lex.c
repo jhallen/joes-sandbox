@@ -170,6 +170,7 @@ struct keyword preproc_word[] = {
         { "else", pELSE },
         { "if", pIF },
         { "error", pERROR },
+        { "warning", pWARNING },
         { "line", pLINE },
 	{ 0, 0 }
 };
@@ -206,7 +207,7 @@ int push_file(char *name, struct include_path *whence)
         if (!f) {
                 return -1;
         }
-        printf("%s %d: Opened %s\n", file_name, line, name);
+        // printf("%s %d: Opened %s\n", file_name, line, name);
         s = (struct file_stack *)calloc(1, sizeof(struct file_stack));
         s->file_name = file_name;
         s->line = line;
@@ -338,11 +339,17 @@ int tok_getc()
 }
 
 // Skip whitespace and return next character
+
+// If found character is '#" and this is the first character
+// on a line, process following preprocessor directive.
+
 // If cross_lines is false, returns EOF on newlines.
+
+// If noskip is true, return whitespace instead of eating it, but still quash commments
 
 void handle_preproc();
 
-int tok_skipws_getc(int cross_lines)
+int tok_skipws_getc(int cross_lines, int noskip)
 {
         int c;
         for (;;) switch (c = tok_getc()) {
@@ -353,6 +360,8 @@ int tok_skipws_getc(int cross_lines)
                         }
                         break;
 		} case ' ': case '\t': case '\v': case '\f': {
+		        if (noskip)
+		                goto norm;
 			break;
 		} case '/': {
 			c = tok_getc();
@@ -516,7 +525,7 @@ int collect_args(struct macro_arg *args)
         }
         loop:
         word_buffer_init();
-        c = tok_skipws_getc(1);
+        c = tok_skipws_getc(1, 0);
         for (;;) {
                 if (args && !strcmp(args->name, "__VA_ARGS__")) {
                         // All remaining args should be put into this argument
@@ -833,7 +842,7 @@ int get_tok(int preproc)
 
 	again:
 
-	for (;;) switch (c = tok_skipws_getc(!preproc)) {
+	for (;;) switch (c = tok_skipws_getc(!preproc, 0)) {
 	        case EOF: {
 	                return tEOF;
 		} case '~': case '(': case ')': case '[': case ']': case '{': case '}':
@@ -944,7 +953,7 @@ int get_tok(int preproc)
                                                 break;
                                 if (m && macro_not_active(m)) {
                                         if (m->args) {
-                                                c = tok_skipws_getc(1);
+                                                c = tok_skipws_getc(1, 0);
                                                 if (c == '(') {
                                                         struct macro_arg *arg;
                                                         collect_args(m->args);
@@ -1147,12 +1156,22 @@ void unget_tok(int token)
 void eat_eol(int c)
 {
         while (c != EOF)
-                c = tok_skipws_getc(0);
+                c = tok_skipws_getc(0, 0);
+}
+
+void show_eol(int c)
+{
+        while (c != EOF) {
+                c = tok_skipws_getc(0, 1);
+                if (c != EOF)
+                        putchar(c);
+        }
+        putchar('\n');
 }
 
 void check_eol()
 {
-        int c = tok_skipws_getc(0);
+        int c = tok_skipws_getc(0, 0);
         if (c != EOF) {
                 printf("%s %d: Error: extra junk after preprocessor directive\n", file_name, line);
                 eat_eol(c);
@@ -1227,7 +1246,7 @@ char *get_macro_body()
         int added = 0;
         word_buffer_init();
         // Skip leading whitespace
-        c = tok_skipws_getc(0);
+        c = tok_skipws_getc(0, 0);
         for (;;) {
                 switch (c) {
                         case EOF: case '\n': {
@@ -1619,7 +1638,7 @@ void handle_preproc()
                 case pINCLUDE: case pINCLUDE_NEXT: {
                         int include_next = (c == pINCLUDE_NEXT);
                         if (!conds || conds->t == 1) {
-                                c = tok_skipws_getc(0);
+                                c = tok_skipws_getc(0, 0);
                                 if (c == '<' || c == '\"') {
                                         char *fi = file_name;
                                         int li = line;
@@ -1703,7 +1722,6 @@ void handle_preproc()
                         }
                         break;
                 } case pIFDEF: case pIFNDEF: {
-                        printf("--ifdef\n");
                         if (!conds || conds->t == 1) {
                                 int d = get_tok(2);
                                 if (d != tWORD) {
@@ -1728,7 +1746,6 @@ void handle_preproc()
                         }
                         break;
                 } case pELSE: {
-                        printf("--else\n");
                         if (conds) {
                                 if (conds->e) {
                                         printf("%s %d: Error: multiple #else in #if\n", file_name, line);
@@ -1745,7 +1762,6 @@ void handle_preproc()
                         check_eol();
                         break;
                 } case pENDIF: {
-                        printf("--endif\n");
                         if (conds) {
                                 struct cond *t = conds;
                                 conds = t->next;
@@ -1756,7 +1772,6 @@ void handle_preproc()
                         check_eol();
                         break;
                 } case pIF: {
-                        printf("--if\n");
                         if (!conds || conds->t == 1) {
                                 struct num n;
                                 int sta = preproc_expr(0, &n);
@@ -1782,7 +1797,6 @@ void handle_preproc()
                         }
                         break;
                 } case pELIF: {
-                        printf("--elif\n");
                         if (conds && conds->e) {
                                 printf("%s %d: Error: #elif after #else\n", file_name, line);
                                 eat_eol(c);
@@ -1791,8 +1805,11 @@ void handle_preproc()
                                 eat_eol(c);
                         } else if (conds && conds->t == -1) {
                                 struct num n;
-                                int sta = preproc_expr(0, &n);
+                                int sta;
+                                conds->t = 1; // Tell tok_skipws_getc not to skip
+                                sta = preproc_expr(0, &n);
                                 c = get_tok(1);
+                                conds->t = -1; // Re-enable skipping
                                 if (!sta && c != EOF) {
                                         printf("%s %d: Error: extra junk after #elif expression\n", file_name, line);
                                         sta = -1;
@@ -1814,9 +1831,20 @@ void handle_preproc()
                         eat_eol(c);
                         break;
                 } case pERROR: {
-                        if (!conds || conds->t == 1)
-                                printf("%s %d: Error: error directive\n", file_name, line);
-                        eat_eol(c);
+                        if (!conds || conds->t == 1) {
+                                printf("%s %d: Error:", file_name, line);
+                                show_eol(c);
+                        } else {
+                                eat_eol(c);
+                        }
+                        break;
+                } case pWARNING: {
+                        if (!conds || conds->t == 1) {
+                                printf("%s %d: Warning:", file_name, line);
+                                show_eol(c);
+                        } else {
+                                eat_eol(c);
+                        }
                         break;
                 } case tEOF: {
                         // Blank preprocessor lines are allowed */

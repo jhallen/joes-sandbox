@@ -10,7 +10,7 @@ enum {
         tVOLATILE = -36, tWHILE = -37,
         pDEFINE = -38, pINCLUDE = -39, pIFDEF = -40, pIFNDEF = -41, pPRAGMA = -42,
         pELIF = -43, pENDIF = -44, pELSE = -45, pIF = -46, pUNDEF = -47, pERROR = -48,
-        pLINE = -49, tDEFINED = -50, pINCLUDE_NEXT = -51
+        pLINE = -49, tDEFINED = -50, pINCLUDE_NEXT = -51, pWARNING = -52
 };
 
 int get_tok(); // Read next token
