@@ -86,7 +86,7 @@ That's it.  Now you can regerenate the project with:
     vivado -source rebuild.tcl &
 
 Note that the rebuild.tcl script shows you the files that need to be saved
-in source control:
+in source control in comments.  This is in the file:
 
     # 3. The following remote source files that were added to the original project:-
     #
@@ -136,3 +136,5 @@ regenerate them when you rebuild the project.
 
 ![image](images/ip5.png)
 
+Just the .xci file needs to be saved in source control, but it's a good idea
+to run the write_project_tcl command and check the comments to be sure.
