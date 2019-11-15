@@ -138,3 +138,6 @@ regenerate them when you rebuild the project.
 
 Just the .xci file needs to be saved in source control, but it's a good idea
 to run the write_project_tcl command and check the comments to be sure.
+
+Unfortunately the output products are generated in the same tree as the .xci
+files, so you have to pay close attention to the ip/ directory.
