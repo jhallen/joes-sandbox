@@ -80,7 +80,7 @@ Here are the messages this command prints:
 
 ![image](images/writetcl1.png)
 
-That's it.  Now you can regerenate the project with:
+That's it.  Now you can regenerate the project with:
 
     rm -rf project_1
     vivado -source rebuild.tcl &
