@@ -33,7 +33,7 @@ project directory, so you have to actively fight it to prevent this.
 Suppose you don't have the project_1/ and rebuild.tcl script.  This is how
 to create them.
 
-Start vivado.  Change directory to example_fpga first. [There are other
+Start Vivado.  Change directory to example_fpga first. [There are other
 possibilities here, but this will get you started.]
 
     cd example_fpga
@@ -130,8 +130,9 @@ Instead put it in the ip/ directory.
 
 ![image](images/ip4.png)
 
-You need to generete the output products here, even though they do not have
+You need to generete the output products, even though they do not have
 to be saved in git.  When you generate them here, then Vivada knows to
 regenerate them when you rebuild the project.
 
 ![image](images/ip5.png)
+
