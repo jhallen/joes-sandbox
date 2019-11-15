@@ -43,3 +43,17 @@ Go through the usual sequence of creating a project, but not check any of
 the boxes that say "copy into project":
 
 ![image](create_1.png)
+![image](create_2.png)
+![image](create_3.png)
+![image](create_4.png)
+![image](create_5.png)
+![image](create_6.png)
+![image](create_7.png)
+![image](create_8.png)
+![image](create_9.png)
+![image](create_10.png)
+![image](create_11.png)
+![image](create_12.png)
+![image](create_13.png)
+![image](create_14.png)
+![image](create_15.png)
