@@ -49,11 +49,72 @@ the boxes that say "copy into project":
 ![image](create_5.png)
 ![image](create_6.png)
 ![image](create_7.png)
+
+Do not check the box here:
+
 ![image](create_8.png)
 ![image](create_9.png)
 ![image](create_10.png)
+
+Don't check it here either!
+
 ![image](create_11.png)
 ![image](create_12.png)
 ![image](create_13.png)
+
+Then we wait a long time, why is Vivado so slow?
+
 ![image](create_14.png)
+
+Now finally the project appears:
+
 ![image](create_15.png)
+
+# Save the script
+
+Use the write_project_tcl command to save the script:
+
+![image](writetcl.png)
+
+![image](writetcl_1.png)
+
+That's it.  Now you can regerenate the project with:
+
+    rm -rf project_1
+    vivado -source rebuild.tcl &
+
+Note that the rebuild.tcl script shows you the files that need to be saved
+in source control:
+
+    # 3. The following remote source files that were added to the original project:-
+    #
+    #    "/home/jallen/example_fpga/ip/clk_wiz_0/clk_wiz_0.xci"
+    #    "/home/jallen/example_fpga/rtl/testtop.v"
+    #    "/home/jallen/example_fpga/cons/mycons.xdc"
+
+You will have big problems if any of these are in the project directory
+(example_fpga/project_1 in this case).
+
+It does not work to delete the project_1/ directory, and sneakily write the
+files back.  First the rebuild.tcl script will fail in the line with
+create_project because the directory already exists.  You can try to get
+around this by adding -force the line with create_project.  Unfortunately,
+create_project -force deletes the entire directory, so then Vivado will
+complain that the files are missing.  Also, you will be rebuilding
+rebuilt.tcl many times, so you don't want to edit it.
+
+You really need to create the source files outside of the project in the
+first place.
+
+# Xilinx IP
+
+The next difficulty is that Xilinx IP from the "IP Catalog" is written by
+default to the project directory.
+
+An example is the clock wizard IP to use the PLL or MMCM.
+
+![image](ip1.png)
+![image](ip2.png)
+![image](ip3.png)
+![image](ip4.png)
+![image](ip5.png)
