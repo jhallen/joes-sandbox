@@ -42,43 +42,43 @@ possibilities here, but this will get you started.]
 Go through the usual sequence of creating a project, but not check any of
 the boxes that say "copy into project":
 
-![image](create_1.png)
-![image](create_2.png)
-![image](create_3.png)
-![image](create_4.png)
-![image](create_5.png)
-![image](create_6.png)
-![image](create_7.png)
+![image](images/create_1.png)
+![image](images/create_2.png)
+![image](images/create_3.png)
+![image](images/create_4.png)
+![image](images/create_5.png)
+![image](images/create_6.png)
+![image](images/create_7.png)
 
 Do not check the box here:
 
-![image](create_8.png)
-![image](create_9.png)
-![image](create_10.png)
+![image](images/create_8.png)
+![image](images/create_9.png)
+![image](images/create_10.png)
 
 Don't check it here either!
 
-![image](create_11.png)
-![image](create_12.png)
-![image](create_13.png)
+![image](images/create_11.png)
+![image](images/create_12.png)
+![image](images/create_13.png)
 
 Then we wait a long time, why is Vivado so slow?
 
-![image](create_14.png)
+![image](images/create_14.png)
 
 Now finally the project appears:
 
-![image](create_15.png)
+![image](images/create_15.png)
 
 # Save the script
 
 Use the write_project_tcl command to save the script:
 
-![image](writetcl.png)
+![image](images/writetcl.png)
 
 Here are the messages this command prints:
 
-![image](writetcl1.png)
+![image](images/writetcl1.png)
 
 That's it.  Now you can regerenate the project with:
 
@@ -115,23 +115,23 @@ default to the project directory.
 
 An example is the clock wizard IP to use the PLL or MMCM.
 
-![image](ip1.png)
+![image](images/ip1.png)
 
 Take note of the "IP Location" in the top left of the window.  It should
 show you the default location, but the GUI design is bad here.
 
-![image](ip2.png)
+![image](images/ip2.png)
 
 When you click on it, you will see that it wants to put it in the project:
 
-![image](ip3.png)
+![image](images/ip3.png)
 
 Instead put it in the ip/ directory.
 
-![image](ip4.png)
+![image](images/ip4.png)
 
 You need to generete the output products here, even though they do not have
 to be saved in git.  When you generate them here, then Vivada knows to
 regenerate them when you rebuild the project.
 
-![image](ip5.png)
+![image](images/ip5.png)
