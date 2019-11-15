@@ -76,6 +76,8 @@ Use the write_project_tcl command to save the script:
 
 ![image](writetcl.png)
 
+Here are the messages this command prints:
+
 ![image](writetcl1.png)
 
 That's it.  Now you can regerenate the project with:
@@ -114,7 +116,22 @@ default to the project directory.
 An example is the clock wizard IP to use the PLL or MMCM.
 
 ![image](ip1.png)
+
+Take note of the "IP Location" in the top left of the window.  It should
+show you the default location, but the GUI design is bad here.
+
 ![image](ip2.png)
+
+When you click on it, you will see that it wants to put it in the project:
+
 ![image](ip3.png)
+
+Instead put it in the ip/ directory.
+
 ![image](ip4.png)
+
+You need to generete the output products here, even though they do not have
+to be saved in git.  When you generate them here, then Vivada knows to
+regenerate them when you rebuild the project.
+
 ![image](ip5.png)
