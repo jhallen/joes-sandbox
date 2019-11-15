@@ -76,7 +76,7 @@ Use the write_project_tcl command to save the script:
 
 ![image](writetcl.png)
 
-![image](writetcl_1.png)
+![image](writetcl1.png)
 
 That's it.  Now you can regerenate the project with:
 
