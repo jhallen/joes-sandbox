@@ -159,7 +159,7 @@ in the list in the comments of the project tcl script:
     #    "/home/jallen/tryit/ip/design_1/hdl/design_1_wrapper.v"
     #    "/home/jallen/tryit/cons/mycons.xdc"
 
-Anwyay, when you create a block design, the default is for it to be produced
+Anyway, when you create a block design, the default is for it to be produced
 inside the project:
 
 ![image](images/block0.png)
@@ -170,9 +170,13 @@ Change this to ip/:
 
 ![image](images/block2.png)
 
+Now we create the block design:
+
 ![image](images/block3.png)
 
 ![image](images/block4.png)
+
+Right click on the block design and create the HDL wrapper:
 
 ![image](images/block5.png)
 
