@@ -6,11 +6,11 @@ both Xilinx Vivado GUI in project mode and version control.
 The directory structure should be this:
 
     example_fpga/
-        rebuild.tcl   <- TCL script created by Vivado.  Checked in.
-        rtl/          <- Your Verilog (or VHDL) source code.  All checked in.
-        cons/         <- Your constraint files.  All checked in.
-        project_1/    <- Vivado project.  Nothing here is checked in.
-        ip/           <- Xilinx IP.  Only the .xci files are checked in.
+        rebuild.tcl   - TCL script created by Vivado.  Checked in.
+        rtl/          - Your Verilog (or VHDL) source code.  All checked in.
+        cons/         - Your constraint files.  All checked in.
+        project_1/    - Vivado project.  Nothing here is checked in.
+        ip/           - Xilinx IP.  Some files checked in.
 
 The idea is to have the minimal set of files checked in so that you get the
 Vivado project back after a fresh clone.  You should only have to type these
@@ -141,3 +141,38 @@ to run the write_project_tcl command and check the comments to be sure.
 
 Unfortunately the output products are generated in the same tree as the .xci
 files, so you have to pay close attention to the ip/ directory.
+
+# IP Integrator / Block design
+
+Block designs must also be created outside of the project directory (for
+example, in our ip/ directory).  This is odd, because the contents of the
+block design end up in the project tcl script produced by write_project_tcl. 
+The problem is that the HDL wrapper file is not produced by the project tcl,
+but must exist for this script to work without failing.
+
+When block designs are produced in ip/, many files are generated, but only
+the wrapper file has to be checked into the source control.  This file is
+in the list in the comments of the project tcl script:
+
+    # 3. The following remote source files that were added to the original project:-
+    #
+    #    "/home/jallen/tryit/ip/design_1/hdl/design_1_wrapper.v"
+    #    "/home/jallen/tryit/cons/mycons.xdc"
+
+Anwyay, when you create a block design, the default is for it to be produced
+inside the project:
+
+![image](images/block0.png)
+
+![image](images/block1.png)
+
+Change this to ip/:
+
+![image](images/block2.png)
+
+![image](images/block3.png)
+
+![image](images/block4.png)
+
+![image](images/block5.png)
+
