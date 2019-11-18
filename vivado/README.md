@@ -36,8 +36,8 @@ Also, you can always delete project_1/ and rebuild it:
     rm -rf project_1
     vivado -source rebuild.tcl &
 
-The ip/ directly gets polluted with derived files, but at least Vivado tells
-you which ones need to be saved in source control. 
+The ip/ directory gets polluted with derived files, but at least Vivado
+tells you which ones need to be saved in source control.
 
 # Initial project build
 
@@ -202,4 +202,4 @@ Right click on the block design and create the HDL wrapper:
 ![image](images/block5.png)
 
 That's it. Now you have the files necessary for checking into source control
-so you can run the write_project_tcl.
+so you can use the write_project_tcl command.
