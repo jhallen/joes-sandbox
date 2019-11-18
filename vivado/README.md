@@ -5,6 +5,14 @@ both Xilinx Vivado GUI in project mode and version control.  This setup
 allows you to check in the minimum number of files needed so that you can
 easily recreate the project in another workspace.
 
+To save you some time:
+
+* Once you have a Vivado project, you can not move it to a different directory.  The project files are filled with absolute paths.  It is therefore pointless to check in the entire project.
+
+* There is a TCL command "write_project_tcl" which generates a TCL script which rebuilds the project in a new directory.  This method is shown here.
+
+* Even with "write_project_tcl", the project has to be structured correctly or the script will not work.  In particular, none of the files needed to recreate the project should be in the project subdirectory.
+
 Although it's possible to script the entire FPGA build process, it is
 also important to be able to use project mode to access the Vivado GUI for
 such tasks as debugging with the integrated logic analyzer and pin-planning.
