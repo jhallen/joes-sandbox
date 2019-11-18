@@ -58,13 +58,23 @@ the boxes that say "copy into project":
 ![image](images/create_3.png)
 ![image](images/create_4.png)
 ![image](images/create_5.png)
+
+You need your Verilog or VHDL source files:
+
 ![image](images/create_6.png)
+
+You need the .xci files for Xilinx "IP Catalog" IP.  You also need the
+wrapper file for block designs (see below for more about this).
+
 ![image](images/create_7.png)
 
 Do not check the box here:
 
 ![image](images/create_8.png)
 ![image](images/create_9.png)
+
+You need your constraint files:
+
 ![image](images/create_10.png)
 
 Don't check it here either!
