@@ -5,14 +5,14 @@ both Xilinx Vivado GUI in project mode and version control.  This setup
 allows you to check in the minimum number of files needed so that you can
 easily recreate the project in another workspace.
 
-It's possible to script the entire FPGA build process, but it is also
-important to be able to use project mode to access the Vivado GUI for such
-tasks as debugging with the integrated logic analyzer and pin-planning.
+Although it's possible to script the entire FPGA build process, it is
+also important to be able to use project mode to access the Vivado GUI for
+such tasks as debugging with the integrated logic analyzer and pin-planning.
 
-If your setup is incorrect, you waste a lot of time fixing it, or check in
-too many files.  Unfortunately, Vivado really would like your source code to
-be in the project directory, so you have to actively fight it to prevent
-this.
+If your setup is incorrect, you will waste a lot of time fixing it, or
+create a mess in your repository by checking in too many files. 
+Unfortunately, Vivado really would like your source code to be in the
+project directory, so you have to actively fight it to prevent this.
 
 The directory structure should be this:
 
@@ -50,7 +50,7 @@ possibilities here, but this will get you started.]
     cd example_fpga
     vivado &
 
-Go through the usual sequence of creating a project, but not check any of
+Go through the usual sequence of creating a project, but do not check any of
 the boxes that say "copy into project":
 
 ![image](images/create_1.png)
@@ -123,11 +123,11 @@ files back.  First the rebuild.tcl script will fail in the line with
 create_project because the directory already exists.  You can try to get
 around this by adding -force the line with create_project.  Unfortunately,
 create_project -force deletes the entire directory, so then Vivado will
-complain that the files are missing.  Also, you will be rebuilding
+complain that the files are missing.  Also, you will be writing out
 rebuilt.tcl many times, so you don't want to edit it.
 
-You really need to create the source files outside of the project in the
-first place.
+You really need to create the source files outside of the project directory
+in the first place.
 
 # Xilinx IP
 
@@ -166,10 +166,10 @@ files, so you have to pay close attention to the ip/ directory.
 # IP Integrator / Block design
 
 Block designs must also be created outside of the project directory (for
-example, in our ip/ directory).  This is odd, because the contents of the
-block design end up in the project tcl script produced by write_project_tcl. 
-The problem is that the HDL wrapper file is not produced by the project tcl,
-but must exist for this script to work without failing.
+example, in our ip/ directory).  This is odd, because the block design ends
+up as a set of commands in the project tcl script produced by
+write_project_tcl.  The problem is that the HDL wrapper file is not produced
+by the project tcl, but must exist for this script to work without failing.
 
 When block designs are produced in ip/, many files are generated, but only
 the wrapper file has to be checked into the source control.  This file is
@@ -201,3 +201,5 @@ Right click on the block design and create the HDL wrapper:
 
 ![image](images/block5.png)
 
+That's it. Now you have the files necessary for checking into source control
+so you can run the write_project_tcl.
