@@ -29,12 +29,12 @@ commands:
 
     git clone https://github.com/jhallen/example_fpga.git
     cd example_fpga
-    vivado -source rebuild.tcl &
+    vivado -source rebuild.tcl
 
 Also, you can always delete project_1/ and rebuild it:
 
     rm -rf project_1
-    vivado -source rebuild.tcl &
+    vivado -source rebuild.tcl
 
 The ip/ directory gets polluted with derived files, but at least Vivado
 tells you which ones need to be saved in source control.
@@ -48,7 +48,7 @@ Start Vivado.  Change directory to example_fpga first. [There are other
 possibilities here, but this will get you started.]
 
     cd example_fpga
-    vivado &
+    vivado
 
 Go through the usual sequence of creating a project, but do not check any of
 the boxes that say "copy into project":
@@ -104,7 +104,7 @@ Here are the messages this command prints:
 That's it.  Now you can regenerate the project with:
 
     rm -rf project_1
-    vivado -source rebuild.tcl &
+    vivado -source rebuild.tcl
 
 Note that the rebuild.tcl script shows you the files that need to be saved
 in source control in comments.  This is in the file:
