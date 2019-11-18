@@ -1,7 +1,18 @@
-# Dealing with Xilinx Vivado
+# Xilinx Vivado setup for source control
 
 Here is one way to structure your FPGA project so that it is compatible with
-both Xilinx Vivado GUI in project mode and version control.
+both Xilinx Vivado GUI in project mode and version control.  This setup
+allows you to check in the minimum number of files needed so that you can
+easily recreate the project in another workspace.
+
+It's possible to script the entire FPGA build process, but it is also
+important to be able to use project mode to access the Vivado GUI for such
+tasks as debugging with the integrated logic analyzer and pin-planning.
+
+If your setup is incorrect, you waste a lot of time fixing it, or check in
+too many files.  Unfortunately, Vivado really would like your source code to
+be in the project directory, so you have to actively fight it to prevent
+this.
 
 The directory structure should be this:
 
@@ -20,13 +31,13 @@ commands:
     cd example_fpga
     vivado -source rebuild.tcl &
 
-You can always delete project_1/ and rebuild it:
+Also, you can always delete project_1/ and rebuild it:
 
     rm -rf project_1
     vivado -source rebuild.tcl &
 
-Unfortunately, Vivado really would like your source code to be in the
-project directory, so you have to actively fight it to prevent this.
+The ip/ directly gets polluted with derived files, but at least Vivado tells
+you which ones need to be saved in source control. 
 
 # Initial project build
 
