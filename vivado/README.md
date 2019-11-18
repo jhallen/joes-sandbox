@@ -147,7 +147,8 @@ An example is the clock wizard IP to use the PLL or MMCM.
 ![image](images/ip1.png)
 
 Take note of the "IP Location" in the top left of the window.  It should
-show you the default location, but the GUI design is bad here.
+just show you the location, but the GUI design is bad here so have to click
+on it.
 
 ![image](images/ip2.png)
 
