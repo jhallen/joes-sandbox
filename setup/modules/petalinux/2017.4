@@ -1,0 +1,28 @@
+#%Module1.0#####################################################################
+
+proc ModulesHelp { } {
+        global version modroot
+
+        puts stderr "Petalinux/2017.4"
+}
+
+set	XIL_SCRIPT_LOC	./
+
+module-whatis   "Sets the environment for PetaLinux 2017.4"
+
+set	topdir	$::env(HOME)/PetaLinuxTools
+set	version	2017.4
+set	sys	linux86
+
+setenv	PETALINUX	$::env(HOME)/PetaLinuxTools
+setenv	PETALINUX_VER	2017.4
+prepend-path	PATH	$::env(PETALINUX)/tools/linux-i386/aarch64-none-elf/bin
+prepend-path	PATH	$::env(PETALINUX)/tools/linux-i386/aarch64-linux-gnu/bin
+prepend-path	PATH	$::env(PETALINUX)/tools/linux-i386/gcc-arm-none-eabi/bin
+prepend-path	PATH	$::env(PETALINUX)/tools/linux-i386/gcc-arm-linux-gnueabi/bin
+prepend-path	PATH	$::env(PETALINUX)/tools/linux-i386/microblaze-xilinx-elf/bin
+prepend-path	PATH	$::env(PETALINUX)/tools/linux-i386/microblazeel-xilinx-linux-gnu/bin
+prepend-path	PATH	$::env(PETALINUX)/tools/linux-i386/gcc-arm-none-eabi-r5/bin
+prepend-path	PATH    $::env(PETALINUX)/tools/linux-i386/petalinux/bin
+prepend-path	PATH	$::env(PETALINUX)/tools/common/petalinux/bin
+exec $::env(PETALINUX)/tools/common/petalinux//utils/petalinux-env-check

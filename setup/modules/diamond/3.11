@@ -1,0 +1,16 @@
+#%Module1.0#####################################################################
+
+proc ModulesHelp { } {
+        global version modroot
+
+        puts stderr "diamond/3.11"
+}
+
+module-whatis   "Sets the environment Lattice Diamond 3.11"
+
+# for Tcl script use only
+set     topdir          /opt/lattice/diamond
+set     version         3.11_x64
+set     sys             linux86
+
+prepend-path    PATH            /opt/lattice/diamond/3.11_x64/bin/lin64

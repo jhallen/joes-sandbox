@@ -1,0 +1,20 @@
+#%Module1.0
+
+proc ModulesHelp { } {
+        global version modroot
+
+        puts stderr "fx3/1.0"
+}
+
+module-whatis   "Sets the environment for Cypress Fx3"
+
+# for Tcl script use only
+set     topdir          $::env(HOME)/g5client_repo/fx3/arm-2013.11/bin
+set     version         1.0
+set     sys             linux86
+
+setenv          FX3_INSTALL_PATH	$::env(HOME)/g5client_repo/fx3/cyfx3sdk
+setenv          ARMGCC_INSTALL_PATH	$::env(HOME)/g5client_repo/fx3/arm-2013.11
+setenv          ARMGCC_VERSION	4.8.1
+setenv          CYUSB_ROOT      $::env(HOME)/g5client_repo/fx3/cyusb_linux_1.0.4
+prepend-path    PATH            $::env(HOME)/g5client_repo/fx3/arm-2013.11/bin

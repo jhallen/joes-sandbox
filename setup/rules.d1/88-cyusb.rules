@@ -1,0 +1,7 @@
+# Cypress USB driver for FX2 and FX3 (C) Cypress Semiconductor Corporation / ATR-LABS
+# Rules written by V. Radhakrishnan ( rk@atr-labs.com )
+# Cypress USB vendor ID = 0x04b4
+KERNEL=="*", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ACTION=="add", ATTR{idVendor}=="04b4", MODE="666", TAG="cyusb_dev", RUN+="/usr/local/bin/cy_renumerate.sh A"
+KERNEL=="*", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ACTION=="remove", TAG=="cyusb_dev", RUN+="/usr/local/bin/cy_renumerate.sh R"
+# Prevent linux from treating /dev/ACM as a modem
+ATTRS{idVendor}=="04b4" ATTRS{idProduct}=="00f1", ENV{ID_MM_DEVICE_IGNORE}="1"

@@ -1,0 +1,1 @@
+ATTRS{serial}=="A104CMOG", ATTRS{idVendor}=="0403" ATTRS{idProduct}=="6001", MODE="0666", SYMLINK+="abb2"

@@ -1,0 +1,16 @@
+#%Module1.0#####################################################################
+
+proc ModulesHelp { } {
+        global version modroot
+
+        puts stderr "arduino/1.8.5"
+}
+
+module-whatis   "Sets the environment for TI Code Composer Studio"
+
+# for Tcl script use only
+set     topdir          /opt/arduino-1.8.5
+set     version         1.8.5
+set     sys             linux86
+
+prepend-path    PATH            /opt/arduino-1.8.5

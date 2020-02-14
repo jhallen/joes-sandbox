@@ -1,0 +1,18 @@
+#%Module1.0#####################################################################
+
+proc ModulesHelp { } {
+        global version modroot
+
+        puts stderr "Xilinx/2017.4"
+}
+
+module-whatis   "Sets the environment Xilinx Vivado 2017.4 including SDK"
+
+# for Tcl script use only
+set     topdir          /opt/Xilinx
+set     version         2017.4
+set     sys             linux86
+
+setenv          XILINX_VIVADO	/opt/Xilinx/Vivado/2017.4
+prepend-path    PATH            /opt/Xilinx/Vivado/2017.4/bin
+prepend-path    PATH            /opt/Xilinx/SDK/2017.4/bin:/opt/Xilinx/SDK/2017.4/gnu/microblaze/lin/bin:/opt/Xilinx/SDK/2017.4/gnu/arm/lin/bin:/opt/Xilinx/SDK/2017.4/gnu/microblaze/linux_toolchain/lin64_be/bin:/opt/Xilinx/SDK/2017.4/gnu/microblaze/linux_toolchain/lin64_le/bin:/opt/Xilinx/SDK/2017.4/gnu/aarch32/lin/gcc-arm-linux-gnueabi/bin:/opt/Xilinx/SDK/2017.4/gnu/aarch32/lin/gcc-arm-none-eabi/bin:/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-linux/bin:/opt/Xilinx/SDK/2017.4/gnu/aarch64/lin/aarch64-none/bin:/opt/Xilinx/SDK/2017.4/gnu/armr5/lin/gcc-arm-none-eabi/bin:/opt/Xilinx/SDK/2017.4/tps/lnx64/cmake-3.3.2/bin

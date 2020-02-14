@@ -1,0 +1,46 @@
+# 2014.04.10 Rule file created.
+# 2014.04.25 Change target file.
+# 2014.05.01 Change ENV and label names changed.
+
+ENV{seghotplugscript}="/etc/.mplab_ide/mchpsegusbdevice"
+
+ACTION!="add", GOTO="seg_check_remove"
+SUBSYSTEM=="usb_device", GOTO="seg_check_add"
+SUBSYSTEM!="usb", GOTO="seg_rules_end"
+
+# ===========================================================================
+
+LABEL="seg_check_add"
+
+ATTR{idVendor}=="1366", GOTO="seg_check_pid"
+GOTO="seg_rules_end"
+
+LABEL="seg_check_pid"
+
+ATTRS{idProduct}=="0101", MODE="666", RUN+="%E{seghotplugscript} add"
+ATTRS{idProduct}=="0102", MODE="666", RUN+="%E{seghotplugscript} add"
+ATTRS{idProduct}=="0103", MODE="666", RUN+="%E{seghotplugscript} add"
+ATTRS{idProduct}=="0104", MODE="666", RUN+="%E{seghotplugscript} add"
+ATTRS{idProduct}=="0105", MODE="666", RUN+="%E{seghotplugscript} add"
+GOTO="seg_rules_end"
+
+# ===========================================================================
+
+LABEL="seg_check_remove"
+
+SUBSYSTEM=="usb_device", GOTO="seg_check_remove_b"
+SUBSYSTEM!="usb", GOTO="seg_rules_end"
+
+LABEL="seg_check_remove_b"
+
+ENV{DEVTYPE}=="usb_device", GOTO="seg_check_remove_c"
+GOTO="seg_rules_end"
+
+LABEL="seg_check_remove_c"
+
+ACTION=="remove", RUN+="%E{seghotplugscript} remove %E{PRODUCT} %E{DEVTYPE}"
+
+# ===========================================================================
+
+LABEL="seg_rules_end"
+

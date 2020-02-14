@@ -1,0 +1,16 @@
+#%Module1.0#####################################################################
+
+proc ModulesHelp { } {
+        global version modroot
+
+        puts stderr "armgcc/5.4.1"
+}
+
+module-whatis   "Sets the environment for ARM GCC 5.4.1"
+
+# for Tcl script use only
+set     topdir          /opt/arm/gcc-arm-none-eabi-5_4-2016q3
+set     version         5.4.1
+set     sys             linux86
+
+prepend-path    PATH            /opt/arm/gcc-arm-none-eabi-5_4-2016q3/bin

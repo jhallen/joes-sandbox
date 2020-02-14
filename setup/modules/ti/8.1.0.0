@@ -1,0 +1,16 @@
+#%Module1.0#####################################################################
+
+proc ModulesHelp { } {
+        global version modroot
+
+        puts stderr "ti/8.1.0.0"
+}
+
+module-whatis   "Sets the environment for TI Code Composer Studio"
+
+# for Tcl script use only
+set     topdir          /opt/ti
+set     version         8.1.0.0
+set     sys             linux86
+
+prepend-path    PATH            /opt/ti/ccsv8/eclipse

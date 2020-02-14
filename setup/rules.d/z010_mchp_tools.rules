@@ -1,0 +1,25 @@
+# 2017.03,03 Added check for Atmel tools.
+# 2012.01.23 Changed SYSFS reference(s) to ATTR.
+# 2011.12.15 Note: Reboot works on all systems to have rules file recognized.
+# 2010.01.26 Add reference to "usb" for Ubuntu.
+# 2010.01.22 Attempt to further simplify rules files requirements.
+# 2009.08.18 Rules file simplified.
+# 2009.07.15 Rules file created.
+
+ENV{hotplugscript}="/etc/.mplab_ide/mchplinusbdevice"
+
+ACTION!="add", GOTO="check_remove"
+SUBSYSTEM=="usb_device", GOTO="check_add"
+SUBSYSTEM!="usb", GOTO="rules_end"
+
+LABEL="check_add"
+
+ATTR{idVendor}=="04d8", MODE="666", RUN+="%E{hotplugscript} add"
+ATTR{idVendor}=="03eb", MODE="666", RUN+="%E{hotplugscript} add"
+GOTO="rules_end"
+
+LABEL="check_remove"
+
+ACTION=="remove", RUN+="%E{hotplugscript} remove %E{PRODUCT}"
+
+LABEL="rules_end"

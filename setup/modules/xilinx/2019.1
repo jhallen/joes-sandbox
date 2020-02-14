@@ -1,0 +1,18 @@
+#%Module1.0#####################################################################
+
+proc ModulesHelp { } {
+        global version modroot
+
+        puts stderr "Xilinx/2019.1"
+}
+
+module-whatis   "Sets the environment Xilinx Vivado 2019.1 including SDK"
+
+# for Tcl script use only
+set     topdir          /opt/Xilinx
+set     version         2019.1
+set     sys             linux86
+
+setenv          XILINX_VIVADO	/opt/Xilinx/Vivado/2019.1
+prepend-path    PATH            /opt/Xilinx/Vivado/2019.1/bin
+prepend-path    PATH            /opt/Xilinx/SDK/2019.1/bin:/opt/Xilinx/SDK/2019.1/gnu/microblaze/lin/bin:/opt/Xilinx/SDK/2019.1/gnu/arm/lin/bin:/opt/Xilinx/SDK/2019.1/gnu/microblaze/linux_toolchain/lin64_be/bin:/opt/Xilinx/SDK/2019.1/gnu/microblaze/linux_toolchain/lin64_le/bin:/opt/Xilinx/SDK/2019.1/gnu/aarch32/lin/gcc-arm-linux-gnueabi/bin:/opt/Xilinx/SDK/2019.1/gnu/aarch32/lin/gcc-arm-none-eabi/bin:/opt/Xilinx/SDK/2019.1/gnu/aarch64/lin/aarch64-linux/bin:/opt/Xilinx/SDK/2019.1/gnu/aarch64/lin/aarch64-none/bin:/opt/Xilinx/SDK/2019.1/gnu/armr5/lin/gcc-arm-none-eabi/bin:/opt/Xilinx/SDK/2019.1/tps/lnx64/cmake-3.3.2/bin

@@ -1,0 +1,327 @@
+# If not running interactively, don't do anything
+[[ "$-" != *i* ]] && return
+
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
+
+# don't put duplicate lines in the history. See bash(1) for more options
+# ... or force ignoredups and ignorespace
+HISTCONTROL=ignoredups:ignorespace
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# make less more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# set variable identifying the chroot you work in (used in the prompt below)
+if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+# set a fancy prompt (non-color, unless we know we "want" color)
+case "$TERM" in
+    xterm-color) color_prompt=yes;;
+esac
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+#force_color_prompt=yes
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+	# We have color support; assume it's compliant with Ecma-48
+	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+	# a case would tend to support setf rather than setaf.)
+	color_prompt=yes
+    else
+	color_prompt=
+    fi
+fi
+
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+unset color_prompt force_color_prompt
+
+# If this is an xterm set the title to user@host:dir
+#case "$TERM" in
+#xterm*|rxvt*)
+#    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+#    ;;
+#*)
+#    ;;
+#esac
+
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# Alias definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
+# enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
+if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+    . /etc/bash_completion
+fi
+
+export PATH=$HOME/bin:$PATH
+export EDITOR=joe
+
+function my_man () {
+	case $1 in
+	info-*)
+	  page=$(echo $1 | sed -e s/info-//g)
+	  tmpfile="/tmp/info2man-$page.txt"
+	  info --subnodes --output=$tmpfile $page \
+	  && less $tmpfile \
+	  && rm -f $tmpfile
+	  ;;
+	*)
+	  man $@
+	  ;;
+	esac
+}
+
+function do_clear () {
+	echo '{'psh,bof,markb,eof,markk,blkdel}
+}
+
+function do_math () {
+	echo '{'math,'"'$1'"',rtn}
+	echo '{'rtn,math,'"'ans:ins'"',rtn}
+}
+
+function do_edit () {
+	echo '{'edit,'"'$1'"',rtn}
+}
+
+function do_cd () {
+	if [ "$1" == "" ]; then
+		cd
+	else
+		cd "$1"
+	fi
+	if [ "_$JOE" == "_1" ];
+	then
+		echo '{'cd,dellin!,'"'`pwd`/'"',rtn}
+	fi
+}
+
+if [ "_$JOE" == "_1" ];
+then
+	alias clear='do_clear'
+	alias math='do_math'
+	alias edit='do_edit'
+fi
+
+# Current directory history buffer
+
+func_guess_workdir() {
+	SAVE=`pwd`
+	while [ `pwd` != $HOME -a `pwd` != '/' ]
+	do
+		if [ -d datapower ]
+		then
+			if [ "$WORKDIR" != `pwd` ]
+			then
+				export WORKDIR=`pwd`
+				echo Note: WORKDIR now set to $WORKDIR
+			fi
+			break
+		else
+			cd ..
+		fi
+	done
+	cd $SAVE
+}
+
+funccd () {
+	export DIRHIST1=$DIRHIST2
+	export DIRHIST2=$DIRHIST3
+	export DIRHIST3=$DIRHIST4
+	export DIRHIST4=$DIRHIST5
+	export DIRHIST5=$DIRHIST6
+	export DIRHIST6=$DIRHIST7
+	export DIRHIST7=$DIRHIST8
+	export DIRHIST8=$DIRHIST9
+	export DIRHIST9=$DIRHIST10
+	export DIRHIST10=$DIRHIST11
+	export DIRHIST11=$DIRHIST12
+	export DIRHIST12=$DIRHIST13
+	export DIRHIST13=$DIRHIST14
+	export DIRHIST14=$DIRHIST15
+	export DIRHIST15=$DIRHIST16
+	export DIRHIST16=`pwd`
+	echo leaving $DIRHIST16
+	if [ "$1" == "" ]; then
+		do_cd
+	else
+		do_cd "$1"
+	fi
+	func_guess_workdir
+}
+
+funcprevdir () {
+	DIRTMP=`pwd`
+	do_cd "$DIRHIST16"
+	export DIRHIST16=$DIRHIST15
+	export DIRHIST15=$DIRHIST14
+	export DIRHIST14=$DIRHIST13
+	export DIRHIST13=$DIRHIST12
+	export DIRHIST12=$DIRHIST11
+	export DIRHIST11=$DIRHIST10
+	export DIRHIST10=$DIRHIST9
+	export DIRHIST9=$DIRHIST8
+	export DIRHIST8=$DIRHIST7
+	export DIRHIST7=$DIRHIST6
+	export DIRHIST6=$DIRHIST5
+	export DIRHIST5=$DIRHIST4
+	export DIRHIST4=$DIRHIST3
+	export DIRHIST3=$DIRHIST2
+	export DIRHIST2=$DIRHIST1
+	export DIRHIST1=$DIRTMP
+	func_guess_workdir
+}
+
+funcnextdir () {
+	DIRTMP=`pwd`
+	do_cd "$DIRHIST1"
+	export DIRHIST1=$DIRHIST2
+	export DIRHIST2=$DIRHIST3
+	export DIRHIST3=$DIRHIST4
+	export DIRHIST4=$DIRHIST5
+	export DIRHIST5=$DIRHIST6
+	export DIRHIST6=$DIRHIST7
+	export DIRHIST7=$DIRHIST8
+	export DIRHIST8=$DIRHIST9
+	export DIRHIST9=$DIRHIST10
+	export DIRHIST10=$DIRHIST11
+	export DIRHIST11=$DIRHIST12
+	export DIRHIST12=$DIRHIST13
+	export DIRHIST13=$DIRHIST14
+	export DIRHIST14=$DIRHIST15
+	export DIRHIST15=$DIRHIST16
+	export DIRHIST16=$DIRTMP
+	func_guess_workdir
+}
+
+JPATHS=
+declare -A JPATHS
+
+funcrememberdir () {
+	JPATHS=
+	declare -A JPATHS
+	source ~/.paths
+	if [ "$1" == "" ]; then
+		echo -n "A short name for this path: "
+		read key
+	else
+		key="$1"
+	fi
+	JPATHS[$key]=`pwd`
+	echo Saved ${JPATHS[$key]} as $key
+	declare -p JPATHS > ~/.paths
+}
+
+funcshowdir() {
+	JPATHS=
+	declare -A JPATHS
+	source ~/.paths
+	for a in ${!JPATHS[@]}
+	do
+		echo -e $a "\t" ${JPATHS[$a]}
+	done
+}
+
+funcjumpdir() {
+	JPATHS=
+	declare -A JPATHS
+	source ~/.paths
+	if [ "$1" == "" ]; then
+		funcshowdir
+	else
+		changeto=${JPATHS[$1]}
+		if [ "$changeto" == "" ]; then
+			echo "No such path"
+		else
+			funccd "${changeto}"
+		fi
+	fi
+}
+
+# Save current path
+alias save=funcrememberdir
+
+# Jump to a saved path, list known paths with no args
+alias jump=funcjumpdir
+
+# Change directory, w/ history
+alias cd=funccd
+
+# Change to previous directory in history
+alias pd=funcprevdir
+
+# Change to next directory in history
+alias nd=funcnextdir
+
+#ulimit -c 10000
+
+#export P4PORT=localhost:1666
+#export P4CONFIG=.p4config
+#export P4USER=$USER
+
+alias man="my_man"
+
+#export TARGET_BOARD=SDK6_BOARD
+export TARGET_BOARD=DDB2_BOARD
+
+# Save history immediately
+shopt -s histappend
+export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+
+
+source /usr/local/Modules/init/sh
+export MODULEPATH=/modules
+#module () {
+#	eval `/usr/share/Modules/bin/modulecmd sh $*`
+#}
+# source /opt/ros/indigo/setup.bash
+
+export XFIG_LC_CTYPE=C

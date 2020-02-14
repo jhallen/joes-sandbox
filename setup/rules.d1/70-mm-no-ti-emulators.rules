@@ -1,0 +1,13 @@
+ACTION!="add|change", GOTO="mm_usb_device_blacklist_end"
+SUBSYSTEM!="usb", GOTO="mm_usb_device_blacklist_end"
+ENV{DEVTYPE}!="usb_device",  GOTO="mm_usb_device_blacklist_end"
+
+# TI USB Emulators
+ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0010", ENV{ID_MM_DEVICE_IGNORE}="1"
+ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0013", ENV{ID_MM_DEVICE_IGNORE}="1"
+ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0014", ENV{ID_MM_DEVICE_IGNORE}="1"
+ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0203", ENV{ID_MM_DEVICE_IGNORE}="1"
+ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0204", ENV{ID_MM_DEVICE_IGNORE}="1"
+ATTRS{idVendor}=="0451", ATTRS{idProduct}=="F432", ENV{ID_MM_DEVICE_IGNORE}="1"
+
+LABEL="mm_usb_device_blacklist_end"

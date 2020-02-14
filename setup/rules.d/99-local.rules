@@ -1,0 +1,6 @@
+# Olimex
+ATTRS{idVendor}=="15ba", ATTRS{idProduct}=="002a", MODE="664", GROUP="plugdev"
+
+# FTDI
+ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6010", MODE="0666", RUN+="/bin/sh -c 'echo %p | awk -F / -f /etc/udev/awkit > /sys/bus/usb/drivers/ftdi_sio/unbind'"
+#ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6010", MODE="0666", RUN+="/bin/sh -c 'echo %k / %n / %p / %b / $driver / %M / %m / %P / $name / $links / %r / %S / %N >/sys/bus/usb/drivers/ftdi_sio/unbind'"
