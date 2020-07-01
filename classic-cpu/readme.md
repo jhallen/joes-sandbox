@@ -4,7 +4,7 @@
 |CPU       |Year|Example use              |Speed grades    |Performance         |
 |----------|----|-------------------------|----------------|--------------------|
 |6800, 6802|1974|                         |1, 1.5, 2 MHz   |188 KB/s (downwards), 158 KB/s (upwards) |
-|6502      |1975|                         |1, 2, 3 MHz     |                    |
+|6502      |1975|                         |1, 2, 3 MHz     |200 KB/s |
 |6801, 6803|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |254 KB/s (downwards), 225 KB/s (updwards) |
 |6809      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |338 KB/s (495 KB/s for reversing copy) |
 |6811      |1984|                         |1, 1.5, 2 MHz   |                    |
@@ -161,32 +161,10 @@ inner:
 	iny
 
 	etc...
-	
-	
-	lda	src+0
-	clc
-	adc	#8
-	sta	src+0
-	bcc	nocar1
-	inc	src+1
-nocar1:
-
-	lda	dest
-	clc
-	adc	#8
-	sta	dest
-	bcc	nocar2
-	inc	dest+1
-nocar2:
-
-	dex
-	bne	inner
-	
-; Deal with larger than 2K case..
-
 ~~~
 
-13 cycles per byte for the copying part, but 
+Again 13 cycles per byte for the copying part, but the overhead will
+overwhelm it.
 
 ## 6801, 6803
 
