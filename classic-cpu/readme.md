@@ -3,11 +3,33 @@
 
 |CPU       |Year|Example use              |Speed grades    |Performance         |
 |----------|----|-------------------------|----------------|--------------------|
-|6800, 6802|1974|                         |1, 1.5, 2 MHz   |188 KB/s (downwards), 158 KB/s (upwards) |
-|6502      |1975|                         |1, 2, 3 MHz     |200 KB/s |
-|6801, 6803|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |254 KB/s (downwards), 225 KB/s (updwards) |
-|6809      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |338 KB/s (495 KB/s for reversing copy) |
+|8080, 8085|1974|                         |2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s  |
+|6800, 6802|1974|                         |1, 1.5, 2 MHz   |94 KB/s - 188 KB/s (downwards), 79 KB/s - 158 KB/s (upwards) | 
+|6502      |1975|Apple 2, C64, Atari 800  |1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
+|Z80       |1976|ZX Spectrum              |                |          |
+|6801, 6803|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
+|6809      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
 |6811      |1984|                         |1, 1.5, 2 MHz   |                    |
+
+## 8080
+
+### Downwards copying
+
+~~~asm
+
+inner:
+	mov	c, (hl)		; 7
+	dcx	h		; 5
+	mov	b, (hl)		; 7
+	dcx	h		; 5
+	push	bc		; 11
+
+	dcx	de		; 5
+	jnz	inner		; 10
+
+~~~
+
+50 cycles for 2 bytes: 25 cycles / byte (up to 240 KB/s).
 
 ## 6800
 
