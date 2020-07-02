@@ -12,7 +12,7 @@
 |[2650](#signetics-2650)      |1975|                         |416 KHz, 666 KHz|68 KB/s             |
 |[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz| 119 KB/s - 286 KB/s |
 |[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
-|[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
+|[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |119.4 KB/s - 238.8 KB/s (downwards), 106.7 KB/s - 213 KB/s (updwards) |
 |[6809](#motorola-6809)      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
 |[8086](#intel-8086)      |1978|                         |5, 8 MHz        |588 KB/s  - 941 KB/s |
 |[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
@@ -85,7 +85,7 @@ inner:
 	subb	#8		; 2
 	stb	xval+1		; 4
 	bcs	noborrow	; 4
-	dec	xval		; 6 (extended)
+	dec	xval		; 6 (extended) [infrequent!]
 noborrow:
 	ldx	xval		; 4 get source pointer
 	cpx	final		; 4 (direct)
@@ -121,7 +121,7 @@ inner:
 	addb	#8		; 2
 	stb	xval+1		; 4
 	bcc	nocarry		; 4
-	inc	xval		; 6 (extended- there is no direct!)
+	inc	xval		; 6 (extended- there is no direct!) [infrequent!]
 nocarry:
 	ldx	xval		; 4 get dest pointer
 	cpx	final		; 4 (direct)
@@ -327,9 +327,6 @@ These are enhanced versions of the 6800.
 
 ~~~asm
 inner:
-	std	xval		; 4 (zero page)
-	ldx	xval		; 4 (zero page)
-
 	ldd	6,x		; 5 Load two bytes
 	pshb			; 3 Store one byte
 	psha			; 3 Store one byte
@@ -345,18 +342,18 @@ inner:
 
 	ldd	xval		; 4 Get source pointer
 	addd	#-8		; 4 Adjust
+	std	xval		; 4 (direct)
+	ldx	xval		; 4 (direct)
+	cpx	final		; 4 (direct)
 	bne	inner		; 3 Loop
 ~~~
 
-Reasonable unrolling: 63 cycles for 8 bytes: 7.875 cycles / byte (up to 254 KB / s)
+Reasonable unrolling: 67 cycles for 8 bytes: 8.375 cycles / byte (up to 239 KB / s)
 
 ### Upwards copying
 
 ~~~asm
 inner:
-	std	xval		; 4 (zero page)
-	ldx	xval		; 4 (zero page)
-
 	pulb			; 4 Load one byte
 	pula			; 4 Load one byte
 	std	0,x		; 5 Store two bytes
@@ -372,11 +369,14 @@ inner:
 
 	ldd	xval		; 4 Get source pointer
 	addd	#8		; 4 Adjust destination pointer
+	std	xval		; 4 (zero page)
+	ldx	xval		; 4 (zero page)
+	cpx	final		; 4 (direct)
 	bne	inner		; 3 Loop
 	
 ~~~
 
-Reasonable unrolling: 71 cycles for 8 bytes: 8.875 cycles / byte (up to 225 KB / s)
+Reasonable unrolling: 75 cycles for 8 bytes: 9.375 cycles / byte (up to 213 KB / s)
 
 ## Motorola 6809
 
