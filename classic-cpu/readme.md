@@ -12,7 +12,7 @@
 |[2650](#signetics-2650)      |1975|                         |416 KHz, 666 KHz|68 KB/s             |
 |[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz| 119 KB/s - 286 KB/s |
 |[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
-|[6801, 6803](#motorola-6801,-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
+|[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
 |[6809](#motorola-6809)      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
 |[8086](#intel-8086)      |1978|                         |5, 8 MHz        |588 KB/s  - 941 KB/s |
 |[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
@@ -440,7 +440,7 @@ Reasonable unrolling: 97 cycles for 24 bytes: 4.042 cycles / byte (up to 494.8 K
 
 Maximum unrolling: 22 cycles for 6 bytes: 3.666 cycles / byte (up to 545.6 KB/s)
 
-## 8086
+## Intel 8086
 
 This 16-bit processor has a 16-bit bus.
 
@@ -451,7 +451,7 @@ This 16-bit processor has a 16-bit bus.
 17 cycles for 2 bytes: 8.5 cycles / byte (up to 941KB / s).  There is a
 penalty if the words are unaligned.
 
-## 8088
+## Intel 8088
 
 This 16-bit processor has an 8-bit bus.
 
@@ -461,7 +461,7 @@ This 16-bit processor has an 8-bit bus.
 
 25 cycles for 2 bytes: 12.5 cycles / byte (up to 640KB / s)
 
-## 68000
+## Motorola 68000
 
 This 16-bit processor has a 32-bit architecture and a 16-bit bus.
 
@@ -476,7 +476,7 @@ Moving 12 32-not words at a time.
 
 48 bytes in 218 cycles: 4.5 cycles / byte.
 
-## 68008
+## Motorola 68008
 
 This 16-bit processor has a 32-bit architecture and an 8-bit bus.
 
