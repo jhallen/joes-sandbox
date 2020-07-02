@@ -12,13 +12,14 @@
 |[2650](#signetics-2650)      |1975|                         |416 KHz, 666 KHz|68 KB/s             |
 |[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz| 119 KB/s - 286 KB/s |
 |[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
-|[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |119.4 KB/s - 238.8 KB/s (downwards), 106.7 KB/s - 213 KB/s (updwards) |
+|[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |119.4 KB/s - 238.8 KB/s (downwards), 106.7 KB/s - 213 KB/s (upwards) |
 |[6809](#motorola-6809), HD63C09      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz, 3 MHz   |171 KB/s - 514 KB/s (750 KB/s for reversing copy) |
 |[8086](#intel-8086)      |1978|                         |5, 8 MHz        |588 KB/s  - 941 KB/s |
 |[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
 |[68000](#motorola-68000)     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz |889 KB/s - 1778 KB/s |
 |[68008](#motorola-68008)     |1982|Sinclair QL              |8, 10 MHz       |870 KB/s - 1087 KB/s |
 |[65816](#65816)     |1983|Apple 2 GS, SNES         |2.8, 14 MHz     |400 KB/s - 2000 KB/s |
+|[68HC11](#68HC11)|1984|             |1, 2, 3 MHz   |123 KB/s - 369 KB/s (downwards), 138 KB/s - 414 KB/s (upwards) |
 
 ## Intel 8080
 
@@ -517,3 +518,48 @@ block move instruction.
 ~~~
 
 7 cycles / byte using the dedicated instruction.
+
+## 68HC11
+
+### Downwards copying
+
+~~~asm
+inner:
+	ldx	6,y		; 6 Load two bytes
+	pshx			; 4 Save two bytes
+	ldx	4,y
+	pshx
+	ldx	2,y
+	pshx
+	ldx	0,y
+	pshx
+
+	ldd	xval		; 4 Get source pointer
+	addd	#-8		; 4 Adjust
+	std	xval		; 4 (direct)
+	ldy	xval		; 5 (direct)
+	cpy	#final		; 5 (direct)
+	bne	inner		; 3 Loop
+~~~
+
+Reasonable unrolling: 65 cycles for 8 bytes: 8.125 cycles / byte (up to 369 KB / s)
+
+### Upwards copying
+
+~~~asm
+inner:
+	puly			; 6 Load two bytes
+	sty	0,x		; 6 Store two bytes
+	puly
+	sty	2,x
+	puly
+	sty	4,x
+	puly
+	sty	6,x
+
+	abx			; 3 Adjust destination poiner
+	cpx	#final		; 4 Check
+	bne	inner		; 3 Loop
+~~~
+
+Reasonable unrolling: 58 cycles for 8 bytes: 7.25 cycles / byte (up to 414 KB / s)
