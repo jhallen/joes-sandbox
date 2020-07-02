@@ -10,7 +10,7 @@
 |1802      |1975|COSMAC ELF               |3.2, 5 MHz      |113.6 KB/s          |
 |F8        |1975|Channel F                |                |                    |
 |2650      |1975|                         |416 KHz, 666 KHz|68 KB/s             |
-|Z80       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum      |                    |
+|Z80       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz| 119 KB/s - 286 KB/s |
 |9900      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
 |6801, 6803|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
 |6809      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
@@ -255,6 +255,14 @@ inner:
 ~~~
 
 Reasonable unrolling: 71 cycles for 8 bytes: 8.875 cycles / byte (up to 225 KB / s)
+
+## Zilog Z80
+
+~~~asm
+	ldir			; (de) <- (hl)
+~~~
+
+21 cycles / byte using the dedicated block move instruction.
 
 ## Motorola 6809
 
