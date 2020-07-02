@@ -3,7 +3,7 @@
 
 |CPU       |Year|Example use              |Speed grades    |Performance         |
 |----------|----|-------------------------|----------------|--------------------|
-|[8080](#intel-8080), 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s  |
+|[8080](#intel-8080), 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s (downwards), 81.6 KB/s - 245 KB/s (upwards)|
 |[6800](#motorola-6800), 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz   |94 KB/s - 188 KB/s (downwards), 79 KB/s - 158 KB/s (upwards) | 
 |[SC/MP](#national-semiconductor-sc/mp)     |1974|                         |.5, 1 MHz       |22.6 KB/s           |
 |[6502](#6502)      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
@@ -27,18 +27,36 @@
 ~~~asm
 
 inner:
-	mov	c, (hl)		; 7
-	dcx	h		; 5
-	mov	b, (hl)		; 7
-	dcx	h		; 5
-	push	bc		; 11
+	mov	b, (hl)		; 7  Load a byte
+	dec	hl		; 5  Decrement pointer
+	mov	c, (hl)		; 7  Load a byte
+	dec	hl		; 5  Decrement pointer
+	push	bc		; 11 Store two bytes
 
-	dcx	de		; 5
-	jnz	inner		; 10
+	dec	de		; 5  Count
+	jnz	inner		; 10 Loop
 
 ~~~
 
 50 cycles for 2 bytes: 25 cycles / byte (up to 240 KB/s).
+
+### Upwards copying
+
+~~~asm
+
+inner:
+	pop	bc		; 10 Load two bytes
+	mov	(hl), c		; 7  Store one byte
+	inc	hl		; 5  Incremenet destination pointer
+	mov	(hl), b		; 7  Store one byte
+	inc	hl		; 5  Increment destination pointer
+
+	dec	de		; 5  Count
+	jnz	inner		; 10 Loop
+
+~~~
+
+49 cycles for 2 bytes: 24.5 cycles / byte (up to 245 KB/s).
 
 ## Motorola 6800
 
