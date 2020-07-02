@@ -6,10 +6,10 @@
 |[8080](#intel-8080), 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz|25, 24.5  |80 KB/s (downwards), 81.6 KB/s (upwards)|
 |[6800](#motorola-6800), 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz|11.25, 13.125   |89.9 KB/s (downwards), 76.2 KB/s (upwards) | 
 |[SC/MP](#national-semiconductor-sc/mp)     |1974|                         |.5, 1 MHz     |44.25  |11.3 KB/s           |
-|[6502](#6502)      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|15 |1, 2, 3 MHz     |66.7 KB/s |
-|[1802](#rca-1802)      |1975|COSMAC ELF               |3.2, 5 MHz|44    |  |113.6 KB/s          |
+|[6502](#6502)      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|1, 2, 3 MHz|15     |66.7 KB/s |
+|[1802](#rca-1802)      |1975|COSMAC ELF               |3.2, 5 MHz|44| 113.6 KB/s          |
 |[F8](#fairchild-f8)        |1975|Channel F                |    |            |                    |
-|[2650](#signetics-2650)      |1975|                         |    |416 KHz, 666 KHz|9.75  |68 KB/s             |
+|[2650](#signetics-2650)      |1975|                         |416 KHz, 666 KHz|9.75  |68 KB/s             |
 |[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz|21 | 119 KB/s |
 |[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |17.5     |171 KB/s            |
 |[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz|8.375, 9.375   |119.4 KB/s (downwards), 106.7 KB/s (upwards) |
