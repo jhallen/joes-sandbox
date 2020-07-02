@@ -5,13 +5,13 @@
 |----------|----|-------------------------|----------------|--------------------|
 |8080, 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s  |
 |6800, 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz   |94 KB/s - 188 KB/s (downwards), 79 KB/s - 158 KB/s (upwards) | 
-|SC/MP     |1974|                         |1, 2 MHz        |                    |
+|SC/MP     |1974|                         |.5, 1 MHz       |22.6 KB/s           |
 |6502      |1975|Apple 2, C64, Atari 800  |1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
-|1802      |1975|COSMAC ELF               |3.2, 5 MHz      |                    |
+|1802      |1975|COSMAC ELF               |3.2, 5 MHz      |113.6 KB/s          |
 |F8        |1975|Channel F                |                |                    |
-|2650      |1975|                         |                |                    |
+|2650      |1975|                         |416 KHz, 666 KHz|68 KB/s             |
 |Z80       |1976|TRS-80 Model 1, 2, 3, 4, ZX Spectrum      |                    |
-|9900      |1976|TI-99/4A                 |3 MHz           |                    |
+|9900      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
 |6801, 6803|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
 |6809      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
 |8088      |1979|IBM PC                   |5, 8 MHz        |                    |
@@ -330,3 +330,95 @@ inner:
 Reasonable unrolling: 97 cycles for 24 bytes: 4.042 cycles / byte (up to 494.8 KB/s)
 
 Maximum unrolling: 22 cycles for 6 bytes: 3.666 cycles / byte (up to 545.6 KB/s)
+
+## SC/MP
+
+SC/MP is interesting in the instruction timing does not vary base on
+addressing mode (at least not that it says in the datasheet).
+
+~~~asm
+inner:
+	ld	@1(P2)		; 18
+	st	@1(P3)		; 18
+	ld	@1(P2)		; 18
+	st	@1(P3)		; 18
+	ld	@1(P2)		; 18
+	st	@1(P3)		; 18
+	ld	@1(P2)		; 18
+	st	@1(P3)		; 18
+	dld	(P1)		; 22
+	jnz	inner		; 11
+~~~
+
+Reasonable unrolling: 177 cycles for 4 bytes: 44.25 cycles / byte (up to 22.6 KB/s).
+
+## 2650
+
+~~~asm
+inner:
+	lod			; 3
+	sto			; 3
+	lod			; 3
+	sto			; 3
+	lod			; 3
+	sto			; 3
+	lod			; 3
+	sto			; 3
+
+	addi			; 3
+	bct			; 3
+	addi			; 3..
+
+	addi			; 3
+	bct			; 3
+	addi			; 3..
+
+	bdr			; 3
+
+~~~
+
+39 cycles for 4 bytes: 9.75 cycles per byte.  Up to 68 KB / sec.
+
+## 1802
+
+8 cycles per machine cycle.
+
+~~~asm
+	lda			; 2
+	stn			; 2
+	inc			; 2
+	lda			; 2
+	stn			; 2
+	inc			; 2
+	lda			; 2
+	stn			; 2
+	inc			; 2
+	lda			; 2
+	stn			; 2
+	inc			; 2
+
+	dec			; 2
+	glo			; 2
+	bnz inner		; 2
+
+	ghi			; 2
+	bnz inner		; 2
+~~~
+
+22 machine cycles for 4 bytes: 5.5 machine cycles per byte (44 clock cycles
+per byte).  Up to 113.6 KB / sec.
+
+## 9900
+
+~~~asm
+
+inner:
+	mov	(a)+, (b)+	; 30
+	mov	(a)+, (b)+	; 30
+	mov	(a)+, (b)+	; 30
+	mov	(a)+, (b)+	; 30
+	dec			; 10
+	jne	inner		; 10
+~~~
+
+140 cycles for 8 bytes: 17.5 cycles per byte (up to 171.4 KB/s).
