@@ -5,11 +5,17 @@
 |----------|----|-------------------------|----------------|--------------------|
 |8080, 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s  |
 |6800, 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz   |94 KB/s - 188 KB/s (downwards), 79 KB/s - 158 KB/s (upwards) | 
+|SC/MP     |1974|                         |1, 2 MHz        |                    |
 |6502      |1975|Apple 2, C64, Atari 800  |1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
-|Z80       |1976|TRS-80 Model 1, 2, 3, 4, ZX Spectrum      |                |          |
+|1802      |1975|COSMAC ELF               |3.2, 5 MHz      |                    |
+|F8        |1975|Channel F                |                |                    |
+|2650      |1975|                         |                |                    |
+|Z80       |1976|TRS-80 Model 1, 2, 3, 4, ZX Spectrum      |                    |
+|9900      |1976|TI-99/4A                 |3 MHz           |                    |
 |6801, 6803|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
 |6809      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
-|6811      |1984|                         |1, 1.5, 2 MHz   |                    |
+|8088      |1979|IBM PC                   |5, 8 MHz        |                    |
+|68008     |1982|Sinclair QL              |8, 10 MHz       |                    |
 
 ## 8080
 
