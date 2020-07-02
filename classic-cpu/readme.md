@@ -3,22 +3,22 @@
 
 |CPU       |Year|Example use              |Speed grades    |Performance         |
 |----------|----|-------------------------|----------------|--------------------|
-|8080, 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s  |
-|6800, 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz   |94 KB/s - 188 KB/s (downwards), 79 KB/s - 158 KB/s (upwards) | 
-|SC/MP     |1974|                         |.5, 1 MHz       |22.6 KB/s           |
-|6502      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
-|1802      |1975|COSMAC ELF               |3.2, 5 MHz      |113.6 KB/s          |
-|F8        |1975|Channel F                |                |                    |
-|2650      |1975|                         |416 KHz, 666 KHz|68 KB/s             |
-|Z80       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz| 119 KB/s - 286 KB/s |
-|9900      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
-|6801, 6803|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
-|6809      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
-|8086      |1978|                         |5, 8 MHz        |588 KB/s  - 941 KB/s |
-|8088      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
-|68000     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz |889 KB/s - 1778 KB/s |
-|68008     |1982|Sinclair QL              |8, 10 MHz       |870 KB/s - 1087 KB/s |
-|65816     |1983|Apple 2 GS, SNES         |2.8, 14 MHz     |400 KB/s - 2000 KB/s |
+|[8080](#intel-8080), 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s  |
+|[6800](#motorola-6800), 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz   |94 KB/s - 188 KB/s (downwards), 79 KB/s - 158 KB/s (upwards) | 
+|[SC/MP](#national-semiconductor-sc/mp)     |1974|                         |.5, 1 MHz       |22.6 KB/s           |
+|[6502](#6502)      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
+|[1802](#rca-1802)      |1975|COSMAC ELF               |3.2, 5 MHz      |113.6 KB/s          |
+|[F8](#fairchild-f8)        |1975|Channel F                |                |                    |
+|[2650](#signetics-2650)      |1975|                         |416 KHz, 666 KHz|68 KB/s             |
+|[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz| 119 KB/s - 286 KB/s |
+|[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
+|[6801, 6803](#motorola-6801,-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
+|[6809](#motorola-6809)      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
+|[8086](#intel-8086)      |1978|                         |5, 8 MHz        |588 KB/s  - 941 KB/s |
+|[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
+|[68000](#motorola-68000)     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz |889 KB/s - 1778 KB/s |
+|[68008](#motorola-68008)     |1982|Sinclair QL              |8, 10 MHz       |870 KB/s - 1087 KB/s |
+|[65816](#65816)     |1983|Apple 2 GS, SNES         |2.8, 14 MHz     |400 KB/s - 2000 KB/s |
 
 ## Intel 8080
 
@@ -114,6 +114,27 @@ Reasonable unrolling: 101 cycles for 8 bytes: 12.625 cycles / byte (up to 158.4 
 
 Maximum unrolling: 10 cycles per byte (up to 200 KB/s)
 
+## National Semiconductor SC/MP
+
+SC/MP is interesting in the instruction timing does not vary base on
+addressing mode (at least not that it says in the datasheet).
+
+~~~asm
+inner:
+	ld	@1(P2)		; 18
+	st	@1(P3)		; 18
+	ld	@1(P2)		; 18
+	st	@1(P3)		; 18
+	ld	@1(P2)		; 18
+	st	@1(P3)		; 18
+	ld	@1(P2)		; 18
+	st	@1(P3)		; 18
+	dld	(P1)		; 22
+	jnz	inner		; 11
+~~~
+
+Reasonable unrolling: 177 cycles for 4 bytes: 44.25 cycles / byte (up to 22.6 KB/s).
+
 ## 6502
 
 The fastest copy is with self-modified code.  Use the "ABS, X" or "ABS, Y"
@@ -197,6 +218,89 @@ inner:
 Again 13 cycles per byte for the copying part, but the overhead will
 overwhelm it.
 
+## RCA 1802
+
+This is the first CMOS microprocessor and is often used on spacecraft.
+
+8 cycles per machine cycle.
+
+~~~asm
+	lda			; 2
+	stn			; 2
+	inc			; 2
+	lda			; 2
+	stn			; 2
+	inc			; 2
+	lda			; 2
+	stn			; 2
+	inc			; 2
+	lda			; 2
+	stn			; 2
+	inc			; 2
+
+	dec			; 2
+	glo			; 2
+	bnz inner		; 2
+
+	ghi			; 2
+	bnz inner		; 2
+~~~
+
+22 machine cycles for 4 bytes: 5.5 machine cycles per byte (44 clock cycles
+per byte).  Up to 113.6 KB / sec.
+
+## Signetics 2650
+
+~~~asm
+inner:
+	lod			; 3
+	sto			; 3
+	lod			; 3
+	sto			; 3
+	lod			; 3
+	sto			; 3
+	lod			; 3
+	sto			; 3
+
+	addi			; 3
+	bct			; 3
+	addi			; 3..
+
+	addi			; 3
+	bct			; 3
+	addi			; 3..
+
+	bdr			; 3
+
+~~~
+
+39 cycles for 4 bytes: 9.75 cycles per byte.  Up to 68 KB / sec.
+
+## Zilog Z80
+
+~~~asm
+	ldir			; (de) <- (hl)
+~~~
+
+21 cycles / byte using the dedicated block move instruction.
+
+## TI 9900
+
+This is an early 16-bit microprocessor.
+
+~~~asm
+
+inner:
+	mov	(a)+, (b)+	; 30
+	mov	(a)+, (b)+	; 30
+	mov	(a)+, (b)+	; 30
+	mov	(a)+, (b)+	; 30
+	dec			; 10
+	jne	inner		; 10
+~~~
+
+140 cycles for 8 bytes: 17.5 cycles per byte (up to 171.4 KB/s).
+
 ## Motorola 6801, 6803
 
 These are enhanced versions of the 6800.
@@ -255,14 +359,6 @@ inner:
 ~~~
 
 Reasonable unrolling: 71 cycles for 8 bytes: 8.875 cycles / byte (up to 225 KB / s)
-
-## Zilog Z80
-
-~~~asm
-	ldir			; (de) <- (hl)
-~~~
-
-21 cycles / byte using the dedicated block move instruction.
 
 ## Motorola 6809
 
@@ -344,102 +440,6 @@ Reasonable unrolling: 97 cycles for 24 bytes: 4.042 cycles / byte (up to 494.8 K
 
 Maximum unrolling: 22 cycles for 6 bytes: 3.666 cycles / byte (up to 545.6 KB/s)
 
-## National Semiconductor SC/MP
-
-SC/MP is interesting in the instruction timing does not vary base on
-addressing mode (at least not that it says in the datasheet).
-
-~~~asm
-inner:
-	ld	@1(P2)		; 18
-	st	@1(P3)		; 18
-	ld	@1(P2)		; 18
-	st	@1(P3)		; 18
-	ld	@1(P2)		; 18
-	st	@1(P3)		; 18
-	ld	@1(P2)		; 18
-	st	@1(P3)		; 18
-	dld	(P1)		; 22
-	jnz	inner		; 11
-~~~
-
-Reasonable unrolling: 177 cycles for 4 bytes: 44.25 cycles / byte (up to 22.6 KB/s).
-
-## Signetics 2650
-
-~~~asm
-inner:
-	lod			; 3
-	sto			; 3
-	lod			; 3
-	sto			; 3
-	lod			; 3
-	sto			; 3
-	lod			; 3
-	sto			; 3
-
-	addi			; 3
-	bct			; 3
-	addi			; 3..
-
-	addi			; 3
-	bct			; 3
-	addi			; 3..
-
-	bdr			; 3
-
-~~~
-
-39 cycles for 4 bytes: 9.75 cycles per byte.  Up to 68 KB / sec.
-
-## RCA 1802
-
-This is the first CMOS microprocessor and is often used on spacecraft.
-
-8 cycles per machine cycle.
-
-~~~asm
-	lda			; 2
-	stn			; 2
-	inc			; 2
-	lda			; 2
-	stn			; 2
-	inc			; 2
-	lda			; 2
-	stn			; 2
-	inc			; 2
-	lda			; 2
-	stn			; 2
-	inc			; 2
-
-	dec			; 2
-	glo			; 2
-	bnz inner		; 2
-
-	ghi			; 2
-	bnz inner		; 2
-~~~
-
-22 machine cycles for 4 bytes: 5.5 machine cycles per byte (44 clock cycles
-per byte).  Up to 113.6 KB / sec.
-
-## TI 9900
-
-This is an early 16-bit microprocessor.
-
-~~~asm
-
-inner:
-	mov	(a)+, (b)+	; 30
-	mov	(a)+, (b)+	; 30
-	mov	(a)+, (b)+	; 30
-	mov	(a)+, (b)+	; 30
-	dec			; 10
-	jne	inner		; 10
-~~~
-
-140 cycles for 8 bytes: 17.5 cycles per byte (up to 171.4 KB/s).
-
 ## 8086
 
 This 16-bit processor has a 16-bit bus.
@@ -491,7 +491,7 @@ For example, moving 12 32-not words at a time.
 
 48 bytes in 442 cycles: 9.2 cycles / byte.  Up to 1.09 MB / s.
 
-## 65C816
+## 65816
 
 This is an enhanced 6502 that inclues 16-bit features including a dedicated
 block move instruction.
