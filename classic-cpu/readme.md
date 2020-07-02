@@ -6,7 +6,7 @@
 |8080, 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s  |
 |6800, 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz   |94 KB/s - 188 KB/s (downwards), 79 KB/s - 158 KB/s (upwards) | 
 |SC/MP     |1974|                         |.5, 1 MHz       |22.6 KB/s           |
-|6502      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800|1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
+|6502      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
 |1802      |1975|COSMAC ELF               |3.2, 5 MHz      |113.6 KB/s          |
 |F8        |1975|Channel F                |                |                    |
 |2650      |1975|                         |416 KHz, 666 KHz|68 KB/s             |
@@ -18,8 +18,9 @@
 |8088      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
 |68000     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz |889 KB/s - 1778 KB/s |
 |68008     |1982|Sinclair QL              |8, 10 MHz       |870 KB/s - 1087 KB/s |
+|65816     |1983|Apple 2 GS, SNES         |2.8, 14 MHz     |400 KB/s - 2000 KB/s |
 
-## 8080
+## Intel 8080
 
 ### Downwards copying
 
@@ -39,7 +40,7 @@ inner:
 
 50 cycles for 2 bytes: 25 cycles / byte (up to 240 KB/s).
 
-## 6800
+## Motorola 6800
 
 ### Downwards copying
 
@@ -196,7 +197,9 @@ inner:
 Again 13 cycles per byte for the copying part, but the overhead will
 overwhelm it.
 
-## 6801, 6803
+## Motorola 6801, 6803
+
+These are enhanced versions of the 6800.
 
 ### Downwards copying
 
@@ -253,7 +256,7 @@ inner:
 
 Reasonable unrolling: 71 cycles for 8 bytes: 8.875 cycles / byte (up to 225 KB / s)
 
-## 6809
+## Motorola 6809
 
 ### Downwards copying
 
@@ -333,7 +336,7 @@ Reasonable unrolling: 97 cycles for 24 bytes: 4.042 cycles / byte (up to 494.8 K
 
 Maximum unrolling: 22 cycles for 6 bytes: 3.666 cycles / byte (up to 545.6 KB/s)
 
-## SC/MP
+## National Semiconductor SC/MP
 
 SC/MP is interesting in the instruction timing does not vary base on
 addressing mode (at least not that it says in the datasheet).
@@ -354,7 +357,7 @@ inner:
 
 Reasonable unrolling: 177 cycles for 4 bytes: 44.25 cycles / byte (up to 22.6 KB/s).
 
-## 2650
+## Signetics 2650
 
 ~~~asm
 inner:
@@ -381,7 +384,9 @@ inner:
 
 39 cycles for 4 bytes: 9.75 cycles per byte.  Up to 68 KB / sec.
 
-## 1802
+## RCA 1802
+
+This is the first CMOS microprocessor and is often used on spacecraft.
 
 8 cycles per machine cycle.
 
@@ -410,7 +415,9 @@ inner:
 22 machine cycles for 4 bytes: 5.5 machine cycles per byte (44 clock cycles
 per byte).  Up to 113.6 KB / sec.
 
-## 9900
+## TI 9900
+
+This is an early 16-bit microprocessor.
 
 ~~~asm
 
@@ -427,13 +434,18 @@ inner:
 
 ## 8086
 
+This 16-bit processor has a 16-bit bus.
+
 ~~~asm
 	rep movsw		; 9+17n
 ~~~
 
-17 cycles for 2 bytes: 8.5 cycles / byte (up to 941KB / s)
+17 cycles for 2 bytes: 8.5 cycles / byte (up to 941KB / s).  There is a
+penalty if the words are unaligned.
 
 ## 8088
+
+This 16-bit processor has an 8-bit bus.
 
 ~~~asm
 	rep movsw		; 9+25n
@@ -443,10 +455,13 @@ inner:
 
 ## 68000
 
+This 16-bit processor has a 32-bit architecture and a 16-bit bus.
+
 ~~~asm
-	movem			; 8 + 8n
-	movem			; 8 + 8n
-	dbnz inner		; 10
+inner:
+	movem			; 8 + 8n  Load multiple registers
+	movem			; 8 + 8n  Store multiple registers
+	dbnz inner		; 10  Count and loop
 ~~~
 
 Moving 12 32-not words at a time.
@@ -455,13 +470,26 @@ Moving 12 32-not words at a time.
 
 ## 68008
 
+This 16-bit processor has a 32-bit architecture and an 8-bit bus.
+
 ~~~asm
-	movem			; 16 + 16n
-	movem			; 24 + 16n
-	dbnz inner		; 18
+inner:
+	movem			; 16 + 16n  Load multiple registers
+	movem			; 24 + 16n  Store multiple registers
+	dbnz inner		; 18  Count and loop
 ~~~
 
-Moving 12 32-not words at a time.
+For example, moving 12 32-not words at a time.
 
 48 bytes in 442 cycles: 9.2 cycles / byte.  Up to 1.09 MB / s.
 
+## 65C816
+
+This is an enhanced 6502 that inclues 16-bit features including a dedicated
+block move instruction.
+
+~~~asm
+	mvp			; 7 cycles / byte
+~~~
+
+7 cycles / byte using the dedicated instruction.
