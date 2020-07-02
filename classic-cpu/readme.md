@@ -4,7 +4,7 @@
 |CPU       |Year|Example use              |Speed grades    |Performance         |
 |----------|----|-------------------------|----------------|--------------------|
 |[8080](#intel-8080), 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s (downwards), 81.6 KB/s - 245 KB/s (upwards)|
-|[6800](#motorola-6800), 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz   |94 KB/s - 188 KB/s (downwards), 79 KB/s - 158 KB/s (upwards) | 
+|[6800](#motorola-6800), 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz   |89.9 KB/s - 179.8 KB/s (downwards), 76.2 KB/s - 152.3 KB/s (upwards) | 
 |[SC/MP](#national-semiconductor-sc/mp)     |1974|                         |.5, 1 MHz       |22.6 KB/s           |
 |[6502](#6502)      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
 |[1802](#rca-1802)      |1975|COSMAC ELF               |3.2, 5 MHz      |113.6 KB/s          |
@@ -60,17 +60,10 @@ inner:
 
 ## Motorola 6800
 
-### Downwards copying
+
 
 ~~~asm
 inner:
-	ldab	xval+1		; 3 (zero page)
-	subb	#8		; 2
-	stab	xval+1		; 4
-	bcs	noborrow	; 4
-	dec	xval		; 6 (extended)
-noborrow:
-
 	lda	7,x		; 5 Load two bytes
 	psha			; 3 Store one byte
 	lda	6,x		; 5 Load two bytes
@@ -88,11 +81,18 @@ noborrow:
 	lda	0,x		; 5 Load two bytes
 	psha			; 3 Store one byte
 
-	cpx	final		; 4 (zero page)
+	ldb	xval+1		; 3 (zero page)
+	subb	#8		; 2
+	stb	xval+1		; 4
+	bcs	noborrow	; 4
+	dec	xval		; 6 (extended)
+noborrow:
+	ldx	xval		; 4 get source pointer
+	cpx	final		; 4 (direct)
 	bne	inner		; 4
 ~~~
 
-Reasonable unrolling: 85 cycles for 8 bytes: 10.625 cycles / byte (up to 188.2 KB/s)
+Reasonable unrolling: 89 cycles for 8 bytes: 11.125 cycles / byte (up to 179.8 KB/s)
 
 Maximum unrolling: 8 cycles per byte (up to 250 KB/s)
 
@@ -100,13 +100,6 @@ Maximum unrolling: 8 cycles per byte (up to 250 KB/s)
 
 ~~~asm
 inner:
-	ldab	xval+1		; 3 (zero page)
-	addb	#8		; 2
-	stab	xval+1		; 4
-	bcc	nocarry		; 4
-	dec	xval		; 6 (extended)
-nocarry:
-
 	pula			; 4 Load one byte
 	sta	0,x		; 6 Store one  byte
 	pula
@@ -124,11 +117,18 @@ nocarry:
 	pula
 	sta	7,x
 
-	cpx	final		; 4 (zero page)
+	ldb	xval+1		; 3 (zero page)
+	addb	#8		; 2
+	stb	xval+1		; 4
+	bcc	nocarry		; 4
+	inc	xval		; 6 (extended- there is no direct!)
+nocarry:
+	ldx	xval		; 4 get dest pointer
+	cpx	final		; 4 (direct)
 	bne	inner		; 4
 ~~~
 
-Reasonable unrolling: 101 cycles for 8 bytes: 12.625 cycles / byte (up to 158.4 KB/s)
+Reasonable unrolling: 105 cycles for 8 bytes: 13.125 cycles / byte (up to 152.3 KB/s)
 
 Maximum unrolling: 10 cycles per byte (up to 200 KB/s)
 
