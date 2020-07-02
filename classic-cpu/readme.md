@@ -18,8 +18,11 @@
 |[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz |12.5       |400 KB/s |
 |[68000](#motorola-68000)     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz|4.5 |889 KB/s |
 |[68008](#motorola-68008)     |1982|Sinclair QL              |8, 10 MHz |9.2      |870 KB/s |
+|[80286](#intel-80286)        |1982|                         |4, 6, 8, 12.5 MHz |2         |2000 KB/s       |
 |[65816](#65816)     |1983|Apple 2 GS, SNES         |2.8, 14 MHz |7    |400 KB/s |
 |[68HC11](#68HC11)|1984|             |1, 2, 3 MHz |8.125, 7.25     |123 KB/s (downwards), 138 KB/s (upwards) |
+|[80286](#intel-80386)        |1985|                         |12, 16, 20 MHz |1         |12000 KB/s       |
+|[VL86C010](#VL86C010)|1986|Acorn RISC Machine|10, 12 MHz |.6 |16667 KB/s |
 
 ## Intel 8080
 
@@ -565,3 +568,15 @@ inner:
 ~~~
 
 Reasonable unrolling: 58 cycles for 8 bytes: 7.25 cycles / byte (up to 414 KB / s)
+
+## VL86C010
+
+~~~asm
+inner:
+	ldm			; 11 Load 40 bytes (10 registers)
+	stm			; 11 Save 40 bytes (10 registers)
+	sub	r11, #1		;  1 Count
+	b	inner		;  1 Loop
+~~~
+
+24 cycles for 40 bytes: .6 cycles / byte.
