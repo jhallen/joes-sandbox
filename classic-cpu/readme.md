@@ -13,7 +13,7 @@
 |[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz| 119 KB/s - 286 KB/s |
 |[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
 |[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |119.4 KB/s - 238.8 KB/s (downwards), 106.7 KB/s - 213 KB/s (updwards) |
-|[6809](#motorola-6809)      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |171 KB/s - 343 KB/s (500 KB/s for reversing copy) |
+|[6809](#motorola-6809), HD63C09      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz, 3 MHz   |171 KB/s - 514 KB/s (750 KB/s for reversing copy) |
 |[8086](#intel-8086)      |1978|                         |5, 8 MHz        |588 KB/s  - 941 KB/s |
 |[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
 |[68000](#motorola-68000)     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz |889 KB/s - 1778 KB/s |
