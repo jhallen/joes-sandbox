@@ -14,8 +14,9 @@
 |9900      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
 |6801, 6803|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |127 KB/s - 254 KB/s (downwards), 112.7 KB/s - 225 KB/s (updwards) |
 |6809      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
-|8088      |1979|IBM PC                   |5, 8 MHz        |                    |
-|68008     |1982|Sinclair QL              |8, 10 MHz       |                    |
+|8088      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
+|68000     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz |889 KB/s - 1778 KB/s |
+|68008     |1982|Sinclair QL              |8, 10 MHz       |870 KB/s - 1087 KB/s |
 
 ## 8080
 
@@ -422,3 +423,36 @@ inner:
 ~~~
 
 140 cycles for 8 bytes: 17.5 cycles per byte (up to 171.4 KB/s).
+
+## 8088
+
+~~~asm
+	rep movsw		; 9+25n
+~~~
+
+25 cycles for 2 bytes: 12.5 cycles / byte (up to 640KB / s)
+
+## 68000
+
+~~~asm
+	movem			; 8 + 8n
+	movem			; 8 + 8n
+	dbnz inner		; 10
+~~~
+
+Moving 12 32-not words at a time.
+
+48 bytes in 218 cycles: 4.5 cycles / byte.
+
+## 68008
+
+~~~asm
+	movem			; 16 + 16n
+	movem			; 24 + 16n
+	dbnz inner		; 18
+~~~
+
+Moving 12 32-not words at a time.
+
+48 bytes in 442 cycles: 9.2 cycles / byte.  Up to 1.09 MB / s.
+
