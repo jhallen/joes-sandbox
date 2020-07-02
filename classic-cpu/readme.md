@@ -13,10 +13,10 @@
 |[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz|21 | 119 KB/s |
 |[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |17.5     |171 KB/s            |
 |[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz|8.375, 9.375   |119.4 KB/s (downwards), 106.7 KB/s (upwards) |
-|[6809](#motorola-6809), HD63C09      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz, 3 MHz|5.833   |171 KB/s (750 KB/s for reversing copy) |
+|[6809](#motorola-6809), HD63C09      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz, 3 MHz|5.833, 4  |171 KB/s (250 KB/s for reversing copy) |
 |[8086](#intel-8086)      |1978|                         |5, 8 MHz |8.5       |588 KB/s |
 |[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz |12.5       |400 KB/s |
-|[68000](#motorola-68000)     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4.5   |4, 6, 8 MHz |889 KB/s |
+|[68000](#motorola-68000)     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz|4.5 |889 KB/s |
 |[68008](#motorola-68008)     |1982|Sinclair QL              |8, 10 MHz |9.2      |870 KB/s |
 |[65816](#65816)     |1983|Apple 2 GS, SNES         |2.8, 14 MHz |7    |400 KB/s |
 |[68HC11](#68HC11)|1984|             |1, 2, 3 MHz |8.125, 7.25     |123 KB/s (downwards), 138 KB/s (upwards) |
