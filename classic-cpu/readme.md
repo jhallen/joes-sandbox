@@ -13,7 +13,7 @@
 |[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz| 119 KB/s - 286 KB/s |
 |[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
 |[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |119.4 KB/s - 238.8 KB/s (downwards), 106.7 KB/s - 213 KB/s (updwards) |
-|[6809](#motorola-6809)      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |169 KB/s - 338 KB/s (495 KB/s for reversing copy) |
+|[6809](#motorola-6809)      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz   |171 KB/s - 343 KB/s (500 KB/s for reversing copy) |
 |[8086](#intel-8086)      |1978|                         |5, 8 MHz        |588 KB/s  - 941 KB/s |
 |[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
 |[68000](#motorola-68000)     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz |889 KB/s - 1778 KB/s |
@@ -60,26 +60,24 @@ inner:
 
 ## Motorola 6800
 
-
-
 ~~~asm
 inner:
-	lda	7,x		; 5 Load two bytes
+	lda	7,x		; 5 Load one bytes
 	psha			; 3 Store one byte
-	lda	6,x		; 5 Load two bytes
-	psha			; 3 Store one byte
-	lda	5,x		; 5 Load two bytes
-	psha			; 3 Store one byte
-	lda	4,x		; 5 Load two bytes
-	psha			; 3 Store one byte
-	lda	3,x		; 5 Load two bytes
-	psha			; 3 Store one byte
-	lda	2,x		; 5 Load two bytes
-	psha			; 3 Store one byte
-	lda	1,x		; 5 Load two bytes
-	psha			; 3 Store one byte
-	lda	0,x		; 5 Load two bytes
-	psha			; 3 Store one byte
+	lda	6,x
+	psha
+	lda	5,x
+	psha
+	lda	4,x
+	psha
+	lda	3,x
+	psha
+	lda	2,x
+	psha
+	lda	1,x
+	psha
+	lda	0,x
+	psha
 
 	ldb	xval+1		; 3 (zero page)
 	subb	#8		; 2
@@ -330,15 +328,15 @@ inner:
 	ldd	6,x		; 5 Load two bytes
 	pshb			; 3 Store one byte
 	psha			; 3 Store one byte
-	ldd	4,x		; 5
-	pshb			; 3
-	psha			; 3
-	ldd	2,x		; 5
-	pshb			; 3
-	psha			; 3
-	ldd	0,x		; 5
-	pshb			; 3
-	psha			; 3
+	ldd	4,x
+	pshb
+	psha
+	ldd	2,x
+	pshb
+	psha
+	ldd	0,x
+	pshb
+	psha
 
 	ldd	xval		; 4 Get source pointer
 	addd	#-8		; 4 Adjust
@@ -357,15 +355,15 @@ inner:
 	pulb			; 4 Load one byte
 	pula			; 4 Load one byte
 	std	0,x		; 5 Store two bytes
-	pulb			; 4 Load one byte
-	pula			; 4 Load one byte
-	std	2,x		; 5 Store two bytes
-	pulb			; 4 Load one byte
-	pula			; 4 Load one byte
-	std	4,x		; 5 Store two bytes
-	pulb			; 4 Load one byte
-	pula			; 4 Load one byte
-	std	6,x		; 5 Store two bytes
+	pulb
+	pula
+	std	2,x
+	pulb
+	pula
+	std	4,x
+	pulb
+	pula
+	std	6,x
 
 	ldd	xval		; 4 Get source pointer
 	addd	#8		; 4 Adjust destination pointer
@@ -399,11 +397,11 @@ inner:
 	ldd	,y		; 5   Load 2 bytes (no offset)
 	pshs	d,x,u		; 11  Store 6 bytes
         leay	-12,y		; 5   Adjust source address (5-bit offset)
-        dec	counter		; 6   Count (using Direct Addressing)
+	cmpy	#final		; 5   Check (stuff final here)
         bne	inner		; 3   Loop
 ~~~
 
-Reasonable unrolling: 71 cycles for 12 bytes: 5.916 cycles / byte (up to 338 KB / s)
+Reasonable unrolling: 70 cycles for 12 bytes: 5.833 cycles / byte (up to 343 KB / s)
 
 Maximum unrolling: 29 cycles per 6 bytes: 4.833 cycles / byte (up to 414 KB / s)
 
@@ -426,11 +424,11 @@ inner:
 	stx	8,y             ; 6   Store 2 bytes
 	stu	10,y            ; 6   Store 2 bytes
         leay	12,y		; 5   Adjust destination address (5-bit offset)
-        dec	counter		; 6   Count (using Direct Addressing)
+	cmpy	#final		; 5   Check (stuff final here)
         bne	inner		; 3   Loop
 ~~~
 
-Reasonable unrolling: 71 cycles for 12 bytes: 5.916 cycles / byte (up to 338 KB / s)
+Reasonable unrolling: 70 cycles for 12 bytes: 5.833 cycles / byte (up to 343 KB / s)
 
 Maximum unrolling: 29 cycles per 6 bytes: 4.833 cycles / byte (up to 414 KB / s)
 
@@ -450,11 +448,11 @@ inner:
 	pshs	d,x,y
 	pulu	d,x,y
 	pshs	d,x,y
-	dec	counter		; 6  Count
+	cmpu	#final		; 5  Check
 	bne	inner		; 3  Loop
 ~~~
 
-Reasonable unrolling: 97 cycles for 24 bytes: 4.042 cycles / byte (up to 494.8 KB/s)
+Reasonable unrolling: 96 cycles for 24 bytes: 4 cycles / byte (up to 500 KB/s)
 
 Maximum unrolling: 22 cycles for 6 bytes: 3.666 cycles / byte (up to 545.6 KB/s)
 
