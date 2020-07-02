@@ -1,25 +1,25 @@
 # Classic CPU Performance Comparison
 
 
-|CPU       |Year|Example use              |Speed grades    |Performance         |
-|----------|----|-------------------------|----------------|--------------------|
-|[8080](#intel-8080), 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz  |80 KB/s - 240 KB/s (downwards), 81.6 KB/s - 245 KB/s (upwards)|
-|[6800](#motorola-6800), 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz   |89.9 KB/s - 179.8 KB/s (downwards), 76.2 KB/s - 152.3 KB/s (upwards) | 
-|[SC/MP](#national-semiconductor-sc/mp)     |1974|                         |.5, 1 MHz       |22.6 KB/s           |
-|[6502](#6502)      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|1, 2, 3 MHz     |66.7 KB/s - 200 KB/s |
-|[1802](#rca-1802)      |1975|COSMAC ELF               |3.2, 5 MHz      |113.6 KB/s          |
-|[F8](#fairchild-f8)        |1975|Channel F                |                |                    |
-|[2650](#signetics-2650)      |1975|                         |416 KHz, 666 KHz|68 KB/s             |
-|[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz| 119 KB/s - 286 KB/s |
-|[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |171 KB/s            |
-|[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz   |119.4 KB/s - 238.8 KB/s (downwards), 106.7 KB/s - 213 KB/s (upwards) |
-|[6809](#motorola-6809), HD63C09      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz, 3 MHz   |171 KB/s - 514 KB/s (750 KB/s for reversing copy) |
-|[8086](#intel-8086)      |1978|                         |5, 8 MHz        |588 KB/s  - 941 KB/s |
-|[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz        |400 KB/s  - 640 KB/s |
-|[68000](#motorola-68000)     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4, 6, 8 MHz |889 KB/s - 1778 KB/s |
-|[68008](#motorola-68008)     |1982|Sinclair QL              |8, 10 MHz       |870 KB/s - 1087 KB/s |
-|[65816](#65816)     |1983|Apple 2 GS, SNES         |2.8, 14 MHz     |400 KB/s - 2000 KB/s |
-|[68HC11](#68HC11)|1984|             |1, 2, 3 MHz   |123 KB/s - 369 KB/s (downwards), 138 KB/s - 414 KB/s (upwards) |
+|CPU       |Year|Example use              |Speed grades    |Cycles/Byte|Performance (slowest speed grade)|
+|----------|----|-------------------------|----------------|------|--------------|
+|[8080](#intel-8080), 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz|25, 24.5  |80 KB/s (downwards), 81.6 KB/s (upwards)|
+|[6800](#motorola-6800), 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz|11.25, 13.125   |89.9 KB/s (downwards), 76.2 KB/s (upwards) | 
+|[SC/MP](#national-semiconductor-sc/mp)     |1974|                         |.5, 1 MHz     |44.25  |11.3 KB/s           |
+|[6502](#6502)      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|15 |1, 2, 3 MHz     |66.7 KB/s |
+|[1802](#rca-1802)      |1975|COSMAC ELF               |3.2, 5 MHz|44    |  |113.6 KB/s          |
+|[F8](#fairchild-f8)        |1975|Channel F                |    |            |                    |
+|[2650](#signetics-2650)      |1975|                         |    |416 KHz, 666 KHz|9.75  |68 KB/s             |
+|[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz|21 | 119 KB/s |
+|[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |17.5     |171 KB/s            |
+|[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz|8.375, 9.375   |119.4 KB/s (downwards), 106.7 KB/s (upwards) |
+|[6809](#motorola-6809), HD63C09      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz, 3 MHz|5.833   |171 KB/s (750 KB/s for reversing copy) |
+|[8086](#intel-8086)      |1978|                         |5, 8 MHz |8.5       |588 KB/s |
+|[8088](#intel-8088)      |1979|IBM PC                   |5, 8 MHz |12.5       |400 KB/s |
+|[68000](#motorola-68000)     |1980|Apple Macintosh, Amiga, Atari ST, TRS-80 Model 12/16|4.5   |4, 6, 8 MHz |889 KB/s |
+|[68008](#motorola-68008)     |1982|Sinclair QL              |8, 10 MHz |9.2      |870 KB/s |
+|[65816](#65816)     |1983|Apple 2 GS, SNES         |2.8, 14 MHz |7    |400 KB/s |
+|[68HC11](#68HC11)|1984|             |1, 2, 3 MHz |8.125, 7.25     |123 KB/s (downwards), 138 KB/s (upwards) |
 
 ## Intel 8080
 
@@ -60,6 +60,8 @@ inner:
 49 cycles for 2 bytes: 24.5 cycles / byte (up to 245 KB/s).
 
 ## Motorola 6800
+
+### Downwards copying
 
 ~~~asm
 inner:
