@@ -1,4 +1,4 @@
-# Classic CPU Performance Comparison
+# Classic CPU Memcpy Comparison
 
 Here is a table of the bandwidths you can expect to get from memmove/memcpy
 on various classic CPUs.  These operations are important- for example, they
