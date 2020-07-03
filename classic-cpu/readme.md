@@ -280,8 +280,6 @@ dest:	sta	$0000,x		; 5  Store one byte
 
 13 cycles per byte: (up to 231 KB/s)
 
-The "(ind),y" mode could be used in a way that seems to allow unrolling...
-
 ## RCA 1802
 
 This is the first CMOS microprocessor and is often used on spacecraft.
