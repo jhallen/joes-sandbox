@@ -5,6 +5,10 @@ on various classic CPUs.  These operations are important- for example, they
 are the key operation for scrolling the screen in a video game without any
 acceleration hardware (such as Spectrum ZX).
 
+The CPUs towards the end of the table are likely used with an external
+cache, so the performance is likely an over-estimaate (or count it as peak
+cache-to-cache performance).
+
 |CPU       |Year|Example use              |Speed grades    |Cycles/Byte|Performance (slowest speed grade)|
 |----------|----|-------------------------|----------------|------|--------------|
 |[8008](#intel-8008)|1972|                |250, 500 KHz    |89    |2.8 KB/s      |
