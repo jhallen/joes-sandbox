@@ -11,7 +11,7 @@ acceleration hardware (such as Spectrum ZX).
 |[8080](#intel-8080), 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz|25, 24.5  |80 KB/s (downwards), 81.6 KB/s (upwards)|
 |[6800](#motorola-6800), 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz|11.25, 13.125   |89.9 KB/s (downwards), 76.2 KB/s (upwards) | 
 |[SC/MP](#national-semiconductor-sc/mp)     |1974|                         |.5, 1 MHz     |44.25  |11.3 KB/s           |
-|[6502](#6502)      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|1, 2, 3 MHz|15     |66.7 KB/s |
+|[6502](#6502)      |1975|Apple 1, 2; Commodore Pet, Vic-20, 64; Atari VCS, 400/800, NES|1, 2, 3 MHz|13     |76.9 KB/s |
 |[1802](#rca-1802)      |1975|COSMAC ELF               |3.2, 5 MHz|44| 113.6 KB/s          |
 |[F8](#fairchild-f8)        |1975|Channel F                |    |            |                    |
 |[2650](#signetics-2650)      |1975|                         |416 KHz, 666 KHz|9.75  |68 KB/s             |
@@ -278,34 +278,6 @@ dest:	sta	$0000,x		; 5  Store one byte
 
 The "(ind),y" mode could be used in a way that seems to allow unrolling...
 
-~~~asm
-
-; Setup: load size/8 into x
-
-inner:
-
-	lda	(src),y		; 5  Load one byte
-	sta	(dest),y	; 6  Store one byte
-	iny			; 2  Increment index
-
-	lda	(src),y
-	sta	(dest),y
-	iny
-
-	lda	(src),y
-	sta	(dest),y
-	iny
-
-	lda	(src),y
-	sta	(dest),y
-	iny
-
-	etc...
-~~~
-
-Again 13 cycles per byte for the copying part, but the overhead will
-overwhelm it.
-
 ## RCA 1802
 
 This is the first CMOS microprocessor and is often used on spacecraft.
@@ -560,7 +532,7 @@ inner:
 	dbnz inner		; 10  Count and loop
 ~~~
 
-Moving 12 32-not words at a time.
+Moving 12 32-bit words at a time.
 
 48 bytes in 218 cycles: 4.5 cycles / byte.
 
@@ -575,7 +547,7 @@ inner:
 	dbnz inner		; 18  Count and loop
 ~~~
 
-For example, moving 12 32-not words at a time.
+For example, moving 12 32-bit words at a time.
 
 48 bytes in 442 cycles: 9.2 cycles / byte.  Up to 1.09 MB / s.
 
@@ -636,6 +608,8 @@ inner:
 Reasonable unrolling: 58 cycles for 8 bytes: 7.25 cycles / byte (up to 414 KB / s)
 
 ## VL86C010
+
+Use load and store multiple.
 
 ~~~asm
 inner:
