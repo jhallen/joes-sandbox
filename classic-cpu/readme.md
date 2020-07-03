@@ -1,8 +1,13 @@
 # Classic CPU Performance Comparison
 
+Here is a table of the bandwidths you can expect to get from memmove/memcpy
+on various classic CPUs.  These operations are important- for example, they
+are the key operation for scrolling the screen in a video game without any
+acceleration hardware (such as Spectrum ZX).
 
 |CPU       |Year|Example use              |Speed grades    |Cycles/Byte|Performance (slowest speed grade)|
 |----------|----|-------------------------|----------------|------|--------------|
+|[8008](#intel-8008)|1972|                |250, 500 KHz    |89    |2.8 KB/s      |
 |[8080](#intel-8080), 8085|1974|Altair 8800, IMSAI 8080, TRS-80 Model 100|2, 3, 5, 6 MHz|25, 24.5  |80 KB/s (downwards), 81.6 KB/s (upwards)|
 |[6800](#motorola-6800), 6802|1974|SWTPC 6800, ET3400       |1, 1.5, 2 MHz|11.25, 13.125   |89.9 KB/s (downwards), 76.2 KB/s (upwards) | 
 |[SC/MP](#national-semiconductor-sc/mp)     |1974|                         |.5, 1 MHz     |44.25  |11.3 KB/s           |
@@ -24,7 +29,68 @@
 |[80386](#intel-80386)        |1985|                         |12, 16, 20 MHz |1         |12000 KB/s       |
 |[VL86C010](#VL86C010)|1986|Acorn RISC Machine|10, 12 MHz |.6 |16667 KB/s |
 
+## Intel 8008
+
+It's very slow because there is only a single pointer register (HL), and
+there are no 16-bit operations.
+
+~~~asm
+; Use self modified code
+; High part of source and dest address in sahigh and dahigh
+
+; b has low part of source address
+; c has low part of dest address
+; hl is pointer
+; de is loop count (inverse of it)
+; [inf] means infrequent
+
+inner:
+
+; Move byte from source to dest
+	ld	l, b		; 5
+sahigh:	ld	h, #srchigh	; 8
+	ld	a, (hl)		; 8
+	ld	l, c		; 5
+dahigh:	ld	h, #desthigh	; 8
+	ld	(hl), a		; 7
+
+; Increment source
+	inc	b		; 5
+	jnz	sk1		; 11
+
+	ld	h, #mypage	; 8 [inf]
+	ld	l, #sahigh+1	; 8 [inf]
+	ld	a, (hl)		; 8 [inf]
+	add	a, #1		; 5 [inf]
+	ld	(hl), a		; 7 [inf]
+sk1:
+
+; Increment dest
+	inc	d		; 5
+	jnz	sk2		; 11
+
+	ld	h, #mypage	; 8 [inf]
+	ld	l, #dahigh+1	; 8 [inf]
+	ld	a, (hl)		; 8 [inf]
+	add	a, #1		; 8 [inf]
+	ld	(hl), a		; 7 [inf]
+sk2:
+
+; Increment inverse of count (so we can use z flag- inc does not affect carry)
+	inc	e		; 5
+	jnz	inner		; 11
+	inc	d		; 5 [inf]
+	jnz	inner		; 11 [inf]
+
+; All done!
+
+; Total = 89 cycles
+~~~
+
 ## Intel 8080
+
+8080 is much faster because we can use the stack pointer as one of the data
+pointers and there are 16-bit operations.
 
 ### Downwards copying
 
