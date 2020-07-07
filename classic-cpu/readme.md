@@ -19,7 +19,7 @@ cache-to-cache performance).
 |[1802](#rca-1802)      |1975|COSMAC ELF               |3.2, 5 MHz|44| 113.6 KB/s          |
 |[F8](#fairchild-f8)        |1975|Channel F                |    |            |                    |
 |[2650](#signetics-2650)      |1975|                         |416 KHz, 666 KHz|9.75  |68 KB/s             |
-|[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz|21 | 119 KB/s |
+|[Z80](#zilog-z80)       |1976|TRS-80 Model 1, 2, 3, 4; Sinclair ZX 81, Spectrum|2.5, 4, 6 MHz|16.625 | 150.4 KB/s |
 |[9900](#ti-9900)      |1976|TI-99/4A                 |3 MHz           |17.5     |171 KB/s            |
 |[6801, 6803](#motorola-6801-6803)|1977|TRS-80 MC-10             |1, 1.5, 2 MHz|8.375, 9.375   |119.4 KB/s (downwards), 106.7 KB/s (upwards) |
 |[6809](#motorola-6809), HD63C09      |1978|TRS-80 Color Computer    |1, 1.5, 2 MHz, 3 MHz|5.833, 4  |171 KB/s, 250 KB/s for reversing copy |
@@ -345,6 +345,33 @@ inner:
 ~~~
 
 21 cycles / byte using the dedicated block move instruction.
+
+It turns out it's faster to use unrolled "ldi", see this article:
+
+[http://map.grauw.nl/articles/fast_loops.php#unrollingldir](http://map.grauw.nl/articles/fast_loops.php#unrollingldir)
+
+~~~asm
+FastLDIR_Loop:
+    ldi  ; 16 cycles
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    ldi
+    jp pe,FastLDIR_Loop	; 10
+~~~
+
+16 bytes in 266 cycles, 16.625 cycles / byte.
 
 ## TI 9900
 
