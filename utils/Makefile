@@ -1,6 +1,6 @@
 
 all: tabify tab base64 crlf hd exotobin bintoc csv csvcmp lfsr lpf reindent \
- rev subtotal subtotal1 upc upccheck chk mcs hex exo bomcmp
+ rev subtotal subtotal1 upc upccheck chk mcs mcstobin hex exo bomcmp brev
 
 CFLAGS = -Wall
 
@@ -9,6 +9,9 @@ tabify: tabify.o
 
 tab: tab.o
 	$(CC) -o tab tab.o
+
+brev: brev.o
+	$(CC) -o brev brev.o
 
 base64: base64.o
 	$(CC) -o base64 base64.o
@@ -24,6 +27,9 @@ bintoc: bintoc.o
 
 exotobin: exotobin.o
 	$(CC) -o exotobin exotobin.o
+
+mcstobin: mcstobin.o
+	$(CC) -o mcstobin mcstobin.o
 
 csv: csv.o
 	$(CC) -o csv csv.o

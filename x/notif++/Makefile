@@ -12,6 +12,9 @@ all : test scope
 test : notif.a main.o
 	g++ -o test main.o notif.a -L/usr/X11R6/lib -lX11
 
+tet : notif.a tet.o
+	g++ -o tet tet.o notif.a -L/usr/X11R6/lib -lX11
+
 scope : notif.a scopetest.o
 	g++ -o scope scopetest.o notif.a -L/usr/X11R6/lib -lX11 -lm
 
