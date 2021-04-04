@@ -25,6 +25,7 @@ leaves FutureNet to create a DOS shell if no command is given.
 This command can also be used in the Symbol Definition Mode. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: For PC systems, if there isn't enough disk space to 
       operate the DOS shell, you will be returned to 
       FutureNet.  FutureNet requires about 500KB of disk space 
@@ -32,6 +33,7 @@ Note: For PC systems, if there isn't enough disk space to
       you are returned to FutureNet.) 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: You cannot run FutureNet (fn command) from within a DOS 
       shell called from FutureNet; you can lose files and 
       autologging. 
@@ -136,9 +138,13 @@ if the limit will be exceeded by future pin stub commands.
 Related Commands 
 
 .-AI
+
 .A
+
 .B
+
 .F
+
 .SBS
 
 
@@ -273,6 +279,7 @@ accommodate the size font being used.
                          characters in the new font. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: The following fonts, Fonts '4 through '6, are intended 
       for use when conforming to MIL-D-1000 specifications. 
 
@@ -327,6 +334,7 @@ in the LINE status field.
                          can be used as comment lines. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: Although line type /6 and /7 look the same as /1 and /2, 
       they are treated differently by post processing.  Line 
       types /1 and /2 are treated as electrically significant, 
@@ -352,6 +360,7 @@ example of a custom menu library is supplied with FutureNet
 information on creating custom menus and help screens.
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: This command does not provide access to the online 
       command reference.  Use the HELP command to access the 
       online command reference. 
@@ -393,9 +402,13 @@ menu mode.
 Related Commands 
 
 HELP
+
 HELPSAVE
+
 LIB
+
 .LIB
+
 .DIR
 
 
@@ -436,6 +449,7 @@ select an attribute on this menu.
 To change the attribute of an existing field, use 'S or 'CH A. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: The 'D command can be used to display the numeric 
       attributes of all existing fields in the drawing.  
       Another way to check the attribute assignment for an 
@@ -447,7 +461,9 @@ Note: The 'D command can be used to display the numeric
 Related Commands 
 
 'CH A
+
 'D
+
 'S
 
 
@@ -537,7 +553,9 @@ the block symbol to be unaccessible to the pin stub commands.
 Related Commands 
 
 .-                       .B 
+
 .>                       .F 
+
 .-AI                     .SBS 
 
 
@@ -617,7 +635,9 @@ of the requested coordinates.
 Related Commands 
 
 PAN
+
 WINDOW
+
 CURSOR
 
 
@@ -661,7 +681,9 @@ line is replaced.
 Related Commands 
 
 .D
+
 .I
+
 .CLR
 
 
@@ -721,6 +743,7 @@ LEFT, RIGHT, UP and DOWN.
 Related Commands 
 
 CURSOR
+
 GRID
 
 
@@ -730,11 +753,13 @@ GRID
 Format 
 
 UP number
+
 DOWN number
 
 Keys 
 
 [number]\<up arrow>
+
 [number]\<down arrow>
 
 Purpose 
@@ -751,6 +776,7 @@ time, if no number is specified. If a number is specified, the
 list moves up or down by number of lines specified. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: If you specify 8\<up arrow> and there are only 5 lines 
       above the cursor, the cursor will move up only 5 lines. 
 
@@ -766,7 +792,9 @@ UP and DOWN.
 Related Commands 
 
 PC          SUN 
+
 \<PgUp>      \<R9>
+
 \<PgDn>      \<R15>
 
 
@@ -775,6 +803,7 @@ PC          SUN
 Format 
 
 AUTO filename
+
 AUTOEX filename
 
 Purpose 
@@ -825,9 +854,13 @@ see the reference for the fn command.
 Related Commands 
 
 EXEC
+
 NOTE
+
 PAUSE
+
 STOP
+
 VIEW
 
 
@@ -887,6 +920,7 @@ directory.  The files are given a filename following these
 conventions: 
 
     dwgfilename.nnn   (If a drawing filename has been given) 
+
     autotemp.nnn      (If no drawing filename has been given) 
 
 where dwgfilename is the name of the drawing file being 
@@ -1061,10 +1095,15 @@ the block symbol to be unaccessible to the pin stub commands.
 Related Commands 
 
 .-
+
 .-AI
+
 .A
+
 .D 
+
 .F 
+
 .SBS 
 
 
@@ -1103,6 +1142,7 @@ Entering BLINK without parameters toggles the setting.
 Format 
 
 BX length
+
 BY length
 
 Purpose 
@@ -1139,7 +1179,9 @@ the line drawn as a result of this instruction.
 Related Commands 
 
 SL
+
 BXD
+
 BYD
 
 
@@ -1149,6 +1191,7 @@ BYD
 Format 
 
 BXD length
+
 BYD length
 
 Purpose 
@@ -1185,7 +1228,9 @@ the line drawn as a result of this instruction.
 Related Commands 
 
 SL
+
 BX
+
 BY
 
 
@@ -1195,6 +1240,7 @@ BY
 Format 
 
 BXL
+
 BXR
 
 Purpose 
@@ -1224,9 +1270,13 @@ these instructions.
 Related Commands 
 
 .w, h
+
 DXL
+
 DXR
+
 BYU
+
 BYL
 
 
@@ -1263,9 +1313,13 @@ these instructions.
 Related Commands 
 
 .w, h
+
 DYU
+
 DYL
+
 BXL
+
 BXR
 
 
@@ -1314,8 +1368,11 @@ is restored.
 Related Commands 
 
 'B
+
 'K
+
 BLINK
+
 'M
 
 
@@ -1324,6 +1381,7 @@ BLINK
 Format 
 
 'CH A name | number
+
 'CH ATTRIBUTE name | number
 
 Purpose 
@@ -1350,7 +1408,9 @@ be seen by entering 'D command.
 Related Commands 
 
 'A
+
 'D
+
 'S
 
 
@@ -1398,6 +1458,7 @@ Related Commands
 Format 
 
 'CH J [L | R | C]
+
 'CH JUSTIFICATION [L | R | C]
 
 Purpose 
@@ -1426,6 +1487,7 @@ lower left, center, or right of the field.
 Related Commands 
 
 'B
+
 'J
 
 
@@ -1434,6 +1496,7 @@ Related Commands
 Format 
 
 'CH O [H | V]
+
 'CH ORIENTATION [H | V]
 
 Purpose 
@@ -1462,6 +1525,7 @@ bottom to top.  In the horizontal orientation, text is
 displayed and read from left to right. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: When using 'CH O in command files, make sure the 
       graphics cursor is positioned in the center of the text 
       field it is to change.  Otherwise, the command will be 
@@ -1473,6 +1537,7 @@ Note: When using 'CH O in command files, make sure the
 Format 
 
 'CH P [ON | OFF]
+
 'CH PRINTABILITY [ON | OFF]
 
 Purpose 
@@ -1494,6 +1559,7 @@ setting.
 Printability may be determined by the default attribute. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: All non-printable fields can be forced to print, without 
       changing each individual field, using the R/RNO option 
       of the printopt command.  This is useful for checking a 
@@ -1503,6 +1569,7 @@ Note: All non-printable fields can be forced to print, without
 Related Commands 
 
 PRINTOPT
+
 PROFILE
 
 
@@ -1536,7 +1603,9 @@ information on creating custom menus and help screens.
 Related Commands 
 
 HELPSAVE
+
 ?
+
 'CH V
 
 
@@ -1580,7 +1649,9 @@ custom menus and help screens.
 Related Commands 
 
 HELPSAVE
+
 ?
+
 'CH V
 
 
@@ -1625,7 +1696,9 @@ copied, MOVE/COPY/ERASE mode is canceled.
 Related Commands 
 
 .K
+
 .M
+
 BLINK
 
 
@@ -1656,6 +1729,7 @@ marker is in the upper left corner of the symbol cell.
 Related Commands 
 
 .D
+
 .S
 
 
@@ -1712,8 +1786,11 @@ temporarily or move the symbols farther apart.
 Related Commands 
 
 .DCON
+
 /ES
+
 /EL
+
 /EN
 
 
@@ -1768,7 +1845,9 @@ mode.
 Related Commands 
 
 [D
+
 [K
+
 [M
 
 
@@ -1777,6 +1856,7 @@ Related Commands
 Format 
 
 CD [drive][path]
+
 CHDIR [drive][path]
 
 Purpose 
@@ -1803,12 +1883,12 @@ DIR                      LS
 DEL                      RM 
 
 
-### CLEAR/ERASE -  Clear Drawing Hierarchy or Erase Current 
-              Drawing     
+### CLEAR/ERASE -  Clear Drawing Hierarchy or Erase Current Drawing     
 
 Format 
 
 CLEAR
+
 ERASE
 
 Purpose 
@@ -1898,6 +1978,7 @@ For example
 COLOR GREEN,WHITE,R,B,BLACK 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: Components that are the same color as the background 
       will be indistinguishable, even though they are 
       displayed. 
@@ -1907,12 +1988,19 @@ Default color assignments are
 Assignment               Name 
 
 Color 1                  Yellow 
+
 Color 2                  Light-White 
+
 Color 3                  Light-Red 
+
 Color 4                  Blue 
+
 Color 5                  Brown 
+
 Color 6                  Light-Cyan 
+
 Color 7                  Light-Green 
+
 Color 8                  Magenta 
 
 There are 16 colors available.  Specify colors by their 
@@ -1921,30 +2009,47 @@ initial(s), number, or name.
 Initial     Number     Name 
 
 BL          0          Black 
+
 B           1          Blue 
+
 G           2          Green 
+
 C           3          Cyan (blue-green - BG) 
+
 R           4          Red 
+
 M           5          Magenta 
+
 Y           6          Yellow 
+
 W           7          White 
+
 GY          8          Grey 
+
 LB          9          Light-Blue 
+
 LG          10         Light-Green 
+
 LC          11         Light-Cyan (light-blue-green - LBG) 
+
 LR          12         Light-Red 
+
 LM          13         Light-Magenta 
+
 BR          14         Brown 
+
 LW          15         Light-White 
+
 
 Related Commands 
 
 DISPGRPn
+
 PALETTE
 
 
-### CONNECT -  Enable/Disable Maintenance of Line Connections 
-          (Rubberbanding) 
+### CONNECT -  Enable/Disable Maintenance of Line Connections (Rubberbanding) 
+
 Format 
 
 CONNECT [ON | OFF]
@@ -2026,16 +2131,16 @@ If alphanumeric mode is exited immediately after entering
 the field is deleted from the drawing.
 
 
-### \<Ctrl>\<Home> or \<Ctrl>\<R7> Keys - 
-        Move Cursor to Beginning of Alphanumeric Field 
-\<Ctrl>\<End> or \<Ctrl>\<R13> Keys -
-        Move Cursor to End of Alphanumeric Field  
+### \<Ctrl>\<Home> or \<Ctrl>\<R7> Keys - Move Cursor to Beginning of Alphanumeric Field
+
+\<Ctrl>\<End> or \<Ctrl>\<R13> Keys - Move Cursor to End of Alphanumeric Field  
 
 Keys
 
 PC               Sun 
 
 \<Ctrl>\<Home>     \<Ctrl>\<R7>
+
 \<Ctrl>\<End>      \<Ctrl>\<R13>
 
 Purpose 
@@ -2098,6 +2203,7 @@ Format
 Keys 
 
 PC                SUN 
+
 \<Ctrl>\<PgDn>      \<Ctrl>\<R15>
 
 Purpose 
@@ -2171,9 +2277,13 @@ the file to be opened.
 Related Commands 
 
 #U
+
 #L
+
 #R
+
 SAVEALL
+
 SAVE
 
 
@@ -2199,7 +2309,9 @@ Specifying 'D without any parameters toggles the setting.
 Related Commands 
 
 'A
+
 'CH A
+
 'S
 
 
@@ -2228,9 +2340,13 @@ processed by this command.
 Related Commands 
 
 .-
+
 .-AI
+
 .A
+
 .B
+
 .F
 
 
@@ -2256,6 +2372,7 @@ target line.
 Related Commands 
 
 .I
+
 .CLR
 
 
@@ -2287,6 +2404,7 @@ across the symbol.
 Related Commands 
 
 /C
+
 PROFILE
 
 
@@ -2308,7 +2426,9 @@ library is specified using the .LIB command.
 Related Commands 
 
 .LIB
+
 .DIR
+
 .SAVE
 
 
@@ -2354,9 +2474,13 @@ the dialog box, or by pressing \<Esc>.
 Related Commands 
 
 .L
+
 .DEL
+
 LIB
+
 .LIB
+
 .SAVE
 
 
@@ -2377,7 +2501,9 @@ PRINTOPT command.
 Related Commands 
 
 .LIB
+
 LIB
+
 .DIR
 
 
@@ -2469,12 +2595,19 @@ definition and returns to the previous mode.
 Related Commands 
 
 [C
+
 [ERASE
+
 [K
+
 [LOAD
+
 [M
+
 [R
+
 [RE
+
 [SAVE
 
 
