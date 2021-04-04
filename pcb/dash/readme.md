@@ -191,9 +191,16 @@ wire...
 
 ### How to enter a power symbol?
 
+I think they just label the net +5V, no special symbol.  Are these nets
+marked global?
+
 ### How do inter-sheet connections work?
 
-### How do you add a sheet?
+The subsheet has a module ports (I think BULLETR and BULLETIO from above). 
+The port is not labeled, but the wire connected to it is and matched the
+port name on the sheet-symbol.
+
+### How do you add a numebred sheet?
 
 ### How do you add a hierarchical sheet?
 
@@ -204,3 +211,12 @@ wire...
 ### How do you create new parts?
 
 ### How do you select sheet size?
+
+### How do busses work?
+
+I see them named like this; QB\<7:0>
+
+Bus breakout wires are labeled 0, 1, 2, etc.
+
+Can you have multiple labels on the same wire?  There are multiple busses on
+the same sheet, and the wires for each of them will be labeled 0, 1, 2, etc.
