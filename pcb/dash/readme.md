@@ -200,9 +200,21 @@ The subsheet has a module ports (I think BULLETR and BULLETIO from above).
 The port is not labeled, but the wire connected to it is and matched the
 port name on the sheet-symbol.
 
-### How do you add a numebred sheet?
+### How do you add a numbered sheet?
+
+See #L and #R commands...
+
+For #L and #R, cursor must be located on fields associated with the drawing
+set: these must be in a _function block symbol_ and at the drawing level
+immeditely above the drawing set and fields attributes must be FILE or FILN.
+
+One of the files of the set must have been accessed with #D (but not by
+giving a filename argument to #d, I think you have to point to it).
 
 ### How do you add a hierarchical sheet?
+
+The #d command can take an argument, otherwise you have to point to a
+filename.
 
 ### How do you annotate?
 
@@ -220,3 +232,14 @@ Bus breakout wires are labeled 0, 1, 2, etc.
 
 Can you have multiple labels on the same wire?  There are multiple busses on
 the same sheet, and the wires for each of them will be labeled 0, 1, 2, etc.
+
+Symbol types:
+
+block symbol
+
+.F create functional block
+
+ALso, .G toggle between graphic symbol (for comments only), and circuit
+symbol (electrically significant)
+
+"alphanumeric fields" have attribute numbers
