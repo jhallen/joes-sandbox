@@ -1,3 +1,4 @@
+# Here is the extracted online help converted to Markdown
 
 ### Command Reference 
 
@@ -692,8 +693,11 @@ Related Commands
 Format 
 
 LEFT number
+
 RIGHT number
+
 UP number
+
 DOWN number
 
 Keys 
@@ -747,8 +751,7 @@ CURSOR
 GRID
 
 
-### Arrow Up/Down Keys -  Move Symbol Definition List Up/Down 
-                     (Symbol Definition Mode) 
+### Arrow Up/Down Keys -  Move Symbol Definition List Up/Down (Symbol Definition Mode) 
 
 Format 
 
@@ -1185,8 +1188,7 @@ BXD
 BYD
 
 
-### BXD, BYD -  Draw Broken Line in Dot Units (Symbol Definition 
-           Mode) 
+### BXD, BYD -  Draw Broken Line in Dot Units (Symbol Definition Mode) 
 
 Format 
 
@@ -1234,8 +1236,7 @@ BX
 BY
 
 
-### BXL, BXR -  Draw x to Symbol Cell Boundary with Bubble (Symbol 
-           Definition Mode) 
+### BXL, BXR -  Draw x to Symbol Cell Boundary with Bubble (Symbol Definition Mode) 
 
 Format 
 
@@ -1280,12 +1281,12 @@ BYU
 BYL
 
 
-### BYU, BYL -  Draw y to Symbol Cell Boundary with Bubble  
-           (Symbol Definition Mode) 
+### BYU, BYL -  Draw y to Symbol Cell Boundary with Bubble (Symbol Definition Mode) 
 
 Format 
 
 BYU
+
 BYL
 
 Purpose 
@@ -1904,7 +1905,7 @@ Remarks
 
 Use the CLEAR command to clear the current drawing in the work 
 space and any drawings in a structured design hierarchy that 
-have been accessed using the #D, #U, #R, and #L commands and 
+have been accessed using the \#D, \#U, \#R, and \#L commands and 
 then modified. The portions of the drawing structure that have
 not been accessed or modified will not be affected.
 
@@ -2194,11 +2195,11 @@ This command is intended primarily for use in automatic
 command execution sequences. 
 
 
-### #D -  Move Down in Design Hierarchy 
+### \#D -  Move Down in Design Hierarchy 
 
 Format 
 
-#D[filename]
+\#D[filename]
 
 Keys 
 
@@ -2213,31 +2214,31 @@ a new file with the specified name.
 
 Remarks 
 
-#D filename loads the specified drawing file from a lower level
+\#D filename loads the specified drawing file from a lower level
 in the hierarchy or creates a new file with the specified name 
 at a lower level in the design hierarchy.  It saves the current 
 drawing, its status, and the graphics cursor location in a 
 temporary file.  Drawings that are saved into temporary files when
-#D is entered are given unique filenames based on the root file-
+\#D is entered are given unique filenames based on the root file-
 name with a number for the extension.  If a file of the same name
 exists, then the number will be incremented until the filename is
 unique.  The drawings must be saved using the SAVEALL and SAVE 
 commands before exiting FutureNet.
 
 This command requires that a root drawing be loaded with the LOAD
-command before #D is entered.  If the root drawing is just being
-created, then it must first be saved before #D is entered.  If #D
+command before \#D is entered.  If the root drawing is just being
+created, then it must first be saved before \#D is entered.  If \#D
 is entered before the root drawing is saved, the system displays 
 
           Drawing must be saved before moving down in the 
           drawing structure 
 
-The optional parameter filename is available only with the #D 
+The optional parameter filename is available only with the \#D 
 form of the command.  
 
 \<Ctrl>\<PgDn> or \<Ctrl>\<R15> does not accept a filename.
 
-#D and \<Ctrl>\<PgDn> or \<Ctrl>\<R15> can be used to create a lower
+\#D and \<Ctrl>\<PgDn> or \<Ctrl>\<R15> can be used to create a lower
 level drawing without specifying a filename, if the cursor is 
 located on an alphanumeric field that has been assigned the FILE
 or FILN attribute.  These attributes (file name pointers) are 
@@ -2270,17 +2271,17 @@ lower level in the design hierarchy, then it is loaded with
 its status and the graphics cursor as they were when it was 
 left. 
 
-#D filename can be used to jump lower in the design hierarchy 
+\#D filename can be used to jump lower in the design hierarchy 
 without accessing intermediate drawing levels by specifying 
 the file to be opened. 
 
 Related Commands 
 
-#U
+\#U
 
-#L
+\#L
 
-#R
+\#R
 
 SAVEALL
 
@@ -2652,6 +2653,7 @@ arc drawn.
 Related Commands 
 
 DAD
+
 DC
 
 
@@ -2695,10 +2697,11 @@ arc drawn.
 Related Commands 
 
 DA
+
 DCD
 
 
-### See fn. 
+See fn. 
 
 
 ### DC -  Draw Circle in Display Units (Symbol Definition Mode) 
@@ -2725,6 +2728,7 @@ location, which is not changed by this instruction.
 Related Commands 
 
 DCD
+
 DA
 
 
@@ -2751,6 +2755,7 @@ location, which is not changed by this instruction.
 Related Commands 
 
 DC
+
 DAD
 
 
@@ -2802,7 +2807,9 @@ The global file characters \* and ? cannot be used.
 Related Commands 
 
 CD
+
 DIR
+
 RM
 
 
@@ -2811,6 +2818,7 @@ RM
 Format 
 
 DIR command line arguments  (PC)
+
 ls command line arguments  (SUN)
 
 Purpose 
@@ -2845,8 +2853,11 @@ ls
 Format 
 
 DISPGRP1 comp1color,comp2color,...comp7color
+
 DISPGRP2 comp8color,comp9color,...comp15color
+
 DISPGRP3 comp16color,comp17color,...comp23color
+
 DISPGRP4 comp24color,comp25color,...comp31color
 
 Purpose 
@@ -2932,12 +2943,14 @@ Pos#    Component Name                  Comp#   Default Color
  8      Symbol edit target line         31      3 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: The background color is hard-coded to palette position 
       number 5 in the COLOR command. 
 
 Related Commands 
 
 COLOR
+
 PALETTE
 
 
@@ -2983,6 +2996,7 @@ On the PC, the DOS command operates as follows:
       changes done during the FutureNet session). 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: As a precaution, you may want to save your drawings 
       before performing the DOS command. 
 
@@ -3003,6 +3017,7 @@ Note: As a precaution, you may want to save your drawings
    EXIT command. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: If the DOS prompt does not include the string FutureNet 
       in its entirety, your system's environment space is too 
       small.  You may need to enlarge the environment space; 
@@ -3093,6 +3108,7 @@ DR
 Format 
 
 DX length
+
 DY length
 
 Purpose 
@@ -3128,9 +3144,13 @@ marker is located at the end of the line drawn.
 Related Commands 
 
 DXD
+
 DYD
+
 DXY
+
 DXS
+
 DYS
 
 
@@ -3139,6 +3159,7 @@ DYS
 Format 
 
 DXD length
+
 DYD length
 
 Purpose 
@@ -3172,18 +3193,22 @@ marker is located at the end of the line drawn.
 Related Commands 
 
 DX
+
 DY
+
 DXYD
+
 DXS
+
 DYS
 
 
-### DXL, DXR -  Draw x to Symbol Cell Boundary 
-            (Symbol Definition Mode) 
+### DXL, DXR -  Draw x to Symbol Cell Boundary (Symbol Definition Mode) 
 
 Format 
 
 DXL
+
 DXR
 
 Purpose 
@@ -3210,17 +3235,20 @@ these instructions.
 Related Commands 
 
 BXL
+
 BXR
+
 DYU
+
 DYL
 
 
-### DXS, DYS -  Draw Line Short in Display Units (Symbol 
-           Definition Mode) 
+### DXS, DYS -  Draw Line Short in Display Units (Symbol Definition Mode) 
 
 Format 
 
 DXS length
+
 DYS length
 
 Purpose 
@@ -3259,10 +3287,15 @@ which are described under the SD and SI commands.
 Related Commands 
 
 DX
+
 DY
+
 DXD
+
 DYD
+
 SD
+
 SI
 
 
@@ -3305,6 +3338,7 @@ current x or y axis.
 Related Commands 
 
 DXYD
+
 MXY
 
 
@@ -3348,15 +3382,16 @@ current x or y axis.
 Related Commands 
 
 DXY
+
 MXYD
 
 
-### DYU, DYL -  Draw y to Symbol Cell Boundary  
-           (Symbol Definition Mode) 
+### DYU, DYL -  Draw y to Symbol Cell Boundary  (Symbol Definition Mode) 
 
 Format 
 
 DYU
+
 DYL
 
 Purpose 
@@ -3383,8 +3418,11 @@ these instructions.
 Related Commands 
 
 DXL
+
 DXR
+
 BYU
+
 BYL
 
 
@@ -3410,8 +3448,11 @@ The entire field is erased.
 Related Commands 
 
 'C
+
 'M
+
 'R
+
 'I
 \<Esc>
 
@@ -3445,7 +3486,9 @@ is erased.
 Related Commands 
 
 .C
+
 .M
+
 .L
 
 
@@ -3487,9 +3530,13 @@ The mode status field shows LINE.
 Related Commands 
 
 /L
+
 /LE
+
 /EL
+
 /EN
+
 /ES
 
 
@@ -3523,8 +3570,11 @@ The location of the graphics cursor does not change.
 Related Commands 
 
 /E
+
 /LE
+
 /EN
+
 /ES
 
 
@@ -3568,8 +3618,11 @@ line type displayed in the LINE status field.
 Related Commands 
 
 /LE
+
 /E
+
 /EL
+
 /ES
 
 
@@ -3618,9 +3671,13 @@ using FAST drawing mode.
 Related Commands 
 
 /E
+
 /EL
+
 /EN
+
 /LE
+
 /ET
 
 
@@ -3650,12 +3707,14 @@ When entered, the system will prompt
           OK to erase all temporary lines (Y/N)? 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: It is not necessary for the cursor to be on a temporary 
       line for this command to take effect. 
 
 Related Commands 
 
 /ES
+
 /P
 
 
@@ -3734,6 +3793,7 @@ See the chapter "Mouse, Modes, and Cursors" in the FutureNet
 User Manual for more information on using alphanumeric mode. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: Esc is also used to cancel the menus and dialog boxes. 
 
 
@@ -3790,9 +3850,13 @@ entered.
 Related Commands 
 
 AUTO
+
 NOTE
+
 PAUSE
+
 STOP
+
 VIEW
 
 
@@ -3900,6 +3964,7 @@ searches for the 'F string and replaces it with the 'I string,
 incrementing the value specified by 'I. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: The entire field is replaced by the 'R or 'I string, not 
       just the string specified with 'F. 
 
@@ -3930,7 +3995,9 @@ use the following 'F command:
 Related Commands 
 
 'FA
+
 'I
+
 'R
 
 
@@ -4024,10 +4091,15 @@ use the following string:
 Related Commands 
 
 'CH A
+
 'D
+
 'F
+
 'I
+
 'R
+
 'S
 
 
@@ -4122,10 +4194,15 @@ the block symbol to be unaccessible to the pin stub commands.
 Related Commands 
 
 .-
+
 .-AI
+
 .A
+
 .B 
+
 .D
+
 .SBS 
 
 
@@ -4176,7 +4253,9 @@ mode by entering MENU.
 Related Commands 
 
 MENU
+
 /D
+
 /ES
 
 
@@ -4225,12 +4304,18 @@ by pressing \<Esc>.
 
 Related Commands 
 
-#D
-#L
-#R
-#U
+\#D
+
+\#L
+
+\#R
+
+\#U
+
 SAVE
+
 SAVEALL
+
 LOAD 
 
 
@@ -4239,6 +4324,7 @@ LOAD
 Format 
 
 fn [drawing\_file]
+
 fn [@][command file]
 
 Purpose 
@@ -4260,6 +4346,7 @@ EXEC mode.  Otherwise, the command file runs in AUTO mode.
 See the EXEC and AUTO commands for more details. 
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: You cannot run fn from a DOS shell started from a 
       FutureNet drawing session; you can lose files and 
       autologging. 
@@ -4267,10 +4354,15 @@ Note: You cannot run fn from a DOS shell started from a
 Related Commands 
 
 AUTO
+
 EXEC
+
 NOTE
+
 PAUSE
+
 STOP
+
 VIEW
 
 
@@ -4347,8 +4439,11 @@ boundaries and reference numbers are affected.
 Format 
 
 GRID [ON | OFF]
+
 GRID x[,y]
+
 NOGRID
+
 GRID SNAP [ON | OFF]
 
 Purpose 
@@ -4397,6 +4492,7 @@ placement, and text placement to the current grid.
 Related Commands 
 
 PRINTOPT
+
 PROFILE
 
 
@@ -4497,6 +4593,7 @@ The HELPFILE command can be used to set the current command
 reference filename for the HELP command.  
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note:  Command reference files are not ASCII files.  Special 
        tools are required to create a command reference file.  
        These tools can be made available upon request. 
@@ -4552,6 +4649,7 @@ creating custom menus and help screens.
 Related Commands 
 
 ?
+
 .LIB
 
 
@@ -4588,7 +4686,9 @@ HOME can be entered in command files.
 Related Commands 
 
 CURSOR
+
 WINDOW
+
 PAN
 
 
@@ -4670,7 +4770,9 @@ use the following string:
 Related Commands 
 
 'F
+
 'FA
+
 'R
 
 
@@ -4907,8 +5009,11 @@ the instruction.
 Related Commands 
 
 ID
+
 IG
+
 ST
+
 RS
 
 
@@ -4945,6 +5050,7 @@ justification set for the field.
 Related Commands 
 
 'B
+
 'CH J
 
 
@@ -5013,8 +5119,11 @@ and /EN usually work to erase the segments.
 Related Commands 
 
 .E
+
 /ES
+
 /EL
+
 /EN
 
 
@@ -5042,7 +5151,9 @@ place.
 Related Commands 
 
 'C
+
 'M
+
 'E
 
 
@@ -5066,7 +5177,9 @@ will appear in its place.
 Related Commands 
 
 .C
+
 .E
+
 .M
 
 
@@ -5123,7 +5236,9 @@ be located anywhere in the drawing when [K is entered.
 Related Commands 
 
 [C
+
 [D
+
 [M
 
 
@@ -5174,7 +5289,9 @@ PROFILE
 Format 
 
 !LB
+
 !MB
+
 !RB
 
 Purpose 
@@ -5197,7 +5314,9 @@ These commands are not operational in dialog boxes, such as
 PROFILE, PALETTE or DIR.  Use the key bindings described in 
 the FutureNet User Manual for operation of a dialog box from 
 the keyboard. 
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: Early versions of FutureNet on the Sun used the commands 
       LB, MB and RB, instead of !LB, !MB and !RB.  These 
       commands are treated as synonyms. 
@@ -5207,8 +5326,9 @@ Note: Early versions of FutureNet on the Sun used the commands
 
 Format 
 
-#L
-#R
+\#L
+
+\#R
 
 Purpose 
 
@@ -5216,7 +5336,7 @@ Move between neighboring sheets in a drawing set.
 
 Remarks 
 
-#L and #R only allow movement between adjacent drawings in the 
+\#L and #R only allow movement between adjacent drawings in the 
 same functional block drawing set, and only after the following
 sequence of events has happened:
 
@@ -5249,8 +5369,9 @@ in a multifile drawing set.
 
 Related Commands 
 
-#D
-#U
+\#D
+
+\#U
 
 
 ### 'L -  Create, Edit or View Layered Text  
@@ -5458,6 +5579,7 @@ or click the left mouse button outside of the dialog box.
 Related Commands 
 
 'LE
+
 'LR
 
 
@@ -5515,7 +5637,9 @@ use the following string:
 'LE "\\"status\\\\pin1\\"" 
 
 This command will not affect the displayed text field information.
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: Be careful, especially when entering this command within 
       a symbol, since only partial strings are necessary to 
       allow a match. 
@@ -5523,6 +5647,7 @@ Note: Be careful, especially when entering this command within
 Related Commands 
 
 'L
+
 'LR
 
 
@@ -5591,6 +5716,7 @@ replace the string "status\\pin1" use the string 'LR
 Related Commands 
 
 'L
+
 'LE
 
 
@@ -5599,6 +5725,7 @@ Related Commands
 Format 
 
 .L symbolname [,[d:] filename]
+
 \* symbolname [,[d:] filename]
 
 Purpose 
@@ -5626,7 +5753,9 @@ symbolname in the following order:
 2. Reference libraries specified by a LIB command. 
 
 3. System symbol library, system.sym. 
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: The system.sym library is loaded when FutureNet is 
       initialized.  This library is either in the directory 
       specified by the FNLIB environment variable or in the 
@@ -5662,7 +5791,9 @@ Symbol Using Reference Number).
 Related Commands 
 
 .DIR
+
 .LIB
+
 LIB
 
 
@@ -5688,12 +5819,12 @@ of the instruction list.
 command. 
 
 
-### .LIB -  Update Symbol Library 
-.NOLIB
+### .LIB -  Update Symbol Library .NOLIB
 
 Format 
 
 .LIB [d:]filename
+
 .NOLIB
 
 Purpose 
@@ -5717,7 +5848,9 @@ Once an Update Symbol Library has been specified, use the
 .SAVE command to place symbol definitions in the library. 
 
 Entering .NOLIB terminates use of the update symbol library. 
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: (For PC Users) If a symbol library is specified on a 
       diskette using the .LIB command, the diskette must not 
       be removed unless access to the library is properly 
@@ -5729,10 +5862,15 @@ Note: (For PC Users) If a symbol library is specified on a
 Related Commands 
 
 LIB
+
 .DIR
+
 DIR
+
 .SAVE
+
 .DEL
+
 .L
 
 
@@ -5791,7 +5929,9 @@ drawing mode.
 Related Commands 
 
 /V
+
 /LE
+
 /E
 
 
@@ -5821,7 +5961,9 @@ allows lines to be drawn and erased with the same command.
 Related Commands 
 
 /E
+
 /EL
+
 /L
 
 
@@ -5887,16 +6029,17 @@ area definition boundary displayed.
 Related Commands 
 
 [D
+
 [SAVE
 
 
-### LIB -  Specify Symbol Library for Reference
-NOLIB
+### LIB -  Specify Symbol Library for Reference NOLIB
  
 
 Format 
 
 LIB [filename[,filename][...]]
+
 NOLIB [filename]
 
 Purpose 
@@ -5921,6 +6064,7 @@ the unload of all reference libraries.  The system library will NOT
 be effected by this command.
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: FutureNet allows you to specify up to ten reference 
       libraries.  However, if you are going to specify more 
       than one symbol library simultaneously, an adequate 
@@ -5932,7 +6076,9 @@ Note: FutureNet allows you to specify up to ten reference
 Related Commands 
 
 .DIR
+
 .LIB
+
 .L
 
 
@@ -5984,7 +6130,7 @@ session can be lost if they are not saved before the LOAD
 command is entered. 
 
 If a structured drawing is already loaded, you can use the #U, 
-#D, #L and #R commands to traverse the drawing structure 
+\#D, #L and #R commands to traverse the drawing structure 
 represented by that root. 
 
 If no file was previously loaded, or if LOAD is immediately 
@@ -5994,7 +6140,9 @@ file is loaded as requested.
 Related Commands 
 
 SAVE
+
 DEL
+
 CLEAR
 
 
@@ -6043,8 +6191,11 @@ restored.
 Related Commands 
 
 'B
+
 'C
+
 'K
+
 BLINK
 
 
@@ -6100,9 +6251,13 @@ and control returns to the previous mode.
 Related Commands 
 
 .C
+
 .K
+
 .E
+
 .L
+
 CONNECT
 
 
@@ -6161,8 +6316,11 @@ area boundary are excluded from the move.
 Related Commands 
 
 [C
+
 [D
+
 [K
+
 CONNECT
 
 
@@ -6185,8 +6343,7 @@ Related Commands
 FAST
 
 
-### MOVEPOEE -  Enable/Disable Point of Effect Movement for 
-            Electrical Items  
+### MOVEPOEE -  Enable/Disable Point of Effect Movement for Electrical Items  
 
 Format 
 
@@ -6241,14 +6398,17 @@ command.
 Related Commands 
 
 MOVEPOEG
+
 'P
+
 'PD
+
 POEDISP
+
 POER
 
 
-### MOVEPOEG - Enable/Disable Point of Effect Movement for 
-           General Items  
+### MOVEPOEG - Enable/Disable Point of Effect Movement for General Items  
 
 Format 
 
@@ -6302,9 +6462,13 @@ For electrically significant items, see the MOVEPOEE command.
 Related Commands 
 
 MOVEPOEE
+
 'P
+
 'PD
+
 POEDISP
+
 POER
 
 
@@ -6313,6 +6477,7 @@ POER
 Format 
 
 MX distance
+
 MY distance
 
 Purpose 
@@ -6348,8 +6513,11 @@ the distance specified by the instruction.
 Related Commands 
 
 MXS
+
 MYS
+
 MXD
+
 MYD
 
 
@@ -6358,6 +6526,7 @@ MYD
 Format 
 
 MXD distance
+
 MYD distance
 
 Purpose 
@@ -6393,9 +6562,13 @@ the distance specified by the instruction.
 Related Commands 
 
 MX
+
 MY
+
 MXS
+
 MYS
+
 MXY
 
 
@@ -6404,6 +6577,7 @@ MXY
 Format 
 
 MXS distance
+
 MYS distance
 
 Purpose 
@@ -6438,14 +6612,17 @@ the distance specified by the instruction.
 Related Commands 
 
 MX
+
 MY
+
 MXD
+
 MYD
+
 MXY
 
 
-### MXY -  Move to New Coordinates in Display Units  (Symbol 
-      Definition Mode) 
+### MXY -  Move to New Coordinates in Display Units  (Symbol Definition Mode) 
 
 Format 
 
@@ -6484,6 +6661,7 @@ the distance specified by the instruction.
 Related Commands 
 
 MXYD
+
 MXYA
 
 
@@ -6525,11 +6703,11 @@ the distance specified by the instruction.
 Related Commands 
 
 MXY
+
 MXYD
 
 
-### MXYD -  Move to New Coordinates in Dot Units  (Symbol 
-       Definition Mode) 
+### MXYD -  Move to New Coordinates in Dot Units  (Symbol Definition Mode) 
 
 Format 
 
@@ -6568,6 +6746,7 @@ specified by the instruction.
 Related Commands 
 
 MXY
+
 MXYA
 
 ### 'NAME -  Assign a Name to an Unused Attribute
@@ -6623,7 +6802,9 @@ setting is only active during the current editing session.
 Related Commands
 
 'A
+
 'S
+
 'CH A
 
 
@@ -6660,6 +6841,7 @@ symbol definition command, are not found with this command.
 Related Commands
 
 RENUM
+
 .G
 
 
@@ -6701,6 +6883,7 @@ NOTE "\\"status\\\\pin1\\""
 Related Commands
 
 AUTO
+
 EXEC
 
 
@@ -6731,8 +6914,7 @@ Related Commands
 'CH O
 
 
-### 'OVER -  Add/Delete Overbar to/from Alphanumeric Field (Signal
-        Inversion)
+### 'OVER -  Add/Delete Overbar to/from Alphanumeric Field (Signal Inversion)
 
 Format
 
@@ -6848,8 +7030,11 @@ command to set the point of effect at the new location.
 Related Commands
 
 MOVEPOEE
+
 MOVEPOEG
+
 'PD
+
 POER
 
 
@@ -6911,10 +7096,15 @@ between an alphanumeric and its point of effect.
 Related Commands
 
 'CH J
+
 'J
+
 MOVEPOEE
+
 MOVEPOEG
+
 'P
+
 POER
 
 
@@ -6947,7 +7137,9 @@ indicates an overbar.
 Related Commands
 
 .PRINT
+
 PRINT
+
 PRINTOPT
 
 
@@ -6979,7 +7171,9 @@ indicates an overbar.
 Related Commands
 
 'PRINT
+
 PRINT
+
 PRINTOPT
 
 
@@ -7016,7 +7210,9 @@ Select the colors for the FutureNet display; assign colors
 to selected components of the FutureNet environment.
 
 Remarks
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: If you use a monochrome monitor you have no choices to
       make.  FutureNet Group Color 5 and the background must
       be white.  All other choices must be black.
@@ -7094,6 +7290,7 @@ the dialog box.
 Related Commands
 
 DISPGRPn
+
 COLOR
 
 
@@ -7108,7 +7305,9 @@ Purpose
 Move to the specified window.
 
 Remarks
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: Window locations must first be saved using the WINDOW
       command.
 
@@ -7156,13 +7355,13 @@ without specifying a filename.
 Related Commands
 
 AUTO
+
 EXEC
+
 STOP
 
 
-### PgUp or R9 Keys - Move to Beginning of Command List
-PgDn or R15 Keys - Move to End of Command List
-(Symbol Definition Mode)
+### PgUp or R9 Keys - Move to Beginning of Command List PgDn or R15 Keys - Move to End of Command List (Symbol Definition Mode)
 
 Keys
 PC         SUN
@@ -7243,10 +7442,15 @@ Entering POEDISP without any parameters toggles the setting.
 Related Commands
 
 'P
+
 'PD
+
 MOVEPOEE
+
 MOVEPOEG
+
 POER
+
 PROFILE
 
 
@@ -7289,9 +7493,13 @@ Enabled is the default setting.
 Related Commands
 
 MOVEPOEE
+
 MOVEPOEE
+
 'P
+
 'PD
+
 PROFILE
 
 
@@ -7300,6 +7508,7 @@ PROFILE
 Format
 
 PRINT [opt1][,opt2]...[,optn]
+
 NOPRINT
 
 Purpose
@@ -7328,7 +7537,9 @@ Use the PRINTOPT command to see current settings.
 Related Commands
 
 'PRINT
+
 .PRINT
+
 PRINTOPT
 
 
@@ -7497,8 +7708,11 @@ dialog boxes.
 Related Commands
 
 'PRINT
+
 .PRINT
+
 PRINT
+
 .L (Symbol Definition Mode)
 
 
@@ -7695,8 +7909,11 @@ box to cancel the PROFILE dialog box and discard any changes made.
 Format
 
 Q
+
 QUIT
+
 .Q
+
 END
 
 Purpose
@@ -7727,8 +7944,11 @@ Related Commands
 Format
 
 QUIT
+
 Q
+
 END
+
 SYSTEM
 
 Purpose
@@ -7814,8 +8034,11 @@ use the following string:
 Related Commands
 
 'F
+
 'FA
+
 'I
+
 \<Esc>
 
 
@@ -7824,7 +8047,9 @@ Related Commands
 Format
 
 .R [ - | + ]
+
 .R [90 | 180 | 270 | -90 | -180 | -270]
+
 .R [0]
 
 Purpose
@@ -7931,8 +8156,11 @@ drawing modes.
 Related Commands
 
 /E
+
 /L
+
 /LE
+
 /V
 
 
@@ -7941,6 +8169,7 @@ Related Commands
 Format
 
 [R [ - | + ]
+
 [R [90 | 180 | 270 | -90 | -180 | -270]
 
 Purpose
@@ -7982,7 +8211,9 @@ the number of rotations.
 Related Commands
 
 [D
+
 [M
+
 [RE
 
 
@@ -8030,7 +8261,9 @@ and vertical text is read from bottom to top.
 Related Commands
 
 [D
+
 [M
+
 [R
 
 
@@ -8075,6 +8308,7 @@ This command numbers the symbols left to right, top to bottom
 throughout the drawing.
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: This command should be used with care because some
       translators and back-end tools use the symbol reference
       number to uniquely identify a symbol. Changing symbol
@@ -8103,12 +8337,13 @@ command.
 Related Commands
 
 CD
+
 DEL
+
 ls
 
 
-### RS -  Reset to Default Symbol Element Set (Symbol Definition
-     Mode)
+### RS -  Reset to Default Symbol Element Set (Symbol Definition Mode)
 
 Format
 
@@ -8132,6 +8367,7 @@ instruction.
 Related Commands
 
 ISxx
+
 ST
 
 
@@ -8173,7 +8409,9 @@ User Manual for more information on attributes.
 Related Commands
 
 'A
+
 'CH A
+
 'D
 
 
@@ -8257,8 +8495,11 @@ message:
 Related Commands
 
 .LIB
+
 .DEL
+
 .DIR
+
 .DIRPR
 
 
@@ -8288,7 +8529,9 @@ symbol definition commands available outside Symbol Definition
 Mode. Entering the .SBS command while in Symbol Definition
 Mode resets the flag, permitting symbols to be edited with pin
 stub commands.
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: Symbol definition instructions are normally performed
       relative to the end point of the previous instruction,
       creating an instruction list in which the instruction
@@ -8304,7 +8547,9 @@ Note: Symbol definition instructions are normally performed
 Related Commands
 
 MXYA
+
 .Q
+
 .S
 
 
@@ -8346,6 +8591,7 @@ and the segments inside are saved.
 Related Commands
 
 [D
+
 [LOAD
 
 
@@ -8374,7 +8620,9 @@ unless an extension is explicitly given.  When filename is
 omitted, the Save Drawing command writes the drawing to the
 filename from the last Load Drawing command.  Use the FILE
 command to check the name.
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: If the loaded file has a .bak extension and you enter
       the SAVE command, the system will prompt you for a
       filename to avoid overwriting your backup file.
@@ -8404,6 +8652,7 @@ structure.
 Related Commands
 
 SAVEALL
+
 AUTOSAVE
 
 
@@ -8437,6 +8686,7 @@ modified, move through the structure to the drawings you do
 want to update and enter the SAVE command at each one.
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: This command is SAVEALL, one word, with no space between
       SAVE and ALL.  If the command SAVE ALL is entered
       instead of SAVEALL, you will save the current file to a
@@ -8497,12 +8747,19 @@ coordinate.
 Related Commands
 
 DX
+
 DY
+
 DXD
+
 DYD
+
 DXS
+
 DYS
+
 SI
+
 SN
 
 
@@ -8554,12 +8811,19 @@ coordinate.
 Related Commands
 
 DX
+
 DY
+
 DXD
+
 DYD
+
 DXS
+
 DYS
+
 SD
+
 SN
 
 
@@ -8567,11 +8831,14 @@ SN
 
 Format
 
-SIZE [A | B | C | D | E], [B | H | E | I | F | O | M
-| P | T]
+SIZE [A | B | C | D | E], [B | H | E | I | F | O | M | P | T]
+
 SIZE width,height
+
 SIZED width,height
+
 SIZEM [A5 | A4 | A3 | A2 | A1 | A0]
+
 SIZEM width,height
 
 Purpose
@@ -8668,7 +8935,9 @@ use the following method:
    commands.
 
 3. Load the area into the new drawing.
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note:  This procedure will not scale a drawing down to a
        different size.  For example, if you have a D size
        drawing, which is 680 x 440 display units, and you want
@@ -8748,11 +9017,11 @@ marker.
 Related Commands
 
 BX
+
 BY
 
 
-### SN -  Select No Increment/Decrement Mode (Symbol Definition
-     Mode)
+### SN -  Select No Increment/Decrement Mode (Symbol Definition Mode)
 
 Format
 
@@ -8767,8 +9036,11 @@ instructions.
 Related Commands
 
 DXS
+
 DYS
+
 SI
+
 SD
 
 
@@ -8796,15 +9068,15 @@ This command allows addition of text in various fonts to a
 symbol at a specific pixel location, rather than at a display
 unit location.
 
-Command          Selects ASCII Character Size
----------------------------------------------
-  ST 0                 '1
-  ST 1                 '2
-  ST 2                 '3
-  ST 3                 '4
-  ST 4                 '5
-  ST 5                 '6
-  ST 6                 '7
+Command      |   Selects ASCII Character Size
+-------------|--------------------------------
+  ST 0       |          '1
+  ST 1       |          '2
+  ST 2       |          '3
+  ST 3       |          '4
+  ST 4       |          '5
+  ST 5       |          '6
+  ST 6       |          '7
 
 The ST command must precede the Insert Symbol Element (ISxx)
 commands that are to be affected.
@@ -8817,6 +9089,7 @@ shapes.
 Related Command
 
 RS
+
 ISxx
 
 
@@ -8825,7 +9098,9 @@ ISxx
 Format
 
 STOP
+
 NOAUTO
+
 NOEXEC
 
 Purpose
@@ -8844,16 +9119,18 @@ command file is being entered in either AUTO or EXEC mode.
 Related Commands
 
 AUTO
+
 EXEC
+
 PAUSE
 
 
-### SXY, RXY -  Save/Restore x and y Coordinates  (Symbol
-           Definition Mode)
+### SXY, RXY -  Save/Restore x and y Coordinates  (Symbol Definition Mode)
 
 Format
 
 SXY
+
 RXY
 
 Purpose
@@ -8871,7 +9148,9 @@ does not affect the symbol editor coordinate marker location.
 RXY restores the x,y coordinate values saved by the last SXY
 instruction.  The symbol editor coordinate marker is restored
 to the old x,y location.
+
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Note: If an RXY command occurs in the symbol definition list,
       before an SXY command, then the default restored
       location is (0,0).
@@ -8918,7 +9197,7 @@ Related Commands
 
 Format
 
-#U[filename]
+\#U[filename]
 
 Key
 
@@ -8932,7 +9211,7 @@ loaded drawing file.
 
 Remarks
 
-#U[filename] saves the current drawing file to a temporary file
+\#U[filename] saves the current drawing file to a temporary file
 and reloads a previously loaded drawing file that is on the
 current drawing path but at a higher level in the hierarchy.
 The current drawing file is saved in a temporary file with a
@@ -8949,9 +9228,12 @@ the Move Up in Design Hierarchy command has no effect.
 
 Related Commands
 
-#D
-#L
-#R
+\#D
+
+\#L
+
+\#R
+
 SAVEALL
 
 
@@ -8995,6 +9277,7 @@ Related Commands
 Format
 
 UNDO [ON | OFF]
+
 REDO [ON | OFF]
 
 Purpose
@@ -9086,6 +9369,7 @@ Related Commands
 Format
 
 VERSION
+
 VER
 
 Purpose
@@ -9138,6 +9422,7 @@ that were run since VIEW OFF was used.
 Related Commands
 
 AUTO
+
 EXEC
 
 
@@ -9193,7 +9478,9 @@ Related Commands
 Format
 
 WINDOW 1 | 2 | 3 | 4
+
 WINDOW OFF
+
 NOWIN
 
 Purpose
@@ -9225,7 +9512,9 @@ NOWIN or WINDOW OFF cancels all the saved window locations.
 Related Commands
 
 PAN
+
 ZIN
+
 ZOUT
 
 
@@ -9234,6 +9523,7 @@ ZOUT
 Format
 
 ZIN [0 | 1 | 2 | n]
+
 ZOUT [0 | 1 | 2 | n]
 
 Keys
@@ -9357,6 +9647,7 @@ zoom level once you are finished with dynamic zoom.
 Related Commands
 
 ZIN
+
 ZOUT
 
 
