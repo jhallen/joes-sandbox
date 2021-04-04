@@ -181,3 +181,26 @@ GND1, GND2, GND3.. other grounds
 
 E4  power?
 
+## How do I?
+
+### How do you place a label on a wire?
+
+Position mouse on a wire and hit ESC.  This switches to text mode and you
+can type the label.  Need to confirm if the label is really attached to the
+wire...
+
+### How to enter a power symbol?
+
+### How do inter-sheet connections work?
+
+### How do you add a sheet?
+
+### How do you add a hierarchical sheet?
+
+### How do you annotate?
+
+### How do you generate the netlist?
+
+### How do you create new parts?
+
+### How do you select sheet size?
