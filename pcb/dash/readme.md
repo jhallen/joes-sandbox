@@ -1,11 +1,17 @@
 # Software Archaeology: FutureNet Dash
 
-I had heard of FutureNet, but had never used it.  It is mentioned as the
-first schematic capture program usable for designing Xilinx FPGAs. 
-Recently I discovered that a version is available, and this my attempt to
-learn this $6000 program without manuals.
+I had heard of FutureNet Dash, but had never used it.  It is mentioned as
+the first schematic capture program usable for designing Xilinx FPGAs and
+maybe the first schematic capture program available for IBM PCs.  Recently I
+discovered that a version is available, and this my attempt to learn this
+$3850 (in 1988) program without manuals.
 
 # Available information
+
+Someone wrote about FutureNet, but the site is down.  This is from the
+Wayback machine:
+
+[https://www.chzsoft.de/asic-web/](https://www.chzsoft.de/asic-web/)
 
 "FutureNet DASH was a schematic capture program written for IBM DOS PCs
 released in the early 1980s.  It was an extremely expensive package - over
@@ -49,17 +55,16 @@ These are the groups:
 
 These macros are assigned to function keys, so they are probably important:
 
-F1	HELP
-F2	QUIT
-F3	'P
-F4	'L
-F5	/D	Draw or delete a junction
-F6	/ES	Delete line segment
-F7	/P
-F8	/ET	Erase temporary lines?
-F9	'0
-F10	/0	Cycle through line styles
-
+    F1	HELP
+    F2	QUIT
+    F3	'P
+    F4	'L
+    F5	/D	Draw or delete a junction
+    F6	/ES	Delete line segment
+    F7	/P
+    F8	/ET	Erase temporary lines?
+    F9	'0
+    F10	/0	Cycle through line styles
 
 ### Menus
 
@@ -73,6 +78,9 @@ grid snap	Turn snap to grid on
 ### Zooming
 
 Hit PgUp and PgDn.
+
+Zooming works fairly well in that a correctly scaled font is chosen for the
+zoom level.
 
 ### Drawing wires
 
@@ -131,7 +139,7 @@ Position mouse over part and enter . E \<Enter>.
 
 ### View a list of available parts
 
-Type . D I R \<Enter>
+Type .DIR \<Enter>
 
 A window with a list of symbol libraries along with a list of symbols and a preview
 pops up.
@@ -140,7 +148,7 @@ pops up.
 
 You need to do this to make the symbols in a library available to you.
 
-Type . L I B \<Enter>
+Type .LIB \<Enter>
 
 You will be prompted for the name of the library.  You can enter a complete
 path, such as C:\\DATAIO\\FNLIB\\GENERIC.LIB.
@@ -185,40 +193,106 @@ E4  power?
 
 ### How do you place a label on a wire?
 
-Position mouse on a wire and hit ESC.  This switches to text mode and you
-can type the label.  Need to confirm if the label is really attached to the
-wire...
+FutureNet calls all text "Alphanumeric Fields".  What the text actually does
+depends on where it is located and what its "attribute" is.  I think we
+would call attributes types today.  Attributes are mostly predefined (but there
+are also user defined attributes), and are numbered and named.
+
+First, decide on the purpose of the text.  For a label on a wire, we want a
+"SIG"- a Signal, which is attribute number 5.  So enter the command to
+select this attribute:
+
+    'a sig \<Enter>      - Choose attribute by name
+    'a 5 \<Enter>        - Choose attribute by number
+    'a \<Enter>          - Brings up a menu of attributes
+
+Now any "Alphanumeric Fields" we enter will be signals.  In the rather
+likely event that you forgot to select the correct attribute type, you can
+change the attribute of existing text like this:
+
+    'ch a sig \<Enter>   - Change attribute of text under mouse to SIG
+
+Now to actually write some text, position mouse on a wire and hit ESC.  This
+switches to text mode and you can type the label.  The "Point of Effect" (As
+FutureNet calls it) must be on the wire.  When you are done typing, don't
+hit \<Enter>.  Instead hit ESC again to return the graphics mode.
+
+### Attribute List
+
+-Number-|Name-----------|Description
+--------|---------------|------------
+0	|COM		|Comment?
+1	|PIN		|"40" pin number
+2	|LOC		|"UNNN" reference designator
+3	|PART		|"8088"
+5	|SIG		|Signal (wire label)
+20	|PINT		|"26" Tristate pin
+22	|PNBT		|"9" Bidirectional pin
+23	|PINI		|"33" Input pin
+24	|PINO		|"24" Output pin
+50	|TITL		|Title in title block
+51	|DNUM		|"000000" Drawing number in title block
+52	|DREV		|"A" Rev number in title block
+53	|DPAG		|"1 OF 1" in title block
+54	|DATE		|"July 26, 1991" Date in title block
+100	|GND		|Auto-connect to power net (shows in lower right corner of 7404 symbol)
+101	|+5V		|Auto-connect to power net (shows in upper right corner of 7404 symbol)
 
 ### How to enter a power symbol?
 
-I think they just label the net +5V, no special symbol.  Are these nets
-marked global?
+OrCAD has a special power symbols and you give the name of the rail as the
+part value.  FutureNet works differently: you label a wire with the name of
+the power rail and set the attribute of the label to "PWRS" (for "Named
+Power Signal").
 
-### How do inter-sheet connections work?
+It is common to have hidden and automatically connected power pins on 74xx
+series TTL gates.  The symbols for such gates include pin numbers as two
+text fields (often pins 14 and 7).  The attributes for these fields are
+"GND" (attribute 100) and "+5V" (attribute 101).
 
-The subsheet has a module ports (I think BULLETR and BULLETIO from above). 
-The port is not labeled, but the wire connected to it is and matched the
-port name on the sheet-symbol.
+Questions: Are all attributes above 100 global?  How do you have a hidden
++3.3V rail?
 
-### How do you add a numbered sheet?
+### How do inter-sheet connections work in hierarchical designs?
 
-See #L and #R commands...
+The subsheet symbol (a "functional block" created with .F) includes pins
+(create them with .-).  The pins should be labeled with text that has one of
+the pin attributes: PINI (for inputs), PINO (for outputs), PNBT (for
+bidirectional), etc.
 
-For #L and #R, cursor must be located on fields associated with the drawing
-set: these must be in a _function block symbol_ and at the drawing level
-immeditely above the drawing set and fields attributes must be FILE or FILN.
+The subsheet itself should have a wire labeled with text matching the pin. 
+"SIG" works as the attribute for the text (and I suspect other attributes
+will also work).
 
-One of the files of the set must have been accessed with #D (but not by
-giving a filename argument to #d, I think you have to point to it).
+### How do multi-sheet flat designs work?
 
-### How do you add a hierarchical sheet?
+One way is to have a single top-level sheet.  It should have a "functional
+block" (create it with .F).  Within this symbol, place multiple
+"alphanumeric fields" containing the file names of the sub-sheets, each with
+their attribute set to FILE (attribute number 8).
 
-The #d command can take an argument, otherwise you have to point to a
-filename.
+Point to the first of these and type "#D" to descend hierarchy.  You can hit
+"#U" to return to the top-level.  The first time you descend into each file
+FutureNet will indicate that the file is new and ask if it should create it.
+
+When you are in one of the subsheets, you can traverse between its siblings
+with the #R and #L commands.  All of the siblings share the same namespace
+for signals- two wires labeled with the same signal name will be connected.
+
+Speculation: the DCM.EXE program accepts a list of top-level sheets.  I
+think you can dispense with the top-level sheet and just give a list of .DWG
+files to DCM.EXE for a flat design.  But you will not have the #R and #L
+commands this way.
 
 ### How do you annotate?
 
+OrCAD has an automatic annotation process to replace the default reference
+designators (such as U?) with unique numbers (U1, U2, etc.).  I have found
+no such thing in FutureNet.  It seems you have to set the by hand.
+
 ### How do you generate the netlist?
+
+
 
 ### How do you create new parts?
 
