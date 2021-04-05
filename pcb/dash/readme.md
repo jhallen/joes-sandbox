@@ -202,15 +202,15 @@ First, decide on the purpose of the text.  For a label on a wire, we want a
 "SIG"- a Signal, which is attribute number 5.  So enter the command to
 select this attribute:
 
-    'a sig \<Enter>      - Choose attribute by name
-    'a 5 \<Enter>        - Choose attribute by number
-    'a \<Enter>          - Brings up a menu of attributes
+    'a sig <Enter>       - Choose attribute by name
+    'a 5 <Enter>         - Choose attribute by number
+    'a <Enter>           - Brings up a menu of attributes
 
 Now any "Alphanumeric Fields" we enter will be signals.  In the rather
 likely event that you forgot to select the correct attribute type, you can
 change the attribute of existing text like this:
 
-    'ch a sig \<Enter>   - Change attribute of text under mouse to SIG
+    'ch a sig <Enter>    - Change attribute of text under mouse to SIG
 
 Now to actually write some text, position mouse on a wire and hit ESC.  This
 switches to text mode and you can type the label.  The "Point of Effect" (As
@@ -219,7 +219,7 @@ hit \<Enter>.  Instead hit ESC again to return the graphics mode.
 
 ### Attribute List
 
--Number-|Name-----------|Description
+Number  |Name           |Description
 --------|---------------|------------
 0	|COM		|Comment?
 1	|PIN		|"40" pin number
