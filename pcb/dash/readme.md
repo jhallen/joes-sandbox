@@ -106,12 +106,13 @@ Position mouse on wire, then hit F6 or type / E S \<Enter>.
 
 ### Adding a part
 
-Type * \<Part number> \<Enter>
-
-Also you can type . L \<Enter> and it will prompt for the part name.
+    * <Part number> <Enter>
+    .L <Part number> <Enter>
+    * <Enter>                  - It will prompt for the part number
+    .L <Enter>                 - It will prompt for the part number
 
 Single device per package parts are named as you would expect, for example
-use "8088" for an 8088 microprocessor.  But for a TTL inverter, you need to
+use 8088 for an 8088 microprocessor.  But for a TTL inverter, you need to
 use "7404A" to get the first one of the package, or "7404B" for the second
 one, etc.
 
@@ -206,16 +207,16 @@ select this attribute:
     'a 5 <Enter>         - Choose attribute by number
     'a <Enter>           - Brings up a menu of attributes
 
-Now any "Alphanumeric Fields" we enter will be signals.  In the rather
-likely event that you forgot to select the correct attribute type, you can
-change the attribute of existing text like this:
+From now on any mew "Alphanumeric Fields" we enter will be signals.  In the
+rather likely event that you forgot to select the correct attribute type,
+you can change the attribute of existing text like this:
 
     'ch a sig <Enter>    - Change attribute of text under mouse to SIG
 
 Now to actually write some text, position mouse on a wire and hit ESC.  This
-switches to text mode and you can type the label.  The "Point of Effect" (As
+switches to text mode and you can type the label.  The "Point of Effect" (as
 FutureNet calls it) must be on the wire.  When you are done typing, don't
-hit \<Enter>.  Instead hit ESC again to return the graphics mode.
+hit \<Enter>.  Instead hit ESC again to return to graphics mode.
 
 ### Attribute List
 
@@ -273,7 +274,7 @@ their attribute set to FILE (attribute number 8).
 
 Point to the first of these and type "#D" to descend hierarchy.  You can hit
 "#U" to return to the top-level.  The first time you descend into each file
-FutureNet will indicate that the file is new and ask if it should create it.
+FutureNet will indicate that it is new and ask if it should create it.
 
 When you are in one of the subsheets, you can traverse between its siblings
 with the #R and #L commands.  All of the siblings share the same namespace
@@ -287,16 +288,37 @@ commands this way.
 ### How do you annotate?
 
 OrCAD has an automatic annotation process to replace the default reference
-designators (such as U?) with unique numbers (U1, U2, etc.).  I have found
-no such thing in FutureNet.  It seems you have to set the by hand.
+designators (such as U?  in OrCAD or UNNN in FutureNet) with unique numbers
+(U1, U2, etc.).  I have found no such thing in FutureNet.  It seems you have
+to set them by hand.
 
 ### How do you generate the netlist?
 
+The sequence of commands is as follows:
 
+First you preprocess the .DWG files into a single .DCM file with:
+
+    DCM -itop -lfirst+second
+
+Next you convert the .DCM file into a .NET file with:
+
+    NETC top
+
+You may convert the .NET file into a PADS ASCII file with:
+
+    NET2PADS     (it prompts for the name of the .NET file)
 
 ### How do you create new parts?
 
 ### How do you select sheet size?
+
+There is a command:
+
+    size a     Select A size sheet
+
+The default size is b.
+
+An annoying limitation is that you can not reduce the size of a non-empty drawing.
 
 ### How do busses work?
 
