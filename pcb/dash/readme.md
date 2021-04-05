@@ -296,7 +296,7 @@ attribute set to FILE (attribute number 8).
 
 Point to the first of these and type "#D" to descend hierarchy.  You can hit
 "#U" to return to the top-level.  The first time you descend into each file
-FutureNet will indicate that it is new and ask if it should create it.
+FutureNet will indicate that it is new and ask if it should be created.
 
 When you are in one of the subsheets, you can traverse between its siblings
 with the #R and #L commands.  All of the siblings share the same namespace
