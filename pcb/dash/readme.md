@@ -89,17 +89,17 @@ When you are in no other mode, right click to bring up menus.
 
 ### Setup
 
-    grid	- Turn the grid on or off
-    grid snap	- Turn snap to grid on
+    grid        - Turn the grid on or off
+    grid snap   - Turn snap-to-grid on or off
 
-I've found that you probably do not want snap to grid on.  Many symbols have
+I've found that you probably do not want snap-to-grid on.  Many symbols have
 pins which are not aligned with the grid.  Also the native grid is not much
 finer than the displayed grid, so you don't really need it.
 
 ### Zooming
 
 Hit PgUp and PgDn to jump between different magnifications.  You can also
-use the "zoom" command to for custom ones.
+use the "zoom" command for custom ones.
 
 Zooming works fairly well in that a correctly scaled font is chosen for the
 zoom level.  Well at least two of the prefined magnifications have legible
