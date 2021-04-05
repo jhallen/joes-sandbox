@@ -4,6 +4,7 @@ This chapter contains all of the FutureNet commands in
 alphanumeric order.  The reference card contains a listing of 
 commands by type. 
 
+- [Here is the extracted online help converted to Markdown](#here-is-the-extracted-online-help-converted-to-markdown)
     + [! -  Enter Operating System Command](#-----enter-operating-system-command)
     + [.- .> .= .-O .>O -  Add/Replace Pin Stub](#-------o--o----add-replace-pin-stub)
     + [.-AI .-AO .>A .\<A -   Add/Replace IEC/ANSI Pin Stub](#-ai--ao--a---a-----add-replace-iec-ansi-pin-stub)
