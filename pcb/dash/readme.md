@@ -8,8 +8,8 @@ $3850 (in 1988) program without manuals.
 
 # Available information
 
-Someone wrote about FutureNet, but the site is down.  This is from the
-Wayback machine:
+Michael Holley wrote this about FutureNet (extracted from the Wayback
+Machine):
 
 [FutureNet_Artifacts.pdf](FutureNet_Artifacts.pdf)
 
