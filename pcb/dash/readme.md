@@ -228,7 +228,7 @@ select this attribute:
     'a 5 <Enter>         - Choose attribute by number
     'a <Enter>           - Brings up a menu of attributes
 
-From now on any mew "Alphanumeric Fields" we enter will be signals.  In the
+From now on any new "Alphanumeric Fields" we enter will be signals.  In the
 rather likely event that you forgot to select the correct attribute type,
 you can change the attribute of existing text like this:
 
@@ -239,7 +239,7 @@ switches to text mode and you can type the label.  The "Point of Effect" (as
 FutureNet calls it) must be on the wire.  When you are done typing, don't
 hit \<Enter>.  Instead hit ESC again to return to graphics mode.
 
-### Attribute List
+### Attributes
 
 Number  |Name           |Description
 --------|---------------|------------
@@ -262,7 +262,7 @@ Number  |Name           |Description
 
 ### Connect to a power rail
 
-OrCAD has a special power symbols and you give the name of the rail as the
+OrCAD has a special power symbol and you give the name of the rail as the
 part value.  FutureNet works differently: you label a wire with the name of
 the power rail and set the attribute of the label to "PWRS" (for "Named
 Power Signal").
@@ -288,7 +288,7 @@ will also work).
 
 ### Flat designs
 
-A single function block can be made of multiple sheets, so one way is to
+A single functional block can be made of multiple sheets, so one way is to
 create a top-level sheet with a single functional block (create with .F) in
 it.  Within the functional block symbol, place multiple "alphanumeric
 fields" containing the file names of the sub-sheets, each with their
