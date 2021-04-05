@@ -11,6 +11,10 @@ $3850 (in 1988) program without manuals.
 Someone wrote about FutureNet, but the site is down.  This is from the
 Wayback machine:
 
+[FutureNet_Artifacts.pdf](FutureNet_Artifacts.pdf)
+
+Some ASICs used in the Atari ST were designed in FutureNet, see here:
+
 [https://www.chzsoft.de/asic-web/](https://www.chzsoft.de/asic-web/)
 
 "FutureNet DASH was a schematic capture program written for IBM DOS PCs
@@ -53,6 +57,19 @@ These are the groups:
 
 ## Using the program
 
+You need to set up the environment.  It's a good idea to create a batch file
+for this:
+
+    SET FNMOUSE=M
+    SET FNDISPLAY=C:\DATAIO\FN\VGA12.DG
+    SET FNLIB=C:\DATAIO\FNLIB
+    SET FNLOG=FNLOG.CMD
+    SET FNELOG=FNERR.LOG
+    SET FNPRO=FNPRO.CMD
+    path=c:\dataio\fn;%path%
+
+Then type "fn" or "dash" to start the program.
+
 These macros are assigned to function keys, so they are probably important:
 
     F1	HELP
@@ -72,37 +89,21 @@ When you are in no other mode, right click to bring up menus.
 
 ### Setup
 
-grid		Turn the grid on or off
-grid snap	Turn snap to grid on
+    grid	- Turn the grid on or off
+    grid snap	- Turn snap to grid on
+
+I've found that you probably do not want snap to grid on.  Many symbols have
+pins which are not aligned with the grid.  Also the native grid is not much
+finer than the displayed grid, so you don't really need it.
 
 ### Zooming
 
-Hit PgUp and PgDn.
+Hit PgUp and PgDn to jump between different magnifications.  You can also
+use the "zoom" command to for custom ones.
 
 Zooming works fairly well in that a correctly scaled font is chosen for the
-zoom level.
-
-### Drawing wires
-
-Postion the mouse over a pin (valid pins are highlighted when you hover over
-them) and left-click (no need to hold).  Draw the line segment- it shows up
-as a dashed red line when you move the mouse.  Left-click again to solidify
-the segment and start a new one from the current point.  To stop drawing,
-right-click the mouse.
-
-Do not hit ESC to complete drawing- it switches to text mode.  If you do
-this, hit ESC again to return to graphics mode.
-
-You can also type / L \<Enter> to start drawing a wire- I'm not sure why
-they have this since you can just left-click.
-
-### Connecting wires
-
-Use / d \<Enter> or hit F5 to draw or delete a junction dot.
-
-### Deleting wires
-
-Position mouse on wire, then hit F6 or type / E S \<Enter>.
+zoom level.  Well at least two of the prefined magnifications have legible
+text.  OrCAD had only a single good zoom level.
 
 ### Adding a part
 
@@ -190,9 +191,29 @@ GND1, GND2, GND3.. other grounds
 
 E4  power?
 
-## How do I?
+### Drawing wires
 
-### How do you place a label on a wire?
+Postion the mouse over a pin (valid pins are highlighted when you hover over
+them) and left-click (no need to hold).  Draw the line segment- it shows up
+as a dashed red line when you move the mouse.  Left-click again to solidify
+the segment and start a new one from the current point.  To stop drawing,
+right-click the mouse.
+
+Do not hit ESC to complete drawing- it switches to text mode.  If you do
+this, hit ESC again to return to graphics mode.
+
+You can also type / L \<Enter> to start drawing a wire- I'm not sure why
+they have this since you can just left-click.
+
+### Connecting wires
+
+Use / d \<Enter> or hit F5 to draw or delete a junction dot.
+
+### Deleting wires
+
+Position mouse on wire, then hit F6 or type / E S \<Enter>.
+
+### Place a label on a wire
 
 FutureNet calls all text "Alphanumeric Fields".  What the text actually does
 depends on where it is located and what its "attribute" is.  I think we
@@ -239,7 +260,7 @@ Number  |Name           |Description
 100	|GND		|Auto-connect to power net (shows in lower right corner of 7404 symbol)
 101	|+5V		|Auto-connect to power net (shows in upper right corner of 7404 symbol)
 
-### How to enter a power symbol?
+### Connect to a power rail
 
 OrCAD has a special power symbols and you give the name of the rail as the
 part value.  FutureNet works differently: you label a wire with the name of
@@ -254,7 +275,7 @@ text fields (often pins 14 and 7).  The attributes for these fields are
 Questions: Are all attributes above 100 global?  How do you have a hidden
 +3.3V rail?
 
-### How do inter-sheet connections work in hierarchical designs?
+### Inter-sheet connections in hierarchical designs
 
 The subsheet symbol (a "functional block" created with .F) includes pins
 (create them with .-).  The pins should be labeled with text that has one of
@@ -265,12 +286,13 @@ The subsheet itself should have a wire labeled with text matching the pin.
 "SIG" works as the attribute for the text (and I suspect other attributes
 will also work).
 
-### How do multi-sheet flat designs work?
+### Flat designs
 
-One way is to have a single top-level sheet.  It should have a "functional
-block" (create it with .F).  Within this symbol, place multiple
-"alphanumeric fields" containing the file names of the sub-sheets, each with
-their attribute set to FILE (attribute number 8).
+A single function block can be made of multiple sheets, so one way is to
+create a top-level sheet with a single functional block (create with .F) in
+it.  Within the functional block symbol, place multiple "alphanumeric
+fields" containing the file names of the sub-sheets, each with their
+attribute set to FILE (attribute number 8).
 
 Point to the first of these and type "#D" to descend hierarchy.  You can hit
 "#U" to return to the top-level.  The first time you descend into each file
