@@ -194,10 +194,10 @@ E4  power?
 ### Drawing wires
 
 Postion the mouse over a pin (valid pins are highlighted when you hover over
-them) and left-click (no need to hold).  Draw the line segment- it shows up
-as a dashed red line when you move the mouse.  Left-click again to solidify
-the segment and start a new one from the current point.  To stop drawing,
-right-click the mouse.
+them) and left-click (no need to hold) to start drawing.  As you move the
+mouse, the potential line segment is shown as a dashed red line.  Left-click
+again to solidify the segment and start a new one from the current position. 
+To stop drawing, right-click the mouse.
 
 Do not hit ESC to complete drawing- it switches to text mode.  If you do
 this, hit ESC again to return to graphics mode.
