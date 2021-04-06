@@ -37,7 +37,7 @@ commands by type.
     + ['CH R -  Change Reverse Video State of Alphanumeric Field](#ch-r----change-reverse-video-state-of-alphanumeric-field)
     + ['CH V -  Change Visibility of Alphanumeric Field](#ch-v----change-visibility-of-alphanumeric-field)
     + [.C -  Copy Symbol](#c----copy-symbol)
-    + [.CLR -  Erase Symbol Definition (Symbol Definition Mode)](#clr----erase-symbol-definition--symbol-definition-mode)
+    + [.CLR -  Erase Symbol Definition (Symbol Definition Mode)](#clr----erase-symbol-definition-symbol-definition-mode)
     + [/C -  Draw Direct Connection Through Symbol](#c----draw-direct-connection-through-symbol)
     + [[C -  Copy Area](#c----copy-area)
     + [CD -  Change Current Directory](#cd----change-current-directory)
