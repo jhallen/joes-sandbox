@@ -4,30 +4,41 @@ This chapter contains all of the FutureNet commands in
 alphanumeric order.  The reference card contains a listing of 
 commands by type. 
 
-- [Here is the extracted online help converted to Markdown](#here-is-the-extracted-online-help-converted-to-markdown)
-    + [! -  Enter Operating System Command](#----enter-operating-system-command)
+- Symbol commands
     + [.- .> .= .-O .>O -  Add/Replace Pin Stub](#-----o-o----addreplace-pin-stub)
     + [.-AI .-AO .>A .\<A -   Add/Replace IEC/ANSI Pin Stub](#-ai--ao-a-a-----addreplace-iecansi-pin-stub)
-    + ['0...'7 -  Select Font](#07----select-font)
-    + [/0.../10 -  Select Line Type](#010----select-line-type)
-    + [? -  Read Custom Menus](#----read-custom-menus)
-    + ['A -  Set Attribute for New Alphanumeric Field](#a----set-attribute-for-new-alphanumeric-field)
     + [.A -  Create IEC/ANSI Symbol Outline](#a----create-iecansi-symbol-outline)
-    + [/AD /AL /AR /AU -  Draw/Erase Arrowhead](#ad-al-ar-au----drawerase-arrowhead)
-    + [A1...D8 -  Move to Coordinates](#a1d8----move-to-coordinates)
-    + [Add/Replace Target Line - (Symbol Definition Mode)](#addreplace-target-line---symbol-definition-mode)
-    + [Arrow Keys -  Move Multiple Display Units](#arrow-keys----move-multiple-display-units)
-    + [Arrow Up/Down Keys -  Move Symbol Definition List Up/Down (Symbol Definition Mode)](#arrow-updown-keys----move-symbol-definition-list-updown-symbol-definition-mode)
-    + [AUTO -  Automatic Command Execution](#auto----automatic-command-execution)
-    + [AUTOPAN -  Enable/Disable Automatic Panning](#autopan----enabledisable-automatic-panning)
-    + [AUTOSAVE -  Save Drawing Automatically](#autosave----save-drawing-automatically)
-    + ['B -  Enable/Disable Alphanumeric Field Boundary Display](#b----enabledisable-alphanumeric-field-boundary-display)
     + [.B -  Create Block Symbol](#b----create-block-symbol)
-    + [BLINK -  Enable/Disable Blinking](#blink----enabledisable-blinking)
-    + [BX, BY -  Draw Broken Line (Symbol Definition Mode)](#bx-by----draw-broken-line-symbol-definition-mode)
-    + [BXD, BYD -  Draw Broken Line in Dot Units (Symbol Definition Mode)](#bxd-byd----draw-broken-line-in-dot-units-symbol-definition-mode)
-    + [BXL, BXR -  Draw x to Symbol Cell Boundary with Bubble (Symbol Definition Mode)](#bxl-bxr----draw-x-to-symbol-cell-boundary-with-bubble-symbol-definition-mode)
-    + [BYU, BYL -  Draw y to Symbol Cell Boundary with Bubble (Symbol Definition Mode)](#byu-byl----draw-y-to-symbol-cell-boundary-with-bubble-symbol-definition-mode)
+    + [.C -  Copy Symbol](#c----copy-symbol)
+    + [.CLR -  Erase Symbol Definition (Symbol Definition Mode)](#clr----erase-symbol-definition-symbol-definition-mode)
+    + [.D -  Delete Pin Stub](#d----delete-pin-stub)
+    + [.D -  Delete Target Line (Symbol Definition Mode)](#d----delete-target-line-symbol-definition-mode)
+    + [.DCON -  Enable/Disable Display of Direct Connections](#dcon----enabledisable-display-of-direct-connections)
+    + [.DEL -  Delete Symbol from Update Library](#del----delete-symbol-from-update-library)
+    + [.DIR -  Display Symbol Library Directory](#dir----display-symbol-library-directory)
+    + [.DIRPR -  Print Symbol Library Directory](#dirpr----print-symbol-library-directory)
+    + [.E -  Erase Symbol](#e----erase-symbol)
+    + [.F -  Create Functional Block](#f----create-functional-block)
+    + [.G -  Change Symbol Type (Symbol Definition Mode)](#g----change-symbol-type-symbol-definition-mode)
+    + [.I -  Enter/Exit Insert Mode (Symbol Definition Mode)](#i----enterexit-insert-mode-symbol-definition-mode)
+    + [.K -  Cancel Symbol Tag](#k----cancel-symbol-tag)
+    + [.L -  Load Symbol from Library (\*)](#l----load-symbol-from-library-)
+    + [.L - Print the Symbol Definition List (Symbol Definition Mode)](#l---print-the-symbol-definition-list-symbol-definition-mode)
+    + [.LIB -  Update Symbol Library .NOLIB](#lib----update-symbol-library-nolib)
+    + [.M -  Move Symbol](#m----move-symbol)
+    + [.PRINT -  Print All Text for Symbol](#print----print-all-text-for-symbol)
+    + [.Q -  Exit Symbol Definition Mode (Symbol Definition Mode)](#q----exit-symbol-definition-mode-symbol-definition-mode)
+    + [.R -  Rotate a Symbol](#r----rotate-a-symbol)
+    + [.RE -  Reflect a Symbol](#re----reflect-a-symbol)
+    + [.S -  Enter Symbol Definition Mode (Symbol Definition Mode)](#s----enter-symbol-definition-mode-symbol-definition-mode)
+    + [.SAVE -  Save Symbol in Current Update Library](#save----save-symbol-in-current-update-library)
+    + [.SBS -  Set Block Symbol Bit (Symbol Definition Mode)](#sbs----set-block-symbol-bit-symbol-definition-mode)
+    + [.w,h -  Define Symbol Cell Size](#wh----define-symbol-cell-size)
+
+- Alphanumeric field commands
+    + ['0...'7 -  Select Font](#07----select-font)
+    + ['A -  Set Attribute for New Alphanumeric Field](#a----set-attribute-for-new-alphanumeric-field)
+    + ['B -  Enable/Disable Alphanumeric Field Boundary Display](#b----enabledisable-alphanumeric-field-boundary-display)
     + ['C -  Copy Alphanumeric Field](#c----copy-alphanumeric-field)
     + ['CH A -  Change Attribute for Existing Field](#ch-a----change-attribute-for-existing-field)
     + ['CH F -  Change Font](#ch-f----change-font)
@@ -36,28 +47,92 @@ commands by type.
     + ['CH P -  Change Printability](#ch-p----change-printability)
     + ['CH R -  Change Reverse Video State of Alphanumeric Field](#ch-r----change-reverse-video-state-of-alphanumeric-field)
     + ['CH V -  Change Visibility of Alphanumeric Field](#ch-v----change-visibility-of-alphanumeric-field)
-    + [.C -  Copy Symbol](#c----copy-symbol)
-    + [.CLR -  Erase Symbol Definition (Symbol Definition Mode)](#clr----erase-symbol-definition-symbol-definition-mode)
+    + ['D -  Enable/Disable Attribute Display](#d----enabledisable-attribute-display)
+    + ['E -  Erase Alphanumeric Field](#e----erase-alphanumeric-field)
+    + ['F -  Find Alphanumeric String](#f----find-alphanumeric-string)
+    + ['FA -  Find Attribute](#fa----find-attribute)
+    + ['I -  Insert Alphanumeric String and Increment Numbering](#i----insert-alphanumeric-string-and-increment-numbering)
+    + ['J -  Set Justification](#j----set-justification)
+    + ['K -  Cancel Alphanumeric Field Tag](#k----cancel-alphanumeric-field-tag)
+    + ['L -  Create, Edit or View Layered Text](#l----create-edit-or-view-layered-text)
+    + ['LE -  Erase Layered Text](#le----erase-layered-text)
+    + ['LR -  Replace/Insert Layered Text](#lr----replaceinsert-layered-text)
+    + ['M -  Move Alphanumeric Field](#m----move-alphanumeric-field)
+    + ['NAME -  Assign a Name to an Unused Attribute](#name----assign-a-name-to-an-unused-attribute)
+    + ['O -  Set Default Orientation for Alphanumeric Fields](#o----set-default-orientation-for-alphanumeric-fields)
+    + ['OVER -  Add/Delete Overbar to/from Alphanumeric Field (Signal Inversion)](#over----adddelete-overbar-tofrom-alphanumeric-field-signal-inversion)
+    + ['P -  Set Point of Effect](#p----set-point-of-effect)
+    + ['PD -  Reassign a Point of Effect to Its Default Location](#pd----reassign-a-point-of-effect-to-its-default-location)
+    + ['PRINT -  Print All Text for Alphanumeric Field](#print----print-all-text-for-alphanumeric-field)
+    + ['R -  Replace Alphanumeric String](#r----replace-alphanumeric-string)
+    + ['S -  Set Attribute for Existing Field](#s----set-attribute-for-existing-field)
+    + ['UNDER -  Add/Delete Underscore to Alphanumeric Field](#under----adddelete-underscore-to-alphanumeric-field)
+
+- Wiring commands
+    + [/0.../10 -  Select Line Type](#010----select-line-type)
+    + [/AD /AL /AR /AU -  Draw/Erase Arrowhead](#ad-al-ar-au----drawerase-arrowhead)
     + [/C -  Draw Direct Connection Through Symbol](#c----draw-direct-connection-through-symbol)
+    + [/D -  Insert/Delete Interconnect Dot](#d----insertdelete-interconnect-dot)
+    + [/E -  Erase Line](#e----erase-line)
+    + [/EL -  Erase Line Segments](#el----erase-line-segments)
+    + [/EN -  Erase Line Network](#en----erase-line-network)
+    + [/ES -  Erase Line Segment](#es----erase-line-segment)
+    + [/ET -  Erase Temporary Lines](#et----erase-temporary-lines)
+    + [/J -  Draw Junction Segment](#j----draw-junction-segment)
+    + [/K -  Escape Line Drawing](#k----escape-line-drawing)
+    + [/L -  Draw Lines](#l----draw-lines)
+    + [/LE -  Draw/Erase Line](#le----drawerase-line)
+    + [/P -  Convert Temporary Lines to Permanent](#p----convert-temporary-lines-to-permanent)
+    + [/R -  Change Line Routing](#r----change-line-routing)
+    + [/V -  Move Vertex](#v----move-vertex)
+
+- Area commands
     + [[C -  Copy Area](#c----copy-area)
+    + [[D -  Define Area](#d----define-area)
+    + [[ERASE -  Erase Area](#erase----erase-area)
+    + [[K -  Cancel Area Definition or Area Tag](#k----cancel-area-definition-or-area-tag)
+    + [[LOAD -  Load Area](#load----load-area)
+    + [[M -  Move Area](#m----move-area)
+    + [[R -  Rotate an Area](#r----rotate-an-area)
+    + [[RE -  Reflect an Area](#re----reflect-an-area)
+    + [[SAVE -  Save Area](#save----save-area)
+
+- Hierarchy commands
+    + [#D -  Move Down in Design Hierarchy](#d----move-down-in-design-hierarchy)
+    + [#L and #R -  Move Left or Right in Design Hierarchy](#l-and-r----move-left-or-right-in-design-hierarchy)
+    + [#U -  Move Up in Design Hierarchy](#u----move-up-in-design-hierarchy)
+
+- Keys
+    + [Arrow Keys -  Move Multiple Display Units](#arrow-keys----move-multiple-display-units)
+    + [Arrow Up/Down Keys -  Move Symbol Definition List Up/Down (Symbol Definition Mode)](#arrow-updown-keys----move-symbol-definition-list-updown-symbol-definition-mode)
+    + [\<Ctrl>\<Backspace> Keys -  Erase Alphanumeric Data](#ctrlbackspace-keys----erase-alphanumeric-data)
+    + [\<Ctrl>\<Home> or \<Ctrl>\<R7> Keys - Move Cursor to Beginning of Alphanumeric Field](#ctrlhome-or-ctrlr7-keys---move-cursor-to-beginning-of-alphanumeric-field)
+    + [Esc Key -  Enter/Exit Alphanumeric Mode](#esc-key----enterexit-alphanumeric-mode)
+    + [HOME -  Home Cursor](#home----home-cursor)
+    + [HOME - (Symbol Definition Mode)](#home---symbol-definition-mode)
+    + [\<Ins> and \<R11> Keys -  Insert Alphanumeric Character](#ins-and-r11-keys----insert-alphanumeric-character)
+    + [PgUp or R9 Keys - Move to Beginning of Command List PgDn or R15 Keys - Move to End of Command List (Symbol Definition Mode)](#pgup-or-r9-keys---move-to-beginning-of-command-list-pgdn-or-r15-keys---move-to-end-of-command-list-symbol-definition-mode)
+    + [Tab, Shift  Tab Keys -  Move Cursor Down/Up a Field](#tab-shift--tab-keys----move-cursor-downup-a-field)
+
+- Regular commands
+    + [! -  Enter Operating System Command](#----enter-operating-system-command)
+    + [? -  Read Custom Menus](#----read-custom-menus)
+    + [A1...D8 -  Move to Coordinates](#a1d8----move-to-coordinates)
+    + [Add/Replace Target Line - (Symbol Definition Mode)](#addreplace-target-line---symbol-definition-mode)
+    + [AUTO -  Automatic Command Execution](#auto----automatic-command-execution)
+    + [AUTOPAN -  Enable/Disable Automatic Panning](#autopan----enabledisable-automatic-panning)
+    + [AUTOSAVE -  Save Drawing Automatically](#autosave----save-drawing-automatically)
+    + [BLINK -  Enable/Disable Blinking](#blink----enabledisable-blinking)
+    + [BX, BY -  Draw Broken Line (Symbol Definition Mode)](#bx-by----draw-broken-line-symbol-definition-mode)
+    + [BXD, BYD -  Draw Broken Line in Dot Units (Symbol Definition Mode)](#bxd-byd----draw-broken-line-in-dot-units-symbol-definition-mode)
+    + [BXL, BXR -  Draw x to Symbol Cell Boundary with Bubble (Symbol Definition Mode)](#bxl-bxr----draw-x-to-symbol-cell-boundary-with-bubble-symbol-definition-mode)
+    + [BYU, BYL -  Draw y to Symbol Cell Boundary with Bubble (Symbol Definition Mode)](#byu-byl----draw-y-to-symbol-cell-boundary-with-bubble-symbol-definition-mode)
     + [CD -  Change Current Directory](#cd----change-current-directory)
     + [CLEAR/ERASE -  Clear Drawing Hierarchy or Erase Current Drawing](#clearerase----clear-drawing-hierarchy-or-erase-current-drawing)
     + [COLOR -  Modify Color Palette](#color----modify-color-palette)
     + [CONNECT -  Enable/Disable Maintenance of Line Connections (Rubberbanding)](#connect----enabledisable-maintenance-of-line-connections-rubberbanding)
     + [CONTEXT -  Restore Drawing Context](#context----restore-drawing-context)
-    + [\<Ctrl>\<Backspace> Keys -  Erase Alphanumeric Data](#ctrlbackspace-keys----erase-alphanumeric-data)
-    + [\<Ctrl>\<Home> or \<Ctrl>\<R7> Keys - Move Cursor to Beginning of Alphanumeric Field](#ctrlhome-or-ctrlr7-keys---move-cursor-to-beginning-of-alphanumeric-field)
     + [CURSOR -  Set Cursor to Absolute Location](#cursor----set-cursor-to-absolute-location)
-    + [\#D -  Move Down in Design Hierarchy](#d----move-down-in-design-hierarchy)
-    + ['D -  Enable/Disable Attribute Display](#d----enabledisable-attribute-display)
-    + [.D -  Delete Pin Stub](#d----delete-pin-stub)
-    + [.D -  Delete Target Line (Symbol Definition Mode)](#d----delete-target-line-symbol-definition-mode)
-    + [.DCON -  Enable/Disable Display of Direct Connections](#dcon----enabledisable-display-of-direct-connections)
-    + [.DEL -  Delete Symbol from Update Library](#del----delete-symbol-from-update-library)
-    + [.DIR -  Display Symbol Library Directory](#dir----display-symbol-library-directory)
-    + [.DIRPR -  Print Symbol Library Directory](#dirpr----print-symbol-library-directory)
-    + [/D -  Insert/Delete Interconnect Dot](#d----insertdelete-interconnect-dot)
-    + [[D -  Define Area](#d----define-area)
     + [DA -  Draw Arc in Display Units (Symbol Definition Mode)](#da----draw-arc-in-display-units-symbol-definition-mode)
     + [DAD -  Draw Arc in Dot Units (Symbol Definition Mode)](#dad----draw-arc-in-dot-units-symbol-definition-mode)
     + [DC -  Draw Circle in Display Units (Symbol Definition Mode)](#dc----draw-circle-in-display-units-symbol-definition-mode)
@@ -76,61 +151,24 @@ commands by type.
     + [DXY -  Draw Diagonal in Display Units  (Symbol Definition Mode)](#dxy----draw-diagonal-in-display-units--symbol-definition-mode)
     + [DXYD -  Draw Diagonal in Dot Units (Symbol Definition Mode)](#dxyd----draw-diagonal-in-dot-units-symbol-definition-mode)
     + [DYU, DYL -  Draw y to Symbol Cell Boundary  (Symbol Definition Mode)](#dyu-dyl----draw-y-to-symbol-cell-boundary--symbol-definition-mode)
-    + ['E -  Erase Alphanumeric Field](#e----erase-alphanumeric-field)
-    + [.E -  Erase Symbol](#e----erase-symbol)
-    + [/E -  Erase Line](#e----erase-line)
-    + [/EL -  Erase Line Segments](#el----erase-line-segments)
-    + [/EN -  Erase Line Network](#en----erase-line-network)
-    + [/ES -  Erase Line Segment](#es----erase-line-segment)
-    + [/ET -  Erase Temporary Lines](#et----erase-temporary-lines)
-    + [[ERASE -  Erase Area](#erase----erase-area)
-    + [Esc Key -  Enter/Exit Alphanumeric Mode](#esc-key----enterexit-alphanumeric-mode)
     + [EXEC -  Single-step Command Execution](#exec----single-step-command-execution)
     + [Format](#format)
-    + ['F -  Find Alphanumeric String](#f----find-alphanumeric-string)
-    + ['FA -  Find Attribute](#fa----find-attribute)
-    + [.F -  Create Functional Block](#f----create-functional-block)
     + [Format](#format-1)
     + [FILE -  Display Filenames](#file----display-filenames)
     + [fn -  Start FutureNet](#fn----start-futurenet)
     + [FN.CFG - Configuration File](#fncfg---configuration-file)
-    + [.G -  Change Symbol Type (Symbol Definition Mode)](#g----change-symbol-type-symbol-definition-mode)
     + [GRID -  Display Grid/Toggle Grid Snap](#grid----display-gridtoggle-grid-snap)
     + [HELP -  Read Online Command Reference](#help----read-online-command-reference)
     + [HELPFILE -  Open Online Command Reference File](#helpfile----open-online-command-reference-file)
     + [HELPSAVE -  Save Custom Menu or Help Screen](#helpsave----save-custom-menu-or-help-screen)
-    + [HOME -  Home Cursor](#home----home-cursor)
-    + [HOME - (Symbol Definition Mode)](#home---symbol-definition-mode)
-    + ['I -  Insert Alphanumeric String and Increment Numbering](#i----insert-alphanumeric-string-and-increment-numbering)
-    + [.I -  Enter/Exit Insert Mode (Symbol Definition Mode)](#i----enterexit-insert-mode-symbol-definition-mode)
     + [ID -  Insert Dot Matrix (Symbol Definition Mode)](#id----insert-dot-matrix-symbol-definition-mode)
     + [IG -  Insert Graphics Element (Symbol Definition Mode)](#ig----insert-graphics-element-symbol-definition-mode)
-    + [\<Ins> and \<R11> Keys -  Insert Alphanumeric Character](#ins-and-r11-keys----insert-alphanumeric-character)
     + [ISxx -  Insert Symbol Element (Symbol Definition Mode)](#isxx----insert-symbol-element-symbol-definition-mode)
-    + ['J -  Set Justification](#j----set-justification)
-    + [/J -  Draw Junction Segment](#j----draw-junction-segment)
-    + ['K -  Cancel Alphanumeric Field Tag](#k----cancel-alphanumeric-field-tag)
-    + [.K -  Cancel Symbol Tag](#k----cancel-symbol-tag)
-    + [/K -  Escape Line Drawing](#k----escape-line-drawing)
-    + [[K -  Cancel Area Definition or Area Tag](#k----cancel-area-definition-or-area-tag)
     + [KEY -  Assign a Function to a Function Key](#key----assign-a-function-to-a-function-key)
     + [!LB, !MB and !RB -  Emulate a Mouse Button Click](#lb-mb-and-rb----emulate-a-mouse-button-click)
-    + [#L and #R -  Move Left or Right in Design Hierarchy](#l-and-r----move-left-or-right-in-design-hierarchy)
-    + ['L -  Create, Edit or View Layered Text](#l----create-edit-or-view-layered-text)
-    + ['LE -  Erase Layered Text](#le----erase-layered-text)
-    + ['LR -  Replace/Insert Layered Text](#lr----replaceinsert-layered-text)
-    + [.L -  Load Symbol from Library (\*)](#l----load-symbol-from-library-)
-    + [.L - Print the Symbol Definition List (Symbol Definition Mode)](#l---print-the-symbol-definition-list-symbol-definition-mode)
-    + [.LIB -  Update Symbol Library .NOLIB](#lib----update-symbol-library-nolib)
-    + [/L -  Draw Lines](#l----draw-lines)
-    + [/LE -  Draw/Erase Line](#le----drawerase-line)
-    + [[LOAD -  Load Area](#load----load-area)
     + [LIB -  Specify Symbol Library for Reference NOLIB](#lib----specify-symbol-library-for-reference-nolib)
     + [LOAD -  Load Drawing](#load----load-drawing)
     + [ls -  List Directory](#ls----list-directory)
-    + ['M -  Move Alphanumeric Field](#m----move-alphanumeric-field)
-    + [.M -  Move Symbol](#m----move-symbol)
-    + [[M -  Move Area](#m----move-area)
     + [Format](#format-2)
     + [MOVEPOEE -  Enable/Disable Point of Effect Movement for Electrical Items](#movepoee----enabledisable-point-of-effect-movement-for-electrical-items)
     + [MOVEPOEG - Enable/Disable Point of Effect Movement for General Items](#movepoeg---enabledisable-point-of-effect-movement-for-general-items)
@@ -140,44 +178,23 @@ commands by type.
     + [MXY -  Move to New Coordinates in Display Units  (Symbol Definition Mode)](#mxy----move-to-new-coordinates-in-display-units--symbol-definition-mode)
     + [MXYA - Move to Absolute x,y Coordinates (Symbol Definition Mode)](#mxya---move-to-absolute-xy-coordinates-symbol-definition-mode)
     + [MXYD -  Move to New Coordinates in Dot Units  (Symbol Definition Mode)](#mxyd----move-to-new-coordinates-in-dot-units--symbol-definition-mode)
-    + ['NAME -  Assign a Name to an Unused Attribute](#name----assign-a-name-to-an-unused-attribute)
     + [N -  Move to Symbol Using Reference Number](#n----move-to-symbol-using-reference-number)
     + [NOTE -  Insert Prompt](#note----insert-prompt)
-    + ['O -  Set Default Orientation for Alphanumeric Fields](#o----set-default-orientation-for-alphanumeric-fields)
-    + ['OVER -  Add/Delete Overbar to/from Alphanumeric Field (Signal Inversion)](#over----adddelete-overbar-tofrom-alphanumeric-field-signal-inversion)
     + [OVERLAP - Allow Alphanumeric Fields to Overlap Symbol Boundaries](#overlap---allow-alphanumeric-fields-to-overlap-symbol-boundaries)
-    + ['P -  Set Point of Effect](#p----set-point-of-effect)
-    + ['PD -  Reassign a Point of Effect to Its Default Location](#pd----reassign-a-point-of-effect-to-its-default-location)
-    + ['PRINT -  Print All Text for Alphanumeric Field](#print----print-all-text-for-alphanumeric-field)
-    + [.PRINT -  Print All Text for Symbol](#print----print-all-text-for-symbol)
-    + [/P -  Convert Temporary Lines to Permanent](#p----convert-temporary-lines-to-permanent)
     + [PALETTE -  Assign FutureNet Colors](#palette----assign-futurenet-colors)
     + [PAN -  Pan to Window Locations](#pan----pan-to-window-locations)
     + [PAUSE -  Change from Automatic to Single-step Execution](#pause----change-from-automatic-to-single-step-execution)
-    + [PgUp or R9 Keys - Move to Beginning of Command List PgDn or R15 Keys - Move to End of Command List (Symbol Definition Mode)](#pgup-or-r9-keys---move-to-beginning-of-command-list-pgdn-or-r15-keys---move-to-end-of-command-list-symbol-definition-mode)
     + [PINSNAP -  Snap Line to Pin](#pinsnap----snap-line-to-pin)
     + [POEDISP -  Display Points of Effect](#poedisp----display-points-of-effect)
     + [POER -  Point of Effect Range](#poer----point-of-effect-range)
     + [PRINT -  Print Drawing](#print----print-drawing)
     + [PRINTOPT -   Set Print Options](#printopt-----set-print-options)
     + [PROFILE -  Display Profile Options](#profile----display-profile-options)
-    + [.Q -  Exit Symbol Definition Mode (Symbol Definition Mode)](#q----exit-symbol-definition-mode-symbol-definition-mode)
     + [QUIT -  Quit Editing Session](#quit----quit-editing-session)
-    + ['R -  Replace Alphanumeric String](#r----replace-alphanumeric-string)
-    + [.R -  Rotate a Symbol](#r----rotate-a-symbol)
-    + [.RE -  Reflect a Symbol](#re----reflect-a-symbol)
-    + [/R -  Change Line Routing](#r----change-line-routing)
-    + [[R -  Rotate an Area](#r----rotate-an-area)
-    + [[RE -  Reflect an Area](#re----reflect-an-area)
     + [REFRESH -  Refresh Screen](#refresh----refresh-screen)
     + [RENUM -  Resequence Symbol Reference Numbers](#renum----resequence-symbol-reference-numbers)
     + [rm -   Remove File](#rm-----remove-file)
     + [RS -  Reset to Default Symbol Element Set (Symbol Definition Mode)](#rs----reset-to-default-symbol-element-set-symbol-definition-mode)
-    + ['S -  Set Attribute for Existing Field](#s----set-attribute-for-existing-field)
-    + [.S -  Enter Symbol Definition Mode (Symbol Definition Mode)](#s----enter-symbol-definition-mode-symbol-definition-mode)
-    + [.SAVE -  Save Symbol in Current Update Library](#save----save-symbol-in-current-update-library)
-    + [.SBS -  Set Block Symbol Bit (Symbol Definition Mode)](#sbs----set-block-symbol-bit-symbol-definition-mode)
-    + [[SAVE -  Save Area](#save----save-area)
     + [SAVE -   Save Drawing](#save-----save-drawing)
     + [SAVEALL -  Save All Changed Drawing Files](#saveall----save-all-changed-drawing-files)
     + [SD -  Select Decrement Mode (Symbol Definition Mode)](#sd----select-decrement-mode-symbol-definition-mode)
@@ -188,19 +205,12 @@ commands by type.
     + [ST -  Select Symbol Element Table (Symbol Definition Mode)](#st----select-symbol-element-table-symbol-definition-mode)
     + [STOP -  Stop Command File Run](#stop----stop-command-file-run)
     + [SXY, RXY -  Save/Restore x and y Coordinates  (Symbol Definition Mode)](#sxy-rxy----saverestore-x-and-y-coordinates--symbol-definition-mode)
-    + [Tab, Shift  Tab Keys -  Move Cursor Down/Up a Field](#tab-shift--tab-keys----move-cursor-downup-a-field)
-    + [#U -  Move Up in Design Hierarchy](#u----move-up-in-design-hierarchy)
-    + ['UNDER -  Add/Delete Underscore to Alphanumeric Field](#under----adddelete-underscore-to-alphanumeric-field)
     + [UNDO/REDO -  Reverse/Restore Commands](#undoredo----reverserestore-commands)
-    + [/V -  Move Vertex](#v----move-vertex)
     + [VERSION -  Display Software Version](#version----display-software-version)
     + [VIEW -  View Drawing](#view----view-drawing)
-    + [.w,h -  Define Symbol Cell Size](#wh----define-symbol-cell-size)
     + [WINDOW -  Set Window Locations](#window----set-window-locations)
     + [ZIN/ZOUT -  Change Zoom Level](#zinzout----change-zoom-level)
     + [ZOOM -  Dynamic Zoom Level](#zoom----dynamic-zoom-level)
-
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ### ! -  Enter Operating System Command 
 
@@ -989,11 +999,10 @@ UP and DOWN.
 
 Related Commands 
 
-PC          SUN 
-
-\<PgUp>      \<R9>
-
-\<PgDn>      \<R15>
+PC | SUN 
+---|----
+\<PgUp>  |    \<R9>
+\<PgDn>  |    \<R15>
 
 
 ### AUTO -  Automatic Command Execution 
@@ -2390,7 +2399,7 @@ This command is intended primarily for use in automatic
 command execution sequences. 
 
 
-### \#D -  Move Down in Design Hierarchy 
+### #D -  Move Down in Design Hierarchy 
 
 Format 
 
@@ -2398,9 +2407,9 @@ Format
 
 Keys 
 
-PC                SUN 
-
-\<Ctrl>\<PgDn>      \<Ctrl>\<R15>
+PC | SUN 
+---|----
+\<Ctrl>\<PgDn> | \<Ctrl>\<R15>
 
 Purpose 
 
@@ -4856,8 +4865,9 @@ HOME
 
 Keys 
 
-PC              SUN 
-\<Home>          \<R7>
+PC | SUN 
+---|----
+\<Home> | \<R7>
 
 Purpose 
 
@@ -4895,8 +4905,9 @@ HOME
 
 Keys 
 
-PC              SUN 
-\<Home>          \<R7>
+PC | SUN 
+---|----
+\<Home> | \<R7>
 
 Purpose 
 
@@ -5119,8 +5130,9 @@ ISxx
 
 Keys 
 
-PC          SUN 
-\<Ins>       \<R11>
+PC |SUN 
+---|-----
+\<Ins> | \<R11>
 
 Purpose 
 
@@ -7559,9 +7571,11 @@ STOP
 ### PgUp or R9 Keys - Move to Beginning of Command List PgDn or R15 Keys - Move to End of Command List (Symbol Definition Mode)
 
 Keys
-PC         SUN
-\<PgUp>     \<R9>
-\<PgDn>     \<R15>
+
+PC | SUN
+---|----
+\<PgUp> |\<R9>
+\<PgDn> |\<R15>
 
 Purpose
 
@@ -9396,8 +9410,9 @@ Format
 
 Key
 
-PC              SUN
-\<Ctrl>\<PgUp>   \<Ctrl>\<R9>
+PC | SUN
+---|----
+\<Ctrl>\<PgUp> |\<Ctrl>\<R9>
 
 Purpose
 
@@ -9723,9 +9738,10 @@ ZOUT [0 | 1 | 2 | n]
 
 Keys
 
-PC               SUN
-\<PgUp>          \<R9>   (ZIN)
-\<PgDn>          \<R15>  (ZOUT)
+PC | SUN
+---|----
+\<PgUp> |\<R9>   (ZIN)
+\<PgDn> |\<R15>  (ZOUT)
 
 Purpose
 
