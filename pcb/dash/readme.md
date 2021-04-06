@@ -1,17 +1,27 @@
-# Software Archaeology: FutureNet Dash
+# FutureNet Dash
 
-I had heard of FutureNet Dash, but had never used it.  It is mentioned as
-the first schematic capture program usable for designing Xilinx FPGAs and
-maybe the first schematic capture program available for IBM PCs.  Recently I
-discovered that a version is available, and this my attempt to learn this
-$3850 (in 1988) program without manuals.
+I had heard of FutureNet Dash, but had never used it.  It is the first
+schematic capture program usable for designing Xilinx FPGAs and maybe the
+first schematic capture program available for IBM PCs.  Recently I
+discovered that a version is available online, but no manuals.  These are my
+notes from learning to use this $3850 (1988) program.
 
-# Available information
+Why even look at such an old program?  Well the user interface of these
+pre-Windows programs is always interesting to explore.  I'm familiar with
+"Old DOS OrCAD"- it still has an active community and competes well even
+with modern ECAD programs.  OrCAD was the lower cost option for schematic
+cature, so I'm curious what the high-end tool was like.
+
+## Available information
 
 Michael Holley wrote this about FutureNet (extracted from the Wayback
 Machine):
 
 [FutureNet_Artifacts.pdf](FutureNet_Artifacts.pdf)
+
+And contributed this some brochures and a price-list to bitsavers, here:
+
+[http://www.bitsavers.org/pdf/futureNet](http://www.bitsavers.org/pdf/futureNet)
 
 Some ASICs used in the Atari ST were designed in FutureNet, see here:
 
@@ -30,16 +40,12 @@ There is a review of it in the October 1983 issue of PC Magazine.  This
 article mentions some old "mainframe" electronic design pacakges I will have
 to look into at some point:
 
-[https://books.google.com/books?id=qURs4j9vKn4C&pg=PA532&lpg=PA532&dq=futurenet+dash+review+pc+magazine&source=bl&ots=ZL4rZR97KA&sig=ACfU3U2lhqr6opEOlPX2aa_zcWXXt0bmBg&hl=en&sa=X&ved=2ahUKEwjYx6bGpePvAhXpdN8KHX9rApoQ6AEwCHoECAEQAw#v=onepage&q=futurenet%20dash%20review%20pc%20magazine&f=false](https://books.google.com/books?id=qURs4j9vKn4C&pg=PA532&lpg=PA532&dq=futurenet+dash+review+pc+magazine&source=bl&ots=ZL4rZR97KA&sig=ACfU3U2lhqr6opEOlPX2aa_zcWXXt0bmBg&hl=en&sa=X&ved=2ahUKEwjYx6bGpePvAhXpdN8KHX9rApoQ6AEwCHoECAEQAw#v=onepage&q=futurenet%20dash%20review%20pc%20magazine&f=false)
-
-Bitsavers has some brochures and a price-list, it sure was expensive:
-
-[http://www.bitsavers.org/pdf/futureNet](http://www.bitsavers.org/pdf/futureNet)
+[PC Magazine Review](https://books.google.com/books?id=qURs4j9vKn4C&pg=PA532&lpg=PA532&dq=futurenet+dash+review+pc+magazine&source=bl&ots=ZL4rZR97KA&sig=ACfU3U2lhqr6opEOlPX2aa_zcWXXt0bmBg&hl=en&sa=X&ved=2ahUKEwjYx6bGpePvAhXpdN8KHX9rApoQ6AEwCHoECAEQAw#v=onepage&q=futurenet%20dash%20review%20pc%20magazine&f=false)
 
 There is no further documentation that I can find.  However, the program has
 on-line help.  I've extracted it here:
 
-[dash-online-help.md](dash-online-help.md)
+[Online Help](dash-online-help.md)
 
 The commands are organized by function by prefix:
 
@@ -78,18 +84,84 @@ These macros are assigned to function keys, so they are probably important:
     F9	'0
     F10	/0	Cycle through line styles
 
-### Menus
+### Commands
 
-When you are in no other mode, right click to bring up menus.
+Normally you are in "graphic editing" mode.  From this mode, you can type
+commands.  Note however that if you hit Esc, you enter "alphanumeric"
+mode.  Hit Esc again to return to graphic editing mode.
 
-### Setup
+Anyway from graphic editing mode you may type in a command.  When you press
+Enter, the command may prompt you for futher missing information.  Once all
+information is provided and you hit Enter, the command executes.
+
+Interestingly, the command line doesn't clear after you hit Enter- instead
+the last command line is retained so that you may hit Enter again to repeat
+the command.  Only when you start typing a new command does the line clear.
+
+You can actually enter a small script at the command line: multiple commands
+may be entered, separated by semicolons.  Again it is retained, so hitting
+Enter repeats the script.
+
+Scripts may be bound to keys with the KEY command.  You can execute scripts
+saved in files with the AUTO and EXEC commands.
+
+By contrast, OrCAD does not have a command line, instead there is a
+keystroke-based menu system: You hit 'P' for the placement menu, and then
+'T' to place text.  You can hit 'R' to repeat the previous single command. 
+There are keyboard macros and you can start recording with the 'M' command
+and selecting which key you want the macro to be bound to.  There is also a
+text form of these macros which can be bound to keys in a setup file.  There
+is no way to execute a script file, but in one way OrCAD macros are more
+powerful: you can hit Ctrl-Home during recording at any point requiring user
+input.  FutureNet has no such feature, but will automatically assume "Yes"
+to any Yes/No questions that commands may have.
+
+### The cursor and panning
+
+You can move the cursor with the mouse, but also with the keyboard.  Arrow
+keys will move the cursor, as well the "left", "right", "up" and "down"
+commands.
+
+You can enter a repeat prefix before hitting an arrow key.  For example, 5
+then right-arrow moves 5 positions to the right.  The prefix is retained for
+addition arrow key presses.
+
+The repeat prefix does not seem to work as a command: you can not say
+"5;right" for example.
+
+The displayed screen is a small window onto the larger schematic sheet.  As
+with OrCAD, FutureNet uses auto-panning.  It means that if you hit the edge
+of the screen with the cursor, the screen automatically pans in the given
+direction to view more of the sheet.  FutureNet displays scrollbars, but
+there is no reason to use them.
+
+It's difficult to convey just how much more conventient and quick this is to
+use vs.  scroll bars, though I think it works better in OrCAD somehow-
+sometimes FutureNet doesn't detect the pan request.
+
+### Grid
+
+There are commands to control the displayed grid:
 
     grid        - Turn the grid on or off
     grid snap   - Turn snap-to-grid on or off
 
 I've found that you probably do not want snap-to-grid on.  Many symbols have
-pins which are not aligned with the grid.  Also the native grid is not much
-finer than the displayed grid, so you don't really need it.
+pins which are not aligned with the displayed grid.  Also the native grid is
+not much finer than the displayed grid, so you don't really need it.
+
+In OrCAD you always want snap to grid, since the native grid is one pixel.
+
+Having all key symbol points on a grid is very important for keyboard
+acceleration.  You can make commands (or macros in OrCAD) to lay down a
+series of wires or labels in a structured way.  This is basically impossible
+to do without a grid.
+
+### Menus
+
+When you are in no other mode, right click to bring up menus of all
+available commands.  I suspect this was added in later versions to keep up
+with GUI fads.
 
 ### Zooming
 
@@ -98,7 +170,7 @@ use the "zoom" command for custom ones.
 
 Zooming works fairly well in that a correctly scaled font is chosen for the
 zoom level.  Well at least two of the prefined magnifications have legible
-text.  OrCAD had only a single good zoom level.
+text.  OrCAD had only a single text-legible zoom level.
 
 ### Adding a part
 
@@ -112,6 +184,9 @@ use 8088 for an 8088 microprocessor.  But for a TTL inverter, you need to
 use "7404A" to get the first one of the package, or "7404B" for the second
 one, etc.
 
+OrCAD has the "G" (get part) command for this.  You can type in the part, or
+scroll through a text-only list of them.
+
 ### Moving a part
 
 Left-click in the center of the part and it should enter move part mode.
@@ -124,6 +199,9 @@ There are a number of commands for this:
 
     .R	Rotate part
     .RE	Reflect part
+
+You may enter these command while a part is already attached to the cursor
+for moving.
 
 ### Duplicating a part
 
@@ -140,6 +218,9 @@ Type .DIR \<Enter>
 
 A window with a list of symbol libraries along with a list of symbols and a preview
 pops up.
+
+OrCAD also has a part browser with preview, but you have to step through
+parts one at a time.  FutureNet's browser is definitely better.
 
 ### Load a symbol library
 
