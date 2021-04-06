@@ -41,12 +41,7 @@ on-line help.  I've extracted it here:
 
 [dash-online-help.md](dash-online-help.md)
 
-The commands are organized by function by prefix.  I grouped them together
-here:
-
-[dashlist.md](dashlist.md)
-
-These are the groups:
+The commands are organized by function by prefix:
 
 	. commands are for symbols / parts
 	/ commands are for wires
@@ -238,6 +233,12 @@ Now to actually write some text, position mouse on a wire and hit ESC.  This
 switches to text mode and you can type the label.  The "Point of Effect" (as
 FutureNet calls it) must be on the wire.  When you are done typing, don't
 hit \<Enter>.  Instead hit ESC again to return to graphics mode.
+
+### Delete a label
+
+Position mouse on label and type
+
+    'E <Enter>
 
 ### Attributes
 
