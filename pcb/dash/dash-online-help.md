@@ -41,7 +41,7 @@ commands by type.
     + [/C -  Draw Direct Connection Through Symbol](#c----draw-direct-connection-through-symbol)
     + [[C -  Copy Area](#c----copy-area)
     + [CD -  Change Current Directory](#cd----change-current-directory)
-    + [CLEAR/ERASE -  Clear Drawing Hierarchy or Erase Current Drawing](#clear-erase----clear-drawing-hierarchy-or-erase-current-drawing)
+    + [CLEAR/ERASE -  Clear Drawing Hierarchy or Erase Current Drawing](#clearerase----clear-drawing-hierarchy-or-erase-current-drawing)
     + [COLOR -  Modify Color Palette](#color----modify-color-palette)
     + [CONNECT -  Enable/Disable Maintenance of Line Connections (Rubberbanding)](#connect----enable-disable-maintenance-of-line-connections-rubberbanding)
     + [CONTEXT -  Restore Drawing Context](#context----restore-drawing-context)
