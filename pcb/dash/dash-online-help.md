@@ -6,7 +6,7 @@ commands by type.
 
 - [Here is the extracted online help converted to Markdown](#here-is-the-extracted-online-help-converted-to-markdown)
     + [! -  Enter Operating System Command](#----enter-operating-system-command)
-    + [.- .> .= .-O .>O -  Add/Replace Pin Stub](#-----o-o----add-replace-pin-stub)
+    + [.- .> .= .-O .>O -  Add/Replace Pin Stub](#-----o-o----addreplace-pin-stub)
     + [.-AI .-AO .>A .\<A -   Add/Replace IEC/ANSI Pin Stub](#-ai--ao-a-a-----add-replace-iecansi-pin-stub)
     + ['0...'7 -  Select Font](#07----select-font)
     + [/0.../10 -  Select Line Type](#010----select-line-type)
