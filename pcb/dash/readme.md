@@ -84,6 +84,21 @@ These macros are assigned to function keys, so they are probably important:
     F9	'0
     F10	/0	Cycle through line styles
 
+### Display Drivers
+
+Sadly, I can only get it work in 640x480 mode with the VGA12.DG driver in
+DOSBOX.  If there is a way to use higher resolution modes, I don't know it.
+
+OrCAD has a huge advantage here- the display driver architecture is
+documented and assembly language source code examples are provided.  People
+have made drivers that work on recent video cards (it works well in DOSBOX)
+and have even created a GDI driver that allows you to have a resizable
+window up to the size of any modern display supported by Windows.  OrCAD is
+still a DOS program, so only 32-bit versions of Windows will run it.  The
+lack of virtual-8086 support from 64-bit mode processors has forced OrCAD
+users to turn to DOSBOX.  Unfortunately this is step back compared with how
+it worked with the GDI driver.
+
 ### Commands
 
 Normally you are in "graphic editing" mode.  From this mode, you can type
@@ -109,12 +124,12 @@ By contrast, OrCAD does not have a command line, instead there is a
 keystroke-based menu system: You hit 'P' for the placement menu, and then
 'T' to place text.  You can hit 'R' to repeat the previous single command. 
 There are keyboard macros and you can start recording with the 'M' command
-and selecting which key you want the macro to be bound to.  There is also a
-text form of these macros which can be bound to keys in a setup file.  There
-is no way to execute a script file, but in one way OrCAD macros are more
-powerful: you can hit Ctrl-Home during recording at any point requiring user
-input.  FutureNet has no such feature, but will automatically assume "Yes"
-to any Yes/No questions that commands may have.
+and then by selecting which key you want the macro to be bound to.  There is
+also a text form of these macros which can be bound to keys in a setup file. 
+There is no way to execute a script file, but in one way OrCAD macros are
+more powerful: you can hit Ctrl-Home during recording at any point requiring
+user input.  FutureNet has no such feature, but will automatically assume
+"Yes" to any Yes/No questions that commands may have.
 
 ### The cursor and panning
 
@@ -124,7 +139,7 @@ commands.
 
 You can enter a repeat prefix before hitting an arrow key.  For example, 5
 then right-arrow moves 5 positions to the right.  The prefix is retained for
-addition arrow key presses.
+additional arrow key presses.
 
 The repeat prefix does not seem to work as a command: you can not say
 "5;right" for example.
