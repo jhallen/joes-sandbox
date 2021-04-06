@@ -1,8 +1,7 @@
-### Command Reference 
+## FutureNet Dash Command Reference 
 
-This chapter contains all of the FutureNet commands in 
-alphanumeric order.  The reference card contains a listing of 
-commands by type. 
+This chapter contains all of the FutureNet Dash commands grouped by type and
+in alphanumeric order.
 
 - Symbol commands
     + [.- .> .= .-O .>O -  Add/Replace Pin Stub](#-----o-o----addreplace-pin-stub)
@@ -9297,10 +9296,9 @@ shapes.
 
 Related Command
 
-RS
+[RS](#rs----reset-to-default-symbol-element-set-symbol-definition-mode)
 
-ISxx
-
+[ISxx](#isxx----insert-symbol-element-symbol-definition-mode)
 
 ### STOP -  Stop Command File Run
 
@@ -9327,12 +9325,11 @@ command file is being entered in either AUTO or EXEC mode.
 
 Related Commands
 
-AUTO
+[AUTO](#auto----automatic-command-execution)
 
-EXEC
+[EXEC](#exec----single-step-command-execution)
 
-PAUSE
-
+[PAUSE](#pause----change-from-automatic-to-single-step-execution)
 
 ### SXY, RXY -  Save/Restore x and y Coordinates  (Symbol Definition Mode)
 
@@ -9399,8 +9396,7 @@ is centered on the drawing screen.
 
 Related Commands
 
-\<Esc>
-
+[\<Esc>](#esc-key----enterexit-alphanumeric-mode)
 
 ### #U -  Move Up in Design Hierarchy
 
@@ -9438,14 +9434,13 @@ the Move Up in Design Hierarchy command has no effect.
 
 Related Commands
 
-\#D
+[#D](#d----move-down-in-design-hierarchy)
 
-\#L
+[#L](#l-and-r----move-left-or-right-in-design-hierarchy)
 
-\#R
+[#R](#l-and-r----move-left-or-right-in-design-hierarchy)
 
-SAVEALL
-
+[SAVEALL](#saveall----save-all-changed-drawing-files)
 
 ### 'UNDER -  Add/Delete Underscore to Alphanumeric Field
 
@@ -9479,8 +9474,7 @@ deleted.
 
 Related Commands
 
-'OVER
-
+['OVER](#over----adddelete-overbar-tofrom-alphanumeric-field-signal-inversion)
 
 ### UNDO/REDO -  Reverse/Restore Commands
 
@@ -9571,8 +9565,7 @@ does not work with direct connect lines.
 
 Related Commands
 
-/L
-
+[/L](#l----draw-lines)
 
 ### VERSION -  Display Software Version
 
@@ -9631,10 +9624,9 @@ that were run since VIEW OFF was used.
 
 Related Commands
 
-AUTO
+[AUTO](#auto----automatic-command-execution)
 
-EXEC
-
+[EXEC](#exec----single-step-command-execution)
 
 ### .w,h -  Define Symbol Cell Size
 
@@ -9680,8 +9672,7 @@ done.
 
 Related Commands
 
-.S
-
+[.S](#s----enter-symbol-definition-mode-symbol-definition-mode)
 
 ### WINDOW -  Set Window Locations
 
@@ -9721,11 +9712,11 @@ NOWIN or WINDOW OFF cancels all the saved window locations.
 
 Related Commands
 
-PAN
+[PAN](#pan----pan-to-window-locations)
 
-ZIN
+[ZIN](#zinzout----change-zoom-level)
 
-ZOUT
+[ZOUT](#zinzout----change-zoom-level)
 
 
 ### ZIN/ZOUT -  Change Zoom Level
@@ -9822,7 +9813,7 @@ line.
 
 Related Commands
 
-ZOOM
+[ZOOM](#zoom----dynamic-zoom-level)
 
 
 ### ZOOM -  Dynamic Zoom Level
@@ -9857,8 +9848,6 @@ zoom level once you are finished with dynamic zoom.
 
 Related Commands
 
-ZIN
+[ZIN](#zinzout----change-zoom-level)
 
-ZOUT
-
-
+[ZOUT](#zinzout----change-zoom-level)
