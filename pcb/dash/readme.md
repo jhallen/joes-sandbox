@@ -105,8 +105,8 @@ Normally you are in "graphic editing" mode.  From this mode, you can type
 commands.  Note however that if you hit Esc, you enter "alphanumeric"
 mode.  Hit Esc again to return to graphic editing mode.
 
-Anyway from graphic editing mode you may type in a command.  When you press
-Enter, the command may prompt you for futher missing information.  Once all
+From graphic editing mode you may type in a command.  When you press Enter,
+the command may prompt you for futher missing information.  Once all
 information is provided and you hit Enter, the command executes.
 
 Interestingly, the command line doesn't clear after you hit Enter- instead
@@ -396,13 +396,14 @@ Point to the first of these and type "#D" to descend hierarchy.  You can hit
 FutureNet will indicate that it is new and ask if it should be created.
 
 When you are in one of the subsheets, you can traverse between its siblings
-with the #R and #L commands.  All of the siblings share the same namespace
-for signals- two wires labeled with the same signal name will be connected.
+with the #R and #L commands.
 
-Speculation: the DCM.EXE program accepts a list of top-level sheets.  I
-think you can dispense with the top-level sheet and just give a list of .DWG
-files to DCM.EXE for a flat design.  But you will not have the #R and #L
-commands this way.
+Another way is to feed a list of top-level sheets to DCM.EXE when you build
+the netlist.  You will not be able to use the #R and #L commands to traverse
+between sheets this way.
+
+Either way, all of the sibling sheets share the same namespace for signals-
+two wires labeled with the same signal name will be connected.
 
 ### How do you annotate?
 
@@ -417,11 +418,24 @@ The sequence of commands is as follows:
 
 First you preprocess the .DWG files into a single .DCM file with:
 
-    DCM -itop -lfirst+second
+    DCM -itop -lfirst+second -oout
+
+The commnd line length is very limited in MS-DOS, so you may also provide
+all of the names in a text command file.  In this case you invoke DCM like
+this:
+
+    DCM @list
+
+The command file, list.cmd should look like this:
+
+    -itop
+    -lfirst
+    second
+    -oout
 
 Next you convert the .DCM file into a .NET file with:
 
-    NETC top
+    NETC out
 
 You may convert the .NET file into a PADS ASCII file with:
 
