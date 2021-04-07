@@ -172,6 +172,16 @@ acceleration.  You can make commands (or macros in OrCAD) to lay down a
 series of wires or labels in a structured way.  This is basically impossible
 to do without a grid.
 
+### Selecting the sheet size
+
+There is a command:
+
+    size a     Select A size sheet
+
+The default size is b.
+
+An annoying limitation is that you can not reduce the size of a non-empty drawing.
+
 ### Menus
 
 When you are in no other mode, right click to bring up menus of all
@@ -372,16 +382,28 @@ text fields (often pins 14 and 7).  The attributes for these fields are
 Questions: Are all attributes above 100 global?  How do you have a hidden
 +3.3V rail?
 
-### Inter-sheet connections in hierarchical designs
+### Hierarchical designs
 
-The subsheet symbol (a "functional block" created with .F) includes pins
-(create them with .-).  The pins should be labeled with text that has one of
-the pin attributes: PINI (for inputs), PINO (for outputs), PNBT (for
-bidirectional), etc.
+Create a symbol for a subsheet by creating a "functional block".  Use the .F
+command to create it.  Within the functional block symbol, place an
+"alphanumeric field" containing the file name of the sub-sheet, with its
+attribute set to FILE (attribute number 8).
+
+Point to the file name and issue the "#D" command (down hierarchy) to
+descend into it.  You can issue the "#U" command (up hierarhcy) to return to
+the previous level.  The first time you descend into a file FutureNet will
+indicate that it is new and ask if it should be created.
+
+The functional block should include pins for the signals that are to be
+brought up from the subsheet.  Create them with ".-".  The pins should be
+labeled with text that has one of the pin attributes: PINI (for inputs),
+PINO (for outputs), PNBT (for bidirectional), etc.
 
 The subsheet itself should have a wire labeled with text matching the pin. 
 "SIG" works as the attribute for the text (and I suspect other attributes
 will also work).
+
+OrCAD has dedicated module port symbols this.
 
 ### Flat designs
 
@@ -405,12 +427,19 @@ between sheets this way.
 Either way, all of the sibling sheets share the same namespace for signals-
 two wires labeled with the same signal name will be connected.
 
+In OrCAD, you can supply an aligned vertical list of file names in a
+top-level sheel (not as part of a module symbol).  Very old versions of
+OrCAD also supported having a list of file names in a text file, but this
+feature was deprecated.
+
 ### How do you annotate?
 
 OrCAD has an automatic annotation process to replace the default reference
 designators (such as U?  in OrCAD or UNNN in FutureNet) with unique numbers
 (U1, U2, etc.).  I have found no such thing in FutureNet.  It seems you have
 to set them by hand.
+
+I must be missing something here.
 
 ### How do you generate the netlist?
 
@@ -421,8 +450,8 @@ First you preprocess the .DWG files into a single .DCM file with:
     DCM -itop -lfirst+second -oout
 
 The commnd line length is very limited in MS-DOS, so you may also provide
-all of the names in a text command file.  In this case you invoke DCM like
-this:
+all of the names in a text command file (this mimics the MS-DOS LINK
+command).  In this case you invoke DCM like this:
 
     DCM @list
 
@@ -442,16 +471,6 @@ You may convert the .NET file into a PADS ASCII file with:
     NET2PADS     (it prompts for the name of the .NET file)
 
 ### How do you create new parts?
-
-### How do you select sheet size?
-
-There is a command:
-
-    size a     Select A size sheet
-
-The default size is b.
-
-An annoying limitation is that you can not reduce the size of a non-empty drawing.
 
 ### How do busses work?
 
