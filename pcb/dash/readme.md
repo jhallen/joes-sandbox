@@ -320,9 +320,23 @@ this, hit ESC again to return to graphics mode.
 You can also type / L \<Enter> to start drawing a wire- I'm not sure why
 they have this since you can just left-click.
 
+![Wire 1](doc/wire1.png)
+
+![Wire 2](doc/wire2.png)
+
+![Wire 3](doc/wire3.png)
+
+![Wire 4](doc/wire4.png)
+
 ### Connecting wires
 
 Use / d \<Enter> or hit F5 to draw or delete a junction dot.
+
+![Wire 5](doc/wire6.png)
+
+![Wire 6](doc/wire6.png)
+
+![Wire 7](doc/wire6.png)
 
 ### Deleting wires
 
