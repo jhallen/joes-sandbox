@@ -374,11 +374,11 @@ the attribute code assigned to it.
 
 Here is sheet with a number of different types of alphanumeric fields:
 
-![before](doc/attribx.png)
+![before](doc/attribsx.png)
 
 After hitting 'd:
 
-![after](doc/attrib.png)
+![after](doc/attribs.png)
 
 ### Delete a label
 
