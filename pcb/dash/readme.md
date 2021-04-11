@@ -366,6 +366,20 @@ switches to text mode and you can type the label.  The "Point of Effect" (as
 FutureNet calls it) must be on the wire.  When you are done typing, don't
 hit \<Enter>.  Instead hit ESC again to return to graphics mode.
 
+### Reveal Codes
+
+There is a command 'd that reveals the attribute codes (somewhat like
+WordPerfect's "reveal codes")- all of the text is replaced is replaced by
+the attribute code assigned to it.
+
+Here is sheet with a number of different types of alphanumeric fields:
+
+![before](doc/attribx.png)
+
+After hitting 'd:
+
+![after](doc/attrib.png)
+
 ### Delete a label
 
 Position mouse on label and type
