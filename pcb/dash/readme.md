@@ -431,6 +431,12 @@ will also work).
 
 OrCAD has dedicated module port symbols this.
 
+![top](doc/top.png)
+
+![source](doc/source.png)
+
+![dest](doc/dest.png)
+
 ### Flat designs
 
 A single functional block can be made of multiple sheets, so one way is to
