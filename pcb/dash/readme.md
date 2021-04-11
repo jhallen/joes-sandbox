@@ -190,6 +190,8 @@ When you are in no other mode, right click to bring up menus of all
 available commands.  I suspect this was added in later versions to keep up
 with GUI fads.
 
+![Menus](doc/menu.png)
+
 ### Zooming
 
 Hit PgUp and PgDn to jump between different magnifications.  You can also
@@ -198,6 +200,10 @@ use the "zoom" command for custom ones.
 Zooming works fairly well in that a correctly scaled font is chosen for the
 zoom level.  Well at least two of the prefined magnifications have legible
 text.  OrCAD had only a single text-legible zoom level.
+
+![Zoom 1.0](doc/zoom1.png)
+
+![Zoom 0.7](doc/zoom7.png)
 
 ### Adding a part
 
