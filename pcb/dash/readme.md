@@ -17,7 +17,7 @@ cature, so I'm curious what the high-end tool was like.
 Michael Holley wrote this about FutureNet (extracted from the Wayback
 Machine):
 
-[FutureNet_Artifacts.pdf](FutureNet_Artifacts.pdf)
+[FutureNet_Artifacts.pdf](doc/FutureNet_Artifacts.pdf)
 
 And contributed this some brochures and a price-list to bitsavers, here:
 
@@ -45,7 +45,7 @@ to look into at some point:
 There is no further documentation that I can find.  However, the program has
 on-line help.  I've extracted it here:
 
-[Online Help](dash-online-help.md)
+[Online Help](doc/dash-online-help.md)
 
 The commands are organized by function by prefix:
 
@@ -87,7 +87,9 @@ These macros are assigned to function keys, so they are probably important:
 ### Display Drivers
 
 Sadly, I can only get it work in 640x480 mode with the VGA12.DG driver in
-DOSBOX.  If there is a way to use higher resolution modes, I don't know it.
+DOSBOX.  The release notes mention higher resolution modes, but I think
+either the driver is missing or I'm missing information on how to select
+them.
 
 OrCAD has a huge advantage here- the display driver architecture is
 documented and assembly language source code examples are provided.  People
@@ -243,6 +245,8 @@ Type .DIR \<Enter>
 
 A window with a list of symbol libraries along with a list of symbols and a preview
 pops up.
+
+![.DIR](doc/dir.png)
 
 OrCAD also has a part browser with preview, but you have to step through
 parts one at a time.  FutureNet's browser is definitely better.
