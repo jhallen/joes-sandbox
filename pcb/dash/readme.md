@@ -220,6 +220,10 @@ one, etc.
 OrCAD has the "G" (get part) command for this.  You can type in the part, or
 scroll through a text-only list of them.
 
+![Part seletion](doc/partsel.png)
+
+![Part drop](doc/partsel1.png)
+
 ### Moving a part
 
 Left-click in the center of the part and it should enter move part mode.
