@@ -6,6 +6,8 @@
 
 /* For token defines */
 #include "lex.h"
+
+#include "tree.h"
 #include "y.tab.h"
 
 
@@ -1424,7 +1426,7 @@ int preproc_expr(int prec, struct num *rtn)
         int sta;
         struct num rhs[1];
         int c = get_tok(3);
-        if (c == EOF) {
+        if (c == tEOF) {
                 sta = -1;
         } else if (c == '!') {
                 sta = preproc_expr(12, rtn);
@@ -1795,8 +1797,8 @@ void handle_preproc()
                                 // printf("%s %d: IF expression (%llu%s%s)\n", file_name, line, n.num, (n.is_unsigned ? "u" : ""), (n.is_long_long ? "ll" : ""));
                                 // Check for extra tokens...
                                 c = get_tok(1);
-                                if (!sta && c != EOF) {
-                                        printf("%s %d: Error: extra junk after #if expression\n", file_name, line);
+                                if (!sta && c != tEOF) {
+                                        printf("%s %d: Error: extra junk after #if expression %d\n", file_name, line, c);
                                         sta = -1;
                                         push_cond(0);
                                 } else if (sta) { // Parse error
@@ -1827,7 +1829,7 @@ void handle_preproc()
                                 sta = preproc_expr(0, &n);
                                 c = get_tok(1);
                                 conds->t = -1; // Re-enable skipping
-                                if (!sta && c != EOF) {
+                                if (!sta && c != tEOF) {
                                         printf("%s %d: Error: extra junk after #elif expression\n", file_name, line);
                                         sta = -1;
                                 } else if (sta) { // Parse error

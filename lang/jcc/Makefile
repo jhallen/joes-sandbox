@@ -1,4 +1,4 @@
-OBJS = lex.o main.o y.tab.o
+OBJS = lex.o main.o y.tab.o tree.o
 CFLAGS = -g
 
 all : y.tab.c lex

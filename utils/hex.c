@@ -54,6 +54,8 @@ int main(int argc,char *argv[])
  while((c=fgetc(f))!=-1)  
   if(c=='\n') ; /* Ignore newline */
   else if(c=='\r') ; /* Ignore carriage return */
+  else if (c == ' '); /* Ignore space */
+  else if (c == '\t'); /* Ignore tab */
   else if((d=fgetc(f))==-1)
    fprintf(stderr,"hex: odd number of hex digits?\n"), exit(-1);
   else if(fputc(hexval(c)*16+hexval(d),g)==-1)
