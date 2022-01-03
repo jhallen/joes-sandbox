@@ -2,6 +2,8 @@
 
 ### Projects outside of joes-sandbox
 
+[libnklabs - A library for quickly making MCU-based products](https://github.com/nklabs/libnklabs)
+
 [Joe's Own Editor](http://joe-editor.sourceforge.net)
 
 [Relaysbc - A single board relay computer](http://relaysbc.sourceforge.net)
