@@ -68,8 +68,8 @@ struct inst *add_inst(char *inst_name,char *mod_name);
 void link();
 void find_top();
 void show_tree(int ind,struct module *m);
-struct module *modules;
-struct module *top;
+extern struct module *modules;
+extern struct module *top;
 extern char select_top[];
 
 struct inst *elaborate(struct param *context,char *inst_name,struct param *defparams,struct param *pdp,struct module *m,struct expr *connections,struct inst *mom);

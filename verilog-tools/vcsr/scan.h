@@ -12,9 +12,9 @@ void error();			// Print error message
 // about it:
 
 extern char tok_file[];		// File it was found in
-int tok_line;			// File line number
+extern int tok_line;			// File line number
 extern char tok_str[];		// Strings, identifiers, and numbers
-int tok_len;			// String length, or number size
+extern int tok_len;			// String length, or number size
 
 // Push source file
 // Scanning will continue until file exhausted, then we pop back to
